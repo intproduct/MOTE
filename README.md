@@ -1,22 +1,95 @@
-# FitMoTN README
+# FitMoTN
 
-`fitmotn/` 是在不修改 `./MOTN/` 旧实现文件的前提下，新建的一套标准化 MOTN 训练与评测框架。它的目标不是改写 MOTN 方法本身，而是把旧入口脚本里的训练、数据、patch、checkpoint、评测逻辑拆开，并用 Hugging Face Trainer 承接通用训练外壳。
+FitMoTN 是一个独立可运行的 MOTN 训练与评测仓库，用来在不改写原始方法语义的前提下，把数据、patch、训练、checkpoint、恢复和评测整理成一套更标准的工程化流程。
 
-当前版本是 MVP，重点保证这几件事：
+它的设计目标不是“重新发明一套 MOTN”，而是把旧实验脚本里的关键逻辑拆出来，并用 Hugging Face Trainer 承接通用训练外壳，方便：
 
-- patch 后模型可以按新框架训练
-- 不改旧文件
-- baseline 开关可用
-- 保存/加载基本可用
-- HF/lm-eval 评测可用
-- vLLM 有独立入口，但 patched FitMoTN checkpoint 还不支持直接用 vLLM 执行
+- 直接从 GitHub 获取并跑通
+- 用 JSON 管理实验配置
+- 做 patch 后模型的恢复性训练和评测
+- 保持现有 MOTN 核心语义不被训练外壳悄悄改掉
+
+当前版本是偏研究实验用途的 MVP，已经重点覆盖：
+
+- patch 后模型训练
+- 两阶段 mixed data training
+- baseline / mid / final eval
+- 保存与恢复 patched FitMoTN checkpoint
+- HF / lm-eval 评测
+- 独立 vLLM 评测入口
+
+限制也很明确：
+
+- 目前主要面向当前 Qwen 风格 MLP patch 场景
+- patched FitMoTN checkpoint 还不能直接用 vLLM 执行
+
+## 仓库获取
+
+如果你是第一次使用这个项目，最推荐的获取方式是直接从 GitHub clone：
+
+```bash
+git clone https://github.com/intproduct/MOTE.git fitmotn
+cd fitmotn
+```
+
+如果你使用 SSH：
+
+```bash
+git clone git@github.com:intproduct/MOTE.git fitmotn
+cd fitmotn
+```
+
+这个仓库本身就是 `fitmotn` 项目仓库，所以 clone 完后当前目录就是项目根目录，不需要再进入额外子目录。
+
+推荐把本地目录名也命名为 `fitmotn`。这样可以直接沿用仓库当前的 Python 包名与模块启动方式。
+
+## 快速开始
+
+最常见的使用流程可以概括成 4 步：
+
+1. clone 仓库
+2. 安装依赖
+3. 准备 base model 路径和数据缓存路径
+4. 用 `config_json` 启动训练
+
+一个最小示例：
+
+```bash
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
+  --model_path /path/to/Qwen3-0.6B \
+  --output_root ./fitmotn_runs \
+  --run_name demo_run \
+  --batch_size 4 \
+  --grad_accum 1 \
+  --steps 1000 \
+  --seq_len_run 1024 \
+  --lr 3e-5 \
+  --eval_every_updates 500 \
+  --save_every_updates 500 \
+  --layers_to_patch last_quarter \
+  --run_baseline_eval 1 \
+  --device cuda:0
+```
+
+更推荐的正式实验方式是直接使用 JSON 配置：
+
+```bash
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_config.example.json
+```
+
+如果你要做“恢复 patch 后小模型推理能力”的两阶段实验，优先参考：
+
+- [`fitmotn_reasoning_recovery_min_b.json`](./fitmotn_reasoning_recovery_min_b.json)
+- [`fitmotn_reasoning_recovery_conservative_b.json`](./fitmotn_reasoning_recovery_conservative_b.json)
+
+## 安装与运行环境
 
 ## 目录说明
 
 核心目录如下：
 
 ```text
-MOTN/fitmotn/
+fitmotn/
 ├── README.md
 ├── cli/
 ├── config/
@@ -32,7 +105,7 @@ MOTN/fitmotn/
 重点文件：
 
 - `model.py`
-  只做桥接与封装，直接复用 `MOTN.ADTN.MoTNLayer` 与 `MOTN.gate.GateConfig`
+  只做桥接与封装，复用仓库内的 `ADTN.py` 和 `gate.py`
 - `patching.py`
   负责 Qwen MLP patch、只训练 patched 参数、gate freeze/warmup routing、temperature 注入
 - `train/trainer.py`
@@ -50,7 +123,7 @@ MOTN/fitmotn/
 
 ## 核心原则
 
-FitMoTN 明确保留了以下 MOTN 核心语义：
+FitMoTN 明确保留了以下 MOTN 核心语义，不把训练外壳变成方法定义层：
 
 - 直接复用 `ADTN.py` 的 `MoTNLayer`
 - 直接复用 `gate.py` 的 `GateConfig` 与 gate 行为
@@ -61,8 +134,6 @@ FitMoTN 明确保留了以下 MOTN 核心语义：
 - 保留 warmup routing
 - 保留 temperature schedule
 - 保留 stage A / stage B 两阶段混采思想
-
-换句话说，Trainer 只是“训练外壳”，不是方法定义层。
 
 ## 环境要求
 
@@ -86,11 +157,52 @@ vLLM 评测额外需要：
 pip install -U vllm
 ```
 
+一个最小依赖检查可以这样做：
+
+```bash
+python3 -c "import torch, transformers, datasets; print('ok')"
+```
+
+## 获取后如何组织本地资源
+
+仓库 clone 下来以后，通常还需要你自己准备三类外部资源：
+
+1. base model
+2. 训练数据缓存目录
+3. 输出目录
+
+最常改的配置通常都在 `data` 和 `model` 两个 section 里，例如：
+
+- `model.model_path`
+- `data.tok_shard_dir`
+- `data.fineweb_cache_path`
+- `data.code_cache_path`
+- `data.gsm8k_cache_path`
+- `data.math_cache_root`
+
+推荐做法：
+
+1. 先复制一份配置文件
+2. 只把本机路径改成你自己的
+3. 再开始正式训练
+
+例如：
+
+```bash
+cp fitmotn_config.example.json my_fitmotn_config.json
+```
+
+然后把 `my_fitmotn_config.json` 里的路径换成你的实际目录，再执行：
+
+```bash
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./my_fitmotn_config.json
+```
+
 ## 训练入口
 
 训练 CLI：
 
-- [train.py](/Users/admini/Library/Mobile%20Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/cli/train.py)
+- [`cli/train.py`](./cli/train.py)
 
 重要说明：
 
@@ -103,9 +215,9 @@ pip install -U vllm
 最小示例：
 
 ```bash
-python3 -m MOTN.fitmotn.cli.train \
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
   --model_path /path/to/Qwen3-0.6B \
-  --output_root ./MOTN/fitmotn_runs \
+  --output_root ./fitmotn_runs \
   --run_name demo_run \
   --batch_size 4 \
   --grad_accum 1 \
@@ -182,7 +294,7 @@ python3 -m MOTN.fitmotn.cli.train \
 启动方式：
 
 ```bash
-python3 -m MOTN.fitmotn.cli.train --config_json ./fitmotn_config.json
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_config.json
 ```
 
 推荐做法：
@@ -194,8 +306,8 @@ python3 -m MOTN.fitmotn.cli.train --config_json ./fitmotn_config.json
 
 当前版本中，实验参数的完整外部控制入口是：
 
-- [fitmotn_config.example.json](/Users/admini/Library/Mobile%20Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/fitmotn_config.example.json)
-- `python3 -m MOTN.fitmotn.cli.train --config_json your_config.json`
+- [`fitmotn_config.example.json`](./fitmotn_config.example.json)
+- `PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json your_config.json`
 
 也就是说，下面列出的字段都可以通过外部 JSON 修改，而不只是训练参数。
 
@@ -482,12 +594,12 @@ python3 -m MOTN.fitmotn.cli.train --config_json ./fitmotn_config.json
 }
 ```
 
-新增一个可直接参考的 reasoning mix 配置：[approx_35000_reasoning_mix_v1.json](/Users/admini/Library/Mobile%20Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/approx_35000_reasoning_mix_v1.json)。它会并行启用 `gsm8k main + gsm8k socratic + svamp + metamath`，并把 `metamath_max_samples` 默认限制在 `20000`。
+新增一个可直接参考的 reasoning mix 配置：[`approx_35000_reasoning_mix_v1.json`](./approx_35000_reasoning_mix_v1.json)。它会并行启用 `gsm8k main + gsm8k socratic + svamp + metamath`，并把 `metamath_max_samples` 默认限制在 `20000`。
 
 如果你要做“恢复 patch 后小模型推理能力”的两阶段实验，可以直接参考这两个新增配置：
 
-- [fitmotn_reasoning_recovery_min_b.json](/Users/qixuanfang/Library/Mobile Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/fitmotn_reasoning_recovery_min_b.json)
-- [fitmotn_reasoning_recovery_conservative_b.json](/Users/qixuanfang/Library/Mobile Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/fitmotn_reasoning_recovery_conservative_b.json)
+- [`fitmotn_reasoning_recovery_min_b.json`](./fitmotn_reasoning_recovery_min_b.json)
+- [`fitmotn_reasoning_recovery_conservative_b.json`](./fitmotn_reasoning_recovery_conservative_b.json)
 
 这两份配置会保留 `wiki / fineweb / code / gsm8k / MATH / 少量 MMLU`，并额外接入 `OpenR1-Math-220k / NuminaMath-CoT / OpenThoughts-114k-math / Bespoke-Stratos-17k`。其中 `OpenThoughts` 默认启用更严格的长度过滤，新增 reasoning 数据统一整理为 `Question / Solution / Final Answer` 风格训练文本。
 
