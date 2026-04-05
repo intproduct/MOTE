@@ -352,6 +352,10 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - `metamath_cache_path`
 - `mmlu_cache_path`
 - `math_cache_root`
+- `openr1_math_cache_path`
+- `numinamath_cot_cache_path`
+- `openthoughts_math_cache_path`
+- `bespoke_stratos_cache_path`
 - `fineweb_hf_name`
 - `fineweb_hf_config`
 - `fineweb_text_field`
@@ -372,6 +376,14 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - `mmlu_split`
 - `math_hf_name`
 - `math_split`
+- `openr1_math_hf_name`
+- `openr1_math_hf_config`
+- `numinamath_cot_hf_name`
+- `numinamath_cot_hf_config`
+- `openthoughts_math_hf_name`
+- `openthoughts_math_hf_config`
+- `bespoke_stratos_hf_name`
+- `bespoke_stratos_hf_config`
 - `use_wiki_local`
 - `use_fineweb`
 - `use_code`
@@ -381,6 +393,10 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - `use_metamath_train`
 - `use_math_train`
 - `use_mmlu_train`
+- `use_openr1_math`
+- `use_numinamath_cot`
+- `use_openthoughts_math`
+- `use_bespoke_stratos`
 - `wt_wiki`
 - `wt_fineweb`
 - `wt_code`
@@ -390,6 +406,60 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - `wt_metamath`
 - `wt_math`
 - `wt_mmlu`
+- `wt_openr1_math`
+- `wt_numinamath_cot`
+- `wt_openthoughts_math`
+- `wt_bespoke_stratos`
+- `reasoning_max_chars`
+- `reasoning_max_approx_tokens`
+- `openthoughts_max_chars`
+- `openthoughts_max_approx_tokens`
+- `prefer_short_reasoning`
+- `skip_overlong_reasoning_samples`
+
+这些字段已经真实接入训练数据管线，不只是 README 声明。当前训练 task pool 除了原有的 `wiki / fineweb / code / gsm8k / svamp / metamath / hendrycks_math / mmlu` 外，还支持：
+
+- `open-r1/OpenR1-Math-220k`
+- `AI-MO/NuminaMath-CoT`
+- `open-r1/OpenThoughts-114k-math`
+- `bespokelabs/Bespoke-Stratos-17k`
+
+接入方式都是统一的：
+
+- 通过 `use_*` 控制是否启用
+- 通过 `wt_*` 控制混采权重
+- 通过 `*_cache_path` 指向本地缓存目录
+- 通过 `*_hf_name` 和 `*_hf_config` 指向 Hugging Face 数据源
+
+新增 reasoning 数据默认会统一格式化成：
+
+```text
+Question:
+...
+
+Solution:
+...
+
+Final Answer:
+...
+```
+
+同时长度过滤也已经真实生效：
+
+- `reasoning_max_chars`
+- `reasoning_max_approx_tokens`
+- `prefer_short_reasoning`
+- `skip_overlong_reasoning_samples`
+
+其中 `OpenThoughts-114k-math` 还有单独更严格的：
+
+- `openthoughts_max_chars`
+- `openthoughts_max_approx_tokens`
+
+也就是说，如果你现在用下面这些配置文件启动训练，新的 reasoning 数据集接口已经会参与真实训练，而不是占位参数：
+
+- [`fitmotn_reasoning_recovery_min_b.json`](./fitmotn_reasoning_recovery_min_b.json)
+- [`fitmotn_reasoning_recovery_conservative_b.json`](./fitmotn_reasoning_recovery_conservative_b.json)
 
 ### `train` 可调字段
 
