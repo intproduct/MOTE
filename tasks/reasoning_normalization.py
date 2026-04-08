@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, Iterable, List, Mapping
+
+from .answer_extraction import clean_text, extract_final_answer, split_reasoning_and_final_answer
 
 
 def approx_token_len(text: str | None) -> int:
@@ -11,53 +12,6 @@ def approx_token_len(text: str | None) -> int:
     words = len(text.split())
     chars = max(1, len(text) // 4)
     return max(words, chars)
-
-
-def clean_text(value: Any) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        text = value
-    elif isinstance(value, (int, float, bool)):
-        text = str(value)
-    elif isinstance(value, Mapping):
-        for key in [
-            "text",
-            "content",
-            "value",
-            "solution",
-            "reasoning",
-            "response",
-            "answer",
-            "final_answer",
-            "problem",
-            "question",
-            "prompt",
-        ]:
-            if key in value:
-                text = clean_text(value.get(key))
-                if text:
-                    break
-        else:
-            text = "\n".join(clean_text(v) for v in value.values())
-    elif isinstance(value, Iterable) and not isinstance(value, (bytes, bytearray)):
-        text = "\n".join(part for part in (clean_text(v) for v in value) if part)
-    else:
-        text = str(value)
-    return _strip_wrapper_tokens(" ".join(text.replace("\r", "\n").split())).strip()
-
-
-def _strip_wrapper_tokens(text: str) -> str:
-    patterns = [
-        r"<\|begin_of_[^>]+?\|>",
-        r"<\|end_of_[^>]+?\|>",
-        r"</?think>",
-        r"</?analysis>",
-        r"</?final>",
-    ]
-    for pattern in patterns:
-        text = re.sub(pattern, " ", text, flags=re.IGNORECASE)
-    return " ".join(text.split())
 
 
 def _get_nested(ex: Mapping[str, Any], keys: List[str]) -> Any:
@@ -98,47 +52,6 @@ def _extract_conversation_turns(conversations: Any) -> Dict[str, str]:
         elif role in {"assistant", "gpt", "model"}:
             assistant_parts.append(text)
     return {"question": clean_text(user_parts), "answer": clean_text(assistant_parts[-1] if assistant_parts else "")}
-
-
-def _extract_boxed_answer(text: str) -> str:
-    if not text:
-        return ""
-    boxed = re.findall(r"\\boxed\{([^{}]+)\}", text)
-    if boxed:
-        return clean_text(boxed[-1])
-    patterns = [
-        r"Final Answer\s*[:：]\s*(.+)$",
-        r"Answer\s*[:：]\s*(.+)$",
-        r"Therefore[, ]+the answer is\s+(.+)$",
-        r"So[, ]+the answer is\s+(.+)$",
-        r"####\s*(.+)$",
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, text, flags=re.IGNORECASE)
-        if match:
-            return clean_text(match.group(1))
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
-    return clean_text(lines[-1] if lines else "")
-
-
-def _split_reasoning_and_answer(text: str) -> tuple[str, str]:
-    text = clean_text(text)
-    if not text:
-        return "", ""
-    answer = _extract_boxed_answer(text)
-    patterns = [
-        r"(?is)(.*?)(?:Final Answer|Answer)\s*[:：]\s*(.+)$",
-        r"(?is)(.*?)(?:Therefore[, ]+the answer is|So[, ]+the answer is)\s+(.+)$",
-        r"(?is)(.*?)####\s*(.+)$",
-    ]
-    for pattern in patterns:
-        match = re.match(pattern, text)
-        if match:
-            reasoning = clean_text(match.group(1))
-            extracted_answer = clean_text(match.group(2))
-            return reasoning or text, extracted_answer or answer
-    return text, answer
-
 
 def _coerce_trace_candidates(value: Any) -> List[Dict[str, Any]]:
     if not isinstance(value, list):
@@ -202,14 +115,14 @@ def extract_question_solution_answer(ex: Mapping[str, Any], dataset_name: str, p
         if not answer:
             answer = clean_text(_get_nested(ex, ["answer", "final_answer", "ground_truth", "expected_answer"]))
         if not answer and solution:
-            _, answer = _split_reasoning_and_answer(solution)
+            _, answer = split_reasoning_and_final_answer(solution)
     elif dataset_name == "numinamath_cot":
         if not question:
             question = clean_text(_extract_messages_text(ex.get("messages"), role="user"))
         if not solution:
             solution = clean_text(_extract_messages_text(ex.get("messages"), role="assistant"))
         if not answer and solution:
-            _, answer = _split_reasoning_and_answer(solution)
+            _, answer = split_reasoning_and_final_answer(solution)
         strategy = "problem_solution_or_messages"
     elif dataset_name == "openthoughts_math":
         conv = _extract_conversation_turns(ex.get("conversations"))
@@ -217,14 +130,14 @@ def extract_question_solution_answer(ex: Mapping[str, Any], dataset_name: str, p
         if not solution:
             solution = conv["answer"] or clean_text(_extract_messages_text(ex.get("messages"), role="assistant"))
         if not answer and solution:
-            _, answer = _split_reasoning_and_answer(solution)
+            _, answer = split_reasoning_and_final_answer(solution)
         strategy = "conversation_or_messages"
     elif dataset_name == "bespoke_stratos":
         conv = _extract_conversation_turns(ex.get("conversations"))
         question = question or conv["question"] or clean_text(_extract_messages_text(ex.get("messages"), role="user"))
         assistant_text = conv["answer"] or clean_text(_extract_messages_text(ex.get("messages"), role="assistant"))
         if assistant_text:
-            solution, parsed_answer = _split_reasoning_and_answer(assistant_text)
+            solution, parsed_answer = split_reasoning_and_final_answer(assistant_text)
             answer = answer or parsed_answer
         strategy = "conversation_trace"
     else:
@@ -233,21 +146,21 @@ def extract_question_solution_answer(ex: Mapping[str, Any], dataset_name: str, p
         if not solution:
             solution = clean_text(_extract_messages_text(ex.get("messages"), role="assistant"))
         if not solution and answer:
-            solution, parsed_answer = _split_reasoning_and_answer(answer)
+            solution, parsed_answer = split_reasoning_and_final_answer(answer)
             answer = parsed_answer or answer
         if not answer and solution:
-            _, answer = _split_reasoning_and_answer(solution)
+            _, answer = split_reasoning_and_final_answer(solution)
 
     if not question and ex.get("conversations") is not None:
         question = question or _extract_conversation_turns(ex.get("conversations"))["question"]
     if not solution and ex.get("conversations") is not None:
         solution = solution or _extract_conversation_turns(ex.get("conversations"))["answer"]
     if not answer and solution:
-        _, answer = _split_reasoning_and_answer(solution)
+        _, answer = split_reasoning_and_final_answer(solution)
     return {
         "question": clean_text(question),
         "solution": clean_text(solution),
-        "answer": clean_text(answer),
+        "answer": clean_text(answer) or extract_final_answer(solution),
         "trace_strategy": strategy,
     }
 
@@ -264,25 +177,54 @@ def is_reasoning_sample_too_long(question: str, solution: str, answer: str, limi
     return False
 
 
-def format_reasoning_text(question: str, solution: str, answer: str) -> tuple[str, str]:
-    prompt = f"Question:\n{clean_text(question)}\n\nSolution:\n{clean_text(solution)}\n\nFinal Answer:"
-    return prompt, clean_text(answer)
+def extract_reasoning_record(ex: Mapping[str, Any], dataset_name: str, prefer_short: bool = True) -> Dict[str, Any]:
+    extracted = extract_question_solution_answer(ex, dataset_name, prefer_short=prefer_short)
+    return {
+        "question": clean_text(extracted.get("question")),
+        "solution_text": clean_text(extracted.get("solution")),
+        "final_answer": clean_text(extracted.get("answer")),
+        "dataset_name": str(dataset_name),
+        "metadata": {
+            "trace_strategy": extracted.get("trace_strategy", "unknown"),
+        },
+        "trace_strategy": extracted.get("trace_strategy", "unknown"),
+    }
 
 
-def normalize_reasoning_sample(ex: Mapping[str, Any], dataset_name: str, limits: Mapping[str, Any] | None) -> Dict[str, Any]:
+def format_reasoning_prompt_target(record: Mapping[str, Any], supervision_mode: str) -> tuple[str, str]:
+    question = clean_text(record.get("question"))
+    solution = clean_text(record.get("solution_text"))
+    answer = clean_text(record.get("final_answer"))
+    mode = str(supervision_mode or "answer_only").strip().lower()
+    if mode == "full_trace":
+        prompt = f"Question:\n{question}"
+        target = f"Solution:\n{solution}\n\nFinal Answer:\n{answer}"
+        return prompt, target
+    if mode == "answer_only":
+        prompt = f"Question:\n{question}\n\nSolution:\n{solution}\n\nFinal Answer:"
+        return prompt, answer
+    raise ValueError(f"Unknown reasoning supervision mode: {supervision_mode}")
+
+
+def normalize_reasoning_sample(
+    ex: Mapping[str, Any],
+    dataset_name: str,
+    limits: Mapping[str, Any] | None,
+    supervision_mode: str = "answer_only",
+) -> Dict[str, Any]:
     limits = dict(limits or {})
     correct_flag = ex.get("correct")
     if dataset_name == "openthoughts_math" and (correct_flag is False or str(correct_flag).strip().lower() == "false"):
         return {"ok": False, "reason": "incorrect_trace", "trace_strategy": "correctness_filter"}
-    extracted = extract_question_solution_answer(ex, dataset_name, prefer_short=bool(limits.get("prefer_short_reasoning", True)))
-    question = extracted["question"]
-    solution = extracted["solution"]
-    answer = extracted["answer"]
+    record = extract_reasoning_record(ex, dataset_name, prefer_short=bool(limits.get("prefer_short_reasoning", True)))
+    question = record["question"]
+    solution = record["solution_text"]
+    answer = record["final_answer"]
     if not question or not solution or not answer:
         return {
             "ok": False,
             "reason": "missing_fields",
-            "trace_strategy": extracted.get("trace_strategy", "unknown"),
+            "trace_strategy": record.get("trace_strategy", "unknown"),
             "question": question,
             "solution": solution,
             "answer": answer,
@@ -292,22 +234,25 @@ def normalize_reasoning_sample(ex: Mapping[str, Any], dataset_name: str, limits:
         return {
             "ok": False,
             "reason": "overlong",
-            "trace_strategy": extracted.get("trace_strategy", "unknown"),
+            "trace_strategy": record.get("trace_strategy", "unknown"),
             "question": question,
             "solution": solution,
             "answer": answer,
         }
-    prompt, target = format_reasoning_text(question, solution, answer)
+    prompt, target = format_reasoning_prompt_target(record, supervision_mode)
     return {
         "ok": True,
         "reason": "ok",
         "prompt": prompt,
         "target": target,
         "eval_type": "numeric",
-        "trace_strategy": extracted.get("trace_strategy", "unknown"),
+        "trace_strategy": record.get("trace_strategy", "unknown"),
         "question": question,
         "solution": solution,
         "answer": answer,
+        "dataset_name": record.get("dataset_name"),
+        "reasoning_record": record,
+        "reasoning_supervision_mode": str(supervision_mode),
         "approx_tokens": approx_token_len("\n\n".join([question, solution, answer])),
         "char_length": len("\n\n".join([question, solution, answer])),
     }

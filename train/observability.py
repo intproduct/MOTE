@@ -19,6 +19,30 @@ from ..audit import (
 TRAIN_RECORD_BUFFER_SIZE = 128
 USAGE_RECORD_BUFFER_SIZE = 32
 RECENT_LOSS_BUFFER_SIZE = 64
+REASONING_DATASET_FLAGS = {
+    "gsm8k": "use_gsm8k_train",
+    "gsm8k_socratic": "use_gsm8k_socratic_train",
+    "svamp": "use_svamp_train",
+    "metamath": "use_metamath_train",
+    "hendrycks_math": "use_math_train",
+    "mmlu": "use_mmlu_train",
+    "openr1_math": "use_openr1_math",
+    "numinamath_cot": "use_numinamath_cot",
+    "openthoughts_math": "use_openthoughts_math",
+    "bespoke_stratos": "use_bespoke_stratos",
+}
+REASONING_DATASET_WEIGHTS = {
+    "gsm8k": "wt_gsm8k",
+    "gsm8k_socratic": "wt_gsm8k_socratic",
+    "svamp": "wt_svamp",
+    "metamath": "wt_metamath",
+    "hendrycks_math": "wt_math",
+    "mmlu": "wt_mmlu",
+    "openr1_math": "wt_openr1_math",
+    "numinamath_cot": "wt_numinamath_cot",
+    "openthoughts_math": "wt_openthoughts_math",
+    "bespoke_stratos": "wt_bespoke_stratos",
+}
 
 
 @dataclass
@@ -33,6 +57,54 @@ class UpdateBatchMeta:
         self.batch_groups.clear()
         self.batch_source_families.clear()
         self.microbatch_count = 0
+
+
+def build_reasoning_config_summary(fit_cfg) -> Dict[str, Any]:
+    data_cfg = fit_cfg.data
+    train_cfg = fit_cfg.train
+    enabled = {name: bool(getattr(data_cfg, field, False)) for name, field in REASONING_DATASET_FLAGS.items()}
+    weights = {name: float(getattr(data_cfg, field, 0.0)) for name, field in REASONING_DATASET_WEIGHTS.items()}
+    return {
+        "reasoning_supervision_mode": str(getattr(data_cfg, "reasoning_supervision_mode", "answer_only")),
+        "reasoning_datasets_enabled": enabled,
+        "reasoning_dataset_weights": weights,
+        "stage_b_mode": str(getattr(train_cfg, "stage_b_mode", "mixed")),
+        "stage_b_disable_pretrain": bool(getattr(train_cfg, "stage_b_disable_pretrain", False)),
+        "stage_b_reasoning_boost": float(getattr(train_cfg, "stage_b_reasoning_boost", 1.0)),
+        "answer_format": "Final Answer",
+    }
+
+
+def _current_stage_details(runtime: Dict[str, Any]) -> Dict[str, Any]:
+    stage_plan = runtime.get("stage_plan")
+    current_stage_name = runtime.get("current_stage")
+    if not stage_plan or current_stage_name is None:
+        return {
+            "stage_pretrain_ratio": None,
+            "stage_task_ratio": None,
+            "stage_mode": None,
+            "stage_reasoning_focused": None,
+            "stage_pretrain_disabled": None,
+            "stage_reasoning_boost": None,
+        }
+    for stage in stage_plan.stages:
+        if stage.name == current_stage_name:
+            return {
+                "stage_pretrain_ratio": stage.pretrain_ratio,
+                "stage_task_ratio": stage.task_ratio,
+                "stage_mode": getattr(stage, "mode", None),
+                "stage_reasoning_focused": getattr(stage, "reasoning_focused", None),
+                "stage_pretrain_disabled": getattr(stage, "pretrain_disabled", None),
+                "stage_reasoning_boost": getattr(stage, "reasoning_boost", None),
+            }
+    return {
+        "stage_pretrain_ratio": None,
+        "stage_task_ratio": None,
+        "stage_mode": None,
+        "stage_reasoning_focused": None,
+        "stage_pretrain_disabled": None,
+        "stage_reasoning_boost": None,
+    }
 
 
 def make_runtime_state(
@@ -53,6 +125,7 @@ def make_runtime_state(
     seq_len = int(fit_cfg.data.seq_len_run)
     tokens_per_microbatch = batch_size * seq_len
     tokens_per_update = tokens_per_microbatch * grad_accum
+    reasoning_summary = build_reasoning_config_summary(fit_cfg)
     return {
         "run_name": run_name,
         "run_dir": str(run_dir),
@@ -122,6 +195,13 @@ def make_runtime_state(
         "max_cuda_mem_peak_alloc_mb": None,
         "recent_train_losses": deque(maxlen=RECENT_LOSS_BUFFER_SIZE),
         "latest_mid_eval_update": None,
+        "reasoning_supervision_mode": reasoning_summary["reasoning_supervision_mode"],
+        "reasoning_datasets_enabled": reasoning_summary["reasoning_datasets_enabled"],
+        "reasoning_dataset_weights": reasoning_summary["reasoning_dataset_weights"],
+        "stage_b_mode": reasoning_summary["stage_b_mode"],
+        "stage_b_disable_pretrain": reasoning_summary["stage_b_disable_pretrain"],
+        "stage_b_reasoning_boost": reasoning_summary["stage_b_reasoning_boost"],
+        "answer_format": reasoning_summary["answer_format"],
     }
 
 
@@ -236,6 +316,10 @@ def build_train_record(runtime: Dict[str, Any], logs: Dict[str, Any]) -> Dict[st
         "batch_source_families": batch_meta.get("batch_source_families"),
         "stage_pretrain_ratio": None,
         "stage_task_ratio": None,
+        "stage_mode": None,
+        "stage_reasoning_focused": None,
+        "stage_pretrain_disabled": None,
+        "stage_reasoning_boost": None,
         "grad_norm": logs.get("grad_norm", runtime.get("grad_norm")),
         "param_norm": runtime.get("param_norm"),
         "loss_scale": runtime.get("loss_scale"),
@@ -256,17 +340,15 @@ def build_train_record(runtime: Dict[str, Any], logs: Dict[str, Any]) -> Dict[st
         "max_grad_norm": runtime.get("fit_cfg").train.max_grad_norm if runtime.get("fit_cfg") is not None else None,
         "resolved_model_dtype": runtime.get("resolved_model_dtype"),
         "amp_enabled": runtime.get("amp_enabled"),
+        "reasoning_supervision_mode": runtime.get("reasoning_supervision_mode"),
+        "stage_b_mode": runtime.get("stage_b_mode"),
+        "stage_b_disable_pretrain": runtime.get("stage_b_disable_pretrain"),
+        "configured_stage_b_reasoning_boost": runtime.get("stage_b_reasoning_boost"),
+        "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
+        "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "answer_format": runtime.get("answer_format"),
     }
-    stage_plan = runtime.get("stage_plan")
-    if stage_plan:
-        current_stage = None
-        for stage in stage_plan.stages:
-            if stage.name == runtime.get("current_stage"):
-                current_stage = stage
-                break
-        if current_stage is not None:
-            record["stage_pretrain_ratio"] = current_stage.pretrain_ratio
-            record["stage_task_ratio"] = current_stage.task_ratio
+    record.update(_current_stage_details(runtime))
     runtime["last_train_record"] = record
     runtime["train_records"].append(record)
     runtime["train_record_count"] = int(runtime.get("train_record_count", 0)) + 1
@@ -302,10 +384,13 @@ def build_usage_record(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str
         "lr": runtime.get("current_lr"),
         "T": runtime.get("current_T"),
         "gate_trainable": runtime.get("gate_trainable"),
+        "reasoning_supervision_mode": runtime.get("reasoning_supervision_mode"),
+        "stage_b_mode": runtime.get("stage_b_mode"),
+        "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
+        "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "answer_format": runtime.get("answer_format"),
     }
-    if stage is not None:
-        record["stage_pretrain_ratio"] = stage.pretrain_ratio
-        record["stage_task_ratio"] = stage.task_ratio
+    record.update(_current_stage_details(runtime))
     from ..patching import iter_patched_motn_layers
 
     for layer_i, module in iter_patched_motn_layers(model):
@@ -381,9 +466,15 @@ def build_mid_eval_record(runtime: Dict[str, Any], result: Dict[str, Any], vs_ba
         "tokens_seen_estimate": runtime.get("tokens_seen_estimate"),
         "resolved_model_dtype": runtime.get("resolved_model_dtype"),
         "amp_enabled": runtime.get("amp_enabled"),
+        "reasoning_supervision_mode": runtime.get("reasoning_supervision_mode"),
+        "stage_b_mode": runtime.get("stage_b_mode"),
+        "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
+        "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "answer_format": runtime.get("answer_format"),
         "result": result,
         "vs_baseline": vs_baseline,
     }
+    record.update(_current_stage_details(runtime))
     runtime["latest_mid_eval_summary"] = to_jsonable(result.get("summary"))
     runtime["latest_mid_eval_update"] = record.get("update_step")
     runtime["mid_eval_records"].append(record)
@@ -400,6 +491,7 @@ def build_checkpoint_metadata(
     state_dict: Optional[Dict[str, Any]] = None,
     patch_state_dict: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
+    stage_details = _current_stage_details(runtime)
     metadata = {
         "checkpoint_format": runtime.get("checkpoint_format", "patch_state_only_v2"),
         "run_name": runtime.get("run_name"),
@@ -434,11 +526,19 @@ def build_checkpoint_metadata(
         "approx_init_summary": runtime.get("approx_init_summary"),
         "expert_warmup_scaling_summary": runtime.get("expert_warmup_scaling_summary"),
         "env_snapshot": runtime.get("env_snapshot"),
+        "reasoning_supervision_mode": runtime.get("reasoning_supervision_mode"),
+        "stage_b_mode": runtime.get("stage_b_mode"),
+        "stage_b_disable_pretrain": runtime.get("stage_b_disable_pretrain"),
+        "stage_b_reasoning_boost": runtime.get("stage_b_reasoning_boost"),
+        "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
+        "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "answer_format": runtime.get("answer_format"),
         "runtime": {
             "tokens_per_microbatch": runtime.get("tokens_per_microbatch"),
             "tokens_per_update": runtime.get("tokens_per_update"),
         },
     }
+    metadata.update(stage_details)
     if state_dict is not None:
         metadata["state_dict"] = state_dict
     if patch_state_dict is not None:
@@ -447,6 +547,7 @@ def build_checkpoint_metadata(
 
 
 def build_run_summary(runtime: Dict[str, Any], eval_summary: Dict[str, Any], *, final_model_dir: str, stop_reason: Optional[str] = None) -> Dict[str, Any]:
+    stage_details = _current_stage_details(runtime)
     total_wall = max(0.0, float(time.time() - float(runtime.get("start_time", time.time()))))
     recent_losses = list(runtime.get("recent_train_losses", []))
     last_k_losses = recent_losses[-10:]
@@ -486,7 +587,7 @@ def build_run_summary(runtime: Dict[str, Any], eval_summary: Dict[str, Any], *, 
             best_mid_gsm8k = gsm
             best_mid_mmlu = mmlu
 
-    return {
+    summary = {
         "run_name": runtime["run_name"],
         "run_dir": runtime.get("run_dir"),
         "final_model_dir": final_model_dir,
@@ -523,4 +624,13 @@ def build_run_summary(runtime: Dict[str, Any], eval_summary: Dict[str, Any], *, 
         "final_train_loss": final_train_loss,
         "scheduler_state_summary": runtime.get("scheduler_state_summary"),
         "env_snapshot": runtime.get("env_snapshot"),
+        "reasoning_supervision_mode": runtime.get("reasoning_supervision_mode"),
+        "stage_b_mode": runtime.get("stage_b_mode"),
+        "stage_b_disable_pretrain": runtime.get("stage_b_disable_pretrain"),
+        "stage_b_reasoning_boost": runtime.get("stage_b_reasoning_boost"),
+        "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
+        "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "answer_format": runtime.get("answer_format"),
     }
+    summary.update(stage_details)
+    return summary

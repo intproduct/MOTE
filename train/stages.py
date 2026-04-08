@@ -15,6 +15,10 @@ class StageDefinition:
     end_update: int
     pretrain_ratio: float
     task_ratio: float
+    mode: str = "mixed"
+    reasoning_focused: bool = False
+    pretrain_disabled: bool = False
+    reasoning_boost: float = 1.0
 
     @property
     def updates(self) -> int:
@@ -75,13 +79,22 @@ def build_stage_plan(cfg: TrainConfig) -> StagePlan:
         )
     ]
     if stage_b_updates > 0:
+        stage_b_mode = str(getattr(cfg, "stage_b_mode", "mixed"))
+        pretrain_disabled = bool(getattr(cfg, "stage_b_disable_pretrain", False))
+        reasoning_focused = stage_b_mode == "reasoning_recovery"
+        pretrain_ratio = 0.0 if pretrain_disabled else float(cfg.stage_b_pretrain_ratio)
+        task_ratio = 1.0 if pretrain_disabled else float(cfg.stage_b_task_ratio)
         stages.append(
             StageDefinition(
-                name="stage_b_taskaware",
+                name="stage_b_reasoning_recovery" if reasoning_focused else "stage_b_taskaware",
                 start_update=stage_a_updates,
                 end_update=stage_a_updates + stage_b_updates,
-                pretrain_ratio=float(cfg.stage_b_pretrain_ratio),
-                task_ratio=float(cfg.stage_b_task_ratio),
+                pretrain_ratio=pretrain_ratio,
+                task_ratio=task_ratio,
+                mode=stage_b_mode,
+                reasoning_focused=reasoning_focused,
+                pretrain_disabled=pretrain_disabled,
+                reasoning_boost=float(getattr(cfg, "stage_b_reasoning_boost", 1.0)),
             )
         )
     return StagePlan(total_updates=total_updates, stages=stages)

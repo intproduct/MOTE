@@ -15,6 +15,7 @@ class NormalizedReasoningTask(TaskSpec):
     dataset_name: str = "generic_reasoning"
     length_policy: Dict[str, Any] = field(default_factory=dict)
     trace_selection_policy: str = "prefer_short_if_available"
+    supervision_mode: str = "answer_only"
     supports_skip: bool = True
 
     def describe_data_policy(self) -> Mapping[str, Any]:
@@ -22,12 +23,17 @@ class NormalizedReasoningTask(TaskSpec):
             "dataset_name": self.dataset_name,
             "length_policy": dict(self.length_policy),
             "trace_selection_policy": self.trace_selection_policy,
+            "reasoning_supervision_mode": self.supervision_mode,
         }
 
+    def normalize_example(self, ex: Dict[str, Any]) -> Dict[str, Any]:
+        return normalize_reasoning_sample(ex, self.dataset_name, self.length_policy, supervision_mode=self.supervision_mode)
+
     def map_example(self, ex: Dict[str, Any]):
-        normalized = normalize_reasoning_sample(ex, self.dataset_name, self.length_policy)
+        normalized = self.normalize_example(ex)
         self.metadata["last_reason"] = normalized.get("reason")
         self.metadata["last_trace_strategy"] = normalized.get("trace_strategy")
+        self.metadata["last_reasoning_record"] = normalized.get("reasoning_record")
         if not normalized.get("ok"):
             return None
         return normalized["prompt"], normalized["target"], normalized.get("eval_type", "numeric")
@@ -135,6 +141,7 @@ def _build_reasoning_limits(
         "max_approx_tokens": int(cfg.reasoning_max_approx_tokens if max_tokens is None else max_tokens),
         "prefer_short_reasoning": bool(cfg.prefer_short_reasoning),
         "skip_overlong_reasoning_samples": bool(cfg.skip_overlong_reasoning_samples),
+        "reasoning_supervision_mode": str(cfg.reasoning_supervision_mode),
     }
 
 
@@ -152,6 +159,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 weight=float(cfg.wt_gsm8k),
                 dataset_name="gsm8k",
                 length_policy=_build_reasoning_limits(cfg),
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.gsm8k_hf_name,
                 hf_config=normalize_hf_config(cfg.gsm8k_hf_config),
@@ -171,6 +179,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 weight=float(cfg.wt_gsm8k_socratic),
                 dataset_name="gsm8k",
                 length_policy=_build_reasoning_limits(cfg),
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.gsm8k_socratic_hf_name,
                 hf_config=normalize_hf_config(cfg.gsm8k_socratic_hf_config),
@@ -190,6 +199,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 weight=float(cfg.wt_svamp),
                 dataset_name="gsm8k",
                 length_policy=_build_reasoning_limits(cfg),
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.svamp_hf_name,
                 hf_config=normalize_hf_config(cfg.svamp_hf_config),
@@ -210,6 +220,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 max_samples=_resolve_effective_max_samples(getattr(cfg, "metamath_max_samples", None)),
                 dataset_name="gsm8k",
                 length_policy=_build_reasoning_limits(cfg),
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.metamath_hf_name,
                 hf_config=normalize_hf_config(cfg.metamath_hf_config),
@@ -231,6 +242,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                     weight=per_subset_weight,
                     dataset_name="hendrycks_math",
                     length_policy=_build_reasoning_limits(cfg),
+                    supervision_mode=str(cfg.reasoning_supervision_mode),
                     kind="auto",
                     hf_name=cfg.math_hf_name,
                     hf_config=normalize_hf_config(subset),
@@ -251,6 +263,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 dataset_name="openr1_math",
                 length_policy=_build_reasoning_limits(cfg),
                 trace_selection_policy="prefer_verified_then_shorter_trace",
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.openr1_math_hf_name,
                 hf_config=normalize_hf_config(cfg.openr1_math_hf_config),
@@ -271,6 +284,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 dataset_name="numinamath_cot",
                 length_policy=_build_reasoning_limits(cfg),
                 trace_selection_policy="problem_solution_with_answer_fallback",
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.numinamath_cot_hf_name,
                 hf_config=normalize_hf_config(cfg.numinamath_cot_hf_config),
@@ -295,6 +309,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                     max_tokens=int(cfg.openthoughts_max_approx_tokens),
                 ),
                 trace_selection_policy="prefer_short_correct_conversation_trace",
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.openthoughts_math_hf_name,
                 hf_config=normalize_hf_config(cfg.openthoughts_math_hf_config),
@@ -315,6 +330,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 dataset_name="bespoke_stratos",
                 length_policy=_build_reasoning_limits(cfg),
                 trace_selection_policy="conversation_trace_with_answer_split",
+                supervision_mode=str(cfg.reasoning_supervision_mode),
                 kind="auto",
                 hf_name=cfg.bespoke_stratos_hf_name,
                 hf_config=normalize_hf_config(cfg.bespoke_stratos_hf_config),

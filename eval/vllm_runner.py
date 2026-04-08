@@ -6,21 +6,13 @@ from typing import Any, Dict, List
 
 from ..checkpointing import load_fitmotn_metadata
 from ..tasks.reasoning_specs import GSM8KTask, MMLUTask
+from ..tasks.answer_extraction import extract_final_answer
 from ..data.mixed_iterable import load_dataset_any
 from ..runtime import normalize_hf_config
 
 
 def _normalize_text(s: str) -> str:
     return re.sub(r"[ \t]+", " ", (s or "").strip().replace("\r\n", "\n"))
-
-
-def _extract_final_answer(s: str) -> str:
-    s = _normalize_text(s)
-    matches = re.findall(r"####\s*([^\n]+)", s)
-    if matches:
-        return _normalize_text(matches[-1])
-    lines = [line.strip() for line in s.split("\n") if line.strip()]
-    return lines[-1] if lines else s
 
 
 def _numeric_match(pred: str, ref: str) -> float:
@@ -107,7 +99,7 @@ def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Di
             if eval_type == "mcq":
                 correct += _mcq_choice_match(text, ref)
             else:
-                correct += _numeric_match(_extract_final_answer(text), _extract_final_answer(ref))
+                correct += _numeric_match(extract_final_answer(text), extract_final_answer(ref))
             n += 1
         acc = correct / max(1, n)
         results["tasks"][task.name] = {"acc": acc, "n": n}

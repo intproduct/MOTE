@@ -123,6 +123,7 @@ class DataConfig:
     openthoughts_max_approx_tokens: int = 1800
     prefer_short_reasoning: bool = True
     skip_overlong_reasoning_samples: bool = True
+    reasoning_supervision_mode: str = "answer_only"
 
 
 @dataclass
@@ -172,8 +173,11 @@ class TrainConfig:
     stage_a_ratio: float = 0.60
     stage_a_pretrain_ratio: float = 0.70
     stage_a_task_ratio: float = 0.30
+    stage_b_mode: str = "mixed"
     stage_b_pretrain_ratio: float = 0.45
     stage_b_task_ratio: float = 0.55
+    stage_b_disable_pretrain: bool = False
+    stage_b_reasoning_boost: float = 1.0
 
     begin_t: float = 1.5
     end_t: float = 0.8

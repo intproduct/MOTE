@@ -55,6 +55,13 @@ def make_run_name(fit_cfg) -> str:
 
 
 def run_fitmotn_training(fit_cfg):
+    stage_b_mode = str(getattr(fit_cfg.train, "stage_b_mode", "mixed"))
+    reasoning_supervision_mode = str(getattr(fit_cfg.data, "reasoning_supervision_mode", "answer_only"))
+    if stage_b_mode == "reasoning_recovery" and reasoning_supervision_mode != "full_trace":
+        raise ValueError(
+            "stage_b_mode=reasoning_recovery requires data.reasoning_supervision_mode=full_trace; "
+            f"got {reasoning_supervision_mode!r}"
+        )
     run_name = make_run_name(fit_cfg)
     root_dir = Path(fit_cfg.output.root_dir).resolve()
     run_dir = root_dir / run_name
@@ -62,6 +69,13 @@ def run_fitmotn_training(fit_cfg):
     logger = build_logger(run_dir)
     logger.info("[Run] start %s", run_name)
     logger.info("[Cfg] %s", json.dumps(to_jsonable(asdict(fit_cfg)), ensure_ascii=False))
+    logger.info(
+        "[Reasoning] supervision_mode=%s stage_b_mode=%s stage_b_disable_pretrain=%s stage_b_reasoning_boost=%s",
+        reasoning_supervision_mode,
+        stage_b_mode,
+        bool(getattr(fit_cfg.train, "stage_b_disable_pretrain", False)),
+        float(getattr(fit_cfg.train, "stage_b_reasoning_boost", 1.0)),
+    )
     run_start_time = time.time()
 
     jsonl_path = run_dir / "train.jsonl"

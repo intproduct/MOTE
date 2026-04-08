@@ -69,6 +69,8 @@ def apply_task_sample_limit(raw, task: TaskSpec):
 
 
 class StageAwareMixedTaskIterableDataset(IterableDataset):
+    REASONING_SOURCE_FAMILIES = {"reasoning", "math_reasoning", "mcq_reasoning"}
+
     def __init__(
         self,
         tokenizer,
@@ -131,8 +133,11 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             tasks.append(task)
             weights.append(max(0.0, float(task.weight) * float(stage.pretrain_ratio)))
         for task in self.task_tasks:
+            task_weight = max(0.0, float(task.weight) * float(stage.task_ratio))
+            if bool(getattr(stage, "reasoning_focused", False)) and str(task.source_family) in self.REASONING_SOURCE_FAMILIES:
+                task_weight *= max(0.0, float(getattr(stage, "reasoning_boost", 1.0)))
             tasks.append(task)
-            weights.append(max(0.0, float(task.weight) * float(stage.task_ratio)))
+            weights.append(task_weight)
         if sum(weights) <= 0:
             raise ValueError("All task weights are zero for current stage")
         return tasks, weights

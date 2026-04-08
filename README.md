@@ -444,12 +444,37 @@ Final Answer:
 ...
 ```
 
+现在支持两种显式的 reasoning supervision mode：
+
+- `answer_only`
+- `full_trace`
+
+其中：
+
+- `answer_only` 兼容旧行为，prompt 中保留 `Solution:`，target 只监督最终答案
+- `full_trace` 用于真正的 reasoning recovery，prompt 只保留题目，target 监督完整 `Solution + Final Answer`
+
+也就是说，`full_trace` 把训练目标从 `Question + Solution -> Final Answer` 改成了更符合推理恢复目标的 `Question -> Solution + Final Answer`。
+
+统一 target 尾部格式固定为：
+
+```text
+Solution:
+...
+
+Final Answer:
+...
+```
+
+`Final Answer:` 会作为稳定抽取点保留；同时答案抽取 helper 仍兼容旧的 `#### ...`、`\boxed{...}` 和简短末行答案。
+
 同时长度过滤也已经真实生效：
 
 - `reasoning_max_chars`
 - `reasoning_max_approx_tokens`
 - `prefer_short_reasoning`
 - `skip_overlong_reasoning_samples`
+- `reasoning_supervision_mode`
 
 其中 `OpenThoughts-114k-math` 还有单独更严格的：
 
@@ -476,8 +501,11 @@ Final Answer:
 - `stage_a_ratio`
 - `stage_a_pretrain_ratio`
 - `stage_a_task_ratio`
+- `stage_b_mode`
 - `stage_b_pretrain_ratio`
 - `stage_b_task_ratio`
+- `stage_b_disable_pretrain`
+- `stage_b_reasoning_boost`
 - `begin_t`
 - `end_t`
 - `gate_freeze_steps`
@@ -672,6 +700,37 @@ Final Answer:
 - [`fitmotn_reasoning_recovery_conservative_b.json`](./fitmotn_reasoning_recovery_conservative_b.json)
 
 这两份配置会保留 `wiki / fineweb / code / gsm8k / MATH / 少量 MMLU`，并额外接入 `OpenR1-Math-220k / NuminaMath-CoT / OpenThoughts-114k-math / Bespoke-Stratos-17k`。其中 `OpenThoughts` 默认启用更严格的长度过滤，新增 reasoning 数据统一整理为 `Question / Solution / Final Answer` 风格训练文本。
+
+Stage B 现在支持显式 reasoning recovery 语义：
+
+- `stage_b_mode = "reasoning_recovery"` 时，要求 `data.reasoning_supervision_mode = "full_trace"`
+- `stage_b_reasoning_boost` 会真实提高 Stage B 中 reasoning-family task 的采样权重
+- `stage_b_disable_pretrain = true` 时，Stage B 会把 pretrain ratio 实际压到 `0.0`
+
+这使得 Stage A 更偏恢复/稳定化，Stage B 更适合做 reasoning-heavy 的 recovery run。
+
+为了做短实验和 AB test，新增两份配置：
+
+- [`fitmotn_reasoning_recovery_quick_full_trace.json`](./fitmotn_reasoning_recovery_quick_full_trace.json)
+- [`fitmotn_reasoning_recovery_quick_answer_only.json`](./fitmotn_reasoning_recovery_quick_answer_only.json)
+
+两份配置字段尽量一致，主要差异集中在 `reasoning_supervision_mode` 和 Stage B 语义：
+
+- `quick_full_trace` 用于快速验证 full-trace reasoning SFT + Stage B reasoning recovery
+- `quick_answer_only` 用于 answer-only 对照组，因此 Stage B 保持 `mixed`
+
+可以直接用调试 CLI 检查某个 reasoning 样本是否被正确规范化：
+
+```bash
+python -m MOTN.fitmotn.cli.debug_reasoning_sample \
+  --config_json ./MOTN/fitmotn/fitmotn_reasoning_recovery_quick_full_trace.json \
+  --task gsm8k_train \
+  --sample_index 0
+```
+
+它会直接打印 normalized `prompt`、`target`、抽取到的 `final_answer` 和 `label span`，便于人工检查 prompt 是否全 mask、target 是否完整参与 loss。
+
+另外，当前还新增了轻量 `rl/` 接口层，用于 future verifier / reward / rerank / rejection sampling 的外围结构准备；本次不会把 RL 主训练接入主流程。
 
 ### 一个最关键的结论
 

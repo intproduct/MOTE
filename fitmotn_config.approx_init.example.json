@@ -101,7 +101,8 @@
     "openthoughts_max_chars": 7000,
     "openthoughts_max_approx_tokens": 1800,
     "prefer_short_reasoning": true,
-    "skip_overlong_reasoning_samples": true
+    "skip_overlong_reasoning_samples": true,
+    "reasoning_supervision_mode": "answer_only"
   },
   "approx_init": {
     "enabled": true,
@@ -146,8 +147,11 @@
     "stage_a_ratio": 0.6,
     "stage_a_pretrain_ratio": 0.7,
     "stage_a_task_ratio": 0.3,
+    "stage_b_mode": "mixed",
     "stage_b_pretrain_ratio": 0.45,
     "stage_b_task_ratio": 0.55,
+    "stage_b_disable_pretrain": false,
+    "stage_b_reasoning_boost": 1.0,
     "begin_t": 1.5,
     "end_t": 0.8,
     "gate_freeze_steps": 2000,

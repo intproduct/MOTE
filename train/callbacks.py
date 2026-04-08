@@ -88,7 +88,7 @@ class MOTNScheduleCallback(TrainerCallback):
                 gsm8k = (latest_mid.get("gsm8k") or {}).get("primary_score")
                 mmlu = (latest_mid.get("mmlu") or {}).get("primary_score")
             self.logger.info(
-                "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s tokens/s=%s step_time=%s "
+                "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s reasoning_mode=%s reasoning_focused=%s tokens/s=%s step_time=%s "
                 "cuda_alloc=%.1fMB cuda_peak=%.1fMB cuda_reserved=%.1fMB cuda_peak_reserved=%.1fMB "
                 "mid_eval(u=%s gsm8k=%s mmlu=%s)",
                 record.get("stage"),
@@ -97,6 +97,8 @@ class MOTNScheduleCallback(TrainerCallback):
                 record.get("lr"),
                 record.get("T"),
                 record.get("gate_trainable"),
+                record.get("reasoning_supervision_mode"),
+                record.get("stage_reasoning_focused"),
                 record.get("tokens_per_sec"),
                 record.get("step_time_sec"),
                 record.get("cuda_mem_alloc_mb") or 0.0,
