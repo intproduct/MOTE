@@ -23,6 +23,7 @@ from ..patching import (
     patch_qwen_ffn_layers,
     reset_motn_expert_warmup_scaling,
     resolve_layer_idxs,
+    set_motn_usage_tracking,
     set_trainable_motn_only,
 )
 from ..runtime import dtype_to_name, load_causal_lm_and_tokenizer
@@ -79,6 +80,7 @@ def run_fitmotn_training(fit_cfg):
     run_start_time = time.time()
 
     jsonl_path = run_dir / "train.jsonl"
+    train_light_jsonl_path = run_dir / "train_light.jsonl"
     usage_jsonl_path = run_dir / "usage.jsonl"
     eval_jsonl_path = run_dir / "mid_eval.jsonl"
     eval_summary_path = run_dir / "eval_summary.json"
@@ -125,6 +127,7 @@ def run_fitmotn_training(fit_cfg):
     dense_targets = collect_dense_ffn_targets(model, layer_idxs)
     motn_cfg = build_motn_model_config(fit_cfg)
     model = patch_qwen_ffn_layers(model, layer_idxs, motn_cfg, device=device, dtype=tc.float32, log=logger)
+    set_motn_usage_tracking(model, bool(getattr(fit_cfg.train, "enable_usage_runtime_tracking", True)))
     set_trainable_motn_only(model, log=logger)
 
     env_snapshot = build_environment_snapshot()
@@ -190,6 +193,12 @@ def run_fitmotn_training(fit_cfg):
             json.dump(to_jsonable(eval_summary), f, ensure_ascii=False, indent=2)
         return {"result": mid_eval, "vs_baseline": early_rec, "stop_training": bool(fit_cfg.train.early_stop and early_rec["passed_abs_gate"])}
 
+    if bool(getattr(fit_cfg.train, "benchmark_train_only", False)):
+        logger.info("[Benchmark] benchmark_train_only enabled: usage tracking and heavy runtime stats defaults are disabled unless explicitly overridden")
+
+    use_bf16 = bool(fit_cfg.model.use_amp and device.type == "cuda" and model_dtype == tc.bfloat16)
+    use_fp16 = bool(fit_cfg.model.use_amp and device.type == "cuda" and model_dtype == tc.float16)
+    logging_steps = min(v for v in [int(fit_cfg.train.log_every), int(fit_cfg.train.train_jsonl_every)] if v > 0)
     training_args = TrainingArguments(
         output_dir=str(run_dir / "checkpoints"),
         overwrite_output_dir=bool(fit_cfg.output.overwrite_output_dir),
@@ -198,14 +207,14 @@ def run_fitmotn_training(fit_cfg):
         learning_rate=float(fit_cfg.train.lr),
         max_steps=int(stage_plan.total_updates),
         num_train_epochs=1.0,
-        logging_steps=int(fit_cfg.train.log_every),
+        logging_steps=logging_steps,
         save_steps=int(fit_cfg.train.save_every_updates),
         save_strategy="steps",
         eval_strategy="no",
         dataloader_num_workers=int(fit_cfg.data.dataloader_num_workers),
         report_to=list(fit_cfg.train.report_to),
-        bf16=False,
-        fp16=bool(fit_cfg.model.use_amp and device.type == "cuda"),
+        bf16=use_bf16,
+        fp16=use_fp16,
         remove_unused_columns=False,
         dataloader_pin_memory=(device.type == "cuda"),
         max_grad_norm=float(fit_cfg.train.max_grad_norm),
@@ -242,6 +251,7 @@ def run_fitmotn_training(fit_cfg):
             fit_cfg,
             stage_state,
             train_jsonl_path=jsonl_path,
+            train_light_jsonl_path=train_light_jsonl_path,
             usage_jsonl_path=usage_jsonl_path,
             eval_jsonl_path=eval_jsonl_path,
             eval_fn=mid_eval_fn,

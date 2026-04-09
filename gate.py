@@ -126,11 +126,76 @@ class SoftGate(nn.Module):
         self.fc = nn.Linear(data_dim, num_experts, bias=False)
         self.temperature = float(temperature)
         self.last_aux = None
+        self.enable_usage_tracking = True
+        self.runtime_expert_counts = None
+        self.runtime_topk_counts = None
+        self.runtime_importance = None
+        self.runtime_load = None
+        self.runtime_drop_rate = None
+        self.runtime_capacity = None
+        self.runtime_entropy_soft = None
+        self.runtime_entropy_hard = None
+
+    def set_usage_tracking_enabled(self, enabled: bool) -> None:
+        self.enable_usage_tracking = bool(enabled)
+        if not self.enable_usage_tracking:
+            self.reset_runtime_usage_cache()
+
+    def reset_runtime_usage_cache(self) -> None:
+        self.runtime_expert_counts = None
+        self.runtime_topk_counts = None
+        self.runtime_importance = None
+        self.runtime_load = None
+        self.runtime_drop_rate = None
+        self.runtime_capacity = None
+        self.runtime_entropy_soft = None
+        self.runtime_entropy_hard = None
+        self.last_aux = None
+
+    def collect_runtime_usage_tensors(self) -> Dict[str, Any]:
+        return {
+            "expert_counts": self.runtime_expert_counts,
+            "topk_counts": self.runtime_topk_counts,
+            "importance": self.runtime_importance,
+            "load": self.runtime_load,
+            "drop_rate": self.runtime_drop_rate,
+            "capacity": self.runtime_capacity,
+            "entropy_soft": self.runtime_entropy_soft,
+            "entropy_hard": self.runtime_entropy_hard,
+            "aux": self.last_aux,
+        }
+
+    def materialize_usage_report(self) -> Dict[str, Any]:
+        report = self.collect_runtime_usage_tensors()
+        materialized: Dict[str, Any] = {}
+        for key, value in report.items():
+            if isinstance(value, tc.Tensor):
+                materialized[key] = value.detach().cpu()
+            else:
+                materialized[key] = value
+        return materialized
 
     def forward(self, x: tc.Tensor):
         logits = self.fc(x)
         probs = tc.softmax(logits / self.temperature, dim=-1)
         aux = {"l_aux": tc.zeros((), device=probs.device, dtype=probs.dtype)}
+        if self.enable_usage_tracking:
+            with tc.no_grad():
+                expert_counts = probs.detach().to(tc.float32).sum(dim=0)
+                self.runtime_expert_counts = expert_counts
+                self.runtime_topk_counts = expert_counts
+                self.runtime_importance = probs.detach().to(tc.float32).mean(dim=0)
+                self.runtime_load = None
+                self.runtime_drop_rate = tc.zeros((), device=probs.device, dtype=tc.float32)
+                self.runtime_capacity = tc.full((), int(probs.shape[0]), device=probs.device, dtype=tc.int32)
+                eps = tc.tensor(1e-10, device=probs.device, dtype=tc.float32)
+                p = probs.detach().to(tc.float32).clamp_min(eps)
+                H_tok = -(p * p.log()).sum(dim=-1).mean()
+                p_bar = p.mean(dim=0).clamp_min(eps)
+                H_batch = -(p_bar * p_bar.log()).sum()
+                self.runtime_entropy_soft = tc.stack((H_tok, H_batch))
+                self.runtime_entropy_hard = tc.stack((H_tok, H_batch))
+                self.last_aux = aux["l_aux"].detach()
         return probs, None, aux
 
 
@@ -183,6 +248,62 @@ class TopKGate(nn.Module):
         self.last_H_batch = None
         self.last_H_tok_hard = None
         self.last_H_batch_hard = None
+        self.enable_usage_tracking = True
+        self.runtime_expert_counts = None
+        self.runtime_topk_counts = None
+        self.runtime_importance = None
+        self.runtime_load = None
+        self.runtime_drop_rate = None
+        self.runtime_capacity = None
+        self.runtime_entropy_soft = None
+        self.runtime_entropy_hard = None
+
+    def set_usage_tracking_enabled(self, enabled: bool) -> None:
+        self.enable_usage_tracking = bool(enabled)
+        if not self.enable_usage_tracking:
+            self.reset_runtime_usage_cache()
+
+    def reset_runtime_usage_cache(self) -> None:
+        self.last_aux = None
+        self.last_importance = None
+        self.last_load = None
+        self.last_drop_rate = None
+        self.last_capacity = None
+        self.last_H_tok = None
+        self.last_H_batch = None
+        self.last_H_tok_hard = None
+        self.last_H_batch_hard = None
+        self.runtime_expert_counts = None
+        self.runtime_topk_counts = None
+        self.runtime_importance = None
+        self.runtime_load = None
+        self.runtime_drop_rate = None
+        self.runtime_capacity = None
+        self.runtime_entropy_soft = None
+        self.runtime_entropy_hard = None
+
+    def collect_runtime_usage_tensors(self) -> Dict[str, Any]:
+        return {
+            "expert_counts": self.runtime_expert_counts,
+            "topk_counts": self.runtime_topk_counts,
+            "importance": self.runtime_importance,
+            "load": self.runtime_load,
+            "drop_rate": self.runtime_drop_rate,
+            "capacity": self.runtime_capacity,
+            "entropy_soft": self.runtime_entropy_soft,
+            "entropy_hard": self.runtime_entropy_hard,
+            "aux": self.last_aux,
+        }
+
+    def materialize_usage_report(self) -> Dict[str, Any]:
+        report = self.collect_runtime_usage_tensors()
+        materialized: Dict[str, Any] = {}
+        for key, value in report.items():
+            if isinstance(value, tc.Tensor):
+                materialized[key] = value.detach().cpu()
+            else:
+                materialized[key] = value
+        return materialized
 
     def _softmax_temp(self, logits_fp32: tc.Tensor) -> tc.Tensor:
         if self.temperature == 1.0:
@@ -279,7 +400,7 @@ class TopKGate(nn.Module):
             "l_aux": l_aux,
             "l_b_aux": l_b_aux,
             "l_z_aux": l_z_aux,
-            "capacity": cap,
+            "capacity": tc.full((), int(cap), device=probs.device, dtype=tc.int32),
             "drop_rate": (1.0 - (mask.float().sum(dim=-1).mean() / float(self.k))),
             "importance": me,
             "load": ce,
@@ -291,17 +412,26 @@ class TopKGate(nn.Module):
             "H_batch_hard": H_batch_hard,
         }
 
-        with tc.no_grad():
-            self.last_aux = float(l_aux.item())
-            self.last_importance = me.detach().cpu()
-            self.last_load = ce.detach().cpu()
-            self.last_drop_rate = float(aux["drop_rate"].item())
-            self.last_capacity = int(cap)
-
-            self.last_H_tok = float(H_tok.item())
-            self.last_H_batch = float(H_batch.item())
-            self.last_H_tok_hard = float(H_tok_hard.item())
-            self.last_H_batch_hard = float(H_batch_hard.item())
+        if self.enable_usage_tracking:
+            with tc.no_grad():
+                topk_counts = mask.detach().to(tc.float32).sum(dim=0)
+                self.runtime_expert_counts = topk_counts
+                self.runtime_topk_counts = topk_counts
+                self.runtime_importance = me.detach()
+                self.runtime_load = ce.detach()
+                self.runtime_drop_rate = aux["drop_rate"].detach()
+                self.runtime_capacity = aux["capacity"].detach()
+                self.runtime_entropy_soft = tc.stack((H_tok.detach(), H_batch.detach()))
+                self.runtime_entropy_hard = tc.stack((H_tok_hard.detach(), H_batch_hard.detach()))
+                self.last_aux = l_aux.detach()
+                self.last_importance = me.detach()
+                self.last_load = ce.detach()
+                self.last_drop_rate = aux["drop_rate"].detach()
+                self.last_capacity = aux["capacity"].detach()
+                self.last_H_tok = H_tok.detach()
+                self.last_H_batch = H_batch.detach()
+                self.last_H_tok_hard = H_tok_hard.detach()
+                self.last_H_batch_hard = H_batch_hard.detach()
 
         return probs.to(logits.dtype), mask, aux
 

@@ -532,6 +532,13 @@ class GatedADTNLayer(nn.Module):
             )
         self.blocks = nn.ModuleList(blks)
 
+        self.enable_usage_tracking = True
+        self.last_aux_dict = None
+        self.last_usage = None
+        self.last_top1 = None
+        self.last_usage_counts = None
+        self.last_top1_counts = None
+
         # （可选）你也可以给每个 block 一个 bias/scale，这里先留空，保持简单
 
     def _coverage_stats(self, positions: List[List[int]], q_in: int) -> dict:
@@ -578,6 +585,100 @@ class GatedADTNLayer(nn.Module):
             return y.reshape(B, S, self.dim_output)
         return y
 
+    def set_usage_tracking_enabled(self, enabled: bool) -> None:
+        self.enable_usage_tracking = bool(enabled)
+        gate = getattr(self, "gate", None)
+        if gate is not None and hasattr(gate, "set_usage_tracking_enabled"):
+            gate.set_usage_tracking_enabled(enabled)
+        if not self.enable_usage_tracking:
+            self.reset_runtime_usage_cache()
+
+    def reset_runtime_usage_cache(self) -> None:
+        self.last_aux_dict = None
+        self.last_usage = None
+        self.last_top1 = None
+        self.last_usage_counts = None
+        self.last_top1_counts = None
+        gate = getattr(self, "gate", None)
+        if gate is not None and hasattr(gate, "reset_runtime_usage_cache"):
+            gate.reset_runtime_usage_cache()
+
+    def collect_runtime_usage_tensors(self) -> Dict[str, Optional[tc.Tensor]]:
+        gate = getattr(self, "gate", None)
+        gate_stats = gate.collect_runtime_usage_tensors() if gate is not None and hasattr(gate, "collect_runtime_usage_tensors") else {}
+        return {
+            "usage": self.last_usage,
+            "top1": self.last_top1,
+            "expert_counts": self.last_usage_counts,
+            "top1_counts": self.last_top1_counts,
+            "importance": gate_stats.get("importance"),
+            "load": gate_stats.get("load"),
+            "drop_rate": gate_stats.get("drop_rate"),
+            "capacity": gate_stats.get("capacity"),
+            "entropy_soft": gate_stats.get("entropy_soft"),
+            "entropy_hard": gate_stats.get("entropy_hard"),
+            "aux": gate_stats.get("aux"),
+        }
+
+    def materialize_usage_report(self) -> Dict[str, Optional[object]]:
+        stats = self.collect_runtime_usage_tensors()
+        counts = stats.get("expert_counts")
+        report: Dict[str, Optional[object]] = {
+            "usage": None,
+            "top1": None,
+            "entropy": None,
+            "load_balance": None,
+            "active_expert_count": None,
+            "max_expert_share": None,
+            "expert_cv": None,
+            "importance": None,
+            "load": None,
+            "drop_rate": None,
+            "capacity": None,
+            "entropy_soft_token": None,
+            "entropy_soft_batch": None,
+            "entropy_hard_token": None,
+            "entropy_hard_batch": None,
+        }
+        if counts is not None:
+            x = counts.detach().to(tc.float32).flatten()
+            total = x.sum().clamp_min(1e-12)
+            probs = (x / total).clamp(1e-12, 1.0)
+            entropy = float((-(probs * probs.log()).sum()).item())
+            denom = float(math.log(max(2, probs.numel())))
+            mean = float(x.mean().item()) if x.numel() > 0 else 0.0
+            std = float(x.std(unbiased=False).item()) if x.numel() > 1 else 0.0
+            report["usage"] = x.detach().cpu().tolist()
+            report["entropy"] = entropy
+            report["load_balance"] = float(entropy / denom) if denom > 0 else None
+            report["active_expert_count"] = int((x > 0).sum().item())
+            report["max_expert_share"] = float(probs.max().item())
+            report["expert_cv"] = float(std / max(mean, 1e-12))
+        top1_counts = stats.get("top1_counts")
+        if top1_counts is not None:
+            top1_probs = top1_counts.detach().to(tc.float32).flatten()
+            if top1_probs.numel() > 0:
+                report["top1"] = top1_probs.detach().cpu().tolist()
+        for key in ("importance", "load"):
+            value = stats.get(key)
+            if isinstance(value, tc.Tensor):
+                report[key] = value.detach().cpu().tolist()
+        for src_key, dst_key in (("drop_rate", "drop_rate"), ("capacity", "capacity")):
+            value = stats.get(src_key)
+            if isinstance(value, tc.Tensor):
+                report[dst_key] = value.detach().cpu().item()
+            else:
+                report[dst_key] = value
+        entropy_soft = stats.get("entropy_soft")
+        if isinstance(entropy_soft, tc.Tensor) and entropy_soft.numel() >= 2:
+            report["entropy_soft_token"] = float(entropy_soft[0].detach().cpu().item())
+            report["entropy_soft_batch"] = float(entropy_soft[1].detach().cpu().item())
+        entropy_hard = stats.get("entropy_hard")
+        if isinstance(entropy_hard, tc.Tensor) and entropy_hard.numel() >= 2:
+            report["entropy_hard_token"] = float(entropy_hard[0].detach().cpu().item())
+            report["entropy_hard_batch"] = float(entropy_hard[1].detach().cpu().item())
+        return report
+
     def forward(
         self,
         x: tc.Tensor,
@@ -618,10 +719,17 @@ class GatedADTNLayer(nn.Module):
             mask = mask.reshape(N, self.num_blocks)
 
         with tc.no_grad():
-            if probs is not None:
-                dims = tuple(range(probs.ndim - 1))
-                self.last_usage = probs.detach().float().mean(dim=dims)
-                self.last_top1  = None if mask is None else mask.detach().float().mean(dim=dims)
+            if self.enable_usage_tracking and probs is not None:
+                probs_detached = probs.detach().to(tc.float32)
+                self.last_usage_counts = probs_detached.sum(dim=0)
+                self.last_usage = probs_detached.mean(dim=0)
+                if mask is None:
+                    self.last_top1_counts = None
+                    self.last_top1 = None
+                else:
+                    mask_detached = mask.detach().to(tc.float32)
+                    self.last_top1_counts = mask_detached.sum(dim=0)
+                    self.last_top1 = mask_detached.mean(dim=0)
 
         # =========================================================
         # 1) dense baseline

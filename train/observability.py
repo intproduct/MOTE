@@ -18,6 +18,8 @@ from ..audit import (
 
 TRAIN_RECORD_BUFFER_SIZE = 128
 USAGE_RECORD_BUFFER_SIZE = 32
+USAGE_LIGHT_RECORD_BUFFER_SIZE = 128
+PENDING_USAGE_LIGHT_BUFFER_SIZE = 512
 RECENT_LOSS_BUFFER_SIZE = 64
 REASONING_DATASET_FLAGS = {
     "gsm8k": "use_gsm8k_train",
@@ -176,6 +178,7 @@ def make_runtime_state(
         },
         "last_train_record": None,
         "last_usage_record": None,
+        "last_usage_light_record": None,
         "latest_mid_eval_summary": None,
         "final_full_summary": None,
         "compare_vs_baseline": None,
@@ -187,9 +190,12 @@ def make_runtime_state(
         "checkpoint_format": "patch_state_only_v2",
         "train_records": deque(maxlen=TRAIN_RECORD_BUFFER_SIZE),
         "usage_records": deque(maxlen=USAGE_RECORD_BUFFER_SIZE),
+        "usage_light_records": deque(maxlen=USAGE_LIGHT_RECORD_BUFFER_SIZE),
+        "pending_usage_light_snapshots": deque(maxlen=PENDING_USAGE_LIGHT_BUFFER_SIZE),
         "mid_eval_records": [],
         "train_record_count": 0,
         "usage_record_count": 0,
+        "usage_light_record_count": 0,
         "tokens_per_sec_sum": 0.0,
         "tokens_per_sec_count": 0,
         "max_cuda_mem_peak_alloc_mb": None,
@@ -270,6 +276,12 @@ def snapshot_cuda(runtime: Dict[str, Any], device: tc.device | str | None = None
     snapshot.update(host_memory_snapshot())
     runtime.update(snapshot)
     return snapshot
+
+
+def _clone_usage_tensor(value: Any) -> Any:
+    if isinstance(value, tc.Tensor):
+        return value.detach().clone()
+    return value
 
 
 def _resolve_top1_value(core: Any, fallback_top1: Any) -> tuple[Any, str]:
@@ -365,7 +377,77 @@ def build_train_record(runtime: Dict[str, Any], logs: Dict[str, Any]) -> Dict[st
     return record
 
 
-def build_usage_record(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str, Any]:
+def capture_usage_light_snapshot(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str, Any]:
+    snapshot = {
+        "kind": "usage_light_snapshot",
+        "time": time.time(),
+        "run_name": runtime["run_name"],
+        "seed": int(runtime.get("fit_cfg").train.seed) if runtime.get("fit_cfg") is not None else None,
+        "stage": runtime.get("current_stage"),
+        "update_step": runtime.get("scheduler_step"),
+        "global_step": runtime.get("scheduler_step"),
+        "lr": runtime.get("current_lr"),
+        "T": runtime.get("current_T"),
+        "gate_trainable": runtime.get("gate_trainable"),
+    }
+    snapshot.update(_current_stage_details(runtime))
+    from ..patching import iter_patched_motn_layers
+
+    for layer_i, module in iter_patched_motn_layers(model):
+        layer_key = f"layer_{layer_i:02d}"
+        layer_snapshot = {}
+        for prefix, core in [
+            ("gate", module.gate_proj.core),
+            ("up", module.up_proj.core),
+            ("down", module.down_proj.core),
+        ]:
+            stats = core.collect_runtime_usage_tensors() if hasattr(core, "collect_runtime_usage_tensors") else {}
+            layer_snapshot[f"usage_{prefix}"] = _clone_usage_tensor(stats.get("expert_counts"))
+            layer_snapshot[f"top1_{prefix}"] = _clone_usage_tensor(stats.get("top1_counts"))
+        snapshot[layer_key] = layer_snapshot
+    runtime["pending_usage_light_snapshots"].append(snapshot)
+    return snapshot
+
+
+def build_usage_light_record(runtime: Dict[str, Any], snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    record = {
+        "kind": "usage_light",
+        "time": snapshot.get("time", time.time()),
+        "run_name": snapshot.get("run_name"),
+        "seed": snapshot.get("seed"),
+        "stage": snapshot.get("stage"),
+        "update_step": snapshot.get("update_step"),
+        "global_step": snapshot.get("global_step"),
+        "lr": snapshot.get("lr"),
+        "T": snapshot.get("T"),
+        "gate_trainable": snapshot.get("gate_trainable"),
+    }
+    for key, value in _current_stage_details(runtime).items():
+        record[key] = snapshot.get(key, value)
+    for key, value in snapshot.items():
+        if not str(key).startswith("layer_"):
+            continue
+        layer_record: Dict[str, Any] = {}
+        for metric_key, metric_value in value.items():
+            layer_record[metric_key] = to_jsonable(metric_value)
+        record[key] = layer_record
+    runtime["last_usage_light_record"] = record
+    runtime["usage_light_records"].append(record)
+    runtime["usage_light_record_count"] = int(runtime.get("usage_light_record_count", 0)) + 1
+    return record
+
+
+def flush_pending_usage_light_records(runtime: Dict[str, Any]) -> List[Dict[str, Any]]:
+    records: List[Dict[str, Any]] = []
+    pending = runtime.get("pending_usage_light_snapshots")
+    if pending is None:
+        return records
+    while pending:
+        records.append(build_usage_light_record(runtime, pending.popleft()))
+    return records
+
+
+def build_usage_report_record(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str, Any]:
     stage_plan = runtime.get("stage_plan")
     stage = None
     if stage_plan is not None:
@@ -417,6 +499,15 @@ def build_usage_record(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str
             "load_balance_gate": None,
             "load_balance_up": None,
             "load_balance_down": None,
+            "importance_gate": None,
+            "importance_up": None,
+            "importance_down": None,
+            "drop_rate_gate": None,
+            "drop_rate_up": None,
+            "drop_rate_down": None,
+            "capacity_gate": None,
+            "capacity_up": None,
+            "capacity_down": None,
             "active_expert_count_gate": None,
             "active_expert_count_up": None,
             "active_expert_count_down": None,
@@ -432,22 +523,35 @@ def build_usage_record(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str
             ("up", module.up_proj.core),
             ("down", module.down_proj.core),
         ]:
-            stats = tensor_distribution_stats(getattr(core, "last_usage", None))
-            layer_record[f"usage_{prefix}"] = stats["usage"]
-            top1_value, top1_source = _resolve_top1_value(core, stats["top1"])
+            if hasattr(core, "materialize_usage_report"):
+                stats = core.materialize_usage_report()
+            else:
+                stats = tensor_distribution_stats(getattr(core, "last_usage", None))
+            layer_record[f"usage_{prefix}"] = stats.get("usage")
+            top1_value = stats.get("top1")
+            top1_source = "core.materialize_usage_report"
+            if top1_value is None:
+                top1_value, top1_source = _resolve_top1_value(core, stats.get("top1"))
             layer_record[f"top1_{prefix}"] = top1_value
             layer_record[f"top1_source_{prefix}"] = top1_source
             layer_record[f"pos_{prefix}"] = to_jsonable(getattr(core, "positions", None))
-            layer_record[f"entropy_{prefix}"] = stats["entropy"]
-            layer_record[f"load_balance_{prefix}"] = stats["load_balance"]
-            layer_record[f"active_expert_count_{prefix}"] = stats["active_expert_count"]
-            layer_record[f"max_expert_share_{prefix}"] = stats["max_expert_share"]
-            layer_record[f"expert_cv_{prefix}"] = stats["expert_cv"]
+            layer_record[f"entropy_{prefix}"] = stats.get("entropy")
+            layer_record[f"load_balance_{prefix}"] = stats.get("load_balance")
+            layer_record[f"importance_{prefix}"] = stats.get("importance")
+            layer_record[f"drop_rate_{prefix}"] = stats.get("drop_rate")
+            layer_record[f"capacity_{prefix}"] = stats.get("capacity")
+            layer_record[f"active_expert_count_{prefix}"] = stats.get("active_expert_count")
+            layer_record[f"max_expert_share_{prefix}"] = stats.get("max_expert_share")
+            layer_record[f"expert_cv_{prefix}"] = stats.get("expert_cv")
         record[layer_key] = layer_record
     runtime["last_usage_record"] = record
     runtime["usage_records"].append(record)
     runtime["usage_record_count"] = int(runtime.get("usage_record_count", 0)) + 1
     return record
+
+
+def build_usage_record(runtime: Dict[str, Any], model: tc.nn.Module) -> Dict[str, Any]:
+    return build_usage_report_record(runtime, model)
 
 
 def build_mid_eval_record(runtime: Dict[str, Any], result: Dict[str, Any], vs_baseline: Dict[str, Any]) -> Dict[str, Any]:

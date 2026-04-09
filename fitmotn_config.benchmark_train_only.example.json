@@ -1,0 +1,10 @@
+{
+  "train": {
+    "log_every": 50,
+    "train_jsonl_every": 50,
+    "benchmark_train_only": true
+  },
+  "output": {
+    "run_name": "benchmark_train_only_reference"
+  }
+}

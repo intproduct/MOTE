@@ -6,20 +6,37 @@ from transformers import TrainerCallback, TrainerControl, TrainerState
 
 from ..audit import jsonl_append, module_norm, grad_norm
 from ..patching import set_motn_gate_trainable, set_motn_temperature, update_motn_expert_warmup_scaling
-from .observability import build_mid_eval_record, build_train_record, build_usage_record, finalize_update_batch_meta, snapshot_cuda, update_step_runtime
+from .observability import (
+    build_mid_eval_record,
+    build_train_record,
+    build_usage_report_record,
+    capture_usage_light_snapshot,
+    finalize_update_batch_meta,
+    flush_pending_usage_light_records,
+    snapshot_cuda,
+    update_step_runtime,
+)
 from .stages import temperature_schedule
 
 
 class MOTNScheduleCallback(TrainerCallback):
-    def __init__(self, fit_cfg, stage_state, train_jsonl_path: str | Path, usage_jsonl_path: str | Path, eval_jsonl_path: str | Path, eval_fn=None, logger=None):
+    def __init__(self, fit_cfg, stage_state, train_jsonl_path: str | Path, train_light_jsonl_path: str | Path, usage_jsonl_path: str | Path, eval_jsonl_path: str | Path, eval_fn=None, logger=None):
         self.fit_cfg = fit_cfg
         self.stage_state = stage_state
         self.train_jsonl_path = Path(train_jsonl_path)
+        self.train_light_jsonl_path = Path(train_light_jsonl_path)
         self.usage_jsonl_path = Path(usage_jsonl_path)
         self.eval_jsonl_path = Path(eval_jsonl_path)
         self.eval_fn = eval_fn
         self.logger = logger
         self._gate_state = None
+
+    @staticmethod
+    def _should_run(step: int, every: int | None) -> bool:
+        if every is None:
+            return False
+        every = int(every)
+        return every > 0 and step > 0 and step % every == 0
 
     def _apply_schedule(self, model, global_step: int):
         train_cfg = self.fit_cfg.train
@@ -64,51 +81,66 @@ class MOTNScheduleCallback(TrainerCallback):
             return control
         if any(str(key).startswith("eval_") for key in logs.keys()):
             return control
+        step = int(state.global_step)
         runtime["current_lr"] = logs.get("learning_rate", runtime.get("current_lr"))
         runtime["current_loss"] = logs.get("loss", runtime.get("current_loss"))
         runtime["grad_norm"] = logs.get("grad_norm", runtime.get("grad_norm"))
-        runtime["param_norm"] = module_norm(model, trainable_only=True)
-        grad_stats = grad_norm(model)
-        runtime.update(grad_stats)
-        runtime["overflow_or_nan_detected"] = bool((grad_stats.get("num_nan_grads") or 0) > 0 or (grad_stats.get("num_inf_grads") or 0) > 0)
-        # We only mark "step skipped" when we can prove it; NaN/Inf detection alone is not enough.
+        run_heavy = bool(getattr(self.fit_cfg.train, "enable_heavy_runtime_stats", True)) and self._should_run(step, getattr(self.fit_cfg.train, "heavy_log_every", 500))
+        if run_heavy and bool(getattr(self.fit_cfg.train, "enable_grad_param_norm", False)):
+            runtime["param_norm"] = module_norm(model, trainable_only=True)
+            grad_stats = grad_norm(model)
+            runtime.update(grad_stats)
+            runtime["overflow_or_nan_detected"] = bool((grad_stats.get("num_nan_grads") or 0) > 0 or (grad_stats.get("num_inf_grads") or 0) > 0)
+        else:
+            runtime["param_norm"] = None
+            runtime["grad_norm"] = logs.get("grad_norm")
+            runtime["num_nan_grads"] = None
+            runtime["num_inf_grads"] = None
+            runtime["overflow_or_nan_detected"] = None
         runtime["optimizer_step_skipped"] = None
-        try:
-            snapshot_cuda(runtime, next(model.parameters()).device)
-        except Exception:
-            snapshot_cuda(runtime, getattr(args, "device", None))
+        if run_heavy and bool(getattr(self.fit_cfg.train, "enable_cuda_snapshot", False)):
+            try:
+                snapshot_cuda(runtime, next(model.parameters()).device)
+            except Exception:
+                snapshot_cuda(runtime, getattr(args, "device", None))
+        else:
+            runtime["cuda_mem_alloc_mb"] = None
+            runtime["cuda_mem_reserved_mb"] = None
+            runtime["cuda_mem_peak_alloc_mb"] = None
+            runtime["cuda_mem_peak_reserved_mb"] = None
+            runtime["cpu_ram_used_mb"] = None
+            runtime["host_ram_used_mb"] = None
         record = build_train_record(runtime, {"loss": logs.get("loss"), "learning_rate": logs.get("learning_rate"), "epoch": logs.get("epoch"), "step": int(state.global_step), "grad_norm": logs.get("grad_norm")})
-        jsonl_append(self.train_jsonl_path, record)
-        if self.logger is not None:
-            latest_mid = runtime.get("latest_mid_eval_summary") or {}
-            latest_mid_update = runtime.get("latest_mid_eval_update")
-            gsm8k = None
-            mmlu = None
-            if isinstance(latest_mid, dict):
-                gsm8k = (latest_mid.get("gsm8k") or {}).get("primary_score")
-                mmlu = (latest_mid.get("mmlu") or {}).get("primary_score")
-            self.logger.info(
-                "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s reasoning_mode=%s reasoning_focused=%s tokens/s=%s step_time=%s "
-                "cuda_alloc=%.1fMB cuda_peak=%.1fMB cuda_reserved=%.1fMB cuda_peak_reserved=%.1fMB "
-                "mid_eval(u=%s gsm8k=%s mmlu=%s)",
-                record.get("stage"),
-                record.get("update_step"),
-                record.get("train_loss"),
-                record.get("lr"),
-                record.get("T"),
-                record.get("gate_trainable"),
-                record.get("reasoning_supervision_mode"),
-                record.get("stage_reasoning_focused"),
-                record.get("tokens_per_sec"),
-                record.get("step_time_sec"),
-                record.get("cuda_mem_alloc_mb") or 0.0,
-                record.get("cuda_mem_peak_alloc_mb") or 0.0,
-                record.get("cuda_mem_reserved_mb") or 0.0,
-                record.get("cuda_mem_peak_reserved_mb") or 0.0,
-                latest_mid_update,
-                gsm8k,
-                mmlu,
-            )
+        if self._should_run(step, getattr(self.fit_cfg.train, "train_jsonl_every", getattr(self.fit_cfg.train, "log_every", 50))):
+            jsonl_append(self.train_jsonl_path, record)
+        if self.logger is not None and self._should_run(step, getattr(self.fit_cfg.train, "log_every", 50)):
+            if run_heavy:
+                self.logger.info(
+                    "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s tokens/s=%s step_time=%s grad_norm=%s param_norm=%s cuda_peak=%sMB",
+                    record.get("stage"),
+                    record.get("update_step"),
+                    record.get("train_loss"),
+                    record.get("lr"),
+                    record.get("T"),
+                    record.get("gate_trainable"),
+                    record.get("tokens_per_sec"),
+                    record.get("step_time_sec"),
+                    record.get("grad_norm"),
+                    record.get("param_norm"),
+                    record.get("cuda_mem_peak_alloc_mb"),
+                )
+            else:
+                self.logger.info(
+                    "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s tokens/s=%s step_time=%s",
+                    record.get("stage"),
+                    record.get("update_step"),
+                    record.get("train_loss"),
+                    record.get("lr"),
+                    record.get("T"),
+                    record.get("gate_trainable"),
+                    record.get("tokens_per_sec"),
+                    record.get("step_time_sec"),
+                )
         return control
 
     def on_step_end(self, args, state: TrainerState, control: TrainerControl, model=None, **kwargs):
@@ -130,8 +162,16 @@ class MOTNScheduleCallback(TrainerCallback):
             )
             finalize_update_batch_meta(runtime)
 
-        if self.fit_cfg.train.usage_dump_every > 0 and step > 0 and step % int(self.fit_cfg.train.usage_dump_every) == 0:
-            dump_rec = build_usage_record(runtime, model)
+        usage_tracking_enabled = bool(getattr(self.fit_cfg.train, "enable_usage_runtime_tracking", True))
+        if usage_tracking_enabled and self._should_run(step, getattr(self.fit_cfg.train, "usage_light_every", getattr(self.fit_cfg.train, "log_every", 50))):
+            capture_usage_light_snapshot(runtime, model)
+        if usage_tracking_enabled and self._should_run(step, getattr(self.fit_cfg.train, "usage_light_jsonl_every", getattr(self.fit_cfg.train, "log_every", 50))):
+            for record in flush_pending_usage_light_records(runtime):
+                jsonl_append(self.train_light_jsonl_path, record)
+
+        usage_report_enabled = bool(getattr(self.fit_cfg.train, "enable_usage_report", True))
+        if usage_report_enabled and self._should_run(step, getattr(self.fit_cfg.train, "usage_report_every", getattr(self.fit_cfg.train, "usage_dump_every", 500))):
+            dump_rec = build_usage_report_record(runtime, model)
             jsonl_append(self.usage_jsonl_path, dump_rec)
             if self.logger is not None:
                 self.logger.info("[Usage] stage=%s step=%s layers=%s", dump_rec.get("stage"), dump_rec.get("update_step"), len([k for k in dump_rec.keys() if k.startswith("layer_")]))
@@ -142,4 +182,13 @@ class MOTNScheduleCallback(TrainerCallback):
             jsonl_append(self.eval_jsonl_path, mid_eval_rec)
             if result.get("stop_training"):
                 control.should_training_stop = True
+        return control
+
+    def on_train_end(self, args, state: TrainerState, control: TrainerControl, model=None, **kwargs):
+        runtime = getattr(model, "fitmotn_runtime", None)
+        if runtime is None:
+            return control
+        if bool(getattr(self.fit_cfg.train, "enable_usage_runtime_tracking", True)) and int(getattr(self.fit_cfg.train, "usage_light_jsonl_every", 0)) > 0:
+            for record in flush_pending_usage_light_records(runtime):
+                jsonl_append(self.train_light_jsonl_path, record)
         return control

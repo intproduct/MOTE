@@ -98,6 +98,15 @@ def set_motn_gate_trainable(model: nn.Module, trainable: bool):
                     p.requires_grad_(trainable)
 
 
+def set_motn_usage_tracking(model: nn.Module, enabled: bool) -> None:
+    for module in model.modules():
+        if isinstance(module, MOTNFFNLayer):
+            for proj in (module.gate_proj, module.up_proj, module.down_proj):
+                core = getattr(proj, "core", None)
+                if core is not None and hasattr(core, "set_usage_tracking_enabled"):
+                    core.set_usage_tracking_enabled(enabled)
+
+
 def _n_slide_for_proj(proj, cfg) -> int:
     layout = getattr(proj, "fitmotn_block_layout", None) or getattr(proj, "_fitmotn_block_layout", None)
     if isinstance(layout, dict) and layout.get("n_slide"):

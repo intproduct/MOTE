@@ -510,6 +510,17 @@ Final Answer:
 - `end_t`
 - `gate_freeze_steps`
 - `usage_dump_every`
+- `usage_light_every`
+- `usage_light_jsonl_every`
+- `usage_report_every`
+- `heavy_log_every`
+- `enable_usage_runtime_tracking`
+- `enable_usage_report`
+- `enable_heavy_runtime_stats`
+- `enable_grad_param_norm`
+- `enable_cuda_snapshot`
+- `train_jsonl_every`
+- `benchmark_train_only`
 - `lr_warmup`
 - `lr_warmup_steps`
 - `warmup_ratio`
@@ -649,6 +660,17 @@ Final Answer:
     "end_t": 0.8,
     "gate_freeze_steps": 2000,
     "usage_dump_every": 500,
+    "usage_light_every": 50,
+    "usage_light_jsonl_every": 50,
+    "usage_report_every": 500,
+    "heavy_log_every": 500,
+    "enable_usage_runtime_tracking": true,
+    "enable_usage_report": true,
+    "enable_heavy_runtime_stats": true,
+    "enable_grad_param_norm": false,
+    "enable_cuda_snapshot": false,
+    "train_jsonl_every": 50,
+    "benchmark_train_only": false,
     "lr_warmup": false,
     "lr_warmup_steps": 1000,
     "warmup_ratio": 0.5,
@@ -771,10 +793,12 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 
 - `train.log`
   训练日志
+- `train_light.jsonl`
+  高频轻量 usage 轨迹；默认保留 `layer × proj × expert` 的完整 count 向量
 - `train.jsonl`
-  训练 step/update 级记录
+  训练 step/update 级记录；只保留训练主记录，不再承载 usage 详细大对象
 - `usage.jsonl`
-  路由 / 专家 usage 结构化记录
+  低频 detailed usage report；保留旧分析脚本兼容入口
 - `mid_eval.jsonl`
   baseline / mid / final 评测轨迹记录
 - `eval_summary.json`
@@ -826,14 +850,49 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 
 当前版本会在训练中持续记录这些结构化信息：
 
+- `train_light.jsonl`
+  高频 usage 轻轨迹；GPU 侧可按 `usage_light_every` 采样，再按 `usage_light_jsonl_every` 独立落盘
 - `train.jsonl`
-  包含 `loss`、`lr`、`T`、`gate_trainable`、`tokens/s`、`显存`、`optimizer`、`scheduler`、`batch_task_names`、`batch_groups`、`batch_source_families`
+  包含 `loss`、`lr`、`T`、`gate_trainable`、`tokens/s`、`optimizer`、`scheduler`、`batch_task_names`、`batch_groups`、`batch_source_families`
 - `usage.jsonl`
-  包含每层 `usage_*`、`top1_*`、`pos_*`、`entropy_*`、`load_balance_*`、`active_expert_count_*`、`max_expert_share_*`、`expert_cv_*`
+  包含每层 `usage_*`、`top1_*`、`pos_*`、`entropy_*`、`load_balance_*`、`importance_*`、`drop_rate_*`、`capacity_*`、`active_expert_count_*`、`max_expert_share_*`、`expert_cv_*`
 - `mid_eval.jsonl`
   包含每次评测对应的训练上下文、评测结果和相对 baseline 的对比
 - `run_summary.json`
   用于批量实验扫描和论文总表汇总
+
+## Usage 轻重分层
+
+当前训练路径已经拆成三层：
+
+- `usage_light_every`
+  控制 GPU 侧轻量 usage snapshot 的采样频率。这里保留的是 `layer × proj × expert` 完整 count，目的是恢复 usage 随 step 的变化轨迹。
+- `usage_light_jsonl_every`
+  控制把这些高频 snapshot 写入 `train_light.jsonl` 的频率。它与 GPU 采样频率独立，可以实现“每步采样、每 50 步落盘”。
+- `usage_report_every`
+  控制 detailed `usage.jsonl` 导出频率。只有这一层才会做 `.cpu()`、entropy/load/importance/drop-rate/capacity 的重聚合与 JSON 化。
+
+兼容说明：
+
+- 旧字段 `usage_dump_every` 仍然支持。
+- 如果没有显式给 `usage_report_every`，系统会自动把 `usage_dump_every` 映射过去。
+
+Heavy runtime stats 也已与 usage 研究路径解耦：
+
+- `heavy_log_every` 控制重统计触发频率
+- `enable_heavy_runtime_stats=false` 时不再做重 runtime 观测
+- `enable_grad_param_norm=false` 时跳过全模型 grad/param norm 扫描
+- `enable_cuda_snapshot=false` 时跳过 CUDA snapshot
+
+吞吐测速可以直接使用 benchmark 模式：
+
+- `benchmark_train_only=true`
+  默认会关闭 usage tracking、usage report 和 heavy runtime stats，适合做纯训练吞吐对照，不适合 usage 研究实验。
+
+参考配置：
+
+- [`fitmotn_config.usage_light_report.example.json`](./fitmotn_config.usage_light_report.example.json)
+- [`fitmotn_config.benchmark_train_only.example.json`](./fitmotn_config.benchmark_train_only.example.json)
 
 ## HF 评测
 

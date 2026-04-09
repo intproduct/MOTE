@@ -183,6 +183,17 @@ class TrainConfig:
     end_t: float = 0.8
     gate_freeze_steps: int = 2000
     usage_dump_every: int = 500
+    usage_light_every: Optional[int] = None
+    usage_light_jsonl_every: Optional[int] = None
+    usage_report_every: Optional[int] = None
+    heavy_log_every: int = 500
+    enable_usage_runtime_tracking: Optional[bool] = None
+    enable_usage_report: Optional[bool] = None
+    enable_heavy_runtime_stats: Optional[bool] = None
+    enable_grad_param_norm: Optional[bool] = None
+    enable_cuda_snapshot: Optional[bool] = None
+    train_jsonl_every: Optional[int] = None
+    benchmark_train_only: bool = False
 
     lr_warmup: bool = False
     lr_warmup_steps: int = 1000
