@@ -318,70 +318,6 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - `device`
 - `use_amp`
 - `torch_dtype`
-
-## Bucketed Reasoning Recovery
-
-当前版本支持两种数据混采模式：
-
-- `train.task_bucket_mode = "flat"`
-  保持旧行为，pretrain task 和 reasoning task 直接按 task 权重平铺混采
-- `train.task_bucket_mode = "bucketed"`
-  先按 bucket ratio 选 bucket，再在 bucket 内按 task weight 归一化采样
-
-bucketed 模式当前采用三桶结构：
-
-- `pretrain_general`
-  `wiki24_tok`、`fineweb`、`stack_code`
-- `gsm8k_core`
-  `gsm8k_train`、`gsm8k_socratic_train`、`svamp_train`、`synthetic_arithmetic_train`
-- `aux_reasoning`
-  `metamath_train`、`math_*`、`openr1_math_train`、`numinamath_cot_train`、`openthoughts_math_train`、`bespoke_stratos_train`、`mmlu_auxiliary_train`
-
-兼容性规则：
-
-- 默认仍然是 `flat`
-- 旧配置不需要新增字段也能继续运行
-- `stage_b_reasoning_boost` 在 `flat` 模式下保留旧语义
-- `bucketed` 模式下，bucket 间比例完全由 `stage_*_pretrain_ratio`、`stage_*_core_task_ratio`、`stage_*_aux_task_ratio` 决定，`stage_b_reasoning_boost` 不再改变 bucket 间采样比例
-
-bucketed 模式新增字段：
-
-- `data.use_synthetic_arithmetic_train`
-- `data.wt_synthetic_arithmetic`
-- `data.synthetic_arithmetic_num_samples`
-- `data.synthetic_arithmetic_seed`
-- `train.task_bucket_mode`
-- `train.stage_a_core_task_ratio`
-- `train.stage_a_aux_task_ratio`
-- `train.stage_b_core_task_ratio`
-- `train.stage_b_aux_task_ratio`
-
-配置校验规则：
-
-- `task_bucket_mode` 只允许 `flat` 或 `bucketed`
-- `bucketed` 模式下，要求 `stage_a_core_task_ratio + stage_a_aux_task_ratio == stage_a_task_ratio`
-- `bucketed` 模式下，要求 `stage_b_core_task_ratio + stage_b_aux_task_ratio == stage_b_task_ratio`
-- 若某个 bucket ratio 大于 0，但没有对应 enabled task 或全部 task weight 为 0，会直接报错
-
-推荐直接参考新样例配置：
-
-- [`fitmotn_reasoning_recovery_gsm8k_core_bucketed.json`](./fitmotn_reasoning_recovery_gsm8k_core_bucketed.json)
-
-最小启动命令：
-
-```bash
-PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
-  --config_json ./fitmotn_reasoning_recovery_gsm8k_core_bucketed.json
-```
-
-如果你想快速检查某个 reasoning task 的 bucket、trace 样式和样本内容，可以使用：
-
-```bash
-PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
-  --config_json ./fitmotn_reasoning_recovery_gsm8k_core_bucketed.json \
-  --task synthetic_arithmetic_train \
-  --sample_index 0
-```
 - `trust_remote_code`
 - `E`
 - `d`
@@ -454,6 +390,7 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 - `use_gsm8k_train`
 - `use_gsm8k_socratic_train`
 - `use_svamp_train`
+- `use_synthetic_arithmetic_train`
 - `use_metamath_train`
 - `use_math_train`
 - `use_mmlu_train`
@@ -467,6 +404,7 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 - `wt_gsm8k`
 - `wt_gsm8k_socratic`
 - `wt_svamp`
+- `wt_synthetic_arithmetic`
 - `wt_metamath`
 - `wt_math`
 - `wt_mmlu`
@@ -478,8 +416,11 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 - `reasoning_max_approx_tokens`
 - `openthoughts_max_chars`
 - `openthoughts_max_approx_tokens`
+- `synthetic_arithmetic_num_samples`
+- `synthetic_arithmetic_seed`
 - `prefer_short_reasoning`
 - `skip_overlong_reasoning_samples`
+- `reasoning_supervision_mode`
 
 这些字段已经真实接入训练数据管线，不只是 README 声明。当前训练 task pool 除了原有的 `wiki / fineweb / code / gsm8k / svamp / metamath / hendrycks_math / mmlu` 外，还支持：
 
@@ -538,6 +479,103 @@ Final Answer:
 - `reasoning_max_approx_tokens`
 - `prefer_short_reasoning`
 - `skip_overlong_reasoning_samples`
+
+新增的 `synthetic_arithmetic_train` 不依赖外部下载，会在本地按固定 seed 生成简短 arithmetic / money / count / multi-step word problem 样本，适合 GSM8K recovery 时做 core arithmetic repair。
+
+## Bucketed Reasoning Recovery
+
+这次改动把原来的“pretrain task + reasoning task 平铺混采”扩成了可选的分层 bucket 混采。
+
+当前支持两种模式：
+
+- `train.task_bucket_mode = "flat"`
+  保持旧行为，pretrain 和 task 数据直接按 task 权重平铺混采
+- `train.task_bucket_mode = "bucketed"`
+  先按 bucket ratio 选 bucket，再在 bucket 内按 task weight 归一化采样
+
+bucketed 模式的三层结构是：
+
+- `pretrain_general`
+  `wiki24_tok`、`fineweb`、`stack_code`
+- `gsm8k_core`
+  `gsm8k_train`、`gsm8k_socratic_train`、`svamp_train`、`synthetic_arithmetic_train`
+- `aux_reasoning`
+  `metamath_train`、`math_*`、`openr1_math_train`、`numinamath_cot_train`、`openthoughts_math_train`、`bespoke_stratos_train`、`mmlu_auxiliary_train`
+
+设计目标是让 GSM8K 恢复训练优先集中吃到 `gsm8k_core`，而不是把所有 reasoning 数据继续平铺成一锅混采。
+
+### 兼容性
+
+- 默认仍然是 `flat`
+- 旧配置不需要新增字段也能继续运行
+- `stage_b_reasoning_boost` 在 `flat` 模式下保留旧语义
+- `bucketed` 模式下，bucket 间比例完全由 stage ratio 字段决定，`stage_b_reasoning_boost` 不再改变 bucket 间采样比例
+
+### 新增配置字段
+
+`data`:
+
+- `use_synthetic_arithmetic_train`
+- `wt_synthetic_arithmetic`
+- `synthetic_arithmetic_num_samples`
+- `synthetic_arithmetic_seed`
+
+`train`:
+
+- `task_bucket_mode`
+- `stage_a_core_task_ratio`
+- `stage_a_aux_task_ratio`
+- `stage_b_core_task_ratio`
+- `stage_b_aux_task_ratio`
+
+### bucketed 模式校验规则
+
+- `task_bucket_mode` 只允许 `flat` 或 `bucketed`
+- `bucketed` 模式下要求 `stage_a_core_task_ratio + stage_a_aux_task_ratio == stage_a_task_ratio`
+- `bucketed` 模式下要求 `stage_b_core_task_ratio + stage_b_aux_task_ratio == stage_b_task_ratio`
+- 若某个 bucket ratio 大于 0，但 bucket 内没有 enabled task，或该 bucket 内 task 权重全为 0，会直接报错
+
+### 运行时观测
+
+bucketed 改造后，以下信息现在会真实进入日志和 batch/runtime 统计：
+
+- 每个 task 的 `bucket`
+- stage A / stage B 的 `bucket_ratios`
+- batch 里的 `bucket` 聚合信息
+- 运行时 `bucket_sampling_counts`
+
+`data/collate.py` 也已经同步更新，所以 `bucket` 会跟 `task/group/source_family` 一起进入 trainer batch，不会在 collate 阶段丢失。
+
+### 推荐配置与启动方式
+
+推荐直接参考新样例配置：
+
+- [`fitmotn_reasoning_recovery_gsm8k_core_bucketed.json`](./fitmotn_reasoning_recovery_gsm8k_core_bucketed.json)
+
+最小启动命令：
+
+```bash
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
+  --config_json ./fitmotn_reasoning_recovery_gsm8k_core_bucketed.json
+```
+
+### 调试与样本检查
+
+如果你想快速检查某个 reasoning task 的 bucket、trace 样式和样本内容，可以使用：
+
+```bash
+PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
+  --config_json ./fitmotn_reasoning_recovery_gsm8k_core_bucketed.json \
+  --task synthetic_arithmetic_train \
+  --sample_index 0
+```
+
+这个调试命令现在会额外打印：
+
+- task 的 `bucket / group / source_family`
+- 当前配置解析出的 `task_bucket_mode`
+- stage A / stage B 的 bucket ratio
+- 归一化后的 prompt / target
 - `reasoning_supervision_mode`
 
 其中 `OpenThoughts-114k-math` 还有单独更严格的：
