@@ -15,6 +15,7 @@ class TaskSpec:
     hf_name: str | None = None
     hf_config: str | None = None
     group: str = "task"
+    bucket: str = "task"
     source_family: str = "generic"
     supports_skip: bool = False
     metadata: Dict[str, Any] = field(default_factory=dict)

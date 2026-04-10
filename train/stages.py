@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import List
+from typing import Dict, List
 
 from ..config.schema import TrainConfig
 
@@ -19,6 +19,8 @@ class StageDefinition:
     reasoning_focused: bool = False
     pretrain_disabled: bool = False
     reasoning_boost: float = 1.0
+    task_bucket_mode: str = "flat"
+    bucket_ratios: Dict[str, float] = field(default_factory=dict)
 
     @property
     def updates(self) -> int:
@@ -69,6 +71,7 @@ def build_stage_plan(cfg: TrainConfig) -> StagePlan:
     total_updates = infer_total_updates(cfg)
     stage_a_updates = max(1, int(round(total_updates * float(cfg.stage_a_ratio))))
     stage_b_updates = max(0, total_updates - stage_a_updates)
+    task_bucket_mode = str(getattr(cfg, "task_bucket_mode", "flat")).strip().lower()
     stages = [
         StageDefinition(
             name="stage_a_recover",
@@ -76,6 +79,14 @@ def build_stage_plan(cfg: TrainConfig) -> StagePlan:
             end_update=stage_a_updates,
             pretrain_ratio=float(cfg.stage_a_pretrain_ratio),
             task_ratio=float(cfg.stage_a_task_ratio),
+            task_bucket_mode=task_bucket_mode,
+            bucket_ratios=_resolve_bucket_ratios(
+                pretrain_ratio=float(cfg.stage_a_pretrain_ratio),
+                task_ratio=float(cfg.stage_a_task_ratio),
+                core_ratio=float(getattr(cfg, "stage_a_core_task_ratio", 0.0)),
+                aux_ratio=float(getattr(cfg, "stage_a_aux_task_ratio", 0.0)),
+                task_bucket_mode=task_bucket_mode,
+            ),
         )
     ]
     if stage_b_updates > 0:
@@ -95,9 +106,38 @@ def build_stage_plan(cfg: TrainConfig) -> StagePlan:
                 reasoning_focused=reasoning_focused,
                 pretrain_disabled=pretrain_disabled,
                 reasoning_boost=float(getattr(cfg, "stage_b_reasoning_boost", 1.0)),
+                task_bucket_mode=task_bucket_mode,
+                bucket_ratios=_resolve_bucket_ratios(
+                    pretrain_ratio=pretrain_ratio,
+                    task_ratio=task_ratio,
+                    core_ratio=float(getattr(cfg, "stage_b_core_task_ratio", 0.0)),
+                    aux_ratio=float(getattr(cfg, "stage_b_aux_task_ratio", 0.0)),
+                    task_bucket_mode=task_bucket_mode,
+                ),
             )
         )
     return StagePlan(total_updates=total_updates, stages=stages)
+
+
+def _resolve_bucket_ratios(
+    *,
+    pretrain_ratio: float,
+    task_ratio: float,
+    core_ratio: float,
+    aux_ratio: float,
+    task_bucket_mode: str,
+) -> Dict[str, float]:
+    mode = str(task_bucket_mode or "flat").strip().lower()
+    if mode == "bucketed":
+        return {
+            "pretrain_general": float(pretrain_ratio),
+            "gsm8k_core": float(core_ratio),
+            "aux_reasoning": float(aux_ratio),
+        }
+    return {
+        "pretrain_general": float(pretrain_ratio),
+        "task": float(task_ratio),
+    }
 
 
 def temperature_schedule(

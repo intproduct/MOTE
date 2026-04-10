@@ -24,6 +24,7 @@ def build_pretrain_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 weight=float(cfg.wt_wiki),
                 kind="local_token_shards",
                 group="pretrain",
+                bucket="pretrain_general",
                 source_family="wiki_shards",
             )
         )
@@ -39,6 +40,7 @@ def build_pretrain_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_config=normalize_hf_config(cfg.fineweb_hf_config),
                 text_field=cfg.fineweb_text_field,
                 group="pretrain",
+                bucket="pretrain_general",
                 source_family="web_text",
             )
         )
@@ -54,6 +56,7 @@ def build_pretrain_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_config=normalize_hf_config(cfg.code_hf_config),
                 text_field=cfg.code_text_field,
                 group="pretrain",
+                bucket="pretrain_general",
                 source_family="code",
             )
         )

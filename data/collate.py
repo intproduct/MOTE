@@ -12,6 +12,7 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
     attn = tc.zeros((len(batch), max_len), dtype=tc.long)
     task = [x.get("task", "unknown") for x in batch]
     group = [x.get("group", "unknown") for x in batch]
+    bucket = [x.get("bucket", "unknown") for x in batch]
     source_family = [x.get("source_family", "unknown") for x in batch]
     eval_type = [x.get("eval_type", "unknown") for x in batch]
 
@@ -27,6 +28,7 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
         "attention_mask": attn,
         "task": task,
         "group": group,
+        "bucket": bucket,
         "source_family": source_family,
         "eval_type": eval_type,
     }

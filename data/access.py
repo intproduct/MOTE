@@ -58,6 +58,14 @@ def inspect_task_dataset(task, logger=None) -> Dict[str, Any]:
         "source": "remote_probe",
         "resolved_samples": None,
     }
+    if str(getattr(task, "kind", "")) == "synthetic_reasoning":
+        dataset = getattr(task, "metadata", {}).get("synthetic_dataset")
+        info["source"] = "synthetic_local"
+        info["sample"] = dataset[0] if dataset is not None and len(dataset) > 0 else None
+        info["resolved_samples"] = None if dataset is None else len(dataset)
+        info["ok"] = True
+        info["reason"] = "synthetic reasoning dataset ready"
+        return info
     if path.exists():
         info["source"] = "cached" if ready_flag.exists() else "cache_probe"
         if load_from_disk is None:

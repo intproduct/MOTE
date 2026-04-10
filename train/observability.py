@@ -25,6 +25,7 @@ REASONING_DATASET_FLAGS = {
     "gsm8k": "use_gsm8k_train",
     "gsm8k_socratic": "use_gsm8k_socratic_train",
     "svamp": "use_svamp_train",
+    "synthetic_arithmetic": "use_synthetic_arithmetic_train",
     "metamath": "use_metamath_train",
     "hendrycks_math": "use_math_train",
     "mmlu": "use_mmlu_train",
@@ -37,6 +38,7 @@ REASONING_DATASET_WEIGHTS = {
     "gsm8k": "wt_gsm8k",
     "gsm8k_socratic": "wt_gsm8k_socratic",
     "svamp": "wt_svamp",
+    "synthetic_arithmetic": "wt_synthetic_arithmetic",
     "metamath": "wt_metamath",
     "hendrycks_math": "wt_math",
     "mmlu": "wt_mmlu",
@@ -51,12 +53,14 @@ REASONING_DATASET_WEIGHTS = {
 class UpdateBatchMeta:
     batch_task_names: Set[str] = field(default_factory=set)
     batch_groups: Set[str] = field(default_factory=set)
+    batch_buckets: Set[str] = field(default_factory=set)
     batch_source_families: Set[str] = field(default_factory=set)
     microbatch_count: int = 0
 
     def clear(self) -> None:
         self.batch_task_names.clear()
         self.batch_groups.clear()
+        self.batch_buckets.clear()
         self.batch_source_families.clear()
         self.microbatch_count = 0
 
@@ -70,6 +74,7 @@ def build_reasoning_config_summary(fit_cfg) -> Dict[str, Any]:
         "reasoning_supervision_mode": str(getattr(data_cfg, "reasoning_supervision_mode", "answer_only")),
         "reasoning_datasets_enabled": enabled,
         "reasoning_dataset_weights": weights,
+        "task_bucket_mode": str(getattr(train_cfg, "task_bucket_mode", "flat")),
         "stage_b_mode": str(getattr(train_cfg, "stage_b_mode", "mixed")),
         "stage_b_disable_pretrain": bool(getattr(train_cfg, "stage_b_disable_pretrain", False)),
         "stage_b_reasoning_boost": float(getattr(train_cfg, "stage_b_reasoning_boost", 1.0)),
@@ -84,6 +89,8 @@ def _current_stage_details(runtime: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "stage_pretrain_ratio": None,
             "stage_task_ratio": None,
+            "stage_bucket_mode": None,
+            "stage_bucket_ratios": None,
             "stage_mode": None,
             "stage_reasoning_focused": None,
             "stage_pretrain_disabled": None,
@@ -94,6 +101,8 @@ def _current_stage_details(runtime: Dict[str, Any]) -> Dict[str, Any]:
             return {
                 "stage_pretrain_ratio": stage.pretrain_ratio,
                 "stage_task_ratio": stage.task_ratio,
+                "stage_bucket_mode": getattr(stage, "task_bucket_mode", None),
+                "stage_bucket_ratios": getattr(stage, "bucket_ratios", None),
                 "stage_mode": getattr(stage, "mode", None),
                 "stage_reasoning_focused": getattr(stage, "reasoning_focused", None),
                 "stage_pretrain_disabled": getattr(stage, "pretrain_disabled", None),
@@ -102,6 +111,8 @@ def _current_stage_details(runtime: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "stage_pretrain_ratio": None,
         "stage_task_ratio": None,
+        "stage_bucket_mode": None,
+        "stage_bucket_ratios": None,
         "stage_mode": None,
         "stage_reasoning_focused": None,
         "stage_pretrain_disabled": None,
@@ -174,6 +185,7 @@ def make_runtime_state(
             "batch_task_names": None,
             "batch_groups": None,
             "batch_source_families": None,
+            "batch_buckets": None,
             "microbatch_count": None,
         },
         "last_train_record": None,
@@ -204,10 +216,12 @@ def make_runtime_state(
         "reasoning_supervision_mode": reasoning_summary["reasoning_supervision_mode"],
         "reasoning_datasets_enabled": reasoning_summary["reasoning_datasets_enabled"],
         "reasoning_dataset_weights": reasoning_summary["reasoning_dataset_weights"],
+        "task_bucket_mode": reasoning_summary["task_bucket_mode"],
         "stage_b_mode": reasoning_summary["stage_b_mode"],
         "stage_b_disable_pretrain": reasoning_summary["stage_b_disable_pretrain"],
         "stage_b_reasoning_boost": reasoning_summary["stage_b_reasoning_boost"],
         "answer_format": reasoning_summary["answer_format"],
+        "bucket_sampling_counts": {},
     }
 
 
@@ -216,6 +230,7 @@ def register_microbatch(runtime: Dict[str, Any], inputs: Dict[str, Any]) -> None
     for key, target in [
         ("task", meta.batch_task_names),
         ("group", meta.batch_groups),
+        ("bucket", meta.batch_buckets),
         ("source_family", meta.batch_source_families),
     ]:
         value = inputs.get(key)
@@ -235,6 +250,7 @@ def finalize_update_batch_meta(runtime: Dict[str, Any]) -> Dict[str, Any]:
     snapshot = {
         "batch_task_names": sorted(meta.batch_task_names) if meta.batch_task_names else None,
         "batch_groups": sorted(meta.batch_groups) if meta.batch_groups else None,
+        "batch_buckets": sorted(meta.batch_buckets) if meta.batch_buckets else None,
         "batch_source_families": sorted(meta.batch_source_families) if meta.batch_source_families else None,
         "microbatch_count": int(meta.microbatch_count) if meta.microbatch_count else None,
     }
@@ -325,9 +341,12 @@ def build_train_record(runtime: Dict[str, Any], logs: Dict[str, Any]) -> Dict[st
         "tokens_per_sec": runtime.get("tokens_per_sec"),
         "batch_task_names": batch_meta.get("batch_task_names"),
         "batch_groups": batch_meta.get("batch_groups"),
+        "batch_buckets": batch_meta.get("batch_buckets"),
         "batch_source_families": batch_meta.get("batch_source_families"),
         "stage_pretrain_ratio": None,
         "stage_task_ratio": None,
+        "stage_bucket_mode": None,
+        "stage_bucket_ratios": None,
         "stage_mode": None,
         "stage_reasoning_focused": None,
         "stage_pretrain_disabled": None,
@@ -358,6 +377,8 @@ def build_train_record(runtime: Dict[str, Any], logs: Dict[str, Any]) -> Dict[st
         "configured_stage_b_reasoning_boost": runtime.get("stage_b_reasoning_boost"),
         "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
         "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "task_bucket_mode": runtime.get("task_bucket_mode"),
+        "bucket_sampling_counts": runtime.get("bucket_sampling_counts"),
         "answer_format": runtime.get("answer_format"),
     }
     record.update(_current_stage_details(runtime))
@@ -470,6 +491,8 @@ def build_usage_report_record(runtime: Dict[str, Any], model: tc.nn.Module) -> D
         "stage_b_mode": runtime.get("stage_b_mode"),
         "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
         "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
+        "task_bucket_mode": runtime.get("task_bucket_mode"),
+        "bucket_sampling_counts": runtime.get("bucket_sampling_counts"),
         "answer_format": runtime.get("answer_format"),
     }
     record.update(_current_stage_details(runtime))

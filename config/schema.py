@@ -95,6 +95,7 @@ class DataConfig:
     use_gsm8k_train: bool = True
     use_gsm8k_socratic_train: bool = False
     use_svamp_train: bool = False
+    use_synthetic_arithmetic_train: bool = False
     use_metamath_train: bool = False
     use_math_train: bool = True
     use_mmlu_train: bool = False
@@ -109,6 +110,7 @@ class DataConfig:
     wt_gsm8k: float = 1.0
     wt_gsm8k_socratic: float = 1.0
     wt_svamp: float = 0.8
+    wt_synthetic_arithmetic: float = 1.0
     wt_metamath: float = 0.3
     wt_math: float = 1.0
     wt_mmlu: float = 1.0
@@ -121,6 +123,8 @@ class DataConfig:
     reasoning_max_approx_tokens: int = 3000
     openthoughts_max_chars: int = 7000
     openthoughts_max_approx_tokens: int = 1800
+    synthetic_arithmetic_num_samples: int = 80000
+    synthetic_arithmetic_seed: int = 42
     prefer_short_reasoning: bool = True
     skip_overlong_reasoning_samples: bool = True
     reasoning_supervision_mode: str = "answer_only"
@@ -173,9 +177,14 @@ class TrainConfig:
     stage_a_ratio: float = 0.60
     stage_a_pretrain_ratio: float = 0.70
     stage_a_task_ratio: float = 0.30
+    task_bucket_mode: str = "flat"
+    stage_a_core_task_ratio: float = 0.0
+    stage_a_aux_task_ratio: float = 0.0
     stage_b_mode: str = "mixed"
     stage_b_pretrain_ratio: float = 0.45
     stage_b_task_ratio: float = 0.55
+    stage_b_core_task_ratio: float = 0.0
+    stage_b_aux_task_ratio: float = 0.0
     stage_b_disable_pretrain: bool = False
     stage_b_reasoning_boost: float = 1.0
 

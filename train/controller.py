@@ -71,8 +71,9 @@ def run_fitmotn_training(fit_cfg):
     logger.info("[Run] start %s", run_name)
     logger.info("[Cfg] %s", json.dumps(to_jsonable(asdict(fit_cfg)), ensure_ascii=False))
     logger.info(
-        "[Reasoning] supervision_mode=%s stage_b_mode=%s stage_b_disable_pretrain=%s stage_b_reasoning_boost=%s",
+        "[Reasoning] supervision_mode=%s task_bucket_mode=%s stage_b_mode=%s stage_b_disable_pretrain=%s stage_b_reasoning_boost=%s",
         reasoning_supervision_mode,
+        str(getattr(fit_cfg.train, "task_bucket_mode", "flat")),
         stage_b_mode,
         bool(getattr(fit_cfg.train, "stage_b_disable_pretrain", False)),
         float(getattr(fit_cfg.train, "stage_b_reasoning_boost", 1.0)),
@@ -109,6 +110,22 @@ def run_fitmotn_training(fit_cfg):
     logger.info("[Data] pretrain_tasks=%s task_tasks=%s", [task.name for task in pretrain_tasks], [task.name for task in task_tasks])
     stage_plan = build_stage_plan(fit_cfg.train)
     stage_state = MutableStageState(stage_plan)
+    for stage in stage_plan.stages:
+        logger.info(
+            "[Stage] name=%s task_bucket_mode=%s bucket_ratios=%s",
+            stage.name,
+            getattr(stage, "task_bucket_mode", "flat"),
+            dict(getattr(stage, "bucket_ratios", {}) or {}),
+        )
+    for task in pretrain_tasks + task_tasks:
+        logger.info(
+            "[Data] task=%s group=%s bucket=%s source_family=%s weight=%s",
+            task.name,
+            task.group,
+            getattr(task, "bucket", "task"),
+            task.source_family,
+            float(task.weight),
+        )
     scheduler_builder, warmup_updates = build_scheduler_builder(fit_cfg, stage_plan.total_updates, logger=logger)
 
     baseline_small = None
@@ -152,6 +169,7 @@ def run_fitmotn_training(fit_cfg):
     runtime_state["amp_enabled"] = bool(fit_cfg.model.use_amp and device.type == "cuda")
     runtime_state["approx_init_summary"] = None
     setattr(model, "fitmotn_runtime", runtime_state)
+    setattr(stage_state, "runtime_state", runtime_state)
 
     if bool(fit_cfg.approx_init.enabled):
         approx_summary = run_approx_init(model, layer_idxs, dense_targets, fit_cfg.approx_init, logger, run_dir)

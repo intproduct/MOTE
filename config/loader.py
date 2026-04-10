@@ -71,7 +71,73 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) ->
     train_cfg.usage_report_every = int(getattr(train_cfg, "usage_report_every", 0))
     train_cfg.train_jsonl_every = int(getattr(train_cfg, "train_jsonl_every", default_log_every))
     train_cfg.heavy_log_every = int(getattr(train_cfg, "heavy_log_every", 500))
+    _validate_bucket_config(cfg)
     return cfg
+
+
+def _validate_bucket_config(cfg: FitMoTNConfig) -> None:
+    train_cfg = cfg.train
+    mode = str(getattr(train_cfg, "task_bucket_mode", "flat")).strip().lower()
+    if mode not in {"flat", "bucketed"}:
+        raise ValueError(f"train.task_bucket_mode must be 'flat' or 'bucketed', got {mode!r}")
+    train_cfg.task_bucket_mode = mode
+
+    ratio_fields = [
+        "stage_a_pretrain_ratio",
+        "stage_a_task_ratio",
+        "stage_a_core_task_ratio",
+        "stage_a_aux_task_ratio",
+        "stage_b_pretrain_ratio",
+        "stage_b_task_ratio",
+        "stage_b_core_task_ratio",
+        "stage_b_aux_task_ratio",
+    ]
+    for field_name in ratio_fields:
+        value = float(getattr(train_cfg, field_name, 0.0))
+        if value < 0.0:
+            raise ValueError(f"train.{field_name} must be >= 0, got {value}")
+
+    if mode != "bucketed":
+        return
+
+    def _check_stage(stage_name: str) -> None:
+        task_ratio = float(getattr(train_cfg, f"{stage_name}_task_ratio"))
+        core_ratio = float(getattr(train_cfg, f"{stage_name}_core_task_ratio"))
+        aux_ratio = float(getattr(train_cfg, f"{stage_name}_aux_task_ratio"))
+        total = core_ratio + aux_ratio
+        if abs(total - task_ratio) > 1e-8:
+            raise ValueError(
+                f"train.{stage_name}_core_task_ratio + train.{stage_name}_aux_task_ratio must equal "
+                f"train.{stage_name}_task_ratio; got {core_ratio} + {aux_ratio} != {task_ratio}"
+            )
+        pretrain_ratio = float(getattr(train_cfg, f"{stage_name}_pretrain_ratio"))
+        if abs((pretrain_ratio + task_ratio) - 1.0) > 1e-8:
+            raise ValueError(
+                f"train.{stage_name}_pretrain_ratio + train.{stage_name}_task_ratio must equal 1.0 in bucketed mode; "
+                f"got {pretrain_ratio} + {task_ratio} != 1.0"
+            )
+
+    _check_stage("stage_a")
+    if not bool(getattr(train_cfg, "stage_b_disable_pretrain", False)):
+        _check_stage("stage_b")
+    else:
+        stage_b_pretrain_ratio = float(getattr(train_cfg, "stage_b_pretrain_ratio"))
+        stage_b_task_ratio = float(getattr(train_cfg, "stage_b_task_ratio"))
+        stage_b_core_ratio = float(getattr(train_cfg, "stage_b_core_task_ratio"))
+        stage_b_aux_ratio = float(getattr(train_cfg, "stage_b_aux_task_ratio"))
+        if abs(stage_b_pretrain_ratio) > 1e-8:
+            raise ValueError(
+                "train.stage_b_pretrain_ratio must be 0.0 when train.stage_b_disable_pretrain=true in bucketed mode"
+            )
+        if abs(stage_b_task_ratio - 1.0) > 1e-8:
+            raise ValueError(
+                "train.stage_b_task_ratio must be 1.0 when train.stage_b_disable_pretrain=true in bucketed mode"
+            )
+        if abs((stage_b_core_ratio + stage_b_aux_ratio) - 1.0) > 1e-8:
+            raise ValueError(
+                "train.stage_b_core_task_ratio + train.stage_b_aux_task_ratio must equal 1.0 when "
+                "train.stage_b_disable_pretrain=true in bucketed mode"
+            )
 
 
 def apply_config_payload(cfg: FitMoTNConfig, payload: Mapping[str, Any]) -> FitMoTNConfig:

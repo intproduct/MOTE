@@ -8,6 +8,7 @@ from ..data.access import inspect_task_dataset
 from ..data.specs import TaskSpec
 from ..runtime import normalize_hf_config
 from .reasoning_normalization import normalize_reasoning_sample
+from .synthetic_arithmetic import build_synthetic_arithmetic_dataset
 
 
 @dataclass
@@ -109,7 +110,7 @@ def _register_task(tasks: List[TaskSpec], task: TaskSpec, logger=None) -> bool:
                 logger.warning("[Data] disable task=%s reason=field validation failed: %r", task.name, exc)
             return False
 
-    details = [f"source={info.get('source')}"]
+    details = [f"source={info.get('source')}", f"bucket={task.bucket}"]
     if task.max_samples is not None:
         resolved_total = info.get("resolved_samples")
         details.append(f"max_samples={task.max_samples}")
@@ -164,6 +165,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.gsm8k_hf_name,
                 hf_config=normalize_hf_config(cfg.gsm8k_hf_config),
                 group="task",
+                bucket="gsm8k_core",
                 source_family="reasoning",
             ),
             logger=logger,
@@ -184,6 +186,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.gsm8k_socratic_hf_name,
                 hf_config=normalize_hf_config(cfg.gsm8k_socratic_hf_config),
                 group="task",
+                bucket="gsm8k_core",
                 source_family="reasoning",
             ),
             logger=logger,
@@ -204,7 +207,35 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.svamp_hf_name,
                 hf_config=normalize_hf_config(cfg.svamp_hf_config),
                 group="task",
+                bucket="gsm8k_core",
                 source_family="reasoning",
+            ),
+            logger=logger,
+        )
+    if bool(getattr(cfg, "use_synthetic_arithmetic_train", False)):
+        requested_task_flags.append("synthetic_arithmetic_train")
+        _register_task(
+            tasks,
+            NormalizedReasoningTask(
+                name="synthetic_arithmetic_train",
+                path="synthetic_arithmetic",
+                split="train",
+                weight=float(cfg.wt_synthetic_arithmetic),
+                dataset_name="synthetic_arithmetic",
+                length_policy=_build_reasoning_limits(cfg),
+                supervision_mode=str(cfg.reasoning_supervision_mode),
+                kind="synthetic_reasoning",
+                group="task",
+                bucket="gsm8k_core",
+                source_family="reasoning",
+                metadata={
+                    "synthetic_dataset": build_synthetic_arithmetic_dataset(
+                        num_samples=int(getattr(cfg, "synthetic_arithmetic_num_samples", 80000)),
+                        seed=int(getattr(cfg, "synthetic_arithmetic_seed", 42)),
+                    ),
+                    "synthetic_num_samples": int(getattr(cfg, "synthetic_arithmetic_num_samples", 80000)),
+                    "synthetic_seed": int(getattr(cfg, "synthetic_arithmetic_seed", 42)),
+                },
             ),
             logger=logger,
         )
@@ -225,6 +256,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.metamath_hf_name,
                 hf_config=normalize_hf_config(cfg.metamath_hf_config),
                 group="task",
+                bucket="aux_reasoning",
                 source_family="reasoning",
             ),
             logger=logger,
@@ -247,6 +279,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                     hf_name=cfg.math_hf_name,
                     hf_config=normalize_hf_config(subset),
                     group="task",
+                    bucket="aux_reasoning",
                     source_family="math_reasoning",
                 ),
                 logger=logger,
@@ -268,6 +301,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.openr1_math_hf_name,
                 hf_config=normalize_hf_config(cfg.openr1_math_hf_config),
                 group="task",
+                bucket="aux_reasoning",
                 source_family="math_reasoning",
             ),
             logger=logger,
@@ -289,6 +323,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.numinamath_cot_hf_name,
                 hf_config=normalize_hf_config(cfg.numinamath_cot_hf_config),
                 group="task",
+                bucket="aux_reasoning",
                 source_family="math_reasoning",
             ),
             logger=logger,
@@ -314,6 +349,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.openthoughts_math_hf_name,
                 hf_config=normalize_hf_config(cfg.openthoughts_math_hf_config),
                 group="task",
+                bucket="aux_reasoning",
                 source_family="math_reasoning",
             ),
             logger=logger,
@@ -335,6 +371,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 hf_name=cfg.bespoke_stratos_hf_name,
                 hf_config=normalize_hf_config(cfg.bespoke_stratos_hf_config),
                 group="task",
+                bucket="aux_reasoning",
                 source_family="reasoning",
             ),
             logger=logger,
@@ -354,6 +391,7 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                     hf_name=cfg.mmlu_hf_name,
                     hf_config=normalize_hf_config(cfg.mmlu_hf_config),
                     group="task",
+                    bucket="aux_reasoning",
                     source_family="mcq_reasoning",
                 ),
                 logger=logger,

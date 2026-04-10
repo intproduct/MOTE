@@ -10,6 +10,7 @@ from ..config import load_config
 from ..data.mixed_iterable import apply_task_sample_limit, load_dataset_any
 from ..data.tokenization import make_supervised_example
 from ..tasks.reasoning_specs import NormalizedReasoningTask, build_task_mixture_tasks
+from ..train.stages import build_stage_plan
 
 
 def parse_args():
@@ -33,7 +34,7 @@ def _pick_task(tasks, task_name: str | None):
 
 
 def _pick_sample(task: NormalizedReasoningTask, sample_index: int) -> Any:
-    raw = load_dataset_any(task.kind, task.path, task.split, hf_name=task.hf_name, hf_config=task.hf_config)
+    raw = load_dataset_any(task.kind, task.path, task.split, hf_name=task.hf_name, hf_config=task.hf_config, metadata=task.metadata)
     raw = apply_task_sample_limit(raw, task)
     for idx, ex in enumerate(raw):
         if idx == sample_index:
@@ -61,11 +62,18 @@ def main():
     cfg = load_config(config_json=args.config_json)
     tasks = build_task_mixture_tasks(cfg.data)
     task = _pick_task(tasks, args.task)
+    stage_plan = build_stage_plan(cfg.train)
     ex = _pick_sample(task, int(args.sample_index))
     normalized = task.normalize_example(ex)
     print(f"task={task.name}")
+    print(f"bucket={task.bucket}")
+    print(f"group={task.group}")
+    print(f"source_family={task.source_family}")
     print(f"dataset_name={task.dataset_name}")
     print(f"reasoning_supervision_mode={task.supervision_mode}")
+    print(f"task_bucket_mode={cfg.train.task_bucket_mode}")
+    for stage in stage_plan.stages:
+        print(f"{stage.name}_bucket_ratios=" + json.dumps(dict(getattr(stage, "bucket_ratios", {}) or {}), ensure_ascii=False))
     print(f"trace_strategy={normalized.get('trace_strategy')}")
     print(f"ok={normalized.get('ok')}")
     if not normalized.get("ok"):
