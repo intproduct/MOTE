@@ -7,7 +7,7 @@ from pathlib import Path
 import torch as tc
 
 from ..config import load_config
-from ..eval.lm_eval_hf import run_lm_eval_tasks
+from ..eval.runner import run_eval_tasks
 from ..eval.restore import restore_fitmotn_model
 from ..runtime import load_causal_lm_and_tokenizer
 
@@ -24,7 +24,17 @@ def parse_args():
 
 def main():
     args = parse_args()
-    cfg = load_config(config_json=args.config_json, overrides={"eval": {"lm_eval_device": args.device}})
+    cfg = load_config(
+        config_json=args.config_json,
+        overrides={
+            "eval": {
+                "eval_backend": "lm_eval",
+                "primary_eval_backend": "lm_eval",
+                "lm_eval_device": args.device,
+                "backend_defaults": {"lm_eval": {"device": args.device}},
+            }
+        },
+    )
     target = Path(args.model_or_ckpt).resolve()
     if (target / "fitmotn_state.pt").exists():
         model, tokenizer, _ = restore_fitmotn_model(target, device=args.device)
@@ -37,7 +47,15 @@ def main():
             use_cache=True,
         )
     tasks = args.tasks or cfg.eval.final_tasks
-    results = run_lm_eval_tasks(model, tokenizer, cfg, tasks=tasks, eval_name="eval_hf", eval_mode="final")
+    results = run_eval_tasks(
+        cfg,
+        tasks=tasks,
+        eval_name="eval_hf",
+        eval_mode="final",
+        model=model,
+        tokenizer=tokenizer,
+        model_or_path=target,
+    )
     output_json = Path(args.output_json).resolve() if args.output_json else target / "fitmotn_eval_hf.json"
     with output_json.open("w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)

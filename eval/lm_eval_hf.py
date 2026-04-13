@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import torch as tc
 
+from .config_utils import resolve_task_eval_settings
 from .metrics import extract_metric_block, pick_primary_score
 
 
@@ -20,48 +22,57 @@ def import_lm_eval():
         raise ImportError('Please install lm-eval with the HF backend: pip install -U "lm_eval[hf]"') from exc
 
 
-def fewshot_for_task(task_name: str, eval_cfg) -> int:
-    if task_name == "gsm8k":
-        return int(eval_cfg.lm_eval_num_fewshot_gsm8k)
-    if task_name == "mmlu":
-        return int(eval_cfg.lm_eval_num_fewshot_mmlu)
-    if task_name == "hendrycks_math":
-        return int(eval_cfg.lm_eval_num_fewshot_math)
-    return 0
+def _supported_param_names(callable_obj) -> set[str]:
+    return set(inspect.signature(callable_obj).parameters.keys())
 
 
-def limit_for_task(task_name: str, eval_cfg, eval_mode: str) -> Optional[int]:
-    if eval_mode == "baseline_small":
-        mapping = {"gsm8k": eval_cfg.baseline_small_limit_gsm8k, "mmlu": eval_cfg.baseline_small_limit_mmlu}
-    elif eval_mode == "mid":
-        mapping = {"gsm8k": eval_cfg.early_limit_gsm8k, "mmlu": eval_cfg.early_limit_mmlu}
-    elif eval_mode == "final":
-        mapping = {"gsm8k": eval_cfg.final_limit_gsm8k, "mmlu": eval_cfg.final_limit_mmlu, "hendrycks_math": eval_cfg.final_limit_math}
-    else:
-        raise ValueError(f"unknown eval_mode={eval_mode}")
-    value = int(mapping.get(task_name, 0))
-    return None if value <= 0 else value
-
-
-def gen_kwargs_for_task(task_name: str, eval_cfg, eval_mode: str) -> Optional[Dict[str, Any]]:
-    if task_name == "gsm8k":
-        max_gen_toks = eval_cfg.early_max_gen_toks_gsm8k if eval_mode in ("baseline_small", "mid") else eval_cfg.final_max_gen_toks_gsm8k
-        return {"max_gen_toks": int(max_gen_toks)}
-    if task_name == "hendrycks_math" and eval_mode == "final":
-        return {"max_gen_toks": int(eval_cfg.final_max_gen_toks_math)}
-    return None
-
-
-def make_hflm(model, tokenizer, fit_cfg):
+def _build_hflm_kwargs(model, tokenizer, fit_cfg, task_settings: Dict[str, Any]) -> tuple[Dict[str, Any], List[str], List[str]]:
     _, HFLM = import_lm_eval()
+    supported = _supported_param_names(HFLM.__init__)
+    backend_cfg = task_settings["backend_config"]
+    runtime_cfg = dict(task_settings.get("runtime", {}) or {})
+    warnings: List[str] = []
+    ignored_runtime_args: List[str] = []
+
+    kwargs: Dict[str, Any] = {
+        "pretrained": model,
+        "tokenizer": tokenizer,
+        "batch_size": int(backend_cfg.get("batch_size", fit_cfg.eval.lm_eval_batch_size)),
+        "max_length": int(fit_cfg.data.seq_len_run),
+        "trust_remote_code": True,
+        "device": str(backend_cfg.get("device", fit_cfg.eval.lm_eval_device)),
+    }
+    for key in ["enable_thinking", "think_end_token", "chat_template_args"]:
+        value = runtime_cfg.get(key)
+        if value in (None, {}, []):
+            continue
+        if key in supported:
+            kwargs[key] = value
+        else:
+            warnings.append(f"lm_eval HFLM does not support runtime arg '{key}', ignored")
+            ignored_runtime_args.append(key)
+
+    for key, value in dict(backend_cfg.get("hflm_init", {}) or {}).items():
+        if key in supported:
+            kwargs[key] = value
+        else:
+            warnings.append(f"lm_eval HFLM init arg '{key}' is unsupported in current version and was ignored")
+            ignored_runtime_args.append(key)
+    return kwargs, warnings, ignored_runtime_args
+
+
+def make_hflm(model, tokenizer, fit_cfg, task_settings: Dict[str, Any]):
+    _, HFLM = import_lm_eval()
+    ctor_kwargs, warnings, ignored_runtime_args = _build_hflm_kwargs(model, tokenizer, fit_cfg, task_settings)
     ctor_errors = []
-    for kwargs in [
-        dict(pretrained=model, tokenizer=tokenizer, batch_size=int(fit_cfg.eval.lm_eval_batch_size), max_length=int(fit_cfg.data.seq_len_run), trust_remote_code=True, device=str(fit_cfg.eval.lm_eval_device)),
-        dict(pretrained=model, tokenizer=tokenizer, batch_size=int(fit_cfg.eval.lm_eval_batch_size), trust_remote_code=True, device=str(fit_cfg.eval.lm_eval_device)),
-        dict(pretrained=model, tokenizer=tokenizer, batch_size=int(fit_cfg.eval.lm_eval_batch_size)),
-    ]:
+    candidate_kwargs = [
+        dict(ctor_kwargs),
+        {k: v for k, v in ctor_kwargs.items() if k != "max_length"},
+        {k: v for k, v in ctor_kwargs.items() if k not in {"max_length", "device", "trust_remote_code"}},
+    ]
+    for kwargs in candidate_kwargs:
         try:
-            return HFLM(**kwargs)
+            return HFLM(**kwargs), warnings, ignored_runtime_args
         except TypeError as exc:
             ctor_errors.append(f"{kwargs} -> {repr(exc)}")
     raise RuntimeError("Unable to construct HFLM.\n" + "\n".join(ctor_errors))
@@ -70,49 +81,155 @@ def make_hflm(model, tokenizer, fit_cfg):
 @tc.no_grad()
 def run_lm_eval_tasks(model, tokenizer, fit_cfg, tasks: List[str], logger=None, eval_name: str = "eval", out_root: str | Path | None = None, eval_mode: str = "final") -> Dict[str, Any]:
     evaluator, _ = import_lm_eval()
+    simple_supported = _supported_param_names(evaluator.simple_evaluate)
     model.eval()
-    hflm = make_hflm(model, tokenizer, fit_cfg)
     output_dir = Path(out_root or "./lm_eval_outputs").resolve() / eval_name
     output_dir.mkdir(parents=True, exist_ok=True)
     task_to_result: Dict[str, Any] = {}
     summary: Dict[str, Any] = {}
+    backend_warnings: List[str] = []
+
     for task_name in tasks:
-        num_fewshot = fewshot_for_task(task_name, fit_cfg.eval)
-        limit = limit_for_task(task_name, fit_cfg.eval, eval_mode)
-        gen_kwargs = gen_kwargs_for_task(task_name, fit_cfg.eval, eval_mode)
+        task_settings = resolve_task_eval_settings(fit_cfg, task_name, eval_mode, backend="lm_eval")
+        hflm, hflm_warnings, ignored_runtime_args = make_hflm(model, tokenizer, fit_cfg, task_settings)
+        warnings = list(hflm_warnings)
+        runtime_cfg = dict(task_settings.get("runtime", {}) or {})
+        backend_cfg = dict(task_settings.get("backend_config", {}) or {})
+        gen_kwargs = task_settings.get("gen_kwargs")
+        ignored_simple_args: List[str] = []
+
+        for key in task_settings.get("unsupported_generation_keys", []):
+            warnings.append(f"lm_eval backend does not recognize generation key '{key}', ignored")
+        for key in task_settings.get("unsupported_runtime_keys", []):
+            warnings.append(f"lm_eval backend does not recognize runtime key '{key}', ignored")
+            ignored_runtime_args.append(key)
+
+        call_kwargs: Dict[str, Any] = {
+            "model": hflm,
+            "tasks": [task_name],
+            "num_fewshot": int(task_settings["fewshot"]),
+            "batch_size": int(backend_cfg.get("batch_size", fit_cfg.eval.lm_eval_batch_size)),
+            "log_samples": False,
+        }
+        if task_settings.get("limit") is not None:
+            call_kwargs["limit"] = task_settings["limit"]
+        if gen_kwargs is not None:
+            call_kwargs["gen_kwargs"] = gen_kwargs
+
+        optional_simple_args = {
+            "apply_chat_template": runtime_cfg.get("apply_chat_template"),
+            "fewshot_as_multiturn": runtime_cfg.get("fewshot_as_multiturn"),
+            "system_instruction": runtime_cfg.get("system_instruction"),
+            "metadata": {
+                "backend": "lm_eval",
+                "protocol": task_settings.get("protocol"),
+                "runtime": runtime_cfg,
+                "generation": task_settings.get("generation"),
+            },
+            "confirm_run_unsafe_code": True,
+        }
+        for key, value in optional_simple_args.items():
+            if value is None:
+                continue
+            if key in simple_supported:
+                call_kwargs[key] = value
+            else:
+                warnings.append(f"lm_eval simple_evaluate does not support arg '{key}', ignored")
+                ignored_simple_args.append(key)
+
+        for key, value in dict(backend_cfg.get("simple_evaluate", {}) or {}).items():
+            if key in simple_supported:
+                call_kwargs[key] = value
+            else:
+                warnings.append(f"lm_eval simple_evaluate arg '{key}' is unsupported in current version and was ignored")
+                ignored_simple_args.append(key)
+
         raw_res = None
         errors = []
-        for call_kwargs in [
-            dict(model=hflm, tasks=[task_name], num_fewshot=num_fewshot, batch_size=int(fit_cfg.eval.lm_eval_batch_size), log_samples=False, confirm_run_unsafe_code=True),
-            dict(model=hflm, tasks=[task_name], num_fewshot=num_fewshot, batch_size=int(fit_cfg.eval.lm_eval_batch_size), log_samples=False),
-            dict(model=hflm, tasks=[task_name], num_fewshot=num_fewshot, batch_size=int(fit_cfg.eval.lm_eval_batch_size)),
-        ]:
-            if limit is not None:
-                call_kwargs["limit"] = limit
-            if gen_kwargs is not None:
-                call_kwargs["gen_kwargs"] = gen_kwargs
+        candidate_call_kwargs = [
+            dict(call_kwargs),
+            {k: v for k, v in call_kwargs.items() if k != "confirm_run_unsafe_code"},
+            {k: v for k, v in call_kwargs.items() if k not in {"confirm_run_unsafe_code", "metadata"}},
+        ]
+        for attempt_kwargs in candidate_call_kwargs:
             try:
-                raw_res = evaluator.simple_evaluate(**call_kwargs)
+                raw_res = evaluator.simple_evaluate(**attempt_kwargs)
                 break
             except Exception as exc:
-                errors.append(f"{call_kwargs} -> {repr(exc)}")
+                errors.append(f"{attempt_kwargs} -> {repr(exc)}")
+
         if raw_res is None:
-            task_to_result[task_name] = {"primary_metric": None, "primary_score": None, "metrics": {}, "error": " | ".join(errors)}
-            summary[task_name] = {"primary_metric": None, "primary_score": None, "error": " | ".join(errors)}
+            task_to_result[task_name] = {
+                "backend": "lm_eval",
+                "protocol": task_settings.get("protocol"),
+                "primary_metric": None,
+                "primary_score": None,
+                "metrics": {},
+                "fewshot": int(task_settings["fewshot"]),
+                "limit": task_settings.get("limit"),
+                "runtime": runtime_cfg,
+                "gen_kwargs": gen_kwargs,
+                "warnings": warnings,
+                "ignored_runtime_args": sorted(set(ignored_runtime_args + ignored_simple_args)),
+                "unsupported_runtime_args": sorted(set(task_settings.get("unsupported_runtime_keys", []))),
+                "unsupported_generation_args": sorted(set(task_settings.get("unsupported_generation_keys", []))),
+                "error": " | ".join(errors),
+            }
+            summary[task_name] = {
+                "primary_metric": None,
+                "primary_score": None,
+                "fewshot": int(task_settings["fewshot"]),
+                "limit": task_settings.get("limit"),
+                "backend": "lm_eval",
+                "protocol": task_settings.get("protocol"),
+                "warnings": warnings,
+                "error": " | ".join(errors),
+            }
+            backend_warnings.extend(warnings)
             continue
+
         metric_block = extract_metric_block(raw_res, task_name)
         primary_metric, primary_score = pick_primary_score(task_name, metric_block)
         task_to_result[task_name] = {
+            "backend": "lm_eval",
+            "protocol": task_settings.get("protocol"),
             "primary_metric": primary_metric,
             "primary_score": primary_score,
             "metrics": metric_block,
-            "fewshot": num_fewshot,
-            "limit": limit,
+            "fewshot": int(task_settings["fewshot"]),
+            "limit": task_settings.get("limit"),
+            "runtime": runtime_cfg,
             "gen_kwargs": gen_kwargs,
             "output_dir": str(output_dir),
+            "warnings": warnings,
+            "ignored_runtime_args": sorted(set(ignored_runtime_args + ignored_simple_args)),
+            "unsupported_runtime_args": sorted(set(task_settings.get("unsupported_runtime_keys", []))),
+            "unsupported_generation_args": sorted(set(task_settings.get("unsupported_generation_keys", []))),
             "raw": raw_res,
         }
-        summary[task_name] = {"primary_metric": primary_metric, "primary_score": primary_score, "fewshot": num_fewshot, "limit": limit}
+        summary[task_name] = {
+            "primary_metric": primary_metric,
+            "primary_score": primary_score,
+            "fewshot": int(task_settings["fewshot"]),
+            "limit": task_settings.get("limit"),
+            "backend": "lm_eval",
+            "protocol": task_settings.get("protocol"),
+            "runtime": runtime_cfg,
+            "gen_kwargs": gen_kwargs,
+            "warnings": warnings,
+        }
+        backend_warnings.extend(warnings)
         if logger is not None:
-            logger.info(f"[LM-Eval:{eval_name}] task={task_name} primary_metric={primary_metric} primary_score={primary_score}")
-    return {"eval_name": eval_name, "tasks": task_to_result, "summary": summary, "time": time.time(), "output_dir": str(output_dir), "eval_mode": eval_mode}
+            logger.info(
+                f"[LM-Eval:{eval_name}] task={task_name} primary_metric={primary_metric} primary_score={primary_score} protocol={task_settings.get('protocol')}"
+            )
+    return {
+        "backend": "lm_eval",
+        "eval_name": eval_name,
+        "tasks": task_to_result,
+        "summary": summary,
+        "time": time.time(),
+        "output_dir": str(output_dir),
+        "eval_mode": eval_mode,
+        "warnings": sorted(set(backend_warnings)),
+    }

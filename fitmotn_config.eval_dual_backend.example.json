@@ -1,0 +1,88 @@
+{
+  "eval": {
+    "eval_backend": "both",
+    "primary_eval_backend": "lm_eval",
+    "backend_defaults": {
+      "lm_eval": {
+        "device": "cuda:0",
+        "batch_size": 1
+      },
+      "evalscope": {
+        "device": "cuda:0",
+        "batch_size": 1
+      }
+    },
+    "baseline_small_tasks": [
+      "gsm8k",
+      "mmlu"
+    ],
+    "final_tasks": [
+      "gsm8k",
+      "mmlu",
+      "hendrycks_math"
+    ],
+    "protocols": {
+      "default": "legacy",
+      "task_protocols": {
+        "gsm8k": "model_aligned",
+        "mmlu": "legacy",
+        "hendrycks_math": "model_aligned"
+      }
+    },
+    "runtime": {
+      "apply_chat_template": true,
+      "enable_thinking": false,
+      "think_end_token": "</think>",
+      "fewshot_as_multiturn": true
+    },
+    "generation": {
+      "do_sample": false,
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "top_k": 20
+    },
+    "fewshot": {
+      "default": 0,
+      "task_overrides": {
+        "gsm8k": 8,
+        "mmlu": 5,
+        "hendrycks_math": 4
+      }
+    },
+    "limits": {
+      "baseline_small": {
+        "gsm8k": 64,
+        "mmlu": 128
+      },
+      "mid": {
+        "gsm8k": 32,
+        "mmlu": 64
+      },
+      "final": {
+        "gsm8k": 0,
+        "mmlu": 512,
+        "hendrycks_math": 256
+      }
+    },
+    "max_gen_toks": {
+      "baseline_small": {
+        "gsm8k": 256
+      },
+      "mid": {
+        "gsm8k": 256
+      },
+      "final": {
+        "gsm8k": 256,
+        "hendrycks_math": 256
+      }
+    },
+    "backend_extra": {
+      "lm_eval": {},
+      "evalscope": {
+        "task_config": {
+          "stream": false
+        }
+      }
+    }
+  }
+}

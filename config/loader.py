@@ -3,10 +3,14 @@ from __future__ import annotations
 import json
 from dataclasses import fields, is_dataclass
 from pathlib import Path
-from typing import Any, Dict, Mapping
+from typing import Any, Mapping
 
 from .defaults import make_default_config
 from .schema import FitMoTNConfig
+
+
+VALID_EVAL_BACKENDS = {"lm_eval", "evalscope", "both"}
+SINGLE_BACKENDS = {"lm_eval", "evalscope"}
 
 
 def _ensure_mapping(name: str, value: Any) -> Mapping[str, Any]:
@@ -18,12 +22,76 @@ def _ensure_mapping(name: str, value: Any) -> Mapping[str, Any]:
 def _apply_section_values(section_name: str, section_obj: Any, values: Mapping[str, Any]) -> None:
     if not is_dataclass(section_obj):
         raise TypeError(f"config section {section_name} is not a dataclass")
-    valid_fields = {field.name for field in fields(section_obj)}
-    unknown = sorted(set(values.keys()) - valid_fields)
+    valid_fields = {field.name: field for field in fields(section_obj)}
+    unknown = sorted(set(values.keys()) - set(valid_fields.keys()))
     if unknown:
         raise ValueError(f"Unknown keys in config section '{section_name}': {', '.join(unknown)}")
     for key, value in values.items():
-        setattr(section_obj, key, value)
+        current_value = getattr(section_obj, key)
+        if is_dataclass(current_value):
+            nested_values = _ensure_mapping(f"{section_name}.{key}", value)
+            _apply_section_values(f"{section_name}.{key}", current_value, nested_values)
+        else:
+            setattr(section_obj, key, value)
+
+
+def _setdefault_task_value(mapping: dict[str, int], task_name: str, value: Any) -> None:
+    if task_name not in mapping:
+        mapping[task_name] = int(value)
+
+
+def _ensure_backend_extra(eval_cfg) -> None:
+    backend_extra = dict(getattr(eval_cfg, "backend_extra", {}) or {})
+    backend_extra.setdefault("lm_eval", {})
+    backend_extra.setdefault("evalscope", {})
+    eval_cfg.backend_extra = backend_extra
+
+
+def _finalize_eval_config(cfg: FitMoTNConfig) -> None:
+    eval_cfg = cfg.eval
+    eval_backend = str(getattr(eval_cfg, "eval_backend", "lm_eval")).strip().lower()
+    if eval_backend not in VALID_EVAL_BACKENDS:
+        raise ValueError(f"eval.eval_backend must be one of {sorted(VALID_EVAL_BACKENDS)}, got {eval_backend!r}")
+    eval_cfg.eval_backend = eval_backend
+
+    primary_backend = str(getattr(eval_cfg, "primary_eval_backend", "lm_eval")).strip().lower()
+    if primary_backend not in SINGLE_BACKENDS:
+        raise ValueError(f"eval.primary_eval_backend must be one of {sorted(SINGLE_BACKENDS)}, got {primary_backend!r}")
+    if eval_backend != "both" and primary_backend != eval_backend:
+        primary_backend = eval_backend
+    eval_cfg.primary_eval_backend = primary_backend
+
+    eval_cfg.backend_defaults.lm_eval.device = str(getattr(eval_cfg, "lm_eval_device", eval_cfg.backend_defaults.lm_eval.device))
+    eval_cfg.backend_defaults.lm_eval.batch_size = int(getattr(eval_cfg, "lm_eval_batch_size", eval_cfg.backend_defaults.lm_eval.batch_size))
+    if eval_cfg.backend_defaults.evalscope.device == "cuda:0":
+        eval_cfg.backend_defaults.evalscope.device = str(eval_cfg.backend_defaults.lm_eval.device)
+    if int(eval_cfg.backend_defaults.evalscope.batch_size) == 1:
+        eval_cfg.backend_defaults.evalscope.batch_size = int(eval_cfg.backend_defaults.lm_eval.batch_size)
+
+    _ensure_backend_extra(eval_cfg)
+
+    fewshot_cfg = eval_cfg.fewshot
+    _setdefault_task_value(fewshot_cfg.task_overrides, "gsm8k", getattr(eval_cfg, "lm_eval_num_fewshot_gsm8k", 8))
+    _setdefault_task_value(fewshot_cfg.task_overrides, "mmlu", getattr(eval_cfg, "lm_eval_num_fewshot_mmlu", 5))
+    _setdefault_task_value(fewshot_cfg.task_overrides, "hendrycks_math", getattr(eval_cfg, "lm_eval_num_fewshot_math", 4))
+
+    limits_cfg = eval_cfg.limits
+    _setdefault_task_value(limits_cfg.baseline_small, "gsm8k", getattr(eval_cfg, "baseline_small_limit_gsm8k", 64))
+    _setdefault_task_value(limits_cfg.baseline_small, "mmlu", getattr(eval_cfg, "baseline_small_limit_mmlu", 128))
+    _setdefault_task_value(limits_cfg.mid, "gsm8k", getattr(eval_cfg, "early_limit_gsm8k", 32))
+    _setdefault_task_value(limits_cfg.mid, "mmlu", getattr(eval_cfg, "early_limit_mmlu", 64))
+    _setdefault_task_value(limits_cfg.final, "gsm8k", getattr(eval_cfg, "final_limit_gsm8k", 0))
+    _setdefault_task_value(limits_cfg.final, "mmlu", getattr(eval_cfg, "final_limit_mmlu", 512))
+    _setdefault_task_value(limits_cfg.final, "hendrycks_math", getattr(eval_cfg, "final_limit_math", 256))
+
+    max_gen_toks_cfg = eval_cfg.max_gen_toks
+    _setdefault_task_value(max_gen_toks_cfg.baseline_small, "gsm8k", getattr(eval_cfg, "early_max_gen_toks_gsm8k", 256))
+    _setdefault_task_value(max_gen_toks_cfg.mid, "gsm8k", getattr(eval_cfg, "early_max_gen_toks_gsm8k", 256))
+    _setdefault_task_value(max_gen_toks_cfg.final, "gsm8k", getattr(eval_cfg, "final_max_gen_toks_gsm8k", 256))
+    _setdefault_task_value(max_gen_toks_cfg.final, "hendrycks_math", getattr(eval_cfg, "final_max_gen_toks_math", 256))
+
+    eval_cfg.protocols.default = str(getattr(eval_cfg.protocols, "default", "legacy") or "legacy")
+    eval_cfg.runtime.chat_template_args = dict(getattr(eval_cfg.runtime, "chat_template_args", {}) or {})
 
 
 def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) -> FitMoTNConfig:
@@ -72,6 +140,7 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) ->
     train_cfg.train_jsonl_every = int(getattr(train_cfg, "train_jsonl_every", default_log_every))
     train_cfg.heavy_log_every = int(getattr(train_cfg, "heavy_log_every", 500))
     _validate_bucket_config(cfg)
+    _finalize_eval_config(cfg)
     return cfg
 
 

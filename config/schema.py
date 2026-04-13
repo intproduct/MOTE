@@ -217,8 +217,62 @@ class TrainConfig:
 
 
 @dataclass
+class EvalBackendConfig:
+    device: str = "cuda:0"
+    batch_size: int = 1
+    extra_args: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EvalBackendDefaultsConfig:
+    lm_eval: EvalBackendConfig = field(default_factory=EvalBackendConfig)
+    evalscope: EvalBackendConfig = field(default_factory=EvalBackendConfig)
+
+
+@dataclass
+class EvalProtocolsConfig:
+    default: str = "legacy"
+    task_protocols: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class EvalRuntimeConfig:
+    apply_chat_template: bool = False
+    enable_thinking: bool = False
+    think_end_token: Optional[str] = "</think>"
+    fewshot_as_multiturn: bool = True
+    system_instruction: Optional[str] = None
+    chat_template_args: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EvalGenerationConfig:
+    do_sample: Optional[bool] = None
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    top_k: Optional[int] = None
+
+
+@dataclass
+class EvalFewshotConfig:
+    default: int = 0
+    task_overrides: Dict[str, int] = field(default_factory=dict)
+    mode_overrides: Dict[str, Dict[str, int]] = field(default_factory=dict)
+
+
+@dataclass
+class EvalModeTaskConfig:
+    baseline_small: Dict[str, int] = field(default_factory=dict)
+    mid: Dict[str, int] = field(default_factory=dict)
+    final: Dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
 class EvalConfig:
     run_baseline_eval: bool = True
+    eval_backend: str = "lm_eval"
+    primary_eval_backend: str = "lm_eval"
+
     lm_eval_batch_size: int = 1
     lm_eval_num_fewshot_mmlu: int = 5
     lm_eval_num_fewshot_gsm8k: int = 8
@@ -239,6 +293,16 @@ class EvalConfig:
     early_max_gen_toks_gsm8k: int = 256
     final_max_gen_toks_gsm8k: int = 256
     final_max_gen_toks_math: int = 256
+
+    backend_defaults: EvalBackendDefaultsConfig = field(default_factory=EvalBackendDefaultsConfig)
+    protocols: EvalProtocolsConfig = field(default_factory=EvalProtocolsConfig)
+    runtime: EvalRuntimeConfig = field(default_factory=EvalRuntimeConfig)
+    generation: EvalGenerationConfig = field(default_factory=EvalGenerationConfig)
+    fewshot: EvalFewshotConfig = field(default_factory=EvalFewshotConfig)
+    limits: EvalModeTaskConfig = field(default_factory=EvalModeTaskConfig)
+    max_gen_toks: EvalModeTaskConfig = field(default_factory=EvalModeTaskConfig)
+    task_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    backend_extra: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {"lm_eval": {}, "evalscope": {}})
 
 
 @dataclass

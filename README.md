@@ -151,6 +151,12 @@ HF/lm-eval 评测额外需要：
 pip install -U "lm_eval[hf]"
 ```
 
+EvalScope 参考评测额外需要：
+
+```bash
+pip install -U evalscope
+```
+
 vLLM 评测额外需要：
 
 ```bash
@@ -653,6 +659,12 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 - `final_max_gen_toks_gsm8k`
 - `final_max_gen_toks_math`
 
+兼容说明：
+
+- 上面这些旧字段仍然可用
+- 新版本另外支持 `eval_backend`、`primary_eval_backend`、`backend_defaults`、`protocols`、`runtime`、`generation`、`fewshot`、`limits`、`max_gen_toks`、`task_overrides`、`backend_extra`
+- 新增评测结构的详细说明见文末“通用评测与双 Backend”
+
 ### `output` 可调字段
 
 - `root_dir`
@@ -1001,6 +1013,7 @@ Heavy runtime stats 也已与 usage 研究路径解耦：
 HF/lm-eval 入口：
 
 - [eval_hf.py](/Users/admini/Library/Mobile%20Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/cli/eval_hf.py)
+- [eval_auto.py](/Users/qixuanfang/Library/Mobile Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/cli/eval_auto.py)
 
 评测保存后的 FitMoTN checkpoint：
 
@@ -1017,6 +1030,17 @@ python3 -m MOTN.fitmotn.cli.eval_hf \
   --model_or_ckpt ./MOTN/fitmotn_runs/demo_run/final_model \
   --device cuda:0 \
   --tasks gsm8k mmlu
+```
+
+统一入口评测：
+
+```bash
+python3 -m MOTN.fitmotn.cli.eval_auto \
+  --model_or_ckpt ./MOTN/fitmotn_runs/demo_run/final_model \
+  --device cuda:0 \
+  --eval_backend both \
+  --primary_eval_backend lm_eval \
+  --allow_backend_skip
 ```
 
 如果 `model_or_ckpt` 目录下有 `fitmotn_state.pt`，脚本会自动按下面顺序恢复：
@@ -1144,3 +1168,245 @@ python3 -c "import vllm; print('vllm ok')"
 1. 先用一个很小的 step 数做 smoke run，确认 patch、保存、恢复链路可用
 2. 再做一轮和旧脚本参数对照的配置补齐
 3. 最后再考虑 patched MOTN 的 vLLM 执行适配
+
+## 通用评测与双 Backend
+
+当前评测层已经重构为“统一入口 + 配置驱动 + 双 backend 并存”：
+
+- `lm_eval` 仍然是训练前 / 中 / 后的主评测链
+- `lm_eval` 仍可直接评测内存中的 patched `model + tokenizer`
+- `EvalScope` 是第二 backend，主要用于 path/checkpoint 参考评测
+- `summary` 和顶层 `tasks` 默认始终代表 `primary_eval_backend`
+- `backend=both` 时，两套 backend 结果都会保存在同一个结果 JSON 中
+
+### 为什么保留 lm_eval 主链
+
+原因很直接：训练前 baseline、训练中 mid eval、训练后 final eval 都需要在不先保存 checkpoint 的情况下评测 patched model。
+
+这条能力链只靠 `lm_eval` 的 HF `HFLM(pretrained=model, tokenizer=tokenizer)` 路径就能稳定提供，所以它仍然是训练主线评测入口，不会被 EvalScope 替代。
+
+### EvalScope 的定位
+
+EvalScope 的角色是“第二 backend / 参考 backend”：
+
+- 更适合 path/checkpoint 形式的评测
+- 更接近某些模型官方评测口径时可以作为对照
+- 不承诺支持内存中的 patched `nn.Module`
+- 在训练中 `mid eval` 阶段，如果没有可用 checkpoint/path，会明确 `skipped`，而不是静默失败
+
+### 统一入口
+
+训练控制和 CLI 现在都走统一入口：
+
+- `fitmotn.eval.runner.run_eval_tasks(...)`
+- `python3 -m MOTN.fitmotn.cli.eval_auto ...`
+
+统一返回结构形如：
+
+```json
+{
+  "eval_name": "mid_eval_u1000",
+  "eval_mode": "mid",
+  "primary_backend": "lm_eval",
+  "results": {
+    "lm_eval": {"tasks": {}, "summary": {}},
+    "evalscope": {"tasks": {}, "summary": {}}
+  },
+  "tasks": {},
+  "summary": {},
+  "warnings": []
+}
+```
+
+兼容性约定：
+
+- 顶层 `tasks` 和 `summary` 永远代表主 backend
+- 现有 early stop、`compare_vs_baseline`、`run_summary.json` 继续只读取主 backend
+- `results.{backend}` 保留每个 backend 的完整原始结果
+
+### 训练前 / 中 / 后如何连续评测 patched model
+
+当前训练链路的评测入口已经统一：
+
+- `baseline_small`: 训练前、未 patch 前的 base model 评测
+- `baseline_final`: 训练前的完整任务集评测
+- `mid eval`: 训练中直接评内存中的 patched model
+- `final_full`: 训练后评测 patched model，并可同时把 `final_model/` 路径交给 EvalScope
+
+其中最关键的是：
+
+- 训练中 `mid eval` 不需要先保存 checkpoint
+- 如果 `eval_backend=both` 且 `primary_eval_backend=lm_eval`，但 EvalScope 在当前场景下无法运行，则只会在结果中留下 warning / skipped，不会破坏训练主线
+
+### JSON 配置驱动
+
+旧配置字段仍然可用，例如：
+
+- `lm_eval_num_fewshot_*`
+- `baseline_small_limit_*`
+- `early_limit_*`
+- `final_limit_*`
+- `early_max_gen_toks_gsm8k`
+- `final_max_gen_toks_*`
+
+但新代码内部已经统一收敛到新的嵌套配置结构，推荐优先写新结构：
+
+```json
+{
+  "eval": {
+    "eval_backend": "both",
+    "primary_eval_backend": "lm_eval",
+    "backend_defaults": {
+      "lm_eval": {"device": "cuda:0", "batch_size": 1},
+      "evalscope": {"device": "cuda:0", "batch_size": 1}
+    },
+    "protocols": {
+      "default": "legacy",
+      "task_protocols": {"gsm8k": "model_aligned"}
+    },
+    "runtime": {
+      "apply_chat_template": true,
+      "enable_thinking": true,
+      "think_end_token": "</think>"
+    },
+    "generation": {
+      "do_sample": false,
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "top_k": 20
+    },
+    "fewshot": {
+      "default": 0,
+      "task_overrides": {"gsm8k": 8, "mmlu": 5}
+    },
+    "limits": {
+      "baseline_small": {"gsm8k": 64, "mmlu": 128},
+      "mid": {"gsm8k": 32, "mmlu": 64},
+      "final": {"gsm8k": 0, "mmlu": 512, "hendrycks_math": 256}
+    },
+    "max_gen_toks": {
+      "baseline_small": {"gsm8k": 256},
+      "mid": {"gsm8k": 256},
+      "final": {"gsm8k": 256, "hendrycks_math": 256}
+    },
+    "task_overrides": {
+      "gsm8k": {
+        "protocol": "model_aligned",
+        "runtime": {"apply_chat_template": true},
+        "generation": {"temperature": 0.0, "top_p": 1.0}
+      }
+    }
+  }
+}
+```
+
+### 最小示例
+
+仅 `lm_eval`：
+
+```json
+{
+  "eval": {
+    "eval_backend": "lm_eval",
+    "primary_eval_backend": "lm_eval"
+  }
+}
+```
+
+仅 `evalscope`：
+
+```json
+{
+  "eval": {
+    "eval_backend": "evalscope",
+    "primary_eval_backend": "evalscope"
+  }
+}
+```
+
+`both`：
+
+```json
+{
+  "eval": {
+    "eval_backend": "both",
+    "primary_eval_backend": "lm_eval"
+  }
+}
+```
+
+### 模型原生评测参数写在 JSON 中的示例
+
+下面这类“模型原生评测口径”现在应当优先写在 JSON，而不是再写死到代码里：
+
+```json
+{
+  "eval": {
+    "protocols": {
+      "default": "legacy",
+      "task_protocols": {
+        "gsm8k": "model_aligned",
+        "mmlu": "model_aligned"
+      }
+    },
+    "runtime": {
+      "apply_chat_template": true,
+      "enable_thinking": true,
+      "think_end_token": "</think>"
+    },
+    "task_overrides": {
+      "gsm8k": {
+        "fewshot": 8,
+        "generation": {
+          "do_sample": false,
+          "temperature": 0.0,
+          "top_p": 1.0,
+          "top_k": 20
+        }
+      }
+    }
+  }
+}
+```
+
+这套写法的设计目标是：同一个 patch 方法只需要改 JSON，就能切换不同模型的评测协议，而不是在 Python 代码里继续堆特例。
+
+### 当前 backend 生效边界
+
+`lm_eval` 当前版本中，下面这些参数会真实透传：
+
+- `apply_chat_template`
+- `enable_thinking`
+- `think_end_token`
+- `fewshot`
+- `limit`
+- `gen_kwargs.temperature`
+- `gen_kwargs.top_p`
+- `gen_kwargs.top_k`
+- `gen_kwargs.do_sample`
+- `gen_kwargs.max_gen_toks`
+
+如果你在 JSON 中写入了当前 backend 不识别的 runtime / generation 字段：
+
+- 不会静默吞掉
+- 会在 task 结果里留下 `warnings`
+- 并记录 `ignored_runtime_args` / `unsupported_*`
+
+EvalScope 当前实现边界：
+
+- 优先支持 path/checkpoint 评测
+- `gsm8k`、`mmlu` 已做标准接入
+- `hendrycks_math` 目前是 best-effort；如果当前 EvalScope 版本里的 task 映射不匹配，会显式 `skipped` 或报错记录
+- 当前仓库环境若未安装 `evalscope`，`eval_backend=evalscope` 会抛清晰 ImportError；`both` 配合 `--allow_backend_skip` 或训练中 mid eval 会记录 skipped/warning
+
+### 示例配置文件
+
+仓库新增了两个示例配置：
+
+- [`fitmotn_config.eval_dual_backend.example.json`](./fitmotn_config.eval_dual_backend.example.json)
+- [`fitmotn_config.model_aligned_eval.example.json`](./fitmotn_config.model_aligned_eval.example.json)
+
+推荐用法：
+
+- 训练主线：`primary_eval_backend=lm_eval`
+- checkpoint 参考测评：用 `eval_auto.py --eval_backend both` 或 `--eval_backend evalscope`

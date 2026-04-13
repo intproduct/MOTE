@@ -40,9 +40,27 @@ def pick_primary_score(task_name: str, metric_block: Dict[str, Any]) -> tuple[Op
     return None, None
 
 
+def unwrap_primary_eval_result(eval_res: Dict[str, Any]) -> Dict[str, Any]:
+    if "results" not in eval_res:
+        return eval_res
+    primary_backend = eval_res.get("primary_backend")
+    if primary_backend is None:
+        return eval_res
+    return dict(eval_res.get("results", {}).get(primary_backend, {}) or {})
+
+
+def get_task_result(eval_res: Dict[str, Any], task_name: str) -> Dict[str, Any]:
+    primary_res = unwrap_primary_eval_result(eval_res)
+    tasks = primary_res.get("tasks") if isinstance(primary_res, dict) else None
+    if not isinstance(tasks, dict):
+        tasks = eval_res.get("tasks", {}) if isinstance(eval_res, dict) else {}
+    task_result = tasks.get(task_name, {}) if isinstance(tasks, dict) else {}
+    return task_result if isinstance(task_result, dict) else {}
+
+
 def get_primary_score(eval_res: Dict[str, Any], task_name: str, default: float = float("-inf")) -> float:
     try:
-        value = eval_res["tasks"][task_name]["primary_score"]
+        value = get_task_result(eval_res, task_name).get("primary_score")
         return default if value is None else float(value)
     except Exception:
         return default
@@ -58,6 +76,7 @@ def build_early_stop_record(cur_eval: Dict[str, Any], baseline_eval: Dict[str, A
         and mmlu_cur >= float(fit_cfg.train.early_stop_abs_mmlu)
     )
     return {
+        "primary_backend": cur_eval.get("primary_backend", baseline_eval.get("primary_backend", "lm_eval")),
         "gsm8k": {"current": gsm_cur, "baseline": gsm_base, "delta_vs_baseline": gsm_cur - gsm_base},
         "mmlu": {"current": mmlu_cur, "baseline": mmlu_base, "delta_vs_baseline": mmlu_cur - mmlu_base},
         "passed_abs_gate": bool(passed_abs_gate),

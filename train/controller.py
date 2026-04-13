@@ -14,7 +14,7 @@ from ..audit import build_environment_snapshot, json_dump, jsonl_append, paramet
 from ..checkpointing import extract_patch_state_dict, save_fitmotn_metadata
 from ..data.builders import build_stage_aware_train_dataset
 from ..data.collate import pad_collate
-from ..eval.lm_eval_hf import run_lm_eval_tasks
+from ..eval.runner import run_eval_tasks
 from ..eval.metrics import build_early_stop_record
 from ..init.approx import collect_dense_ffn_targets, run_approx_init
 from ..patching import (
@@ -88,6 +88,7 @@ def run_fitmotn_training(fit_cfg):
     run_summary_path = run_dir / "run_summary.json"
     lm_eval_root = run_dir / "lm_eval_outputs"
     lm_eval_root.mkdir(parents=True, exist_ok=True)
+    allow_non_primary_backend_skip = str(fit_cfg.eval.eval_backend) == "both" and str(fit_cfg.eval.primary_eval_backend) != "evalscope"
 
     device = tc.device(fit_cfg.model.device)
     model, tokenizer, model_dtype = load_causal_lm_and_tokenizer(
@@ -131,13 +132,43 @@ def run_fitmotn_training(fit_cfg):
     baseline_small = None
     baseline_final = None
     if fit_cfg.eval.run_baseline_eval:
-        baseline_small = run_lm_eval_tasks(model, tokenizer, fit_cfg, tasks=fit_cfg.eval.baseline_small_tasks, logger=logger, eval_name="baseline_small", out_root=lm_eval_root, eval_mode="baseline_small")
-        baseline_final = run_lm_eval_tasks(model, tokenizer, fit_cfg, tasks=fit_cfg.eval.final_tasks, logger=logger, eval_name="baseline_final", out_root=lm_eval_root, eval_mode="final")
+        baseline_small = run_eval_tasks(
+            fit_cfg,
+            tasks=fit_cfg.eval.baseline_small_tasks,
+            logger=logger,
+            eval_name="baseline_small",
+            out_root=lm_eval_root,
+            eval_mode="baseline_small",
+            model=model,
+            tokenizer=tokenizer,
+            model_or_path=fit_cfg.model.model_path,
+            allow_backend_skip=allow_non_primary_backend_skip,
+        )
+        baseline_final = run_eval_tasks(
+            fit_cfg,
+            tasks=fit_cfg.eval.final_tasks,
+            logger=logger,
+            eval_name="baseline_final",
+            out_root=lm_eval_root,
+            eval_mode="final",
+            model=model,
+            tokenizer=tokenizer,
+            model_or_path=fit_cfg.model.model_path,
+            allow_backend_skip=allow_non_primary_backend_skip,
+        )
         jsonl_append(eval_jsonl_path, {"kind": "baseline_small", "result": baseline_small, "time": time.time(), "run_name": run_name, "seed": int(fit_cfg.train.seed), "stage": "baseline", "global_step": 0, "resolved_model_dtype": dtype_to_name(model_dtype), "amp_enabled": bool(fit_cfg.model.use_amp and device.type == "cuda")})
         jsonl_append(eval_jsonl_path, {"kind": "baseline_final", "result": baseline_final, "time": time.time(), "run_name": run_name, "seed": int(fit_cfg.train.seed), "stage": "baseline", "global_step": 0, "resolved_model_dtype": dtype_to_name(model_dtype), "amp_enabled": bool(fit_cfg.model.use_amp and device.type == "cuda")})
     else:
-        baseline_small = {"tasks": {task: {"primary_score": 0.0, "primary_metric": None} for task in fit_cfg.eval.baseline_small_tasks}}
-        baseline_final = {"tasks": {task: {"primary_score": 0.0, "primary_metric": None} for task in fit_cfg.eval.final_tasks}}
+        baseline_small = {
+            "primary_backend": str(fit_cfg.eval.primary_eval_backend),
+            "tasks": {task: {"primary_score": 0.0, "primary_metric": None} for task in fit_cfg.eval.baseline_small_tasks},
+            "summary": {task: {"primary_score": 0.0, "primary_metric": None} for task in fit_cfg.eval.baseline_small_tasks},
+        }
+        baseline_final = {
+            "primary_backend": str(fit_cfg.eval.primary_eval_backend),
+            "tasks": {task: {"primary_score": 0.0, "primary_metric": None} for task in fit_cfg.eval.final_tasks},
+            "summary": {task: {"primary_score": 0.0, "primary_metric": None} for task in fit_cfg.eval.final_tasks},
+        }
 
     n_layers = int(model.config.num_hidden_layers)
     layer_idxs = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
@@ -201,7 +232,18 @@ def run_fitmotn_training(fit_cfg):
     }
 
     def mid_eval_fn(model, step: int, stage_name: str):
-        mid_eval = run_lm_eval_tasks(model, tokenizer, fit_cfg, tasks=fit_cfg.eval.baseline_small_tasks, logger=logger, eval_name=f"mid_eval_u{step}", out_root=lm_eval_root, eval_mode="mid")
+        mid_eval = run_eval_tasks(
+            fit_cfg,
+            tasks=fit_cfg.eval.baseline_small_tasks,
+            logger=logger,
+            eval_name=f"mid_eval_u{step}",
+            out_root=lm_eval_root,
+            eval_mode="mid",
+            model=model,
+            tokenizer=tokenizer,
+            model_or_path=None,
+            allow_backend_skip=True,
+        )
         early_rec = build_early_stop_record(mid_eval, baseline_small, fit_cfg)
         payload = {"stage": stage_name, "update": step, "result": mid_eval, "vs_baseline": early_rec, "time": time.time()}
         eval_summary["mid_evals"].append(payload)
@@ -290,7 +332,18 @@ def run_fitmotn_training(fit_cfg):
     save_fitmotn_metadata(final_model_dir, metadata_builder(checkpoint_name=final_model_dir.name))
 
     model.eval()
-    final_full = run_lm_eval_tasks(model, tokenizer, fit_cfg, tasks=fit_cfg.eval.final_tasks, logger=logger, eval_name="final_full", out_root=lm_eval_root, eval_mode="final")
+    final_full = run_eval_tasks(
+        fit_cfg,
+        tasks=fit_cfg.eval.final_tasks,
+        logger=logger,
+        eval_name="final_full",
+        out_root=lm_eval_root,
+        eval_mode="final",
+        model=model,
+        tokenizer=tokenizer,
+        model_or_path=final_model_dir,
+        allow_backend_skip=allow_non_primary_backend_skip,
+    )
     compare_summary = {}
     for task_name in fit_cfg.eval.final_tasks:
         b = baseline_final["tasks"][task_name]["primary_score"]
