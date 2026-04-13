@@ -1399,6 +1399,32 @@ EvalScope 当前实现边界：
 - `hendrycks_math` 目前是 best-effort；如果当前 EvalScope 版本里的 task 映射不匹配，会显式 `skipped` 或报错记录
 - 当前仓库环境若未安装 `evalscope`，`eval_backend=evalscope` 会抛清晰 ImportError；`both` 配合 `--allow_backend_skip` 或训练中 mid eval 会记录 skipped/warning
 
+EvalScope runtime / generation 参数状态约定：
+
+- `system_instruction`: `effective`
+  映射到 `dataset_args.<task>.system_prompt`
+- `fewshot`: `effective`
+  映射到 `dataset_args.<task>.few_shot_num`，并同步写入顶层 `few_shot_num/num_fewshot`
+- `temperature` / `top_p` / `top_k` / `do_sample`: `effective`
+  映射到 `generation_config.*`
+- `max_gen_toks`: `effective`
+  映射为 EvalScope 的 `generation_config.max_tokens`
+- `apply_chat_template`: `best_effort`
+  当前会尝试透传到 `chat_template=true`
+- `enable_thinking` / `think_end_token` / `chat_template_args`: `best_effort`
+  当前会尝试透传到 `generation_config.chat_template_kwargs.*`
+- `fewshot_as_multiturn`: `record_only`
+  当前 EvalScope `TaskConfig` 没有明确的官方等价开关，因此只记录，不宣称真实生效
+
+每个 EvalScope task 结果里现在会额外包含：
+
+- `runtime_effects`
+- `generation_effects`
+- `ignored_runtime_args`
+- `unsupported_runtime_args`
+- `unsupported_generation_args`
+- `task_config`
+
 ### 示例配置文件
 
 仓库新增了两个示例配置：

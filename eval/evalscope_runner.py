@@ -39,6 +39,12 @@ def _make_skipped_backend_result(eval_name: str, eval_mode: str, tasks: List[str
             "fewshot": None,
             "limit": None,
             "gen_kwargs": None,
+            "runtime": {},
+            "runtime_effects": {},
+            "generation_effects": {},
+            "ignored_runtime_args": [],
+            "unsupported_runtime_args": [],
+            "unsupported_generation_args": [],
             "warnings": warnings,
             "status": "skipped",
             "skip_reason": reason,
@@ -105,7 +111,67 @@ def _extract_evalscope_metric_block(raw_res: Any, task_name: str) -> Dict[str, A
 def _build_evalscope_task_cfg(model_or_path: str, task_name: str, task_settings: Dict[str, Any], work_dir: Path) -> Dict[str, Any]:
     dataset_name = TASK_NAME_MAP[task_name]
     backend_cfg = dict(task_settings.get("backend_config", {}) or {})
-    generation_cfg = dict(task_settings.get("gen_kwargs", {}) or {})
+    runtime_cfg = dict(task_settings.get("runtime", {}) or {})
+    raw_generation_cfg = dict(task_settings.get("gen_kwargs", {}) or {})
+    generation_cfg: Dict[str, Any] = {}
+    generation_effects: Dict[str, Dict[str, Any]] = {}
+    runtime_effects: Dict[str, Dict[str, Any]] = {}
+
+    for key, value in raw_generation_cfg.items():
+        if value is None:
+            continue
+        mapped_key = "max_tokens" if key == "max_gen_toks" else key
+        generation_cfg[mapped_key] = value
+        generation_effects[key] = {
+            "status": "effective",
+            "target": f"generation_config.{mapped_key}",
+            "value": value,
+        }
+
+    chat_template_kwargs = dict(runtime_cfg.get("chat_template_args", {}) or {})
+    if runtime_cfg.get("apply_chat_template") is not None:
+        runtime_effects["apply_chat_template"] = {
+            "status": "best_effort",
+            "target": "chat_template",
+            "value": bool(runtime_cfg.get("apply_chat_template")),
+        }
+    if runtime_cfg.get("enable_thinking") is not None:
+        chat_template_kwargs["enable_thinking"] = bool(runtime_cfg.get("enable_thinking"))
+        runtime_effects["enable_thinking"] = {
+            "status": "best_effort",
+            "target": "generation_config.chat_template_kwargs.enable_thinking",
+            "value": bool(runtime_cfg.get("enable_thinking")),
+        }
+    if runtime_cfg.get("think_end_token"):
+        chat_template_kwargs["think_end_token"] = runtime_cfg.get("think_end_token")
+        runtime_effects["think_end_token"] = {
+            "status": "best_effort",
+            "target": "generation_config.chat_template_kwargs.think_end_token",
+            "value": runtime_cfg.get("think_end_token"),
+        }
+    if runtime_cfg.get("chat_template_args"):
+        runtime_effects["chat_template_args"] = {
+            "status": "best_effort",
+            "target": "generation_config.chat_template_kwargs",
+            "value": dict(runtime_cfg.get("chat_template_args", {}) or {}),
+        }
+    if runtime_cfg.get("system_instruction"):
+        runtime_effects["system_instruction"] = {
+            "status": "effective",
+            "target": f"dataset_args.{task_name}.system_prompt",
+            "value": runtime_cfg.get("system_instruction"),
+        }
+    if runtime_cfg.get("fewshot_as_multiturn") is not None:
+        runtime_effects["fewshot_as_multiturn"] = {
+            "status": "record_only",
+            "target": None,
+            "value": bool(runtime_cfg.get("fewshot_as_multiturn")),
+            "reason": "EvalScope does not expose a documented few-shot multi-turn switch in TaskConfig.",
+        }
+
+    if chat_template_kwargs:
+        generation_cfg["chat_template_kwargs"] = chat_template_kwargs
+
     task_cfg: Dict[str, Any] = {
         "model": str(model_or_path),
         "datasets": [dataset_name],
@@ -113,15 +179,39 @@ def _build_evalscope_task_cfg(model_or_path: str, task_name: str, task_settings:
         "limit": task_settings.get("limit"),
         "generation_config": generation_cfg,
         "eval_batch_size": int(backend_cfg.get("batch_size", 1)),
+        "dataset_args": {
+            task_name: {
+                "few_shot_num": int(task_settings["fewshot"]) if task_settings.get("fewshot") is not None else None,
+                "system_prompt": runtime_cfg.get("system_instruction"),
+            }
+        },
+        "model_args": dict(backend_cfg.get("model_args", {}) or {}),
     }
     if task_settings.get("fewshot") is not None:
         task_cfg["few_shot_num"] = int(task_settings["fewshot"])
         task_cfg["num_fewshot"] = int(task_settings["fewshot"])
+        runtime_effects["fewshot"] = {
+            "status": "effective",
+            "target": f"dataset_args.{task_name}.few_shot_num",
+            "value": int(task_settings["fewshot"]),
+        }
     if backend_cfg.get("device") is not None:
         task_cfg["device"] = backend_cfg.get("device")
+        task_cfg["model_args"]["device"] = backend_cfg.get("device")
     for key, value in dict(backend_cfg.get("task_config", {}) or {}).items():
         task_cfg[key] = value
-    return {k: v for k, v in task_cfg.items() if v is not None}
+    if runtime_cfg.get("apply_chat_template") is True:
+        task_cfg["chat_template"] = True
+    if not task_cfg["dataset_args"][task_name]["few_shot_num"] and task_cfg["dataset_args"][task_name]["few_shot_num"] != 0:
+        task_cfg["dataset_args"][task_name].pop("few_shot_num", None)
+    if not task_cfg["dataset_args"][task_name]["system_prompt"]:
+        task_cfg["dataset_args"][task_name].pop("system_prompt", None)
+    if not task_cfg["dataset_args"][task_name]:
+        task_cfg.pop("dataset_args", None)
+    if not task_cfg["model_args"]:
+        task_cfg.pop("model_args", None)
+    task_cfg = {k: v for k, v in task_cfg.items() if v is not None}
+    return task_cfg, runtime_effects, generation_effects
 
 
 def run_evalscope_tasks(
@@ -171,7 +261,13 @@ def run_evalscope_tasks(
                 "metrics": {},
                 "fewshot": int(task_settings["fewshot"]),
                 "limit": task_settings.get("limit"),
+                "runtime": dict(task_settings.get("runtime", {}) or {}),
                 "gen_kwargs": task_settings.get("gen_kwargs"),
+                "runtime_effects": {},
+                "generation_effects": {},
+                "ignored_runtime_args": [],
+                "unsupported_runtime_args": sorted(set(task_settings.get("unsupported_runtime_keys", []))),
+                "unsupported_generation_args": sorted(set(task_settings.get("unsupported_generation_keys", []))),
                 "warnings": task_warnings,
                 "status": "skipped",
                 "skip_reason": f"unsupported task '{task_name}'",
@@ -194,7 +290,18 @@ def run_evalscope_tasks(
 
         task_dir = output_dir / task_name
         task_dir.mkdir(parents=True, exist_ok=True)
-        task_cfg_dict = _build_evalscope_task_cfg(str(model_or_path), task_name, task_settings, task_dir)
+        task_cfg_dict, runtime_effects, generation_effects = _build_evalscope_task_cfg(str(model_or_path), task_name, task_settings, task_dir)
+        ignored_runtime_args = [
+            key
+            for key, effect in runtime_effects.items()
+            if str(effect.get("status")) == "record_only"
+        ]
+        task_warnings.extend(
+            [
+                f"EvalScope runtime arg '{key}' recorded only: {runtime_effects[key].get('reason')}"
+                for key in ignored_runtime_args
+            ]
+        )
         raw_res = None
         error_text = None
         try:
@@ -217,16 +324,24 @@ def run_evalscope_tasks(
                 "metrics": {},
                 "fewshot": int(task_settings["fewshot"]),
                 "limit": task_settings.get("limit"),
+                "runtime": dict(task_settings.get("runtime", {}) or {}),
                 "gen_kwargs": task_settings.get("gen_kwargs"),
+                "runtime_effects": runtime_effects,
+                "generation_effects": generation_effects,
+                "ignored_runtime_args": ignored_runtime_args,
+                "unsupported_runtime_args": sorted(set(task_settings.get("unsupported_runtime_keys", []))),
+                "unsupported_generation_args": sorted(set(task_settings.get("unsupported_generation_keys", []))),
                 "warnings": task_warnings,
                 "status": "error",
                 "error": error_text,
+                "task_config": task_cfg_dict,
                 "raw": None,
             }
             summary[task_name] = {
                 "backend": "evalscope",
                 "primary_metric": None,
                 "primary_score": None,
+                "runtime": dict(task_settings.get("runtime", {}) or {}),
                 "warnings": task_warnings,
                 "status": "error",
                 "error": error_text,
@@ -243,11 +358,18 @@ def run_evalscope_tasks(
             "metrics": metric_block,
             "fewshot": int(task_settings["fewshot"]),
             "limit": task_settings.get("limit"),
+            "runtime": dict(task_settings.get("runtime", {}) or {}),
             "gen_kwargs": task_settings.get("gen_kwargs"),
+            "runtime_effects": runtime_effects,
+            "generation_effects": generation_effects,
+            "ignored_runtime_args": ignored_runtime_args,
+            "unsupported_runtime_args": sorted(set(task_settings.get("unsupported_runtime_keys", []))),
+            "unsupported_generation_args": sorted(set(task_settings.get("unsupported_generation_keys", []))),
             "warnings": task_warnings,
             "raw": raw_res,
             "status": "ok",
             "output_dir": str(task_dir),
+            "task_config": task_cfg_dict,
         }
         summary[task_name] = {
             "backend": "evalscope",
@@ -255,7 +377,10 @@ def run_evalscope_tasks(
             "primary_score": primary_score,
             "fewshot": int(task_settings["fewshot"]),
             "limit": task_settings.get("limit"),
+            "runtime": dict(task_settings.get("runtime", {}) or {}),
             "gen_kwargs": task_settings.get("gen_kwargs"),
+            "runtime_effects": runtime_effects,
+            "generation_effects": generation_effects,
             "warnings": task_warnings,
         }
         if logger is not None:
