@@ -1,0 +1,95 @@
+from __future__ import annotations
+
+import gzip
+import json
+from pathlib import Path
+from typing import Any, Dict, Iterator, List
+
+import torch as tc
+
+
+def iter_jsonl(path: Path) -> Iterator[Dict[str, Any]]:
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                yield json.loads(line)
+
+
+def iter_jsonl_gz(path: Path) -> Iterator[Dict[str, Any]]:
+    with gzip.open(path, "rt", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                yield json.loads(line)
+
+
+def iter_local_token_shards(path: str) -> Iterator[Dict[str, Any]]:
+    base = Path(path).expanduser().resolve()
+    if not base.exists():
+        raise FileNotFoundError(f"Local token shard path not found: {base}")
+
+    files: List[Path] = [base] if base.is_file() else []
+    if base.is_dir():
+        for pat in ["*.pt", "*.pth", "*.bin", "*.jsonl", "*.jsonl.gz", "*.txt"]:
+            files.extend(sorted(base.rglob(pat)))
+    if not files:
+        raise FileNotFoundError(f"No shard files found under: {base}")
+
+    for fp in files:
+        suffix = fp.suffix.lower()
+        if suffix in [".pt", ".pth", ".bin"]:
+            obj = tc.load(fp, map_location="cpu", weights_only=False)
+            if isinstance(obj, tc.Tensor):
+                if obj.ndim == 1:
+                    yield {"input_ids": obj.tolist()}
+                elif obj.ndim == 2:
+                    for row in obj:
+                        yield {"input_ids": row.tolist()}
+                else:
+                    raise ValueError(f"Unsupported tensor ndim in {fp}: {obj.ndim}")
+            elif isinstance(obj, list):
+                if obj and isinstance(obj[0], int):
+                    yield {"input_ids": obj}
+                else:
+                    for item in obj:
+                        if isinstance(item, dict):
+                            yield item
+                        elif isinstance(item, tc.Tensor):
+                            if item.ndim == 1:
+                                yield {"input_ids": item.tolist()}
+                            elif item.ndim == 2:
+                                for row in item:
+                                    yield {"input_ids": row.tolist()}
+                        else:
+                            yield {"input_ids": list(item)}
+            elif isinstance(obj, dict):
+                if "input_ids" in obj:
+                    value = obj["input_ids"]
+                    if isinstance(value, tc.Tensor):
+                        if value.ndim == 1:
+                            yield {"input_ids": value.tolist()}
+                        elif value.ndim == 2:
+                            for row in value:
+                                yield {"input_ids": row.tolist()}
+                    elif isinstance(value, list):
+                        if value and isinstance(value[0], int):
+                            yield {"input_ids": value}
+                        else:
+                            for row in value:
+                                yield {"input_ids": list(row)}
+                else:
+                    for value in obj.values():
+                        if isinstance(value, tc.Tensor) and value.ndim == 2:
+                            for row in value:
+                                yield {"input_ids": row.tolist()}
+        elif suffix == ".jsonl":
+            yield from iter_jsonl(fp)
+        elif suffix == ".gz" and fp.name.endswith(".jsonl.gz"):
+            yield from iter_jsonl_gz(fp)
+        elif suffix == ".txt":
+            with fp.open("r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.rstrip("\n")
+                    if line.strip():
+                        yield {"text": line}
