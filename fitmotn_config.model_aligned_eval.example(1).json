@@ -1,0 +1,69 @@
+{
+  "eval": {
+    "eval_backend": "lm_eval",
+    "primary_eval_backend": "lm_eval",
+    "protocols": {
+      "default": "legacy",
+      "task_protocols": {
+        "gsm8k": "model_aligned",
+        "mmlu": "model_aligned"
+      }
+    },
+    "runtime": {
+      "apply_chat_template": true,
+      "enable_thinking": true,
+      "think_end_token": "</think>",
+      "fewshot_as_multiturn": true
+    },
+    "generation": {
+      "do_sample": false,
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "top_k": 20
+    },
+    "fewshot": {
+      "default": 0,
+      "task_overrides": {
+        "gsm8k": 8,
+        "mmlu": 5
+      }
+    },
+    "task_overrides": {
+      "gsm8k": {
+        "protocol": "model_aligned",
+        "runtime": {
+          "apply_chat_template": true,
+          "enable_thinking": true,
+          "think_end_token": "</think>"
+        },
+        "generation": {
+          "do_sample": false,
+          "temperature": 0.0,
+          "top_p": 1.0,
+          "top_k": 20
+        },
+        "modes": {
+          "final": {
+            "limit": 0,
+            "max_gen_toks": 256
+          },
+          "mid": {
+            "limit": 32,
+            "max_gen_toks": 256
+          }
+        }
+      },
+      "mmlu": {
+        "fewshot": 5,
+        "runtime": {
+          "apply_chat_template": true
+        },
+        "generation": {
+          "do_sample": false,
+          "temperature": 0.0,
+          "top_p": 1.0
+        }
+      }
+    }
+  }
+}
