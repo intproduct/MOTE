@@ -11,62 +11,6 @@ from ..eval.runner import run_eval_tasks
 from ..eval.restore import restore_fitmotn_model
 from ..runtime import load_causal_lm_and_tokenizer
 
-def make_json_safe(obj):
-    import dataclasses
-    import enum
-    from pathlib import Path
-    from collections.abc import Mapping
-
-    if obj is None or isinstance(obj, (str, int, float, bool)):
-        return obj
-
-    if dataclasses.is_dataclass(obj):
-        return make_json_safe(dataclasses.asdict(obj))
-
-    if isinstance(obj, enum.Enum):
-        return make_json_safe(obj.value)
-
-    if isinstance(obj, Path):
-        return str(obj)
-
-    try:
-        import numpy as np
-
-        if isinstance(obj, np.dtype):
-            return str(obj)
-
-        if isinstance(obj, np.generic):
-            return obj.item()
-
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-    except Exception:
-        pass
-
-    try:
-        import torch
-
-        if isinstance(obj, torch.dtype):
-            return str(obj)
-
-        if isinstance(obj, torch.device):
-            return str(obj)
-
-        if isinstance(obj, torch.Tensor):
-            if obj.numel() == 1:
-                return obj.detach().cpu().item()
-            return obj.detach().cpu().tolist()
-    except Exception:
-        pass
-
-    if isinstance(obj, Mapping):
-        return {str(make_json_safe(k)): make_json_safe(v) for k, v in obj.items()}
-
-    if isinstance(obj, (list, tuple, set)):
-        return [make_json_safe(v) for v in obj]
-
-    return str(obj)
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -114,7 +58,7 @@ def main():
     )
     output_json = Path(args.output_json).resolve() if args.output_json else target / "fitmotn_eval_hf.json"
     with output_json.open("w", encoding="utf-8") as f:
-        json.dump(make_json_safe(results), f, ensure_ascii=False, indent=2)
+        json.dump(results, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":

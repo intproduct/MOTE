@@ -32,17 +32,6 @@ class MOTNScheduleCallback(TrainerCallback):
         self._gate_state = None
 
     @staticmethod
-    def _capture_param_group_lrs(runtime, optimizer) -> dict[str, float] | None:
-        if runtime is None or optimizer is None:
-            return runtime.get("current_param_group_lrs") if runtime is not None else None
-        group_lrs = {}
-        for idx, group in enumerate(getattr(optimizer, "param_groups", [])):
-            group_name = str(group.get("name") or f"group_{idx}")
-            group_lrs[group_name] = float(group["lr"])
-        runtime["current_param_group_lrs"] = group_lrs or None
-        return runtime.get("current_param_group_lrs")
-
-    @staticmethod
     def _should_run(step: int, every: int | None) -> bool:
         if every is None:
             return False
@@ -96,7 +85,6 @@ class MOTNScheduleCallback(TrainerCallback):
         runtime["current_lr"] = logs.get("learning_rate", runtime.get("current_lr"))
         runtime["current_loss"] = logs.get("loss", runtime.get("current_loss"))
         runtime["grad_norm"] = logs.get("grad_norm", runtime.get("grad_norm"))
-        group_lrs = self._capture_param_group_lrs(runtime, kwargs.get("optimizer"))
         run_heavy = bool(getattr(self.fit_cfg.train, "enable_heavy_runtime_stats", True)) and self._should_run(step, getattr(self.fit_cfg.train, "heavy_log_every", 500))
         if run_heavy and bool(getattr(self.fit_cfg.train, "enable_grad_param_norm", False)):
             runtime["param_norm"] = module_norm(model, trainable_only=True)
@@ -128,12 +116,11 @@ class MOTNScheduleCallback(TrainerCallback):
         if self.logger is not None and self._should_run(step, getattr(self.fit_cfg.train, "log_every", 50)):
             if run_heavy:
                 self.logger.info(
-                    "[Train] stage=%s step=%s loss=%s lr=%s param_group_lrs=%s T=%s gate=%s tokens/s=%s step_time=%s grad_norm=%s param_norm=%s cuda_peak=%sMB",
+                    "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s tokens/s=%s step_time=%s grad_norm=%s param_norm=%s cuda_peak=%sMB",
                     record.get("stage"),
                     record.get("update_step"),
                     record.get("train_loss"),
                     record.get("lr"),
-                    group_lrs,
                     record.get("T"),
                     record.get("gate_trainable"),
                     record.get("tokens_per_sec"),
@@ -144,12 +131,11 @@ class MOTNScheduleCallback(TrainerCallback):
                 )
             else:
                 self.logger.info(
-                    "[Train] stage=%s step=%s loss=%s lr=%s param_group_lrs=%s T=%s gate=%s tokens/s=%s step_time=%s",
+                    "[Train] stage=%s step=%s loss=%s lr=%s T=%s gate=%s tokens/s=%s step_time=%s",
                     record.get("stage"),
                     record.get("update_step"),
                     record.get("train_loss"),
                     record.get("lr"),
-                    group_lrs,
                     record.get("T"),
                     record.get("gate_trainable"),
                     record.get("tokens_per_sec"),
@@ -163,7 +149,6 @@ class MOTNScheduleCallback(TrainerCallback):
         stage = self.stage_state.current_stage()
         runtime = getattr(model, "fitmotn_runtime", None)
         if runtime is not None:
-            self._capture_param_group_lrs(runtime, kwargs.get("optimizer"))
             update_step_runtime(
                 runtime,
                 global_step=step,

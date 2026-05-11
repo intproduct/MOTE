@@ -160,24 +160,11 @@ class FitMoTNTrainer(Trainer):
             else:
                 self.lr_scheduler = super().create_scheduler(num_training_steps=num_training_steps, optimizer=opt)
             if self.observability_state is not None:
-                resolution = getattr(self.scheduler_builder, "last_resolution", {}) if self.scheduler_builder is not None else {}
                 self.observability_state["scheduler_state_summary"] = {
                     "class_name": type(self.lr_scheduler).__name__ if self.lr_scheduler is not None else None,
-                    "scheduler_type": resolution.get("lr_scheduler_type"),
                     "num_training_steps": int(num_training_steps),
-                    "actual_training_steps": resolution.get("actual_training_steps", int(num_training_steps)),
-                    "resolved_lr_warmup_steps": resolution.get("resolved_lr_warmup_steps"),
-                    "resolved_lr_decay_steps": resolution.get("resolved_lr_decay_steps"),
-                    "scheduler_total_steps": resolution.get("scheduler_total_steps"),
                     "has_state_dict": hasattr(self.lr_scheduler, "state_dict"),
                 }
-                self.observability_state["actual_training_steps"] = resolution.get("actual_training_steps", int(num_training_steps))
-                self.observability_state["resolved_lr_warmup_steps"] = resolution.get(
-                    "resolved_lr_warmup_steps",
-                    self.observability_state.get("resolved_lr_warmup_steps"),
-                )
-                self.observability_state["resolved_lr_decay_steps"] = resolution.get("resolved_lr_decay_steps")
-                self.observability_state["scheduler_total_steps"] = resolution.get("scheduler_total_steps")
         return self.lr_scheduler
 
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):

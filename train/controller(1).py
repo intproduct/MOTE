@@ -127,7 +127,7 @@ def run_fitmotn_training(fit_cfg):
             task.source_family,
             float(task.weight),
         )
-    scheduler_builder, scheduler_metadata = build_scheduler_builder(fit_cfg, stage_plan.total_updates, logger=logger)
+    scheduler_builder, warmup_updates = build_scheduler_builder(fit_cfg, stage_plan.total_updates, logger=logger)
 
     baseline_small = None
     baseline_final = None
@@ -187,7 +187,7 @@ def run_fitmotn_training(fit_cfg):
         stage_plan=stage_plan,
         model_dtype=model_dtype,
         amp_enabled=bool(fit_cfg.model.use_amp and device.type == "cuda"),
-        scheduler_metadata=scheduler_metadata,
+        warmup_updates=warmup_updates if fit_cfg.train.lr_warmup else 0,
         env_snapshot=env_snapshot,
         param_snapshot=param_snapshot,
     )
@@ -265,8 +265,6 @@ def run_fitmotn_training(fit_cfg):
         per_device_train_batch_size=int(fit_cfg.train.batch_size),
         gradient_accumulation_steps=int(fit_cfg.train.grad_accum),
         learning_rate=float(fit_cfg.train.block_lr),
-        lr_scheduler_type=str(fit_cfg.train.lr_scheduler_type),
-        warmup_steps=int(fit_cfg.train.lr_warmup_steps) if fit_cfg.train.lr_warmup else 0,
         max_steps=int(stage_plan.total_updates),
         num_train_epochs=1.0,
         logging_steps=logging_steps,
