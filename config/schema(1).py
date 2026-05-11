@@ -212,8 +212,6 @@ class TrainConfig:
 
     lr_warmup: bool = False
     lr_warmup_steps: int = 1000
-    lr_scheduler_type: str = "linear"
-    lr_decay_steps: Optional[int] = None
     warmup_ratio: float = 0.5
 
     early_stop: bool = True

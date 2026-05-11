@@ -11,7 +11,6 @@ from .schema import FitMoTNConfig
 
 VALID_EVAL_BACKENDS = {"lm_eval", "evalscope", "both"}
 SINGLE_BACKENDS = {"lm_eval", "evalscope"}
-VALID_LR_SCHEDULER_TYPES = {"linear", "constant", "constant_with_warmup", "cosine"}
 
 
 def _ensure_mapping(name: str, value: Any) -> Mapping[str, Any]:
@@ -142,21 +141,6 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) ->
         train_cfg.enable_grad_param_norm = False
     if getattr(train_cfg, "enable_cuda_snapshot", None) is None:
         train_cfg.enable_cuda_snapshot = False
-
-    scheduler_type = str(getattr(train_cfg, "lr_scheduler_type", "linear") or "linear").strip().lower()
-    if scheduler_type not in VALID_LR_SCHEDULER_TYPES:
-        raise ValueError(
-            f"train.lr_scheduler_type must be one of {sorted(VALID_LR_SCHEDULER_TYPES)}, got {scheduler_type!r}"
-        )
-    train_cfg.lr_scheduler_type = scheduler_type
-
-    lr_decay_steps = getattr(train_cfg, "lr_decay_steps", None)
-    if lr_decay_steps is None:
-        train_cfg.lr_decay_steps = None
-    else:
-        train_cfg.lr_decay_steps = int(lr_decay_steps)
-        if int(train_cfg.lr_decay_steps) <= 0:
-            raise ValueError(f"train.lr_decay_steps must be > 0 when set, got {train_cfg.lr_decay_steps}")
 
     train_cfg.usage_dump_every = int(getattr(train_cfg, "usage_report_every", 0))
     train_cfg.usage_light_every = int(getattr(train_cfg, "usage_light_every", 0))
