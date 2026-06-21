@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from ..utils.paths import resolve_path
 from .config_utils import resolve_task_eval_settings
 from .metrics import pick_primary_score
 
@@ -244,7 +245,8 @@ def run_evalscope_tasks(
             return _make_skipped_backend_result(eval_name, eval_mode, tasks, str(exc), warnings)
         raise
 
-    output_dir = Path(out_root or "./evalscope_outputs").resolve() / eval_name
+    output_root = out_root if out_root is not None else "${OUTPUT_ROOT}/evalscope_outputs"
+    output_dir = Path(resolve_path(str(output_root), key="eval.evalscope.output_root", source="config", cfg=fit_cfg, allow_none=False)) / eval_name
     output_dir.mkdir(parents=True, exist_ok=True)
     task_to_result: Dict[str, Any] = {}
     summary: Dict[str, Any] = {}
@@ -291,6 +293,15 @@ def run_evalscope_tasks(
         task_dir = output_dir / task_name
         task_dir.mkdir(parents=True, exist_ok=True)
         task_cfg_dict, runtime_effects, generation_effects = _build_evalscope_task_cfg(str(model_or_path), task_name, task_settings, task_dir)
+        if logger is not None:
+            runtime_cfg = dict(task_settings.get("runtime", {}) or {})
+            logger.info(
+                "[EvalRuntime:%s] backend=evalscope task=%s apply_chat_template=%s enable_thinking=%s",
+                eval_name,
+                task_name,
+                runtime_cfg.get("apply_chat_template"),
+                runtime_cfg.get("enable_thinking"),
+            )
         ignored_runtime_args = [
             key
             for key, effect in runtime_effects.items()
@@ -359,6 +370,8 @@ def run_evalscope_tasks(
             "fewshot": int(task_settings["fewshot"]),
             "limit": task_settings.get("limit"),
             "runtime": dict(task_settings.get("runtime", {}) or {}),
+            "apply_chat_template": dict(task_settings.get("runtime", {}) or {}).get("apply_chat_template"),
+            "enable_thinking": dict(task_settings.get("runtime", {}) or {}).get("enable_thinking"),
             "gen_kwargs": task_settings.get("gen_kwargs"),
             "runtime_effects": runtime_effects,
             "generation_effects": generation_effects,

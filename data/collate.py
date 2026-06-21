@@ -10,6 +10,8 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
     input_ids = tc.full((len(batch), max_len), pad_id, dtype=tc.long)
     labels = tc.full((len(batch), max_len), -100, dtype=tc.long)
     attn = tc.zeros((len(batch), max_len), dtype=tc.long)
+    has_loss_weights = any("loss_weights" in x for x in batch)
+    loss_weights = tc.zeros((len(batch), max_len), dtype=tc.float32) if has_loss_weights else None
     task = [x.get("task", "unknown") for x in batch]
     group = [x.get("group", "unknown") for x in batch]
     bucket = [x.get("bucket", "unknown") for x in batch]
@@ -21,8 +23,13 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
         input_ids[i, :length] = ex["input_ids"]
         labels[i, :length] = ex["labels"]
         attn[i, :length] = 1
+        if loss_weights is not None:
+            if "loss_weights" in ex:
+                loss_weights[i, :length] = ex["loss_weights"]
+            else:
+                loss_weights[i, :length] = (ex["labels"] != -100).to(tc.float32)
 
-    return {
+    result = {
         "input_ids": input_ids,
         "labels": labels,
         "attention_mask": attn,
@@ -32,3 +39,6 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
         "source_family": source_family,
         "eval_type": eval_type,
     }
+    if loss_weights is not None:
+        result["loss_weights"] = loss_weights
+    return result

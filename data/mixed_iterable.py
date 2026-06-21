@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, Iterable, Iterator, List, Mapping
 
 from torch.utils.data import IterableDataset, get_worker_info
 
+from ..chat_formatting import build_reasoning_messages, make_standard_chat_supervised_example, tokenizer_supports_chat_template
 from .caching import download_and_cache_dataset, load_dataset_auto_cached, resolve_split
 from .shard_loader import iter_jsonl, iter_jsonl_gz, iter_local_token_shards
 from .specs import HFChatTask, HFTextTask, TaskSpec
@@ -94,6 +95,8 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
         max_len: int,
         samples_per_epoch: int,
         seed: int = 0,
+        data_cfg=None,
+        train_cfg=None,
         logger=None,
     ):
         super().__init__()
@@ -104,13 +107,17 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
         self.max_len = int(max_len)
         self.samples_per_epoch = int(samples_per_epoch)
         self.seed = int(seed)
+        self.data_cfg = data_cfg
+        self.train_cfg = train_cfg
         self.logger = logger
         self._pad_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else (tokenizer.eos_token_id or 0)
         self._task_stats: Dict[str, Dict[str, Any]] = {}
         self._bucket_stats: Dict[str, int] = defaultdict(int)
         self._logged_task_sources: set[str] = set()
         self._logged_bucket_summaries: set[str] = set()
+        self._logged_format_summary = False
         self._validate_stage_buckets()
+        self._validate_chat_format()
 
     @property
     def pad_id(self) -> int:
@@ -272,6 +279,26 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             "; ".join(bucket_desc) if bucket_desc else "{}",
         )
 
+    def _validate_chat_format(self) -> None:
+        data_cfg = self.data_cfg
+        reasoning_format = str(getattr(data_cfg, "reasoning_format", "raw") or "raw").strip().lower()
+        if reasoning_format == "chat" and not tokenizer_supports_chat_template(self.tokenizer):
+            raise ValueError("data.reasoning_format=chat requires tokenizer.apply_chat_template")
+
+    def _log_format_summary(self) -> None:
+        if self.logger is None or self._logged_format_summary:
+            return
+        self._logged_format_summary = True
+        data_cfg = self.data_cfg
+        self.logger.info(
+            "[DataFormat] reasoning_format=%s reasoning_chat_enable_thinking=%s "
+            "reasoning_chat_system_prompt_present=%s tokenizer_chat_template_present=%s",
+            str(getattr(data_cfg, "reasoning_format", "raw") or "raw"),
+            bool(getattr(data_cfg, "reasoning_chat_enable_thinking", False)),
+            bool(getattr(data_cfg, "reasoning_chat_system_prompt", None)),
+            bool(getattr(self.tokenizer, "chat_template", None)),
+        )
+
     def _record_skip(self, task: TaskSpec, reason: str, trace_strategy: str | None) -> None:
         stats = self._get_task_stats(task)
         if reason == "overlong":
@@ -298,7 +325,41 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             trace_stats = stats["selected_trace_strategy"]
             trace_stats[trace_strategy] = int(trace_stats.get(trace_strategy, 0)) + 1
 
+    def _loss_weight_kwargs(self, task: TaskSpec) -> Dict[str, Any]:
+        train_cfg = self.train_cfg
+        enabled = bool(getattr(train_cfg, "final_answer_weight_enabled", False)) if train_cfg is not None else False
+        if not enabled or str(getattr(task, "source_family", "")) not in self.REASONING_SOURCE_FAMILIES:
+            return {}
+        return {
+            "final_answer_weight_enabled": True,
+            "final_answer_weight": float(getattr(train_cfg, "final_answer_weight", 1.0)),
+            "final_answer_marker": str(getattr(train_cfg, "final_answer_marker", "####")),
+        }
+
+    def _make_reasoning_chat_supervised(self, task: TaskSpec) -> Dict[str, Any]:
+        record = dict(task.metadata.get("last_reasoning_record") or {})
+        question = record.get("question")
+        solution = record.get("solution_text")
+        answer = record.get("final_answer")
+        if question is None or solution is None or answer is None:
+            raise ValueError(f"[{task.name}] reasoning chat format requires normalized reasoning_record")
+        assistant_target = f"Solution:\n{solution}\n\nFinal Answer:\n{answer}"
+        messages = build_reasoning_messages(
+            question,
+            target=assistant_target,
+            system_prompt=getattr(self.data_cfg, "reasoning_chat_system_prompt", None),
+        )
+        return make_standard_chat_supervised_example(
+            self.tokenizer,
+            messages,
+            max_len=self.max_len,
+            add_eos=True,
+            enable_thinking=bool(getattr(self.data_cfg, "reasoning_chat_enable_thinking", False)),
+            use_generation_prompt_for_labels=bool(getattr(self.data_cfg, "reasoning_chat_use_generation_prompt_for_labels", True)),
+        )
+
     def _to_supervised(self, task: TaskSpec, ex: Dict[str, Any]):
+        self._log_format_summary()
         if task.kind == "local_token_shards":
             if "input_ids" in ex:
                 sup = build_example_from_token_ids(ex["input_ids"], self.max_len, eos_id=self.tokenizer.eos_token_id)
@@ -352,7 +413,14 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             self._record_skip(task, str(task.metadata.get("last_reason", "missing_fields")), str(task.metadata.get("last_trace_strategy") or "unknown"))
             return None
         prompt, answer, eval_type = mapped
-        sup = make_supervised_example(self.tokenizer, prompt, answer, self.max_len, add_eos=True)
+        if (
+            str(getattr(self.data_cfg, "reasoning_format", "raw") or "raw").strip().lower() == "chat"
+            and str(getattr(task, "source_family", "")) in self.REASONING_SOURCE_FAMILIES
+        ):
+            sup = self._make_reasoning_chat_supervised(task)
+            eval_type = "chat_sft"
+        else:
+            sup = make_supervised_example(self.tokenizer, prompt, answer, self.max_len, add_eos=True, **self._loss_weight_kwargs(task))
         sup["task"] = task.name
         sup["group"] = task.group
         sup["bucket"] = task.bucket

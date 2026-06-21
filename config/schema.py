@@ -12,6 +12,7 @@ class ModelConfig:
     use_amp: bool = True
     torch_dtype: str = "auto"
     trust_remote_code: bool = True
+    patch_backend: str = "motn"
 
     E: int = 16
     d: int = 2
@@ -27,10 +28,28 @@ class ModelConfig:
     zloss_coeff: float = 0.0
     jitter_eps: float = 0.0
     use_ste: bool = True
+    gate_arch: str = "linear"
+    gate_hidden_dim: int = 0
+    gate_hidden_mult: float = 0.0625
+    gate_hidden_min: int = 64
+    gate_hidden_max: int = 256
+    gate_activation: str = "silu"
+    gate_norm: str = "none"
+    gate_dropout: float = 0.0
+    gate_mlp_bias: bool = True
+    gate_output_init_std: float = 1e-3
+    gate_residual_delta_scale: float = 1.0
     pos_strategy: str = "random"
     init_gamma: float = 0.6
+    block_init_mode: str = "gamma_normal"
+    block_init_std_scale: float = 1.0
+    block_init_trunc_std: float = 2.0
     warmup_ratio: float = 0.5
     warmup_stride: int = 1
+    global_expert_enabled: bool = False
+    global_expert_weight: float = 1.0
+    global_expert_init_scale: float = 1.0
+    global_expert_pos_strategy: str = "spread"
 
 
 @dataclass
@@ -128,6 +147,10 @@ class DataConfig:
     prefer_short_reasoning: bool = True
     skip_overlong_reasoning_samples: bool = True
     reasoning_supervision_mode: str = "answer_only"
+    reasoning_format: str = "raw"
+    reasoning_chat_enable_thinking: bool = False
+    reasoning_chat_system_prompt: Optional[str] = None
+    reasoning_chat_use_generation_prompt_for_labels: bool = True
 
 
 @dataclass
@@ -168,7 +191,17 @@ class TrainConfig:
     steps: int = 4000
     epochs: float = 1.0
     epoch_samples: int = 200_000
+    resume_fitmotn_from: Optional[str] = None
+    resume_stage: str = "auto"
+    extra_updates: Optional[int] = None
+    stage2_only_on_resume: bool = True
     lr: float = 3e-5
+    block_lr: Optional[float] = None
+    router_lr: Optional[float] = None
+    stage_a_block_lr: Optional[float] = None
+    stage_a_router_lr: Optional[float] = None
+    stage_b_block_lr: Optional[float] = None
+    stage_b_router_lr: Optional[float] = None
     log_every: int = 50
     save_every_updates: int = 1000
     eval_every_updates: int = 1000
@@ -190,6 +223,11 @@ class TrainConfig:
 
     begin_t: float = 1.5
     end_t: float = 0.8
+    stage_a_begin_t: Optional[float] = None
+    stage_a_end_t: Optional[float] = None
+    stage_b_begin_t: Optional[float] = None
+    stage_b_end_t: Optional[float] = None
+    temperature_schedule_type: str = "cosine"
     gate_freeze_steps: int = 2000
     usage_dump_every: int = 500
     usage_light_every: Optional[int] = None
@@ -206,6 +244,8 @@ class TrainConfig:
 
     lr_warmup: bool = False
     lr_warmup_steps: int = 1000
+    lr_scheduler_type: str = "linear"
+    lr_decay_steps: Optional[int] = None
     warmup_ratio: float = 0.5
 
     early_stop: bool = True
@@ -214,6 +254,74 @@ class TrainConfig:
 
     seed: int = 0
     report_to: List[str] = field(default_factory=list)
+    final_answer_weight: float = 1.0
+    final_answer_marker: str = "####"
+    final_answer_weight_enabled: bool = False
+
+
+DEFAULT_GSM8K_GRPO_PROMPT_TEMPLATE = (
+    "Question:\n{question}\n\n"
+    "Solve the problem step by step. Put the final numeric answer after ####.\n"
+    "Answer:\n"
+)
+
+
+@dataclass
+class RLConfig:
+    enabled: bool = False
+    mode: str = "gsm8k_grpo"
+    run_after_sft: bool = False
+    resume_from: Optional[str] = None
+    train_source: str = "gsm8k_train"
+    train_json: Optional[str] = None
+    max_steps: int = 0
+    batch_size: int = 1
+    group_size: int = 4
+    grad_accum: int = 1
+    lr: float = 5e-7
+    eps_clip: float = 0.2
+    beta: float = 0.0
+    no_ref_model: bool = True
+    max_new_tokens: int = 256
+    temperature: float = 0.7
+    top_p: float = 0.95
+    prompt_template: str = DEFAULT_GSM8K_GRPO_PROMPT_TEMPLATE
+    prompt_format: str = "raw"
+    chat_enable_thinking: bool = False
+    chat_system_prompt: Optional[str] = None
+    trainable_mode: str = "patch_only"
+    log_every: int = 1
+    enable_usage_tracking: bool = False
+    log_memory_every: int = 1
+    logprob_micro_batch_size: int = 1
+    rollout_micro_batch_size: int = 0
+    gradient_checkpointing: bool = False
+    empty_cache_every: int = 0
+    skip_zero_advantage_updates: bool = True
+    max_zero_advantage_rollout_retries: int = 8
+    zero_advantage_retry_action: str = "warn_continue"
+    save_every_updates: int = 50
+    eval_every_updates: int = 0
+    debug_num_prompts: Optional[int] = None
+    sample_log_count: int = 4
+    seed: Optional[int] = None
+    output_subdir: str = "rl_grpo"
+    use_config_data: bool = True
+    max_grad_norm: float = 1.0
+    eval_tasks: List[str] = field(default_factory=lambda: ["gsm8k"])
+    eval_limit_gsm8k: int = 0
+    eval_max_gen_toks_gsm8k: int = 256
+
+
+@dataclass
+class DiagnosticsConfig:
+    tasks: List[str] = field(default_factory=lambda: ["gsm8k"])
+    prompt_source: str = "task"
+    num_samples: int = 32
+    sample_split: str = "train"
+    sample_seed: int = 0
+    prompt_template: str = "config"
+    prompts_file: Optional[str] = None
 
 
 @dataclass
@@ -272,6 +380,8 @@ class EvalConfig:
     run_baseline_eval: bool = True
     eval_backend: str = "lm_eval"
     primary_eval_backend: str = "lm_eval"
+    save_samples: bool = False
+    gsm8k_custom_metrics: bool = False
 
     lm_eval_batch_size: int = 1
     lm_eval_num_fewshot_mmlu: int = 5
@@ -313,11 +423,21 @@ class OutputConfig:
 
 
 @dataclass
+class RuntimeConfig:
+    dev_mode: bool = False
+
+
+@dataclass
 class FitMoTNConfig:
+    model_alias: Optional[str] = None
+    dataset_alias: Optional[str] = None
+    runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
     data: DataConfig = field(default_factory=DataConfig)
     approx_init: ApproxInitConfig = field(default_factory=ApproxInitConfig)
     train: TrainConfig = field(default_factory=TrainConfig)
+    rl: RLConfig = field(default_factory=RLConfig)
+    diagnostics: DiagnosticsConfig = field(default_factory=DiagnosticsConfig)
     eval: EvalConfig = field(default_factory=EvalConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
 

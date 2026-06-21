@@ -6,7 +6,7 @@ from typing import Any, Dict
 import torch as tc
 import torch.nn as nn
 
-from .ADTN import MoTNLayer
+from .ADTN import MoTNLayer, block_init_stats_are_usable, dense_weight_init_stats
 from .gate import GateConfig
 
 
@@ -16,7 +16,33 @@ def unwrap_y(out):
     return out
 
 
-def build_motn_layer(*, in_dim: int, out_dim: int, cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None) -> MoTNLayer:
+def _log_projection_block_init(log, *, layer_idx: int, proj_name: str, backend: str, cfg: Dict[str, Any], stats: Dict[str, Any]) -> None:
+    if log is None:
+        return
+    mode = str(cfg.get("block_init_mode", "gamma_normal"))
+    message = (
+        f"[BlockInit] layer={layer_idx} proj={proj_name} backend={backend} "
+        f"mode={mode} mean={float(stats.get('mean', float('nan'))):.6g} "
+        f"std={float(stats.get('std', float('nan'))):.6g} "
+        f"min={float(stats.get('min', float('nan'))):.6g} "
+        f"max={float(stats.get('max', float('nan'))):.6g} "
+        f"numel={int(stats.get('numel', 0))} "
+        f"std_scale={float(cfg.get('block_init_std_scale', 1.0)):.6g} "
+        f"trunc_std={float(cfg.get('block_init_trunc_std', 2.0)):.6g}"
+    )
+    if mode != "gamma_normal" and not block_init_stats_are_usable(stats):
+        try:
+            log.warning(message + " fallback=gamma_normal reason=invalid_stats")
+        except Exception:
+            pass
+        return
+    try:
+        log.info(message)
+    except Exception:
+        pass
+
+
+def build_motn_layer(*, in_dim: int, out_dim: int, cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None, init_stats=None) -> MoTNLayer:
     gate_cfg = GateConfig(
         gate_type=str(cfg["gate_type"]),
         data_dim=int(in_dim),
@@ -32,6 +58,17 @@ def build_motn_layer(*, in_dim: int, out_dim: int, cfg: Dict[str, Any], device: 
         aux_coeff=float(cfg.get("aux_coeff", 1e-2)),
         zloss_coeff=float(cfg.get("zloss_coeff", 0.0)),
         aux_mode=str(cfg.get("aux_mode", "ds")),
+        gate_arch=str(cfg.get("gate_arch", "linear")),
+        gate_hidden_dim=int(cfg.get("gate_hidden_dim", 0)),
+        gate_hidden_mult=float(cfg.get("gate_hidden_mult", 0.0625)),
+        gate_hidden_min=int(cfg.get("gate_hidden_min", 64)),
+        gate_hidden_max=int(cfg.get("gate_hidden_max", 256)),
+        gate_activation=str(cfg.get("gate_activation", "silu")),
+        gate_norm=str(cfg.get("gate_norm", "none")),
+        gate_dropout=float(cfg.get("gate_dropout", 0.0)),
+        gate_mlp_bias=bool(cfg.get("gate_mlp_bias", True)),
+        gate_output_init_std=float(cfg.get("gate_output_init_std", 1e-3)),
+        gate_residual_delta_scale=float(cfg.get("gate_residual_delta_scale", 1.0)),
     )
     motn = MoTNLayer(
         in_dim,
@@ -48,6 +85,14 @@ def build_motn_layer(*, in_dim: int, out_dim: int, cfg: Dict[str, Any], device: 
         seed=int(cfg.get("seed", 0)),
         warmup_ratio=float(cfg.get("warmup_ratio", 0.5)),
         warmup_stride=int(cfg.get("warmup_stride", 1)),
+        global_expert_enabled=bool(cfg.get("global_expert_enabled", False)),
+        global_expert_weight=float(cfg.get("global_expert_weight", 1.0)),
+        global_expert_init_scale=float(cfg.get("global_expert_init_scale", 1.0)),
+        global_expert_pos_strategy=str(cfg.get("global_expert_pos_strategy", "spread")),
+        block_init_mode=str(cfg.get("block_init_mode", "gamma_normal")),
+        block_init_std_scale=float(cfg.get("block_init_std_scale", 1.0)),
+        block_init_trunc_std=float(cfg.get("block_init_trunc_std", 2.0)),
+        init_stats=init_stats,
     ).to(device)
     if log is not None:
         try:
@@ -55,13 +100,23 @@ def build_motn_layer(*, in_dim: int, out_dim: int, cfg: Dict[str, Any], device: 
                 f"[MoTN] build in={in_dim} out={out_dim} E={motn.core.num_blocks} "
                 f"k_in={motn.core.k_in} k_out={motn.core.k_out} gate={gate_cfg.gate_type}"
             )
+            gate = getattr(motn.core, "gate", None)
+            router = getattr(gate, "router", None)
+            if router is not None:
+                hidden = getattr(router, "resolved_hidden_dim", None)
+                hidden_text = "-" if hidden is None else str(hidden)
+                log.info(
+                    f"[Gate] arch={router.gate_arch} hidden={hidden_text} "
+                    f"activation={router.gate_activation} norm={router.gate_norm} "
+                    f"params={router.router_param_count}"
+                )
         except Exception:
             pass
     return motn
 
 
 class MOTNFFNLayer(nn.Module):
-    def __init__(self, qwen_mlp: nn.Module, cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None):
+    def __init__(self, qwen_mlp: nn.Module, cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None, layer_idx: int = -1):
         super().__init__()
         if not (hasattr(qwen_mlp, "gate_proj") and hasattr(qwen_mlp, "up_proj") and hasattr(qwen_mlp, "down_proj")):
             raise TypeError(f"qwen_mlp does not look like QwenMLP, got: {type(qwen_mlp)}")
@@ -69,12 +124,46 @@ class MOTNFFNLayer(nn.Module):
         self.intermediate_size = int(qwen_mlp.gate_proj.out_features)
         self.act = getattr(qwen_mlp, "act_fn", None) or nn.SiLU()
         self.logger = log
-        self.gate_proj = build_motn_layer(in_dim=self.hidden_size, out_dim=self.intermediate_size, cfg=cfg, device=device, dtype=dtype, log=log)
-        self.up_proj = build_motn_layer(in_dim=self.hidden_size, out_dim=self.intermediate_size, cfg=cfg, device=device, dtype=dtype, log=log)
+        block_init_mode = str(cfg.get("block_init_mode", "gamma_normal") or "gamma_normal").strip().lower()
+        init_stats = None
+        if block_init_mode != "gamma_normal":
+            init_stats = {
+                "gate_proj": dense_weight_init_stats(qwen_mlp.gate_proj.weight),
+                "up_proj": dense_weight_init_stats(qwen_mlp.up_proj.weight),
+                "down_proj": dense_weight_init_stats(qwen_mlp.down_proj.weight),
+            }
+            for proj_name, stats in init_stats.items():
+                _log_projection_block_init(log, layer_idx=layer_idx, proj_name=proj_name, backend="motn", cfg=cfg, stats=stats)
+        self.gate_proj = build_motn_layer(
+            in_dim=self.hidden_size,
+            out_dim=self.intermediate_size,
+            cfg=cfg,
+            device=device,
+            dtype=dtype,
+            log=log,
+            init_stats=None if init_stats is None else init_stats["gate_proj"],
+        )
+        self.up_proj = build_motn_layer(
+            in_dim=self.hidden_size,
+            out_dim=self.intermediate_size,
+            cfg=cfg,
+            device=device,
+            dtype=dtype,
+            log=log,
+            init_stats=None if init_stats is None else init_stats["up_proj"],
+        )
         down_cfg = dict(cfg)
         down_cfg["k_in"] = int(self.gate_proj.core.k_out)
-        self.down_proj = build_motn_layer(in_dim=self.intermediate_size, out_dim=self.hidden_size, cfg=down_cfg, device=device, dtype=dtype, log=log)
-        self.layer_idx = -1
+        self.down_proj = build_motn_layer(
+            in_dim=self.intermediate_size,
+            out_dim=self.hidden_size,
+            cfg=down_cfg,
+            device=device,
+            dtype=dtype,
+            log=log,
+            init_stats=None if init_stats is None else init_stats["down_proj"],
+        )
+        self.layer_idx = int(layer_idx)
         self.fitmotn_block_layout = {}
         self.fitmotn_expert_warmup_state = {"enabled": False}
 

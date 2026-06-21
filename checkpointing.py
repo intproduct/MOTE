@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, is_dataclass
+from dataclasses import fields, is_dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable
 
@@ -15,7 +15,11 @@ except Exception:
 
 def to_jsonable(obj: Any):
     if is_dataclass(obj):
-        return {k: to_jsonable(v) for k, v in asdict(obj).items()}
+        out = {}
+        for field in fields(obj):
+            if hasattr(obj, field.name):
+                out[field.name] = to_jsonable(getattr(obj, field.name))
+        return out
     if isinstance(obj, dict):
         return {str(k): to_jsonable(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):

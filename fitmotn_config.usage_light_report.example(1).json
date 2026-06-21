@@ -1,0 +1,19 @@
+{
+  "train": {
+    "log_every": 50,
+    "train_jsonl_every": 50,
+    "usage_light_every": 1,
+    "usage_light_jsonl_every": 50,
+    "usage_report_every": 500,
+    "heavy_log_every": 500,
+    "enable_usage_runtime_tracking": true,
+    "enable_usage_report": true,
+    "enable_heavy_runtime_stats": true,
+    "enable_grad_param_norm": false,
+    "enable_cuda_snapshot": false,
+    "benchmark_train_only": false
+  },
+  "output": {
+    "run_name": "usage_light_report_reference"
+  }
+}

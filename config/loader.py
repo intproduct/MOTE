@@ -1,16 +1,92 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import fields, is_dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from ..utils.paths import resolve_path
 from .defaults import make_default_config
 from .schema import FitMoTNConfig
 
 
 VALID_EVAL_BACKENDS = {"lm_eval", "evalscope", "both"}
 SINGLE_BACKENDS = {"lm_eval", "evalscope"}
+VALID_LR_SCHEDULER_TYPES = {"linear", "constant", "constant_with_warmup", "cosine"}
+VALID_RESUME_STAGES = {"auto", "stage_b", "full"}
+VALID_TEMPERATURE_SCHEDULE_TYPES = {"cosine", "constant"}
+VALID_RL_MODES = {"gsm8k_grpo"}
+VALID_RL_TRAINABLE_MODES = {"all", "patch_only", "motn_only", "gate_only", "router_only", "global_only"}
+VALID_FORMAT_MODES = {"raw", "chat"}
+VALID_ZERO_ADVANTAGE_RETRY_ACTIONS = {"warn_continue", "raise"}
+VALID_BLOCK_INIT_MODES = {"gamma_normal", "base_stats_normal", "base_stats_trunc_normal"}
+
+MODEL_ALIASES = {
+    "qwen3_8b": "${MODEL_ROOT}/Qwen3-8B",
+    "qwen3_0_6b": "${MODEL_ROOT}/Qwen3-0.6B",
+}
+
+DATASET_ALIASES = {
+    "gsm8k": {
+        "gsm8k_cache_path": "${CACHE_ROOT}/gsm8k_main",
+        "datas_dir": "${DATA_ROOT}",
+        "use_wiki_local": False,
+        "use_fineweb": False,
+        "use_code": False,
+        "use_gsm8k_train": True,
+        "use_gsm8k_socratic_train": False,
+        "use_svamp_train": False,
+        "use_metamath_train": False,
+        "use_math_train": False,
+        "use_mmlu_train": False,
+        "use_openr1_math": False,
+        "use_numinamath_cot": False,
+        "use_openthoughts_math": False,
+        "use_bespoke_stratos": False,
+    },
+}
+
+DATA_PATH_FIELDS = [
+    "tok_shard_dir",
+    "datas_dir",
+    "fineweb_cache_path",
+    "code_cache_path",
+    "gsm8k_cache_path",
+    "gsm8k_socratic_cache_path",
+    "svamp_cache_path",
+    "metamath_cache_path",
+    "mmlu_cache_path",
+    "math_cache_root",
+    "openr1_math_cache_path",
+    "numinamath_cot_cache_path",
+    "openthoughts_math_cache_path",
+    "bespoke_stratos_cache_path",
+]
+PATH_FIELDS = {
+    "model": {"model_path"},
+    "data": set(DATA_PATH_FIELDS),
+    "output": {"root_dir"},
+    "train": {"resume_fitmotn_from"},
+    "rl": {"resume_from", "train_json"},
+    "diagnostics": {"prompts_file"},
+}
+
+ACTIVE_DATA_PATHS = {
+    "tok_shard_dir": "use_wiki_local",
+    "fineweb_cache_path": "use_fineweb",
+    "code_cache_path": "use_code",
+    "gsm8k_cache_path": "use_gsm8k_train",
+    "gsm8k_socratic_cache_path": "use_gsm8k_socratic_train",
+    "svamp_cache_path": "use_svamp_train",
+    "metamath_cache_path": "use_metamath_train",
+    "mmlu_cache_path": "use_mmlu_train",
+    "math_cache_root": "use_math_train",
+    "openr1_math_cache_path": "use_openr1_math",
+    "numinamath_cot_cache_path": "use_numinamath_cot",
+    "openthoughts_math_cache_path": "use_openthoughts_math",
+    "bespoke_stratos_cache_path": "use_bespoke_stratos",
+}
 
 
 def _ensure_mapping(name: str, value: Any) -> Mapping[str, Any]:
@@ -33,6 +109,118 @@ def _apply_section_values(section_name: str, section_obj: Any, values: Mapping[s
             _apply_section_values(f"{section_name}.{key}", current_value, nested_values)
         else:
             setattr(section_obj, key, value)
+
+
+def _normalize_alias(value: Any, field_name: str) -> str | None:
+    if value is None:
+        return None
+    alias = str(value).strip().lower()
+    if alias == "":
+        return None
+    return alias
+
+
+def _path_sources(cfg: FitMoTNConfig) -> dict[str, str]:
+    sources = getattr(cfg, "_path_sources", None)
+    if sources is None:
+        sources = {}
+        setattr(cfg, "_path_sources", sources)
+    return sources
+
+
+def _mark_path_source(cfg: FitMoTNConfig, section_name: str, field_name: str, source: str) -> None:
+    if field_name in PATH_FIELDS.get(section_name, set()):
+        _path_sources(cfg)[f"{section_name}.{field_name}"] = source
+
+
+def _mark_payload_path_sources(cfg: FitMoTNConfig, payload: Mapping[str, Any], source: str) -> None:
+    for section_name, field_names in PATH_FIELDS.items():
+        section_values = payload.get(section_name)
+        if not isinstance(section_values, Mapping):
+            continue
+        for field_name in field_names:
+            if field_name in section_values:
+                _mark_path_source(cfg, section_name, field_name, source)
+
+
+def _source_for(cfg: FitMoTNConfig, section_name: str, field_name: str) -> str:
+    return _path_sources(cfg).get(f"{section_name}.{field_name}", "default")
+
+
+def _apply_aliases(cfg: FitMoTNConfig) -> None:
+    model_alias = _normalize_alias(getattr(cfg, "model_alias", None), "model_alias")
+    if model_alias is not None:
+        if model_alias not in MODEL_ALIASES:
+            raise ValueError(f"model_alias must be one of {sorted(MODEL_ALIASES)}, got {model_alias!r}")
+        if not getattr(cfg.model, "model_path", None) or _source_for(cfg, "model", "model_path") == "default":
+            cfg.model.model_path = MODEL_ALIASES[model_alias]
+            _mark_path_source(cfg, "model", "model_path", "alias")
+        cfg.model_alias = model_alias
+
+    dataset_alias = _normalize_alias(getattr(cfg, "dataset_alias", None), "dataset_alias")
+    if dataset_alias is not None:
+        if dataset_alias not in DATASET_ALIASES:
+            raise ValueError(f"dataset_alias must be one of {sorted(DATASET_ALIASES)}, got {dataset_alias!r}")
+        alias_values = DATASET_ALIASES[dataset_alias]
+        for key, value in alias_values.items():
+            if key.endswith("_path") or key.endswith("_dir") or key.endswith("_root"):
+                if not getattr(cfg.data, key, None) or _source_for(cfg, "data", key) == "default":
+                    setattr(cfg.data, key, value)
+                    _mark_path_source(cfg, "data", key, "alias")
+            else:
+                setattr(cfg.data, key, value)
+        cfg.dataset_alias = dataset_alias
+
+
+def _normalize_optional_path_value(value: Any) -> str | None:
+    if value is None:
+        return None
+    value = str(value).strip()
+    return value or None
+
+
+def _resolve_optional_path(section_name: str, obj: Any, field_name: str, cfg: FitMoTNConfig, *, allow_none: bool = True) -> None:
+    value = _normalize_optional_path_value(getattr(obj, field_name, None))
+    if value is None:
+        if not allow_none:
+            resolve_path(None, key=f"{section_name}.{field_name}", source=_source_for(cfg, section_name, field_name), cfg=cfg, allow_none=False)
+        setattr(obj, field_name, None)
+        return
+    setattr(
+        obj,
+        field_name,
+        resolve_path(
+            value,
+            key=f"{section_name}.{field_name}",
+            source=_source_for(cfg, section_name, field_name),
+            cfg=cfg,
+            allow_none=allow_none,
+        ),
+    )
+
+
+def _resolve_and_validate_paths(cfg: FitMoTNConfig) -> None:
+    _apply_aliases(cfg)
+
+    _resolve_optional_path("model", cfg.model, "model_path", cfg, allow_none=False)
+    _resolve_optional_path("output", cfg.output, "root_dir", cfg, allow_none=False)
+    _resolve_optional_path("train", cfg.train, "resume_fitmotn_from", cfg)
+    _resolve_optional_path("rl", cfg.rl, "resume_from", cfg)
+    _resolve_optional_path("rl", cfg.rl, "train_json", cfg)
+    _resolve_optional_path("diagnostics", cfg.diagnostics, "prompts_file", cfg)
+
+    require_gsm8k = bool(getattr(cfg.rl, "enabled", False) and getattr(cfg.rl, "use_config_data", True))
+
+    for field_name, flag_name in ACTIVE_DATA_PATHS.items():
+        require_path = bool(getattr(cfg.data, flag_name, False)) or (field_name == "gsm8k_cache_path" and require_gsm8k)
+        if require_path or _source_for(cfg, "data", field_name) != "default":
+            _resolve_optional_path("data", cfg.data, field_name, cfg, allow_none=not require_path)
+    _resolve_optional_path("data", cfg.data, "datas_dir", cfg)
+    for field_name in DATA_PATH_FIELDS:
+        if field_name == "datas_dir" or field_name in ACTIVE_DATA_PATHS:
+            continue
+        if _source_for(cfg, "data", field_name) != "default":
+            _resolve_optional_path("data", cfg.data, field_name, cfg)
 
 
 def _setdefault_task_value(mapping: dict[str, int], task_name: str, value: Any) -> None:
@@ -94,9 +282,79 @@ def _finalize_eval_config(cfg: FitMoTNConfig) -> None:
     eval_cfg.runtime.chat_template_args = dict(getattr(eval_cfg.runtime, "chat_template_args", {}) or {})
 
 
-def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) -> FitMoTNConfig:
+def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *, validate_paths: bool = False) -> FitMoTNConfig:
     train_cfg = cfg.train
+    data_cfg = cfg.data
+    model_cfg = cfg.model
     default_log_every = int(getattr(train_cfg, "log_every", 1))
+
+    block_init_mode = str(getattr(model_cfg, "block_init_mode", "gamma_normal") or "gamma_normal").strip().lower()
+    if block_init_mode not in VALID_BLOCK_INIT_MODES:
+        raise ValueError(f"model.block_init_mode must be one of {sorted(VALID_BLOCK_INIT_MODES)}, got {block_init_mode!r}")
+    model_cfg.block_init_mode = block_init_mode
+    model_cfg.block_init_std_scale = float(getattr(model_cfg, "block_init_std_scale", 1.0))
+    if (not math.isfinite(float(model_cfg.block_init_std_scale))) or float(model_cfg.block_init_std_scale) <= 0.0:
+        raise ValueError(f"model.block_init_std_scale must be > 0, got {model_cfg.block_init_std_scale}")
+    model_cfg.block_init_trunc_std = float(getattr(model_cfg, "block_init_trunc_std", 2.0))
+    if (not math.isfinite(float(model_cfg.block_init_trunc_std))) or float(model_cfg.block_init_trunc_std) <= 0.0:
+        raise ValueError(f"model.block_init_trunc_std must be > 0, got {model_cfg.block_init_trunc_std}")
+
+    reasoning_format = str(getattr(data_cfg, "reasoning_format", "raw") or "raw").strip().lower()
+    if reasoning_format not in VALID_FORMAT_MODES:
+        raise ValueError(f"data.reasoning_format must be one of {sorted(VALID_FORMAT_MODES)}, got {reasoning_format!r}")
+    data_cfg.reasoning_format = reasoning_format
+    data_cfg.reasoning_chat_enable_thinking = bool(getattr(data_cfg, "reasoning_chat_enable_thinking", False))
+    system_prompt = getattr(data_cfg, "reasoning_chat_system_prompt", None)
+    data_cfg.reasoning_chat_system_prompt = None if system_prompt is None or str(system_prompt).strip() == "" else str(system_prompt)
+    data_cfg.reasoning_chat_use_generation_prompt_for_labels = bool(
+        getattr(data_cfg, "reasoning_chat_use_generation_prompt_for_labels", True)
+    )
+
+    resume_path = getattr(train_cfg, "resume_fitmotn_from", None)
+    if resume_path is not None:
+        resume_path = str(resume_path).strip()
+        train_cfg.resume_fitmotn_from = resume_path or None
+
+    resume_stage = str(getattr(train_cfg, "resume_stage", "auto") or "auto").strip().lower()
+    if resume_stage not in VALID_RESUME_STAGES:
+        raise ValueError(f"train.resume_stage must be one of {sorted(VALID_RESUME_STAGES)}, got {resume_stage!r}")
+    if getattr(train_cfg, "resume_fitmotn_from", None) and resume_stage == "full":
+        raise ValueError("train.resume_stage='full' is not implemented for resume_fitmotn_from; use 'auto' or 'stage_b'")
+    train_cfg.resume_stage = resume_stage
+
+    extra_updates = getattr(train_cfg, "extra_updates", None)
+    if extra_updates is None:
+        train_cfg.extra_updates = None
+    else:
+        train_cfg.extra_updates = int(extra_updates)
+        if int(train_cfg.extra_updates) <= 0:
+            raise ValueError(f"train.extra_updates must be > 0 when set, got {train_cfg.extra_updates}")
+
+    if "block_lr" not in explicit_train_keys or getattr(train_cfg, "block_lr", None) is None:
+        train_cfg.block_lr = float(getattr(train_cfg, "lr"))
+    else:
+        train_cfg.block_lr = float(getattr(train_cfg, "block_lr"))
+    if "router_lr" not in explicit_train_keys or getattr(train_cfg, "router_lr", None) is None:
+        train_cfg.router_lr = float(getattr(train_cfg, "block_lr"))
+    else:
+        train_cfg.router_lr = float(getattr(train_cfg, "router_lr"))
+
+    stage_lr_fields = [
+        "stage_a_block_lr",
+        "stage_a_router_lr",
+        "stage_b_block_lr",
+        "stage_b_router_lr",
+    ]
+    stage_specific_lr_enabled = False
+    for field_name in stage_lr_fields:
+        value = getattr(train_cfg, field_name, None)
+        if value is None:
+            continue
+        value = float(value)
+        if value <= 0.0:
+            raise ValueError(f"train.{field_name} must be > 0 when set, got {value}")
+        setattr(train_cfg, field_name, value)
+        stage_specific_lr_enabled = True
 
     if getattr(train_cfg, "usage_report_every", None) is None:
         train_cfg.usage_report_every = int(getattr(train_cfg, "usage_dump_every", 0))
@@ -133,6 +391,40 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) ->
     if getattr(train_cfg, "enable_cuda_snapshot", None) is None:
         train_cfg.enable_cuda_snapshot = False
 
+    scheduler_type = str(getattr(train_cfg, "lr_scheduler_type", "linear") or "linear").strip().lower()
+    if scheduler_type not in VALID_LR_SCHEDULER_TYPES:
+        raise ValueError(
+            f"train.lr_scheduler_type must be one of {sorted(VALID_LR_SCHEDULER_TYPES)}, got {scheduler_type!r}"
+        )
+    train_cfg.lr_scheduler_type = scheduler_type
+    if stage_specific_lr_enabled and scheduler_type != "constant":
+        raise ValueError("stage-specific learning rates are currently supported only with lr_scheduler_type='constant'.")
+
+    lr_decay_steps = getattr(train_cfg, "lr_decay_steps", None)
+    if lr_decay_steps is None:
+        train_cfg.lr_decay_steps = None
+    else:
+        train_cfg.lr_decay_steps = int(lr_decay_steps)
+        if int(train_cfg.lr_decay_steps) <= 0:
+            raise ValueError(f"train.lr_decay_steps must be > 0 when set, got {train_cfg.lr_decay_steps}")
+
+    temperature_schedule_type = str(getattr(train_cfg, "temperature_schedule_type", "cosine") or "cosine").strip().lower()
+    if temperature_schedule_type not in VALID_TEMPERATURE_SCHEDULE_TYPES:
+        raise ValueError(
+            f"train.temperature_schedule_type must be one of {sorted(VALID_TEMPERATURE_SCHEDULE_TYPES)}, got {temperature_schedule_type!r}"
+        )
+    train_cfg.temperature_schedule_type = temperature_schedule_type
+    for field_name in ["begin_t", "end_t", "stage_a_begin_t", "stage_a_end_t", "stage_b_begin_t", "stage_b_end_t"]:
+        value = getattr(train_cfg, field_name, None)
+        if value is not None:
+            setattr(train_cfg, field_name, float(value))
+
+    train_cfg.final_answer_weight = float(getattr(train_cfg, "final_answer_weight", 1.0))
+    if float(train_cfg.final_answer_weight) <= 0.0:
+        raise ValueError(f"train.final_answer_weight must be > 0, got {train_cfg.final_answer_weight}")
+    train_cfg.final_answer_marker = str(getattr(train_cfg, "final_answer_marker", "####"))
+    train_cfg.final_answer_weight_enabled = bool(getattr(train_cfg, "final_answer_weight_enabled", False))
+
     train_cfg.usage_dump_every = int(getattr(train_cfg, "usage_report_every", 0))
     train_cfg.usage_light_every = int(getattr(train_cfg, "usage_light_every", 0))
     train_cfg.usage_light_jsonl_every = int(getattr(train_cfg, "usage_light_jsonl_every", 0))
@@ -141,7 +433,116 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str]) ->
     train_cfg.heavy_log_every = int(getattr(train_cfg, "heavy_log_every", 500))
     _validate_bucket_config(cfg)
     _finalize_eval_config(cfg)
+    _finalize_rl_config(cfg)
+    if validate_paths:
+        _resolve_and_validate_paths(cfg)
     return cfg
+
+
+def _normalize_optional_path(value: Any) -> str | None:
+    return _normalize_optional_path_value(value)
+
+
+def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
+    rl_cfg = cfg.rl
+    rl_cfg.enabled = bool(getattr(rl_cfg, "enabled", False))
+    rl_cfg.run_after_sft = bool(getattr(rl_cfg, "run_after_sft", False))
+    if rl_cfg.run_after_sft and not rl_cfg.enabled:
+        raise ValueError("rl.run_after_sft=true requires rl.enabled=true")
+
+    mode = str(getattr(rl_cfg, "mode", "gsm8k_grpo") or "gsm8k_grpo").strip().lower()
+    if mode not in VALID_RL_MODES:
+        raise ValueError(f"rl.mode must be one of {sorted(VALID_RL_MODES)}, got {mode!r}")
+    rl_cfg.mode = mode
+
+    trainable_mode = str(getattr(rl_cfg, "trainable_mode", "patch_only") or "patch_only").strip().lower()
+    if trainable_mode not in VALID_RL_TRAINABLE_MODES:
+        raise ValueError(f"rl.trainable_mode must be one of {sorted(VALID_RL_TRAINABLE_MODES)}, got {trainable_mode!r}")
+    rl_cfg.trainable_mode = trainable_mode
+
+    rl_cfg.resume_from = _normalize_optional_path(getattr(rl_cfg, "resume_from", None))
+    rl_cfg.train_json = _normalize_optional_path(getattr(rl_cfg, "train_json", None))
+    rl_cfg.train_source = str(getattr(rl_cfg, "train_source", "gsm8k_train") or "gsm8k_train")
+    rl_cfg.output_subdir = str(getattr(rl_cfg, "output_subdir", "rl_grpo") or "rl_grpo").strip() or "rl_grpo"
+    rl_cfg.prompt_template = str(getattr(rl_cfg, "prompt_template", "") or "")
+    prompt_format = str(getattr(rl_cfg, "prompt_format", "raw") or "raw").strip().lower()
+    if prompt_format not in VALID_FORMAT_MODES:
+        raise ValueError(f"rl.prompt_format must be one of {sorted(VALID_FORMAT_MODES)}, got {prompt_format!r}")
+    rl_cfg.prompt_format = prompt_format
+    rl_cfg.chat_enable_thinking = bool(getattr(rl_cfg, "chat_enable_thinking", False))
+    chat_system_prompt = getattr(rl_cfg, "chat_system_prompt", None)
+    rl_cfg.chat_system_prompt = None if chat_system_prompt is None or str(chat_system_prompt).strip() == "" else str(chat_system_prompt)
+    rl_cfg.use_config_data = bool(getattr(rl_cfg, "use_config_data", True))
+    rl_cfg.no_ref_model = bool(getattr(rl_cfg, "no_ref_model", True))
+    rl_cfg.enable_usage_tracking = bool(getattr(rl_cfg, "enable_usage_tracking", False))
+    rl_cfg.gradient_checkpointing = bool(getattr(rl_cfg, "gradient_checkpointing", False))
+    rl_cfg.skip_zero_advantage_updates = bool(getattr(rl_cfg, "skip_zero_advantage_updates", True))
+    zero_advantage_retry_action = str(getattr(rl_cfg, "zero_advantage_retry_action", "warn_continue") or "warn_continue").strip().lower()
+    if zero_advantage_retry_action not in VALID_ZERO_ADVANTAGE_RETRY_ACTIONS:
+        raise ValueError(
+            "rl.zero_advantage_retry_action must be one of "
+            f"{sorted(VALID_ZERO_ADVANTAGE_RETRY_ACTIONS)}, got {zero_advantage_retry_action!r}"
+        )
+    rl_cfg.zero_advantage_retry_action = zero_advantage_retry_action
+
+    int_fields = [
+        "max_steps",
+        "batch_size",
+        "group_size",
+        "grad_accum",
+        "max_new_tokens",
+        "log_every",
+        "log_memory_every",
+        "logprob_micro_batch_size",
+        "rollout_micro_batch_size",
+        "empty_cache_every",
+        "max_zero_advantage_rollout_retries",
+        "save_every_updates",
+        "eval_every_updates",
+        "sample_log_count",
+        "eval_limit_gsm8k",
+        "eval_max_gen_toks_gsm8k",
+    ]
+    for field_name in int_fields:
+        setattr(rl_cfg, field_name, int(getattr(rl_cfg, field_name)))
+    for field_name in ["lr", "eps_clip", "beta", "temperature", "top_p", "max_grad_norm"]:
+        setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
+    if getattr(rl_cfg, "debug_num_prompts", None) is not None:
+        rl_cfg.debug_num_prompts = int(rl_cfg.debug_num_prompts)
+        if rl_cfg.debug_num_prompts <= 0:
+            raise ValueError(f"rl.debug_num_prompts must be > 0 when set, got {rl_cfg.debug_num_prompts}")
+    if getattr(rl_cfg, "seed", None) is not None:
+        rl_cfg.seed = int(rl_cfg.seed)
+
+    if rl_cfg.enabled:
+        positive_fields = ["max_steps", "batch_size", "group_size", "grad_accum", "max_new_tokens", "log_every", "sample_log_count"]
+        for field_name in positive_fields:
+            value = int(getattr(rl_cfg, field_name))
+            if value <= 0:
+                raise ValueError(f"rl.{field_name} must be > 0 when rl.enabled=true, got {value}")
+        if float(rl_cfg.lr) <= 0.0:
+            raise ValueError(f"rl.lr must be > 0 when rl.enabled=true, got {rl_cfg.lr}")
+        if float(rl_cfg.eps_clip) <= 0.0:
+            raise ValueError(f"rl.eps_clip must be > 0 when rl.enabled=true, got {rl_cfg.eps_clip}")
+        if float(rl_cfg.max_grad_norm) <= 0.0:
+            raise ValueError(f"rl.max_grad_norm must be > 0 when rl.enabled=true, got {rl_cfg.max_grad_norm}")
+        if int(rl_cfg.save_every_updates) < 0:
+            raise ValueError(f"rl.save_every_updates must be >= 0, got {rl_cfg.save_every_updates}")
+        if int(rl_cfg.eval_every_updates) < 0:
+            raise ValueError(f"rl.eval_every_updates must be >= 0, got {rl_cfg.eval_every_updates}")
+        for field_name in ["log_memory_every", "logprob_micro_batch_size", "rollout_micro_batch_size", "empty_cache_every"]:
+            value = int(getattr(rl_cfg, field_name))
+            if value < 0:
+                raise ValueError(f"rl.{field_name} must be >= 0, got {value}")
+        if int(rl_cfg.max_zero_advantage_rollout_retries) < 1:
+            raise ValueError(
+                "rl.max_zero_advantage_rollout_retries must be >= 1, "
+                f"got {rl_cfg.max_zero_advantage_rollout_retries}"
+            )
+        if float(rl_cfg.beta) < 0.0:
+            raise ValueError(f"rl.beta must be >= 0, got {rl_cfg.beta}")
+        if not rl_cfg.train_json and not bool(rl_cfg.use_config_data):
+            raise ValueError("rl.train_json is required when rl.use_config_data=false")
 
 
 def _validate_bucket_config(cfg: FitMoTNConfig) -> None:
@@ -215,39 +616,77 @@ def apply_config_payload(cfg: FitMoTNConfig, payload: Mapping[str, Any]) -> FitM
     unknown_sections = sorted(set(payload.keys()) - valid_sections)
     if unknown_sections:
         raise ValueError(f"Unknown config sections: {', '.join(unknown_sections)}")
+    _mark_payload_path_sources(cfg, payload, "config")
     for section_name, section_values in payload.items():
         section_obj = getattr(cfg, section_name)
-        _apply_section_values(section_name, section_obj, _ensure_mapping(section_name, section_values))
+        if is_dataclass(section_obj):
+            _apply_section_values(section_name, section_obj, _ensure_mapping(section_name, section_values))
+        else:
+            setattr(cfg, section_name, section_values)
     explicit_train_keys = set(payload.get("train", {}).keys()) if isinstance(payload.get("train"), Mapping) else set()
-    return _finalize_train_config(cfg, explicit_train_keys)
+    explicit_model_keys = set(payload.get("model", {}).keys()) if isinstance(payload.get("model"), Mapping) else set()
+    cumulative_train_keys = set(getattr(cfg, "_explicit_train_keys", set())) | explicit_train_keys
+    cumulative_model_keys = set(getattr(cfg, "_explicit_model_keys", set())) | explicit_model_keys
+    cfg = _finalize_train_config(cfg, cumulative_train_keys, validate_paths=True)
+    setattr(cfg, "_explicit_train_keys", cumulative_train_keys)
+    setattr(cfg, "_explicit_model_keys", cumulative_model_keys)
+    return cfg
 
 
-def load_config_from_json(config_json: str | Path) -> FitMoTNConfig:
+def load_config_from_json(config_json: str | Path, *, finalize: bool = True) -> FitMoTNConfig:
     cfg = make_default_config()
     path = Path(config_json).expanduser().resolve()
     with path.open("r", encoding="utf-8") as f:
         payload = json.load(f)
-    return apply_config_payload(cfg, payload)
+    if finalize:
+        return apply_config_payload(cfg, payload)
+    payload = _ensure_mapping("config payload", payload)
+    valid_sections = {field.name for field in fields(cfg)}
+    unknown_sections = sorted(set(payload.keys()) - valid_sections)
+    if unknown_sections:
+        raise ValueError(f"Unknown config sections: {', '.join(unknown_sections)}")
+    _mark_payload_path_sources(cfg, payload, "config")
+    for section_name, section_values in payload.items():
+        section_obj = getattr(cfg, section_name)
+        if is_dataclass(section_obj):
+            _apply_section_values(section_name, section_obj, _ensure_mapping(section_name, section_values))
+        else:
+            setattr(cfg, section_name, section_values)
+    explicit_train_keys = set(payload.get("train", {}).keys()) if isinstance(payload.get("train"), Mapping) else set()
+    explicit_model_keys = set(payload.get("model", {}).keys()) if isinstance(payload.get("model"), Mapping) else set()
+    setattr(cfg, "_explicit_train_keys", explicit_train_keys)
+    setattr(cfg, "_explicit_model_keys", explicit_model_keys)
+    return cfg
 
 
 def apply_config_overrides(cfg: FitMoTNConfig, overrides: Mapping[str, Mapping[str, Any]] | None) -> FitMoTNConfig:
     if not overrides:
-        return cfg
+        return _finalize_train_config(cfg, set(getattr(cfg, "_explicit_train_keys", set())), validate_paths=True)
+    _mark_payload_path_sources(cfg, overrides, "override")
     explicit_train_keys: set[str] = set()
+    explicit_model_keys: set[str] = set()
     for section_name, section_values in overrides.items():
         if not section_values:
             continue
         section_obj = getattr(cfg, section_name, None)
         if section_obj is None:
             raise ValueError(f"Unknown override section: {section_name}")
-        _apply_section_values(section_name, section_obj, _ensure_mapping(section_name, section_values))
+        if is_dataclass(section_obj):
+            _apply_section_values(section_name, section_obj, _ensure_mapping(section_name, section_values))
+        else:
+            setattr(cfg, section_name, section_values)
         if section_name == "train":
             explicit_train_keys.update(section_values.keys())
-    return _finalize_train_config(cfg, explicit_train_keys)
+        if section_name == "model":
+            explicit_model_keys.update(section_values.keys())
+    cumulative_train_keys = set(getattr(cfg, "_explicit_train_keys", set())) | explicit_train_keys
+    cumulative_model_keys = set(getattr(cfg, "_explicit_model_keys", set())) | explicit_model_keys
+    cfg = _finalize_train_config(cfg, cumulative_train_keys, validate_paths=True)
+    setattr(cfg, "_explicit_train_keys", cumulative_train_keys)
+    setattr(cfg, "_explicit_model_keys", cumulative_model_keys)
+    return cfg
 
 
 def load_config(config_json: str | Path | None = None, overrides: Mapping[str, Mapping[str, Any]] | None = None) -> FitMoTNConfig:
-    cfg = make_default_config() if config_json is None else load_config_from_json(config_json)
-    if config_json is None:
-        cfg = _finalize_train_config(cfg, set())
+    cfg = make_default_config() if config_json is None else load_config_from_json(config_json, finalize=False)
     return apply_config_overrides(cfg, overrides)

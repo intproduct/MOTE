@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 from .config_utils import get_enabled_backends, get_primary_backend
 from .evalscope_runner import run_evalscope_tasks
 from .lm_eval_hf import run_lm_eval_tasks
+from ..utils.paths import assert_no_unsafe_paths
 
 
 def get_primary_backend_result(eval_res: Dict[str, Any]) -> Dict[str, Any]:
@@ -35,6 +36,7 @@ def run_eval_tasks(
     started_at = time.time()
     backend_results: Dict[str, Any] = {}
     warnings: List[str] = []
+    assert_no_unsafe_paths(fit_cfg, context="eval", logger=logger)
 
     if "lm_eval" in enabled_backends:
         if model is None or tokenizer is None:

@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from typing import List, Optional, Tuple, Literal, Dict
 
 import math
+import warnings
 import torch as tc
 import torch.nn as nn
 import torch.nn.functional as F
@@ -302,6 +303,37 @@ def make_unique_positions(
     return pool[:N_eff], N_eff
 
 
+def make_spread_positions(q_in: int, k_in: int) -> List[int]:
+    if k_in < 0:
+        raise ValueError(f"k_in must be >= 0, got {k_in}")
+    if k_in == 0:
+        return []
+    if q_in < k_in:
+        raise ValueError(f"q_in={q_in} must be >= k_in={k_in}")
+    if k_in == 1:
+        return [0]
+
+    used = set()
+    positions: List[int] = []
+    for i in range(k_in):
+        anchor = (i * (q_in - 1)) / float(k_in - 1)
+        base = int(round(anchor))
+        chosen = None
+        for delta in range(q_in):
+            candidates = [base] if delta == 0 else [base - delta, base + delta]
+            for cand in candidates:
+                if 0 <= cand < q_in and cand not in used:
+                    chosen = cand
+                    break
+            if chosen is not None:
+                break
+        if chosen is None:
+            raise RuntimeError(f"failed to build spread positions for q_in={q_in}, k_in={k_in}")
+        used.add(chosen)
+        positions.append(chosen)
+    return sorted(positions)
+
+
 # -----------------------------
 # 1) Block：一个“可路由”的参数张量 + wiring(position) + id
 # -----------------------------
@@ -309,6 +341,31 @@ def make_unique_positions(
 class BlockMeta:
     block_id: int
     pos_in: List[int]  # 作用在输入 q_in 指标的哪些位置（长度=k_in）
+
+
+def dense_weight_init_stats(weight: tc.Tensor) -> Dict[str, float | int]:
+    w = weight.detach().to(device="cpu", dtype=tc.float32)
+    return {
+        "mean": float(w.mean().item()),
+        "std": float(w.std(unbiased=False).item()),
+        "min": float(w.min().item()),
+        "max": float(w.max().item()),
+        "numel": int(w.numel()),
+    }
+
+
+def block_init_stats_are_usable(stats: Optional[Dict[str, object]]) -> bool:
+    if not isinstance(stats, dict):
+        return False
+    try:
+        mean = float(stats["mean"])
+        std = float(stats["std"])
+        min_value = float(stats["min"])
+        max_value = float(stats["max"])
+    except (KeyError, TypeError, ValueError):
+        return False
+    return all(math.isfinite(v) for v in (mean, std, min_value, max_value)) and std > 0.0
+
 
 class TensorBlock(nn.Module):
     """
@@ -325,6 +382,11 @@ class TensorBlock(nn.Module):
         dtype: tc.dtype = tc.float32,
         device: Optional[tc.device] = None,
         init_std: float = 1e-2,
+        block_init_mode: str = "gamma_normal",
+        block_init_std_scale: float = 1.0,
+        block_init_trunc_std: float = 2.0,
+        init_stats: Optional[Dict[str, object]] = None,
+        warn_on_init_fallback: bool = False,
     ):
         super().__init__()
         self.id = meta.block_id
@@ -334,7 +396,30 @@ class TensorBlock(nn.Module):
         self.k_out = int(k_out)
 
         shape = [d] * k_in + [d] * k_out
-        U = tc.randn(shape, device=device, dtype=dtype) * init_std
+        init_mode = str(block_init_mode or "gamma_normal").strip().lower()
+        if init_mode == "gamma_normal":
+            U = tc.randn(shape, device=device, dtype=dtype) * init_std
+        elif init_mode in {"base_stats_normal", "base_stats_trunc_normal"} and block_init_stats_are_usable(init_stats):
+            mean = float(init_stats["mean"])  # type: ignore[index]
+            effective_std = float(init_stats["std"]) * float(block_init_std_scale)  # type: ignore[index]
+            U = tc.empty(shape, device=device, dtype=dtype)
+            with tc.no_grad():
+                U.normal_(mean=mean, std=effective_std)
+                if init_mode == "base_stats_trunc_normal":
+                    # This mode intentionally uses clamp-after-normal for compatibility,
+                    # rather than a mathematically exact truncated-normal sampler.
+                    lower = mean - float(block_init_trunc_std) * effective_std
+                    upper = mean + float(block_init_trunc_std) * effective_std
+                    U.clamp_(min=lower, max=upper)
+        else:
+            if warn_on_init_fallback and init_mode != "gamma_normal":
+                warnings.warn(
+                    f"Falling back to gamma_normal TensorBlock init because init_stats are missing, "
+                    f"non-finite, or have std <= 0 for block_id={meta.block_id}.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+            U = tc.randn(shape, device=device, dtype=dtype) * init_std
         self.U = nn.Parameter(U)
 
     def forward(self) -> tc.Tensor:
@@ -473,6 +558,14 @@ class GatedADTNLayer(nn.Module):
         seed: int = 0,
         warmup_ratio: float = 0.5,
         warmup_stride: int = 1,
+        global_expert_enabled: bool = False,
+        global_expert_weight: float = 1.0,
+        global_expert_init_scale: float = 1.0,
+        global_expert_pos_strategy: str = "spread",
+        block_init_mode: str = "gamma_normal",
+        block_init_std_scale: float = 1.0,
+        block_init_trunc_std: float = 2.0,
+        init_stats: Optional[Dict[str, object]] = None,
     ):
         super().__init__()
         self.dim_input = int(dim_input)
@@ -519,6 +612,7 @@ class GatedADTNLayer(nn.Module):
         # 初始化尺度（与你之前 gamma 初始化一致）
         fan_in = (d ** self.k_in) if self.k_in > 0 else 1
         init_std = 1.0 / (fan_in ** float(init_gamma))
+        block_init_mode = str(block_init_mode or "gamma_normal").strip().lower()
 
         # blocks: 每个 block 持有 Parameter U + meta
         blks: List[TensorBlock] = []
@@ -527,7 +621,12 @@ class GatedADTNLayer(nn.Module):
             blks.append(
                 TensorBlock(
                     meta=meta, d=d, k_in=self.k_in, k_out=self.k_out,
-                    dtype=dtype, device=device, init_std=init_std
+                    dtype=dtype, device=device, init_std=init_std,
+                    block_init_mode=block_init_mode,
+                    block_init_std_scale=float(block_init_std_scale),
+                    block_init_trunc_std=float(block_init_trunc_std),
+                    init_stats=init_stats,
+                    warn_on_init_fallback=(i == 0),
                 )
             )
         self.blocks = nn.ModuleList(blks)
@@ -538,6 +637,29 @@ class GatedADTNLayer(nn.Module):
         self.last_top1 = None
         self.last_usage_counts = None
         self.last_top1_counts = None
+
+        self.global_expert_enabled = bool(global_expert_enabled)
+        self.global_expert_weight = float(global_expert_weight)
+        self.global_pos_in: Optional[List[int]] = None
+        self.global_block: Optional[TensorBlock] = None
+        if self.global_expert_enabled:
+            if str(global_expert_pos_strategy).lower() != "spread":
+                raise ValueError(f"Unsupported global_expert_pos_strategy: {global_expert_pos_strategy}")
+            self.global_pos_in = make_spread_positions(self.q_in, self.k_in)
+            self.global_block = TensorBlock(
+                meta=BlockMeta(block_id=self.num_blocks, pos_in=self.global_pos_in),
+                d=d,
+                k_in=self.k_in,
+                k_out=self.k_out,
+                dtype=dtype,
+                device=device,
+                init_std=init_std * float(global_expert_init_scale),
+                block_init_mode=block_init_mode,
+                block_init_std_scale=float(block_init_std_scale) * float(global_expert_init_scale),
+                block_init_trunc_std=float(block_init_trunc_std),
+                init_stats=init_stats,
+                warn_on_init_fallback=True,
+            )
 
         # （可选）你也可以给每个 block 一个 bias/scale，这里先留空，保持简单
 
@@ -639,6 +761,8 @@ class GatedADTNLayer(nn.Module):
             "entropy_soft_batch": None,
             "entropy_hard_token": None,
             "entropy_hard_batch": None,
+            "global_expert_enabled": self.global_expert_enabled,
+            "global_pos_in": None if self.global_pos_in is None else list(self.global_pos_in),
         }
         if counts is not None:
             x = counts.detach().to(tc.float32).flatten()
@@ -679,6 +803,29 @@ class GatedADTNLayer(nn.Module):
             report["entropy_hard_batch"] = float(entropy_hard[1].detach().cpu().item())
         return report
 
+    def _should_use_global_expert(self, use_global_expert: Optional[bool]) -> bool:
+        if self.global_block is None:
+            return False
+        enabled = self.global_expert_enabled if use_global_expert is None else bool(use_global_expert)
+        if not enabled:
+            return False
+        if math.isclose(self.global_expert_weight, 0.0, abs_tol=0.0):
+            return False
+        return True
+
+    def _apply_global_expert(self, x_sites: tc.Tensor) -> tc.Tensor:
+        if self.global_block is None or self.global_pos_in is None:
+            raise RuntimeError("global expert is not initialized")
+        return apply_block_to_sites(
+            x_sites,
+            self.global_block.U,
+            self.global_pos_in,
+            d=self.d,
+            q_in=self.q_in,
+            k_in=self.k_in,
+            k_out=self.k_out,
+        )
+
     def forward(
         self,
         x: tc.Tensor,
@@ -689,6 +836,7 @@ class GatedADTNLayer(nn.Module):
         aux: Optional[Dict] = None,
         idx_w: Optional[Tuple[tc.Tensor, tc.Tensor]] = None,  # 可选保留
         dense: bool = False,
+        use_global_expert: Optional[bool] = None,
     ):
         """
         MoE 风格：
@@ -703,6 +851,7 @@ class GatedADTNLayer(nn.Module):
         x = x.to(dtype=tc.float32)
         x_sites, B, S = self.reshape_in(x)          # [N, d...q_in]
         N = x_sites.shape[0]
+        use_global = self._should_use_global_expert(use_global_expert)
 
         # ---- get routing ----
         # 允许外部传 probs/mask 或 idx_w（用于debug/ablations），否则默认复用 gate
@@ -743,6 +892,8 @@ class GatedADTNLayer(nn.Module):
                 )
                 acc = yb if acc is None else (acc + yb)
             y_sites = acc / float(self.num_blocks)
+            if use_global:
+                y_sites = y_sites + (self.global_expert_weight * self._apply_global_expert(x_sites))
             y = self.reshape_out(y_sites, B, S)
             if return_aux:
                 return y, aux
@@ -769,6 +920,8 @@ class GatedADTNLayer(nn.Module):
                 yb = yb * wb
                 acc = yb if acc is None else (acc + yb)
 
+            if use_global:
+                acc = acc + (self.global_expert_weight * self._apply_global_expert(x_sites))
             y = self.reshape_out(acc, B, S)
             if return_aux:
                 return y, aux
@@ -809,6 +962,8 @@ class GatedADTNLayer(nn.Module):
                 # 非 in-place 聚合（像你要求的那样干净）
                 out_sites = tc.index_add(out_sites, 0, idx, y_sub)
 
+            if use_global:
+                out_sites = out_sites + (self.global_expert_weight * self._apply_global_expert(x_sites))
             y = self.reshape_out(out_sites, B, S)
             if return_aux:
                 return y, aux
@@ -826,7 +981,11 @@ def q_from_dim_pad(dim: int, d: int) -> int:
 class MoTNLayer(nn.Module):
     def __init__(self, in_features, out_features, *, d, num_blocks, k_in, gate_config,
                  entropy_coeff=0.0, pos_strategy="sliding", dtype=tc.float16, device=None,
-                 init_gamma=0.6, seed=0, warmup_ratio=0.5, warmup_stride=1):
+                 init_gamma=0.6, seed=0, warmup_ratio=0.5, warmup_stride=1,
+                 global_expert_enabled=False, global_expert_weight=1.0,
+                 global_expert_init_scale=1.0, global_expert_pos_strategy="spread",
+                 block_init_mode="gamma_normal", block_init_std_scale=1.0,
+                 block_init_trunc_std=2.0, init_stats=None):
         super().__init__()
         self.in_features = int(in_features)
         self.out_features = int(out_features)
@@ -848,7 +1007,15 @@ class MoTNLayer(nn.Module):
             pos_strategy=pos_strategy,
             dtype=dtype, device=device,
             init_gamma=init_gamma, seed=seed,
-            warmup_ratio=warmup_ratio, warmup_stride=warmup_stride
+            warmup_ratio=warmup_ratio, warmup_stride=warmup_stride,
+            global_expert_enabled=global_expert_enabled,
+            global_expert_weight=global_expert_weight,
+            global_expert_init_scale=global_expert_init_scale,
+            global_expert_pos_strategy=global_expert_pos_strategy,
+            block_init_mode=block_init_mode,
+            block_init_std_scale=block_init_std_scale,
+            block_init_trunc_std=block_init_trunc_std,
+            init_stats=init_stats,
         )
 
     def forward(self, x, **kwargs):
@@ -875,3 +1042,115 @@ class MoTNLayer(nn.Module):
 
         y = y2.reshape(*orig_shape[:-1], self.out_features)
         return y, aux
+
+
+def run_global_expert_self_check() -> Dict[str, object]:
+    seed = 1234
+    tc.manual_seed(seed)
+    gate_cfg = GateConfig(gate_type="softmax", data_dim=8, num_experts=3, k=3, aux_coeff=0.0, zloss_coeff=0.0)
+    baseline = GatedADTNLayer(
+        dim_input=8,
+        dim_output=8,
+        num_blocks=3,
+        d=2,
+        k_in=2,
+        gate_config=gate_cfg,
+        pos_strategy="sliding",
+        dtype=tc.float32,
+        device=tc.device("cpu"),
+        seed=seed,
+    )
+    tc.manual_seed(seed)
+    disabled = GatedADTNLayer(
+        dim_input=8,
+        dim_output=8,
+        num_blocks=3,
+        d=2,
+        k_in=2,
+        gate_config=gate_cfg,
+        pos_strategy="sliding",
+        dtype=tc.float32,
+        device=tc.device("cpu"),
+        seed=seed,
+        global_expert_enabled=False,
+    )
+    enabled_zero = GatedADTNLayer(
+        dim_input=8,
+        dim_output=8,
+        num_blocks=3,
+        d=2,
+        k_in=2,
+        gate_config=gate_cfg,
+        pos_strategy="sliding",
+        dtype=tc.float32,
+        device=tc.device("cpu"),
+        seed=seed,
+        global_expert_enabled=True,
+        global_expert_weight=0.0,
+    )
+    enabled = GatedADTNLayer(
+        dim_input=8,
+        dim_output=8,
+        num_blocks=3,
+        d=2,
+        k_in=2,
+        gate_config=gate_cfg,
+        pos_strategy="sliding",
+        dtype=tc.float32,
+        device=tc.device("cpu"),
+        seed=seed,
+        global_expert_enabled=True,
+        global_expert_weight=0.5,
+    )
+
+    disabled.load_state_dict(baseline.state_dict(), strict=True)
+    enabled_zero.load_state_dict(baseline.state_dict(), strict=False)
+    enabled.load_state_dict(baseline.state_dict(), strict=False)
+
+    x = tc.randn(5, 8, dtype=tc.float32)
+    probs = tc.softmax(tc.randn(5, baseline.num_blocks, dtype=tc.float32), dim=-1)
+    top_idx = probs.argmax(dim=-1, keepdim=True)
+    mask = tc.zeros_like(probs).scatter_(1, top_idx, 1.0)
+
+    y_base_soft = baseline(x, probs=probs, mask=None)
+    y_disabled_soft = disabled(x, probs=probs, mask=None)
+    y_zero_soft = enabled_zero(x, probs=probs, mask=None)
+    y_forced_off_soft = enabled(x, probs=probs, mask=None, use_global_expert=False)
+    y_enabled_soft = enabled(x, probs=probs, mask=None)
+
+    y_base_dense = baseline(x, dense=True)
+    y_disabled_dense = disabled(x, dense=True)
+    y_zero_dense = enabled_zero(x, dense=True)
+    y_forced_off_dense = enabled(x, dense=True, use_global_expert=False)
+
+    y_base_hard = baseline(x, probs=probs, mask=mask)
+    y_disabled_hard = disabled(x, probs=probs, mask=mask)
+    y_zero_hard = enabled_zero(x, probs=probs, mask=mask)
+    y_forced_off_hard = enabled(x, probs=probs, mask=mask, use_global_expert=False)
+
+    report = enabled.materialize_usage_report()
+    usage_len = None if report["usage"] is None else len(report["usage"])
+    top1_len = None if report["top1"] is None else len(report["top1"])
+
+    return {
+        "disabled_equivalence": bool(
+            tc.equal(y_base_soft, y_disabled_soft)
+            and tc.equal(y_base_dense, y_disabled_dense)
+            and tc.equal(y_base_hard, y_disabled_hard)
+        ),
+        "weight_zero_equivalence": bool(
+            tc.equal(y_base_soft, y_zero_soft)
+            and tc.equal(y_base_dense, y_zero_dense)
+            and tc.equal(y_base_hard, y_zero_hard)
+        ),
+        "forced_disable_equivalence": bool(
+            tc.allclose(y_base_soft, y_forced_off_soft)
+            and tc.allclose(y_base_dense, y_forced_off_dense)
+            and tc.allclose(y_base_hard, y_forced_off_hard)
+        ),
+        "enabled_shape_ok": tuple(y_enabled_soft.shape) == tuple(y_base_soft.shape),
+        "usage_len_ok": usage_len == baseline.num_blocks,
+        "top1_len_ok": top1_len in (None, baseline.num_blocks),
+        "global_block_created_when_enabled": enabled.global_block is not None,
+        "global_block_absent_when_disabled": disabled.global_block is None and disabled.global_pos_in is None,
+    }

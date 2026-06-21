@@ -6,28 +6,38 @@ import time
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List
 
 import torch as tc
 from transformers import TrainingArguments
 
 from ..audit import build_environment_snapshot, json_dump, jsonl_append, parameter_snapshot, to_jsonable
-from ..checkpointing import extract_patch_state_dict, save_fitmotn_metadata
+from ..checkpointing import (
+    build_fitmotn_json_metadata,
+    extract_patch_state_dict,
+    get_restore_state_dict,
+    load_fitmotn_metadata,
+    save_fitmotn_metadata,
+)
+from ..gate import normalize_legacy_gate_state_dict_for_model
 from ..data.builders import build_stage_aware_train_dataset
 from ..data.collate import pad_collate
 from ..eval.runner import run_eval_tasks
 from ..eval.metrics import build_early_stop_record
 from ..init.approx import collect_dense_ffn_targets, run_approx_init
 from ..patching import (
-    build_motn_model_config,
+    build_patch_model_config,
     configure_motn_expert_warmup_scaling,
     patch_qwen_ffn_layers,
     reset_motn_expert_warmup_scaling,
     resolve_layer_idxs,
     set_motn_usage_tracking,
-    set_trainable_motn_only,
+    set_trainable_patch_only,
+    summarize_motn_gate_routers,
 )
 from ..runtime import dtype_to_name, load_causal_lm_and_tokenizer
 from ..tasks.registry import build_pretrain_tasks, build_task_mixture_tasks
+from ..utils.paths import assert_no_unsafe_paths
 from .callbacks import MOTNScheduleCallback
 from .observability import build_checkpoint_metadata, build_run_summary, make_runtime_state
 from .runtime import build_scheduler_builder
@@ -55,6 +65,199 @@ def make_run_name(fit_cfg) -> str:
     return fit_cfg.output.run_name or f"fitmotn_{model_tag}_L{fit_cfg.model.layers_to_patch}_E{fit_cfg.model.E}_K{fit_cfg.model.topk}_{ts}"
 
 
+def _is_resume_training(fit_cfg) -> bool:
+    return bool(getattr(fit_cfg.train, "resume_fitmotn_from", None))
+
+
+def _validate_resume_source(path_value: str | Path) -> tuple[Path, Path]:
+    ckpt_dir = Path(path_value).expanduser().resolve()
+    if not ckpt_dir.exists():
+        raise FileNotFoundError(f"train.resume_fitmotn_from path does not exist: {ckpt_dir}")
+    state_path = ckpt_dir / "fitmotn_state.pt"
+    if not state_path.exists():
+        raise FileNotFoundError(
+            "train.resume_fitmotn_from is not a valid FitMoTN final_model/checkpoint; "
+            f"missing fitmotn_state.pt at {state_path}"
+        )
+    return ckpt_dir, state_path
+
+
+def _path_is_same_or_inside(child: Path, parent: Path) -> bool:
+    child = child.expanduser().resolve()
+    parent = parent.expanduser().resolve()
+    return child == parent or parent in child.parents
+
+
+def _validate_resume_output_paths(fit_cfg, run_dir: Path) -> None:
+    resume_from = getattr(fit_cfg.train, "resume_fitmotn_from", None)
+    if not resume_from:
+        return
+    resume_dir = Path(resume_from).expanduser().resolve()
+    final_model_dir = run_dir / "final_model"
+    for label, candidate in [("run_dir", run_dir), ("final_model_dir", final_model_dir)]:
+        if _path_is_same_or_inside(candidate, resume_dir):
+            raise ValueError(
+                f"resume continuation output {label}={candidate.resolve()} must not be the same as or inside "
+                f"train.resume_fitmotn_from={resume_dir}; choose a separate output run directory."
+            )
+
+
+def _warn_resume_continuation_risks(fit_cfg, metadata: Dict[str, Any] | None, logger) -> None:
+    if not getattr(fit_cfg.train, "resume_fitmotn_from", None):
+        return
+    if int(getattr(fit_cfg.train, "gate_freeze_steps", 0)) > 0:
+        logger.warning(
+            "resume continuation restarts global_step from 0; gate will be frozen again for gate_freeze_steps steps. "
+            "Set gate_freeze_steps=0 for normal continuation."
+        )
+    stage_b_begin_set = getattr(fit_cfg.train, "stage_b_begin_t", None) is not None
+    stage_b_end_set = getattr(fit_cfg.train, "stage_b_end_t", None) is not None
+    global_constant = float(getattr(fit_cfg.train, "begin_t")) == float(getattr(fit_cfg.train, "end_t"))
+    if not (stage_b_begin_set or stage_b_end_set or global_constant):
+        logger.warning(
+            "[Resume] temperature schedule restarts from begin_t for this continuation; set stage_b_begin_t/stage_b_end_t "
+            "or use begin_t=end_t for a normal fixed-temperature continuation."
+        )
+    if metadata:
+        ckpt_base_model_path = metadata.get("base_model_path")
+        if ckpt_base_model_path and str(ckpt_base_model_path) != str(fit_cfg.model.model_path):
+            logger.warning(
+                "[Resume] checkpoint base_model_path=%s differs from current model.model_path=%s; continuing with current base model.",
+                ckpt_base_model_path,
+                fit_cfg.model.model_path,
+            )
+
+
+def _metadata_model_cfg(metadata: Dict[str, Any]) -> Dict[str, Any]:
+    fit_cfg = metadata.get("fit_cfg") or {}
+    model_cfg = fit_cfg.get("model") if isinstance(fit_cfg, dict) else getattr(fit_cfg, "model", {})
+    if model_cfg is None:
+        return {}
+    if isinstance(model_cfg, dict):
+        return model_cfg
+    return vars(model_cfg) if hasattr(model_cfg, "__dict__") else {}
+
+
+def _metadata_structure_summary(metadata: Dict[str, Any], layer_idxs: List[int], motn_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    model_cfg = _metadata_model_cfg(metadata)
+    return {
+        "patch_backend": metadata.get("patch_backend", motn_cfg.get("patch_backend", model_cfg.get("patch_backend", "motn"))),
+        "k_in": motn_cfg.get("k_in", model_cfg.get("k_in")),
+        "topk": motn_cfg.get("topk", model_cfg.get("topk")),
+        "num_experts": motn_cfg.get("E", model_cfg.get("E")),
+        "target_layers": list(layer_idxs),
+        "use_global_expert": motn_cfg.get("global_expert_enabled", model_cfg.get("global_expert_enabled")),
+        "global_alpha": motn_cfg.get("global_expert_weight", model_cfg.get("global_expert_weight")),
+    }
+
+
+def _current_structure_summary(fit_cfg, layer_idxs: List[int]) -> Dict[str, Any]:
+    return {
+        "patch_backend": getattr(fit_cfg.model, "patch_backend", "motn"),
+        "k_in": getattr(fit_cfg.model, "k_in", None),
+        "topk": getattr(fit_cfg.model, "topk", None),
+        "num_experts": getattr(fit_cfg.model, "E", None),
+        "target_layers": list(layer_idxs),
+        "use_global_expert": getattr(fit_cfg.model, "global_expert_enabled", None),
+        "global_alpha": getattr(fit_cfg.model, "global_expert_weight", None),
+    }
+
+
+def _validate_resume_structure(fit_cfg, metadata: Dict[str, Any], ckpt_layer_idxs: List[int], motn_cfg: Dict[str, Any], n_layers: int) -> None:
+    explicit_model_keys = set(getattr(fit_cfg, "_explicit_model_keys", set()) or set())
+    checks = [
+        ("patch_backend", "patch_backend", getattr(fit_cfg.model, "patch_backend", "motn"), metadata.get("patch_backend", motn_cfg.get("patch_backend", "motn"))),
+        ("k_in", "k_in", getattr(fit_cfg.model, "k_in", None), motn_cfg.get("k_in")),
+        ("topk", "topk", getattr(fit_cfg.model, "topk", None), motn_cfg.get("topk")),
+        ("E", "num_experts", getattr(fit_cfg.model, "E", None), motn_cfg.get("E")),
+        (
+            "global_expert_enabled",
+            "use_global_expert",
+            getattr(fit_cfg.model, "global_expert_enabled", None),
+            motn_cfg.get("global_expert_enabled"),
+        ),
+        (
+            "global_expert_weight",
+            "global_alpha",
+            getattr(fit_cfg.model, "global_expert_weight", None),
+            motn_cfg.get("global_expert_weight"),
+        ),
+        (
+            "global_expert_init_scale",
+            "global_expert_init_scale",
+            getattr(fit_cfg.model, "global_expert_init_scale", None),
+            motn_cfg.get("global_expert_init_scale"),
+        ),
+        (
+            "global_expert_pos_strategy",
+            "global_expert_pos_strategy",
+            getattr(fit_cfg.model, "global_expert_pos_strategy", None),
+            motn_cfg.get("global_expert_pos_strategy"),
+        ),
+    ]
+    conflicts = []
+    for config_key, label, current_value, ckpt_value in checks:
+        if config_key in explicit_model_keys and ckpt_value is not None and current_value != ckpt_value:
+            conflicts.append(f"{label}: config={current_value!r} checkpoint={ckpt_value!r}")
+
+    if "layers_to_patch" in explicit_model_keys:
+        current_layers = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
+        if list(current_layers) != list(ckpt_layer_idxs):
+            conflicts.append(f"target_layers: config={list(current_layers)!r} checkpoint={list(ckpt_layer_idxs)!r}")
+
+    if conflicts:
+        raise ValueError(
+            "resume_fitmotn_from checkpoint structure conflicts with explicit model config: "
+            + "; ".join(conflicts)
+        )
+
+
+def _load_resume_metadata(fit_cfg, logger) -> Dict[str, Any]:
+    ckpt_dir, state_path = _validate_resume_source(getattr(fit_cfg.train, "resume_fitmotn_from"))
+    metadata = load_fitmotn_metadata(ckpt_dir)
+    metadata["_resume_ckpt_dir"] = str(ckpt_dir)
+    metadata["_resume_state_path"] = str(state_path)
+    if getattr(fit_cfg.train, "extra_updates", None) is None:
+        logger.warning("[Resume] extra_updates is not set; using resolved total_updates for continuation.")
+    logger.info("[Resume] resumed_from=%s state_path=%s", ckpt_dir, state_path)
+    return metadata
+
+
+def _load_resume_state_into_model(model, state_dict: Dict[str, Any], layer_idxs: List[int], logger) -> Dict[str, Any]:
+    state_dict = normalize_legacy_gate_state_dict_for_model(model, state_dict)
+    model_keys = set(model.state_dict().keys())
+    unexpected_before_load = sorted(set(state_dict.keys()) - model_keys)
+    if unexpected_before_load:
+        sample = unexpected_before_load[:20]
+        raise RuntimeError(
+            f"resume checkpoint contains {len(unexpected_before_load)} parameter key(s) not present in patched model; "
+            f"sample={sample}"
+        )
+    prefixes = tuple(f"model.layers.{int(idx)}.mlp." for idx in sorted(set(int(idx) for idx in layer_idxs)))
+    required_patch_keys = sorted(key for key in model_keys if key.startswith(prefixes))
+    missing_patch_keys = sorted(set(required_patch_keys) - set(state_dict.keys()))
+    if missing_patch_keys:
+        raise RuntimeError(
+            f"resume checkpoint is missing {len(missing_patch_keys)} patched MoTN parameter key(s); "
+            f"sample={missing_patch_keys[:20]}"
+        )
+    incompatible = model.load_state_dict(state_dict, strict=False)
+    missing_keys = list(getattr(incompatible, "missing_keys", []) or [])
+    unexpected_keys = list(getattr(incompatible, "unexpected_keys", []) or [])
+    if unexpected_keys:
+        raise RuntimeError(f"resume checkpoint produced unexpected model keys during load: {unexpected_keys[:20]}")
+    summary = {
+        "loaded_tensor_count": int(len(state_dict)),
+        "required_patch_tensor_count": int(len(required_patch_keys)),
+        "missing_key_count": int(len(missing_keys)),
+        "unexpected_key_count": int(len(unexpected_keys)),
+        "missing_key_sample": missing_keys[:20],
+        "unexpected_key_sample": unexpected_keys[:20],
+    }
+    logger.info("[Resume] load_state_dict summary=%s", json.dumps(to_jsonable(summary), ensure_ascii=False))
+    return summary
+
+
 def run_fitmotn_training(fit_cfg):
     stage_b_mode = str(getattr(fit_cfg.train, "stage_b_mode", "mixed"))
     reasoning_supervision_mode = str(getattr(fit_cfg.data, "reasoning_supervision_mode", "answer_only"))
@@ -66,10 +269,27 @@ def run_fitmotn_training(fit_cfg):
     run_name = make_run_name(fit_cfg)
     root_dir = Path(fit_cfg.output.root_dir).resolve()
     run_dir = root_dir / run_name
+    _validate_resume_output_paths(fit_cfg, run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     logger = build_logger(run_dir)
     logger.info("[Run] start %s", run_name)
+    assert_no_unsafe_paths(fit_cfg, context="train", logger=logger)
     logger.info("[Cfg] %s", json.dumps(to_jsonable(asdict(fit_cfg)), ensure_ascii=False))
+    is_resume_training = _is_resume_training(fit_cfg)
+    resume_metadata = _load_resume_metadata(fit_cfg, logger) if is_resume_training else None
+    _warn_resume_continuation_risks(fit_cfg, resume_metadata, logger)
+    patch_backend = str(getattr(fit_cfg.model, "patch_backend", "motn") or "motn").lower()
+    explicit_train_keys = set(getattr(fit_cfg, "_explicit_train_keys", set()) or set())
+    if patch_backend == "adtn_fixed":
+        if "enable_usage_runtime_tracking" not in explicit_train_keys:
+            fit_cfg.train.enable_usage_runtime_tracking = False
+        if "enable_usage_report" not in explicit_train_keys:
+            fit_cfg.train.enable_usage_report = False
+        logger.info(
+            "[Patch] backend=adtn_fixed usage_runtime_tracking=%s usage_report=%s",
+            bool(getattr(fit_cfg.train, "enable_usage_runtime_tracking", False)),
+            bool(getattr(fit_cfg.train, "enable_usage_report", False)),
+        )
     logger.info(
         "[Reasoning] supervision_mode=%s task_bucket_mode=%s stage_b_mode=%s stage_b_disable_pretrain=%s stage_b_reasoning_boost=%s",
         reasoning_supervision_mode,
@@ -99,6 +319,14 @@ def run_fitmotn_training(fit_cfg):
         use_cache=False,
     )
     logger.info("[Runtime] resolved_model_dtype=%s", dtype_to_name(model_dtype))
+    logger.info(
+        "[DataFormat] reasoning_format=%s reasoning_chat_enable_thinking=%s "
+        "reasoning_chat_system_prompt_present=%s tokenizer_chat_template_present=%s",
+        str(getattr(fit_cfg.data, "reasoning_format", "raw") or "raw"),
+        bool(getattr(fit_cfg.data, "reasoning_chat_enable_thinking", False)),
+        bool(getattr(fit_cfg.data, "reasoning_chat_system_prompt", None)),
+        bool(getattr(tokenizer, "chat_template", None)),
+    )
 
     pretrain_tasks = build_pretrain_tasks(fit_cfg.data, logger=logger)
     task_tasks = build_task_mixture_tasks(fit_cfg.data, logger=logger)
@@ -111,6 +339,14 @@ def run_fitmotn_training(fit_cfg):
     logger.info("[Data] pretrain_tasks=%s task_tasks=%s", [task.name for task in pretrain_tasks], [task.name for task in task_tasks])
     stage_plan = build_stage_plan(fit_cfg.train)
     stage_state = MutableStageState(stage_plan)
+    logger.info(
+        "[StagePlan] actual_total_updates=%s stage_a_updates=%s stage_b_updates=%s resume=%s stage2_only_on_resume=%s",
+        int(stage_plan.total_updates),
+        int(stage_plan.stage_a_updates),
+        int(stage_plan.stage_b_updates),
+        bool(is_resume_training),
+        bool(getattr(fit_cfg.train, "stage2_only_on_resume", True)),
+    )
     for stage in stage_plan.stages:
         logger.info(
             "[Stage] name=%s task_bucket_mode=%s bucket_ratios=%s",
@@ -127,7 +363,7 @@ def run_fitmotn_training(fit_cfg):
             task.source_family,
             float(task.weight),
         )
-    scheduler_builder, warmup_updates = build_scheduler_builder(fit_cfg, stage_plan.total_updates, logger=logger)
+    scheduler_builder, scheduler_metadata = build_scheduler_builder(fit_cfg, stage_plan.total_updates, logger=logger)
 
     baseline_small = None
     baseline_final = None
@@ -171,12 +407,44 @@ def run_fitmotn_training(fit_cfg):
         }
 
     n_layers = int(model.config.num_hidden_layers)
-    layer_idxs = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
-    dense_targets = collect_dense_ffn_targets(model, layer_idxs)
-    motn_cfg = build_motn_model_config(fit_cfg)
+    resume_load_summary = None
+    loaded_checkpoint_metadata = None
+    if is_resume_training:
+        assert resume_metadata is not None
+        layer_idxs = [int(idx) for idx in resume_metadata.get("layers_to_patch", [])]
+        if not layer_idxs:
+            raise ValueError("resume checkpoint metadata is missing non-empty layers_to_patch")
+        out_of_range_layers = [idx for idx in layer_idxs if idx < 0 or idx >= n_layers]
+        if out_of_range_layers:
+            raise ValueError(
+                f"resume checkpoint target layer(s) are outside current base model range 0..{n_layers - 1}: "
+                f"{out_of_range_layers}"
+            )
+        motn_cfg = dict(resume_metadata.get("motn_cfg") or {})
+        if not motn_cfg:
+            raise ValueError("resume checkpoint metadata is missing motn_cfg")
+        if "dtype" not in motn_cfg:
+            motn_cfg["dtype"] = tc.float32
+        patch_backend = str(resume_metadata.get("patch_backend", motn_cfg.get("patch_backend", patch_backend)) or "motn").lower()
+        motn_cfg["patch_backend"] = patch_backend
+        _validate_resume_structure(fit_cfg, resume_metadata, layer_idxs, motn_cfg, n_layers)
+        loaded_checkpoint_metadata = build_fitmotn_json_metadata(resume_metadata)
+        logger.info(
+            "[Resume] checkpoint_structure=%s",
+            json.dumps(to_jsonable(_metadata_structure_summary(resume_metadata, layer_idxs, motn_cfg)), ensure_ascii=False),
+        )
+        dense_targets = None
+    else:
+        layer_idxs = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
+        dense_targets = collect_dense_ffn_targets(model, layer_idxs)
+        motn_cfg = build_patch_model_config(fit_cfg)
+        patch_backend = str(motn_cfg.get("patch_backend", patch_backend) or "motn").lower()
     model = patch_qwen_ffn_layers(model, layer_idxs, motn_cfg, device=device, dtype=tc.float32, log=logger)
+    if is_resume_training:
+        resume_state_dict = get_restore_state_dict(resume_metadata)
+        resume_load_summary = _load_resume_state_into_model(model, resume_state_dict, layer_idxs, logger)
     set_motn_usage_tracking(model, bool(getattr(fit_cfg.train, "enable_usage_runtime_tracking", True)))
-    set_trainable_motn_only(model, log=logger)
+    set_trainable_patch_only(model, log=logger)
 
     env_snapshot = build_environment_snapshot()
     param_snapshot = parameter_snapshot(model)
@@ -187,25 +455,45 @@ def run_fitmotn_training(fit_cfg):
         stage_plan=stage_plan,
         model_dtype=model_dtype,
         amp_enabled=bool(fit_cfg.model.use_amp and device.type == "cuda"),
-        warmup_updates=warmup_updates if fit_cfg.train.lr_warmup else 0,
+        scheduler_metadata=scheduler_metadata,
         env_snapshot=env_snapshot,
         param_snapshot=param_snapshot,
     )
     runtime_state["start_time"] = run_start_time
     runtime_state["layers_to_patch"] = layer_idxs
     runtime_state["patched_layer_count"] = len(layer_idxs)
+    runtime_state["patch_backend"] = patch_backend
+    runtime_state["patch_cfg"] = to_jsonable(motn_cfg)
+    gate_router_summary = summarize_motn_gate_routers(model, patch_backend)
+    runtime_state.update(to_jsonable(gate_router_summary))
     runtime_state["baseline_small_summary"] = None if baseline_small is None else to_jsonable(baseline_small.get("summary"))
     runtime_state["baseline_final_summary"] = None if baseline_final is None else to_jsonable(baseline_final.get("summary"))
     runtime_state["resolved_model_dtype"] = dtype_to_name(model_dtype)
     runtime_state["amp_enabled"] = bool(fit_cfg.model.use_amp and device.type == "cuda")
     runtime_state["approx_init_summary"] = None
+    runtime_state["is_resume_training"] = bool(is_resume_training)
+    runtime_state["resume_fitmotn_from"] = getattr(fit_cfg.train, "resume_fitmotn_from", None)
+    runtime_state["resume_stage"] = getattr(fit_cfg.train, "resume_stage", "auto")
+    runtime_state["stage2_only_on_resume"] = bool(getattr(fit_cfg.train, "stage2_only_on_resume", True))
+    runtime_state["extra_updates"] = getattr(fit_cfg.train, "extra_updates", None)
+    runtime_state["actual_total_updates"] = int(stage_plan.total_updates)
+    runtime_state["stage_a_updates"] = int(stage_plan.stage_a_updates)
+    runtime_state["stage_b_updates"] = int(stage_plan.stage_b_updates)
+    runtime_state["approx_init_skipped_due_to_resume"] = bool(is_resume_training)
+    runtime_state["loaded_fitmotn_state_path"] = None if resume_metadata is None else resume_metadata.get("_resume_state_path")
+    runtime_state["loaded_checkpoint_metadata"] = loaded_checkpoint_metadata
+    runtime_state["resume_load_summary"] = resume_load_summary
+    runtime_state["current_model_structure_summary"] = _metadata_structure_summary(resume_metadata, layer_idxs, motn_cfg) if is_resume_training else _current_structure_summary(fit_cfg, layer_idxs)
     setattr(model, "fitmotn_runtime", runtime_state)
     setattr(stage_state, "runtime_state", runtime_state)
 
-    if bool(fit_cfg.approx_init.enabled):
+    if is_resume_training:
+        logger.info("[ApproxInit] skipped because resume_fitmotn_from is set")
+        reset_motn_expert_warmup_scaling(model)
+    elif bool(fit_cfg.approx_init.enabled):
         approx_summary = run_approx_init(model, layer_idxs, dense_targets, fit_cfg.approx_init, logger, run_dir)
         runtime_state["approx_init_summary"] = to_jsonable(approx_summary)
-        set_trainable_motn_only(model, log=logger)
+        set_trainable_patch_only(model, log=logger)
         configure_motn_expert_warmup_scaling(model, fit_cfg.approx_init, global_step=0)
     else:
         reset_motn_expert_warmup_scaling(model)
@@ -223,6 +511,8 @@ def run_fitmotn_training(fit_cfg):
         "final_full": None,
         "compare_vs_baseline": None,
         "approx_init_summary": runtime_state.get("approx_init_summary"),
+        "patch_backend": patch_backend,
+        "patch_cfg": to_jsonable(motn_cfg),
     }
     with eval_summary_path.open("w", encoding="utf-8") as f:
         json.dump(to_jsonable(eval_summary), f, ensure_ascii=False, indent=2)
@@ -264,7 +554,9 @@ def run_fitmotn_training(fit_cfg):
         overwrite_output_dir=bool(fit_cfg.output.overwrite_output_dir),
         per_device_train_batch_size=int(fit_cfg.train.batch_size),
         gradient_accumulation_steps=int(fit_cfg.train.grad_accum),
-        learning_rate=float(fit_cfg.train.lr),
+        learning_rate=float(fit_cfg.train.block_lr),
+        lr_scheduler_type=str(fit_cfg.train.lr_scheduler_type),
+        warmup_steps=int(fit_cfg.train.lr_warmup_steps) if fit_cfg.train.lr_warmup else 0,
         max_steps=int(stage_plan.total_updates),
         num_train_epochs=1.0,
         logging_steps=logging_steps,
@@ -291,6 +583,7 @@ def run_fitmotn_training(fit_cfg):
             runtime_state,
             layers_to_patch=layer_idxs,
             motn_cfg=motn_cfg,
+            patch_cfg=motn_cfg,
             fit_cfg=fit_cfg,
             checkpoint_name=checkpoint_name,
             patch_state_dict=extract_patch_state_dict(model, layer_idxs),
@@ -305,6 +598,7 @@ def run_fitmotn_training(fit_cfg):
         fitmotn_metadata_builder=metadata_builder,
         scheduler_builder=scheduler_builder,
         observability_state=runtime_state,
+        optimizer_logger=logger,
     )
     trainer.add_callback(
         MOTNScheduleCallback(

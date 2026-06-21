@@ -9,7 +9,7 @@ import torch as tc
 import torch.nn as nn
 
 from ..audit import json_dump, jsonl_append, to_jsonable
-from ..patching import PROJ_NAMES, iter_patched_motn_layers, resolve_operator_block_layout
+from ..patching import PROJ_NAMES, iter_patched_layers, resolve_operator_block_layout
 
 
 def collect_dense_ffn_targets(model, layer_idxs) -> dict:
@@ -91,6 +91,10 @@ def _configure_trainable_subset(motn_operator, active_block_indices: List[int]) 
     if gate is not None:
         for p in gate.parameters():
             p.requires_grad_(False)
+    global_block = getattr(motn_operator.core, "global_block", None)
+    if global_block is not None:
+        for p in global_block.parameters():
+            p.requires_grad_(False)
     for idx, block in enumerate(motn_operator.core.blocks):
         enabled = idx in active_set
         for p in block.parameters():
@@ -112,7 +116,7 @@ def _evaluate_operator(motn_operator, target_weight: tc.Tensor, active_block_ind
         x = x_cpu.to(device=device, dtype=tc.float32)
         y = y_cpu.to(device=device, dtype=tc.float32)
         probs = _subset_probs(x.shape[0], motn_operator.core.num_blocks, active_block_indices, device=device)
-        yhat = motn_operator(x, probs=probs, mask=None)
+        yhat = motn_operator(x, probs=probs, mask=None, use_global_expert=False)
         if isinstance(yhat, tuple):
             yhat = yhat[0]
         err = yhat.float() - y.float()
@@ -131,114 +135,124 @@ def _evaluate_operator(motn_operator, target_weight: tc.Tensor, active_block_ind
     return {"eval_mse": mse, "rel_l2": rel_l2, "nrmse": nrmse, "cos": cos}
 
 
-def fit_single_motn_operator_subset(motn_operator, target_weight, active_block_indices, cfg, logger) -> dict:
+def fit_single_patch_operator_subset(patch_operator, target_weight, active_block_indices, cfg, logger) -> dict:
     active_block_indices = sorted(set(int(i) for i in active_block_indices))
-    subset_info = resolve_warmup_block_subsets(motn_operator)
-    inactive_block_indices = [idx for idx in range(int(motn_operator.core.num_blocks)) if idx not in active_block_indices]
-    _reset_random_subset_scale(motn_operator, inactive_block_indices, getattr(cfg, "init_random_std_scale", 1.0))
-    params = _configure_trainable_subset(motn_operator, active_block_indices)
+    subset_info = resolve_warmup_block_subsets(patch_operator)
+    inactive_block_indices = [idx for idx in range(int(patch_operator.core.num_blocks)) if idx not in active_block_indices]
+    _reset_random_subset_scale(patch_operator, inactive_block_indices, getattr(cfg, "init_random_std_scale", 1.0))
+    params = _configure_trainable_subset(patch_operator, active_block_indices)
     if not params:
         raise ValueError("no trainable parameters found for active_block_indices")
 
-    device = next(motn_operator.parameters()).device
-    target_weight = target_weight.detach().cpu().float()
-    optimizer = tc.optim.AdamW(params, lr=float(cfg.lr))
-    loss_fn = nn.MSELoss()
-    best_mse = None
-    last_mse = None
-    best_step = 0
-    bad_steps = 0
-    stop_reason = "max_steps"
-    t0 = time.time()
+    global_block = getattr(patch_operator.core, "global_block", None)
+    try:
+        device = next(patch_operator.parameters()).device
+        target_weight = target_weight.detach().cpu().float()
+        optimizer = tc.optim.AdamW(params, lr=float(cfg.lr))
+        loss_fn = nn.MSELoss()
+        best_mse = None
+        last_mse = None
+        best_step = 0
+        bad_steps = 0
+        stop_reason = "max_steps"
+        t0 = time.time()
 
-    step_count = 0
-    while step_count < int(cfg.steps_per_proj):
-        loader = build_identity_operator_loader(
-            target_weight.shape[1],
+        step_count = 0
+        while step_count < int(cfg.steps_per_proj):
+            loader = build_identity_operator_loader(
+                target_weight.shape[1],
+                target_weight,
+                batch_size=int(cfg.batch_size),
+                chunk_size=int(cfg.identity_chunk_size),
+            )
+            for x_cpu, y_cpu in loader:
+                if step_count >= int(cfg.steps_per_proj):
+                    break
+                step_count += 1
+                x = x_cpu.to(device=device, dtype=tc.float32)
+                y = y_cpu.to(device=device, dtype=tc.float32)
+                probs = _subset_probs(x.shape[0], patch_operator.core.num_blocks, active_block_indices, device=device)
+                optimizer.zero_grad(set_to_none=True)
+                yhat = patch_operator(x, probs=probs, mask=None, use_global_expert=False)
+                if isinstance(yhat, tuple):
+                    yhat = yhat[0]
+                loss = loss_fn(yhat.float(), y.float())
+                loss.backward()
+                optimizer.step()
+
+                last_mse = float(loss.detach().cpu().item())
+                if best_mse is None or last_mse < best_mse - float(cfg.early_stop_min_delta):
+                    best_mse = last_mse
+                    best_step = step_count
+                    bad_steps = 0
+                else:
+                    bad_steps += 1
+                    if bad_steps >= int(cfg.early_stop_patience):
+                        stop_reason = "early_stop_patience"
+                        break
+                if cfg.target_rel_l2 is not None or cfg.target_cos is not None:
+                    eval_stats = _evaluate_operator(
+                        patch_operator,
+                        target_weight,
+                        active_block_indices,
+                        batch_size=int(cfg.batch_size),
+                        chunk_size=int(cfg.identity_chunk_size),
+                    )
+                    if cfg.target_rel_l2 is not None and eval_stats["rel_l2"] <= float(cfg.target_rel_l2):
+                        stop_reason = "target_rel_l2"
+                        break
+                    if cfg.target_cos is not None and eval_stats["cos"] >= float(cfg.target_cos):
+                        stop_reason = "target_cos"
+                        break
+            if stop_reason != "max_steps":
+                break
+        if step_count >= int(cfg.steps_per_proj) and stop_reason == "max_steps":
+            stop_reason = "max_steps"
+
+        eval_stats = _evaluate_operator(
+            patch_operator,
             target_weight,
+            active_block_indices,
             batch_size=int(cfg.batch_size),
             chunk_size=int(cfg.identity_chunk_size),
         )
-        for x_cpu, y_cpu in loader:
-            if step_count >= int(cfg.steps_per_proj):
-                break
-            step_count += 1
-            x = x_cpu.to(device=device, dtype=tc.float32)
-            y = y_cpu.to(device=device, dtype=tc.float32)
-            probs = _subset_probs(x.shape[0], motn_operator.core.num_blocks, active_block_indices, device=device)
-            optimizer.zero_grad(set_to_none=True)
-            yhat = motn_operator(x, probs=probs, mask=None)
-            if isinstance(yhat, tuple):
-                yhat = yhat[0]
-            loss = loss_fn(yhat.float(), y.float())
-            loss.backward()
-            optimizer.step()
+        usage = getattr(patch_operator.core, "last_usage", None)
+        result = {
+            "train_mse_last": last_mse,
+            "train_mse_best": best_mse,
+            "best_step": best_step,
+            "step_count": int(step_count),
+            "stop_reason": stop_reason,
+            "elapsed_sec": max(0.0, time.time() - t0),
+            "subset": {
+                "active_block_indices": active_block_indices,
+                "inactive_block_indices": inactive_block_indices,
+                "n_active": len(active_block_indices),
+                "n_inactive": len(inactive_block_indices),
+                "warmup": subset_info,
+            },
+            "usage": None if usage is None else usage.detach().cpu().tolist(),
+        }
+        result.update(eval_stats)
+        if logger is not None:
+            logger.info(
+                "[Approx] proj blocks=%s active=%s mse=%.6e rel_l2=%.6e cos=%.6f stop=%s",
+                patch_operator.core.num_blocks,
+                len(active_block_indices),
+                result["eval_mse"],
+                result["rel_l2"],
+                result["cos"],
+                result["stop_reason"],
+            )
+        return result
+    finally:
+        if global_block is not None:
+            for p in global_block.parameters():
+                p.requires_grad_(True)
 
-            last_mse = float(loss.detach().cpu().item())
-            if best_mse is None or last_mse < best_mse - float(cfg.early_stop_min_delta):
-                best_mse = last_mse
-                best_step = step_count
-                bad_steps = 0
-            else:
-                bad_steps += 1
-                if bad_steps >= int(cfg.early_stop_patience):
-                    stop_reason = "early_stop_patience"
-                    break
-            if cfg.target_rel_l2 is not None or cfg.target_cos is not None:
-                eval_stats = _evaluate_operator(
-                    motn_operator,
-                    target_weight,
-                    active_block_indices,
-                    batch_size=int(cfg.batch_size),
-                    chunk_size=int(cfg.identity_chunk_size),
-                )
-                if cfg.target_rel_l2 is not None and eval_stats["rel_l2"] <= float(cfg.target_rel_l2):
-                    stop_reason = "target_rel_l2"
-                    break
-                if cfg.target_cos is not None and eval_stats["cos"] >= float(cfg.target_cos):
-                    stop_reason = "target_cos"
-                    break
-        if stop_reason != "max_steps":
-            break
-    if step_count >= int(cfg.steps_per_proj) and stop_reason == "max_steps":
-        stop_reason = "max_steps"
 
-    eval_stats = _evaluate_operator(
-        motn_operator,
-        target_weight,
-        active_block_indices,
-        batch_size=int(cfg.batch_size),
-        chunk_size=int(cfg.identity_chunk_size),
-    )
-    usage = getattr(motn_operator.core, "last_usage", None)
-    result = {
-        "train_mse_last": last_mse,
-        "train_mse_best": best_mse,
-        "best_step": best_step,
-        "step_count": int(step_count),
-        "stop_reason": stop_reason,
-        "elapsed_sec": max(0.0, time.time() - t0),
-        "subset": {
-            "active_block_indices": active_block_indices,
-            "inactive_block_indices": inactive_block_indices,
-            "n_active": len(active_block_indices),
-            "n_inactive": len(inactive_block_indices),
-            "warmup": subset_info,
-        },
-        "usage": None if usage is None else usage.detach().cpu().tolist(),
-    }
-    result.update(eval_stats)
-    if logger is not None:
-        logger.info(
-            "[Approx] proj blocks=%s active=%s mse=%.6e rel_l2=%.6e cos=%.6f stop=%s",
-            motn_operator.core.num_blocks,
-            len(active_block_indices),
-            result["eval_mse"],
-            result["rel_l2"],
-            result["cos"],
-            result["stop_reason"],
-        )
-    return result
+def fit_single_motn_operator_subset(motn_operator, target_weight, active_block_indices, cfg, logger) -> dict:
+    return fit_single_patch_operator_subset(motn_operator, target_weight, active_block_indices, cfg, logger)
 
 
 def fit_patched_ffn_layer(motn_ffn_layer, dense_targets_for_this_layer, cfg, logger) -> dict:
@@ -248,7 +262,7 @@ def fit_patched_ffn_layer(motn_ffn_layer, dense_targets_for_this_layer, cfg, log
         subsets = resolve_warmup_block_subsets(proj)
         active_indices = subsets["slide_indices"] if str(cfg.subset_mode) == "warmup_sliding_only" else list(range(subsets["n_total"]))
         try:
-            result = fit_single_motn_operator_subset(
+            result = fit_single_patch_operator_subset(
                 proj,
                 dense_targets_for_this_layer[proj_name],
                 active_indices,
@@ -290,7 +304,7 @@ def run_approx_init(model, layer_idxs, dense_targets, cfg, logger, run_dir) -> d
     else:
         summary["effective_mode"] = "identity"
 
-    layer_map = {int(idx): module for idx, module in iter_patched_motn_layers(model)}
+    layer_map = {int(idx): module for idx, module in iter_patched_layers(model)}
     for layer_idx in summary["layers_requested"]:
         layer = layer_map.get(int(layer_idx))
         if layer is None:

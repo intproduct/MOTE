@@ -49,15 +49,26 @@ cd fitmotn
 
 1. clone 仓库
 2. 安装依赖
-3. 准备 base model 路径和数据缓存路径
+3. 准备 base model 路径、数据路径、缓存路径和输出路径
 4. 用 `config_json` 启动训练
+
+先设置统一路径环境变量：
+
+```bash
+export MODEL_ROOT=/path/to/models
+export DATA_ROOT=/path/to/data
+export CACHE_ROOT=/path/to/cache
+export OUTPUT_ROOT=/path/to/outputs
+# 可选；相对路径会基于 PROJECT_ROOT 解析，未设置时基于项目根目录解析
+export PROJECT_ROOT="$(pwd)"
+```
 
 一个最小示例：
 
 ```bash
 PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
-  --model_path /path/to/Qwen3-0.6B \
-  --output_root ./fitmotn_runs \
+  --model_path '${MODEL_ROOT}/Qwen3-0.6B' \
+  --output_root '${OUTPUT_ROOT}/fitmotn_runs' \
   --run_name demo_run \
   --batch_size 4 \
   --grad_accum 1 \
@@ -271,7 +282,7 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
 ```json
 {
   "model": {
-    "model_path": "/path/to/Qwen3-0.6B",
+    "model_path": "${MODEL_ROOT}/Qwen3-0.6B",
     "layers_to_patch": "last_quarter",
     "device": "cuda:0"
   },
@@ -284,6 +295,8 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
     "grad_accum": 1,
     "steps": 1000,
     "lr": 3e-5,
+    "block_lr": 2.2e-5,
+    "router_lr": 1.1e-5,
     "eval_every_updates": 500,
     "save_every_updates": 500
   },
@@ -291,7 +304,7 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train \
     "run_baseline_eval": true
   },
   "output": {
-    "root_dir": "./MOTN/fitmotn_runs",
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
     "run_name": "demo_run"
   }
 }
@@ -343,6 +356,14 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - `init_gamma`
 
 这些字段会直接影响 patched MoTN 层的构造与路由行为，不是只读默认值。
+
+`layers_to_patch` 支持三类写法：
+
+- 固定策略：`all`、`last_half`、`last_quarter`、`last_third`
+- 连续范围：`range:START-END`
+- 离散层：`layers:i,j,k`
+
+层索引均为 0-based；`range` 是闭区间，即 `range:4-11` 会 patch `model.layers[4]` 到 `model.layers[11]`。具体层号应由每次实验配置决定，代码、默认配置和示例配置中不应硬编码某个实验专属范围。
 
 ### `data` 可调字段
 
@@ -602,6 +623,8 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 - `epochs`
 - `epoch_samples`
 - `lr`
+- `block_lr`
+- `router_lr`
 - `log_every`
 - `save_every_updates`
 - `eval_every_updates`
@@ -638,6 +661,8 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 - `seed`
 - `report_to`
 
+`lr` 保留为旧配置入口；未设置 `block_lr` 时默认继承 `lr`，未设置 `router_lr` 时默认继承 `block_lr`。如果要让 router/gate 使用 block 的 0.5x 学习率，可以设置 `"block_lr": 2.2e-5, "router_lr": 1.1e-5`。
+
 ### `eval` 可调字段
 
 - `run_baseline_eval`
@@ -673,12 +698,12 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
 
 ## 完整 `config_json` 模板
 
-下面是当前 README 内联展示的完整配置形式。它和 [fitmotn_config.example.json](/Users/admini/Library/Mobile%20Documents/com~apple~CloudDocs/document/a800/MOTN/fitmotn/fitmotn_config.example.json) 一致，可以直接复制后修改。
+下面是当前 README 内联展示的完整配置形式。它和 [`fitmotn_config.example.json`](./fitmotn_config.example.json) 一致，可以直接复制后修改。
 
 ```json
 {
   "model": {
-    "model_path": "/work/home/sugang2025/qxfang/models/Qwen3-0.6B",
+    "model_path": "${MODEL_ROOT}/Qwen3-0.6B",
     "layers_to_patch": "last_quarter",
     "device": "cuda:0",
     "use_amp": true,
@@ -702,18 +727,18 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
     "init_gamma": 0.6
   },
   "data": {
-    "tok_shard_dir": "/work/home/sugang2025/qxfang/wiki24_tok",
-    "datas_dir": "/work/home/sugang2025/qxfang/Datas",
+    "tok_shard_dir": "${DATA_ROOT}/wiki24_tok",
+    "datas_dir": "${DATA_ROOT}",
     "seq_len_run": 1024,
     "dataloader_num_workers": 0,
-    "fineweb_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/fineweb_sample10bt",
-    "code_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/the_stack_v2",
-    "gsm8k_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/gsm8k_main",
-    "gsm8k_socratic_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/gsm8k_socratic",
-    "svamp_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/svamp",
-    "metamath_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/metamathqa",
-    "mmlu_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/mmlu_all",
-    "math_cache_root": "/work/home/sugang2025/qxfang/Datas/hf_cache/hendrycks_math",
+    "fineweb_cache_path": "${CACHE_ROOT}/fineweb_sample10bt",
+    "code_cache_path": "${CACHE_ROOT}/the_stack_v2",
+    "gsm8k_cache_path": "${CACHE_ROOT}/gsm8k_main",
+    "gsm8k_socratic_cache_path": "${CACHE_ROOT}/gsm8k_socratic",
+    "svamp_cache_path": "${CACHE_ROOT}/svamp",
+    "metamath_cache_path": "${CACHE_ROOT}/metamathqa",
+    "mmlu_cache_path": "${CACHE_ROOT}/mmlu_all",
+    "math_cache_root": "${CACHE_ROOT}/hendrycks_math",
     "fineweb_hf_name": "HuggingFaceFW/fineweb",
     "fineweb_hf_config": "sample-10BT",
     "fineweb_text_field": "text",
@@ -821,7 +846,7 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.debug_reasoning_sample \
     "final_max_gen_toks_math": 256
   },
   "output": {
-    "root_dir": "./MOTN/fitmotn_runs",
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
     "run_name": "fitmotn_demo",
     "overwrite_output_dir": false
   }
@@ -935,7 +960,7 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 其中 `fitmotn_state.*` 保存了 FitMoTN 额外元数据，包括：
 
 - `base_model_path`
-- `layers_to_patch`
+- `layers_to_patch`（已解析的真实 patch 层 index 列表）
 - `motn_cfg`
 - `fit_cfg`
 - `checkpoint_format`
@@ -1046,7 +1071,7 @@ python3 -m MOTN.fitmotn.cli.eval_auto \
 如果 `model_or_ckpt` 目录下有 `fitmotn_state.pt`，脚本会自动按下面顺序恢复：
 
 1. 加载 base model
-2. 按 `layers_to_patch + motn_cfg` 重新 patch
+2. 按 checkpoint 中保存的真实 `layers_to_patch` index 列表和 `motn_cfg` 重新 patch
 3. 加载 `patch_state_dict`；如果是旧 checkpoint，则回退到 `state_dict`
 4. `load_state_dict(strict=False)`
 

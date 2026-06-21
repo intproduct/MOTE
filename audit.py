@@ -7,7 +7,7 @@ import os
 import platform
 import socket
 import subprocess
-from dataclasses import asdict, is_dataclass
+from dataclasses import fields, is_dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional
 
@@ -16,7 +16,11 @@ import torch as tc
 
 def to_jsonable(obj: Any):
     if is_dataclass(obj):
-        return {k: to_jsonable(v) for k, v in asdict(obj).items()}
+        out = {}
+        for field in fields(obj):
+            if hasattr(obj, field.name):
+                out[field.name] = to_jsonable(getattr(obj, field.name))
+        return out
     if isinstance(obj, dict):
         return {str(k): to_jsonable(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple, set)):
@@ -237,4 +241,3 @@ def tensor_distribution_stats(values: tc.Tensor) -> Dict[str, Any]:
 
 def derive_stage_step(global_step: int, stage_start: int) -> int:
     return max(0, int(global_step) - int(stage_start))
-

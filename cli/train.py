@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 
 from ..config import load_config
-from ..train.controller import run_fitmotn_training
+from ..train.rl_controller import run_fitmotn_training_and_optional_rl
 
 
 def parse_args():
@@ -49,7 +49,7 @@ def main():
         "eval": ({"run_baseline_eval": bool(args.run_baseline_eval)} if args.run_baseline_eval is not None else {}),
     }
     cfg = load_config(config_json=args.config_json, overrides=overrides)
-    run_fitmotn_training(cfg)
+    run_fitmotn_training_and_optional_rl(cfg)
 
 
 if __name__ == "__main__":

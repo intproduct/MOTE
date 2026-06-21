@@ -13,5 +13,7 @@ def build_stage_aware_train_dataset(tokenizer, pretrain_tasks, task_tasks, stage
         max_len=int(data_cfg.seq_len_run),
         samples_per_epoch=max(1000, samples_per_epoch),
         seed=int(train_cfg.seed),
+        data_cfg=data_cfg,
+        train_cfg=train_cfg,
         logger=logger,
     )

@@ -1,0 +1,30 @@
+{
+  "model": {
+    "model_path": "${MODEL_ROOT}/Qwen3-0.6B",
+    "gate_arch": "mlp",
+    "gate_hidden_dim": 128,
+    "gate_activation": "silu",
+    "gate_norm": "layernorm",
+    "gate_dropout": 0.0,
+    "gate_output_init_std": 0.001
+  },
+  "data": {
+    "tok_shard_dir": "${DATA_ROOT}/wiki24_tok",
+    "datas_dir": "${DATA_ROOT}",
+    "fineweb_cache_path": "${CACHE_ROOT}/fineweb_sample10bt",
+    "code_cache_path": "${CACHE_ROOT}/the_stack_v2",
+    "gsm8k_cache_path": "${CACHE_ROOT}/gsm8k_main",
+    "gsm8k_socratic_cache_path": "${CACHE_ROOT}/gsm8k_socratic",
+    "svamp_cache_path": "${CACHE_ROOT}/svamp",
+    "metamath_cache_path": "${CACHE_ROOT}/metamathqa",
+    "mmlu_cache_path": "${CACHE_ROOT}/mmlu_all",
+    "math_cache_root": "${CACHE_ROOT}/hendrycks_math",
+    "openr1_math_cache_path": "${CACHE_ROOT}/openr1_math_220k_default",
+    "numinamath_cot_cache_path": "${CACHE_ROOT}/numinamath_cot",
+    "openthoughts_math_cache_path": "${CACHE_ROOT}/openthoughts_114k_math",
+    "bespoke_stratos_cache_path": "${CACHE_ROOT}/bespoke_stratos_17k"
+  },
+  "output": {
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs"
+  }
+}

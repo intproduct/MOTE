@@ -1,6 +1,6 @@
 {
   "model": {
-    "model_path": "/work/home/sugang2025/qxfang/models/Qwen3-0.6B",
+    "model_path": "${MODEL_ROOT}/Qwen3-0.6B",
     "layers_to_patch": "last_quarter",
     "device": "cuda:0",
     "use_amp": true,
@@ -25,19 +25,19 @@
     "warmup_stride": 1
   },
   "data": {
-    "tok_shard_dir": "/work/home/sugang2025/qxfang/wiki24_tok",
-    "datas_dir": "/work/home/sugang2025/qxfang/Datas",
+    "tok_shard_dir": "${DATA_ROOT}/wiki24_tok",
+    "datas_dir": "${DATA_ROOT}",
     "seq_len_run": 1024,
     "dataloader_num_workers": 0,
-    "fineweb_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/fineweb_sample10bt",
-    "code_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/the_stack_v2",
-    "gsm8k_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/gsm8k_main",
-    "mmlu_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/mmlu_all",
-    "math_cache_root": "/work/home/sugang2025/qxfang/Datas/hf_cache/hendrycks_math",
-    "openr1_math_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/openr1_math_220k_default",
-    "numinamath_cot_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/numinamath_cot",
-    "openthoughts_math_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/openthoughts_114k_math",
-    "bespoke_stratos_cache_path": "/work/home/sugang2025/qxfang/Datas/hf_cache/bespoke_stratos_17k",
+    "fineweb_cache_path": "${CACHE_ROOT}/fineweb_sample10bt",
+    "code_cache_path": "${CACHE_ROOT}/the_stack_v2",
+    "gsm8k_cache_path": "${CACHE_ROOT}/gsm8k_main",
+    "mmlu_cache_path": "${CACHE_ROOT}/mmlu_all",
+    "math_cache_root": "${CACHE_ROOT}/hendrycks_math",
+    "openr1_math_cache_path": "${CACHE_ROOT}/openr1_math_220k_default",
+    "numinamath_cot_cache_path": "${CACHE_ROOT}/numinamath_cot",
+    "openthoughts_math_cache_path": "${CACHE_ROOT}/openthoughts_114k_math",
+    "bespoke_stratos_cache_path": "${CACHE_ROOT}/bespoke_stratos_17k",
     "fineweb_hf_name": "HuggingFaceFW/fineweb",
     "fineweb_hf_config": "sample-10BT",
     "fineweb_text_field": "text",
@@ -168,7 +168,7 @@
     "final_max_gen_toks_math": 256
   },
   "output": {
-    "root_dir": "./MOTN/fitmotn_runs",
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
     "run_name": "fitmotn_reasoning_recovery_min_b",
     "overwrite_output_dir": false
   }
