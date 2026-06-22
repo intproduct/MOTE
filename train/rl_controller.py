@@ -20,6 +20,8 @@ from ..eval.runner import run_eval_tasks
 from ..rl.data import format_rl_prompt, load_gsm8k_rl_records
 from ..rl.grpo import compute_group_advantages, grpo_loss
 from ..rl.logprobs import gather_response_logprobs
+from ..rl.mgpo import compute_mgpo_weights
+from ..rl.reward_shaping import apply_long2short_reward_shift
 from ..rl.rewards_gsm8k import gsm8k_reward
 from ..rl.runtime import (
     RLPolicyLoadInfo,
@@ -418,6 +420,14 @@ def _std(values: Iterable[float]) -> float:
     return float(math.sqrt(sum((value - mean) ** 2 for value in values) / len(values)))
 
 
+def _compute_mgpo_raw_weights(prompt_acc: torch.Tensor, p0: float, gamma: float, eps: float) -> torch.Tensor:
+    p = prompt_acc.to(dtype=torch.float32).clamp(float(eps), 1.0 - float(eps))
+    p0_tensor = torch.as_tensor(float(p0), dtype=p.dtype, device=p.device).clamp(float(eps), 1.0 - float(eps))
+    one = torch.ones_like(p)
+    d_me = p * torch.log(p / p0_tensor) + (one - p) * torch.log((one - p) / (one - p0_tensor))
+    return torch.exp(-float(gamma) * d_me)
+
+
 def _save_rl_model_artifacts(
     *,
     model,
@@ -717,10 +727,42 @@ def run_fitmotn_rl_training(fit_cfg):
             int(fit_cfg.rl.batch_size),
             int(fit_cfg.rl.group_size),
         )
-        advantages = compute_group_advantages(reward_tensor, int(fit_cfg.rl.group_size)).to(generated.device)
+        response_lens = response_mask.sum(dim=1).detach().cpu().tolist()
+        reward_tensor_for_adv = reward_tensor
+        if bool(getattr(fit_cfg.rl, "long2short_enabled", False)):
+            lens_tensor = torch.tensor(response_lens, dtype=torch.float32, device=reward_tensor.device).reshape(
+                int(fit_cfg.rl.batch_size),
+                int(fit_cfg.rl.group_size),
+            )
+            reward_tensor_for_adv = apply_long2short_reward_shift(
+                reward_tensor,
+                lens_tensor,
+                lambda_value=float(getattr(fit_cfg.rl, "long2short_lambda", 0.2)),
+                min_correct=int(getattr(fit_cfg.rl, "long2short_min_correct", 2)),
+                eps=float(getattr(fit_cfg.rl, "long2short_eps", 1e-6)),
+            )
+        advantages = compute_group_advantages(reward_tensor_for_adv, int(fit_cfg.rl.group_size)).to(generated.device)
+        prompt_acc = reward_tensor.mean(dim=1)
+        mgpo_weights = None
+        mgpo_raw_weights = None
+        if bool(getattr(fit_cfg.rl, "mgpo_enabled", False)):
+            mgpo_raw_weights = _compute_mgpo_raw_weights(
+                prompt_acc,
+                p0=float(getattr(fit_cfg.rl, "mgpo_p0", 0.5)),
+                gamma=float(getattr(fit_cfg.rl, "mgpo_gamma", 2.0)),
+                eps=float(getattr(fit_cfg.rl, "mgpo_eps", 1e-6)),
+            )
+            mgpo_weights = compute_mgpo_weights(
+                prompt_acc,
+                p0=float(getattr(fit_cfg.rl, "mgpo_p0", 0.5)),
+                gamma=float(getattr(fit_cfg.rl, "mgpo_gamma", 2.0)),
+                weight_min=float(getattr(fit_cfg.rl, "mgpo_weight_min", 0.1)),
+                weight_max=float(getattr(fit_cfg.rl, "mgpo_weight_max", 1.0)),
+                eps=float(getattr(fit_cfg.rl, "mgpo_eps", 1e-6)),
+            ).to(advantages.device)
+            advantages = advantages * mgpo_weights.unsqueeze(1)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_reward_advantage_before_old_logprobs", update_step=next_update_step, micro_step=micro_step)
 
-        response_lens = response_mask.sum(dim=1).detach().cpu().tolist()
         strict_acc = _mean(float(debug["strict_match"]) for debug in reward_debugs)
         fallback_acc = _mean(float(debug["fallback_match"]) for debug in reward_debugs)
         reward_acc = _mean(rewards)
@@ -758,7 +800,11 @@ def run_fitmotn_rl_training(fit_cfg):
             del rewards
             del reward_debugs
             del reward_tensor
+            del reward_tensor_for_adv
             del advantages
+            del prompt_acc
+            del mgpo_weights
+            del mgpo_raw_weights
             del generated_texts
             del response_lens
             del prompts
@@ -885,10 +931,21 @@ def run_fitmotn_rl_training(fit_cfg):
                 "loss": float(loss.detach().cpu().item()),
                 "policy_loss": float(loss_metrics["policy_loss"].cpu().item()),
                 "reward_mean": _mean(rewards),
+                "reward_raw_mean": float(reward_tensor.mean().detach().cpu().item()),
+                "reward_shaped_mean": float(reward_tensor_for_adv.mean().detach().cpu().item()),
                 "reward_std": _std(rewards),
                 "strict_acc": strict_acc,
                 "fallback_acc": fallback_acc,
                 "reward_acc": reward_acc,
+                "mgpo_enabled": bool(getattr(fit_cfg.rl, "mgpo_enabled", False)),
+                "prompt_acc_mean": float(prompt_acc.mean().detach().cpu().item()),
+                "prompt_acc_std": float(prompt_acc.std(unbiased=False).detach().cpu().item()),
+                "mgpo_weight_raw_mean": (
+                    float(mgpo_raw_weights.mean().detach().cpu().item()) if mgpo_raw_weights is not None else None
+                ),
+                "mgpo_weight_mean": float(mgpo_weights.mean().detach().cpu().item()) if mgpo_weights is not None else None,
+                "mgpo_weight_min": float(mgpo_weights.min().detach().cpu().item()) if mgpo_weights is not None else None,
+                "mgpo_weight_max": float(mgpo_weights.max().detach().cpu().item()) if mgpo_weights is not None else None,
                 "group_nonzero_adv_frac": group_nonzero_adv_frac,
                 "adv_abs_mean": float(loss_metrics["adv_abs_mean"].cpu().item()),
                 "kl_mean": float(loss_metrics["kl_mean"].cpu().item()),
@@ -966,7 +1023,11 @@ def run_fitmotn_rl_training(fit_cfg):
         del rewards
         del reward_debugs
         del reward_tensor
+        del reward_tensor_for_adv
         del advantages
+        del prompt_acc
+        del mgpo_weights
+        del mgpo_raw_weights
         del generated_texts
         del response_lens
         del ref_logprobs

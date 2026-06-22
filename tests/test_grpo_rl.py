@@ -29,6 +29,8 @@ from MOTE.rl import data as rl_data
 from MOTE.rl.data import load_gsm8k_rl_records
 from MOTE.rl.grpo import compute_group_advantages, grpo_loss
 from MOTE.rl.logprobs import gather_response_logprobs
+from MOTE.rl.mgpo import compute_mgpo_weights
+from MOTE.rl.reward_shaping import apply_long2short_reward_shift
 from MOTE.rl.rewards_gsm8k import gsm8k_reward, normalize_number_answer
 from MOTE.rl.runtime import set_trainable_mode_for_rl
 from MOTE.train.rl_controller import (
@@ -107,6 +109,41 @@ def test_group_advantages_are_per_prompt_group_and_safe_for_zero_std():
     assert torch.allclose(adv[0], torch.tensor([1.0, -1.0]))
     assert torch.allclose(adv[1], torch.tensor([0.0, 0.0]))
     assert torch.isfinite(adv).all()
+
+
+def test_mgpo_weights_peak_at_half_and_are_finite_near_edges():
+    prompt_acc = torch.tensor([0.0, 0.5, 1.0, 1e-9, 1.0 - 1e-9])
+    weights = compute_mgpo_weights(prompt_acc, gamma=2.0, weight_min=0.0, weight_max=1.0, eps=1e-6)
+    assert weights.shape == prompt_acc.shape
+    assert weights[1] > weights[0]
+    assert weights[1] > weights[2]
+    assert torch.isfinite(weights).all()
+
+
+def test_mgpo_gamma_zero_gives_unclipped_unit_weights_and_advantage_scaling():
+    prompt_acc = torch.tensor([0.0, 0.5, 1.0])
+    weights = compute_mgpo_weights(prompt_acc, gamma=0.0, weight_min=0.0, weight_max=2.0)
+    assert torch.allclose(weights, torch.ones_like(weights))
+
+    advantages = torch.tensor([[1.0, -1.0], [0.5, -0.5], [2.0, -2.0]])
+    weighted = advantages * weights.unsqueeze(1)
+    for bidx in range(advantages.shape[0]):
+        assert torch.allclose(weighted[bidx], advantages[bidx] * weights[bidx])
+
+
+def test_long2short_reward_shift_preserves_expected_groups_and_wrong_rewards():
+    all_wrong = torch.tensor([[0.0, 0.0, 0.0]])
+    assert torch.allclose(apply_long2short_reward_shift(all_wrong, torch.tensor([[3.0, 2.0, 1.0]])), all_wrong)
+
+    single_correct = torch.tensor([[1.0, 0.0, 0.0]])
+    assert torch.allclose(apply_long2short_reward_shift(single_correct, torch.tensor([[3.0, 2.0, 1.0]])), single_correct)
+
+    rewards = torch.tensor([[1.0, 1.0, 0.0]])
+    shaped = apply_long2short_reward_shift(rewards, torch.tensor([[2.0, 10.0, 1.0]]), lambda_value=0.2)
+    assert shaped[0, 0] > shaped[0, 1]
+    assert shaped[0, 2] == rewards[0, 2]
+    assert torch.allclose((shaped[0, :2] - rewards[0, :2]).sum(), torch.tensor(0.0), atol=1e-6)
+    assert torch.isfinite(shaped).all()
 
 
 def test_grpo_loss_beta_zero_clamps_log_ratio_and_detaches_old():

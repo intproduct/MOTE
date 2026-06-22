@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from ..runtime import normalize_hf_config
+from .shard_loader import iter_jsonl, iter_jsonl_gz
 
 try:
     from datasets import load_dataset, load_from_disk
@@ -65,6 +66,18 @@ def inspect_task_dataset(task, logger=None) -> Dict[str, Any]:
         info["resolved_samples"] = None if dataset is None else len(dataset)
         info["ok"] = True
         info["reason"] = "synthetic reasoning dataset ready"
+        return info
+    if str(getattr(task, "kind", "")) in {"jsonl", "jsonl_gz"}:
+        info["source"] = "jsonl"
+        if not path.exists():
+            info["reason"] = f"jsonl path does not exist: {path}"
+            return info
+        iterator = iter_jsonl_gz(path) if str(getattr(task, "kind", "")) == "jsonl_gz" else iter_jsonl(path)
+        sample = _first_example(iterator)
+        info["sample"] = sample
+        info["resolved_samples"] = None
+        info["ok"] = sample is not None
+        info["reason"] = "jsonl ready" if sample is not None else "jsonl has no examples"
         return info
     if path.exists():
         info["source"] = "cached" if ready_flag.exists() else "cache_probe"

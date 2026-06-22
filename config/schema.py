@@ -151,6 +151,11 @@ class DataConfig:
     reasoning_chat_enable_thinking: bool = False
     reasoning_chat_system_prompt: Optional[str] = None
     reasoning_chat_use_generation_prompt_for_labels: bool = True
+    use_custom_reasoning_jsonl: bool = False
+    custom_reasoning_jsonl_path: Optional[str] = None
+    wt_custom_reasoning: float = 1.0
+    custom_reasoning_dataset_name: str = "custom_verified_math"
+    custom_reasoning_bucket: str = "gsm8k_core"
 
 
 @dataclass
@@ -311,6 +316,16 @@ class RLConfig:
     eval_tasks: List[str] = field(default_factory=lambda: ["gsm8k"])
     eval_limit_gsm8k: int = 0
     eval_max_gen_toks_gsm8k: int = 256
+    mgpo_enabled: bool = False
+    mgpo_p0: float = 0.5
+    mgpo_gamma: float = 2.0
+    mgpo_weight_min: float = 0.1
+    mgpo_weight_max: float = 1.0
+    mgpo_eps: float = 1e-6
+    long2short_enabled: bool = False
+    long2short_lambda: float = 0.2
+    long2short_min_correct: int = 2
+    long2short_eps: float = 1e-6
 
 
 @dataclass

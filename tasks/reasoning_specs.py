@@ -149,6 +149,25 @@ def _build_reasoning_limits(
 def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
     tasks: List[TaskSpec] = []
     requested_task_flags = []
+    if bool(getattr(cfg, "use_custom_reasoning_jsonl", False)):
+        requested_task_flags.append("custom_reasoning_jsonl")
+        _register_task(
+            tasks,
+            NormalizedReasoningTask(
+                name="custom_reasoning_jsonl",
+                path=str(getattr(cfg, "custom_reasoning_jsonl_path", "")),
+                split="train",
+                weight=float(getattr(cfg, "wt_custom_reasoning", 1.0)),
+                dataset_name=str(getattr(cfg, "custom_reasoning_dataset_name", "custom_verified_math")),
+                length_policy=_build_reasoning_limits(cfg),
+                supervision_mode=str(cfg.reasoning_supervision_mode),
+                kind="jsonl",
+                group="task",
+                bucket=str(getattr(cfg, "custom_reasoning_bucket", "gsm8k_core")),
+                source_family="reasoning",
+            ),
+            logger=logger,
+        )
     if cfg.use_gsm8k_train:
         requested_task_flags.append("gsm8k_train")
         _register_task(

@@ -62,6 +62,7 @@ DATA_PATH_FIELDS = [
     "numinamath_cot_cache_path",
     "openthoughts_math_cache_path",
     "bespoke_stratos_cache_path",
+    "custom_reasoning_jsonl_path",
 ]
 PATH_FIELDS = {
     "model": {"model_path"},
@@ -86,6 +87,7 @@ ACTIVE_DATA_PATHS = {
     "numinamath_cot_cache_path": "use_numinamath_cot",
     "openthoughts_math_cache_path": "use_openthoughts_math",
     "bespoke_stratos_cache_path": "use_bespoke_stratos",
+    "custom_reasoning_jsonl_path": "use_custom_reasoning_jsonl",
 }
 
 
@@ -309,6 +311,15 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
     data_cfg.reasoning_chat_use_generation_prompt_for_labels = bool(
         getattr(data_cfg, "reasoning_chat_use_generation_prompt_for_labels", True)
     )
+    data_cfg.use_custom_reasoning_jsonl = bool(getattr(data_cfg, "use_custom_reasoning_jsonl", False))
+    data_cfg.custom_reasoning_jsonl_path = _normalize_optional_path_value(getattr(data_cfg, "custom_reasoning_jsonl_path", None))
+    data_cfg.wt_custom_reasoning = float(getattr(data_cfg, "wt_custom_reasoning", 1.0))
+    data_cfg.custom_reasoning_dataset_name = str(
+        getattr(data_cfg, "custom_reasoning_dataset_name", "custom_verified_math") or "custom_verified_math"
+    )
+    data_cfg.custom_reasoning_bucket = str(getattr(data_cfg, "custom_reasoning_bucket", "gsm8k_core") or "gsm8k_core")
+    if data_cfg.use_custom_reasoning_jsonl and not data_cfg.custom_reasoning_jsonl_path:
+        raise ValueError("data.custom_reasoning_jsonl_path is required when data.use_custom_reasoning_jsonl=true")
 
     resume_path = getattr(train_cfg, "resume_fitmotn_from", None)
     if resume_path is not None:
@@ -477,6 +488,8 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.enable_usage_tracking = bool(getattr(rl_cfg, "enable_usage_tracking", False))
     rl_cfg.gradient_checkpointing = bool(getattr(rl_cfg, "gradient_checkpointing", False))
     rl_cfg.skip_zero_advantage_updates = bool(getattr(rl_cfg, "skip_zero_advantage_updates", True))
+    rl_cfg.mgpo_enabled = bool(getattr(rl_cfg, "mgpo_enabled", False))
+    rl_cfg.long2short_enabled = bool(getattr(rl_cfg, "long2short_enabled", False))
     zero_advantage_retry_action = str(getattr(rl_cfg, "zero_advantage_retry_action", "warn_continue") or "warn_continue").strip().lower()
     if zero_advantage_retry_action not in VALID_ZERO_ADVANTAGE_RETRY_ACTIONS:
         raise ValueError(
@@ -507,6 +520,26 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         setattr(rl_cfg, field_name, int(getattr(rl_cfg, field_name)))
     for field_name in ["lr", "eps_clip", "beta", "temperature", "top_p", "max_grad_norm"]:
         setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
+    for field_name in ["mgpo_p0", "mgpo_gamma", "mgpo_weight_min", "mgpo_weight_max", "mgpo_eps", "long2short_lambda", "long2short_eps"]:
+        setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
+    rl_cfg.long2short_min_correct = int(getattr(rl_cfg, "long2short_min_correct"))
+    if not (0.0 < float(rl_cfg.mgpo_p0) < 1.0):
+        raise ValueError(f"rl.mgpo_p0 must satisfy 0 < p0 < 1, got {rl_cfg.mgpo_p0}")
+    if float(rl_cfg.mgpo_gamma) < 0.0:
+        raise ValueError(f"rl.mgpo_gamma must be >= 0, got {rl_cfg.mgpo_gamma}")
+    if float(rl_cfg.mgpo_eps) <= 0.0:
+        raise ValueError(f"rl.mgpo_eps must be > 0, got {rl_cfg.mgpo_eps}")
+    if float(rl_cfg.mgpo_weight_min) < 0.0 or float(rl_cfg.mgpo_weight_min) > float(rl_cfg.mgpo_weight_max):
+        raise ValueError(
+            "rl.mgpo_weight_min/max must satisfy 0 <= mgpo_weight_min <= mgpo_weight_max, "
+            f"got {rl_cfg.mgpo_weight_min} > {rl_cfg.mgpo_weight_max}"
+        )
+    if float(rl_cfg.long2short_lambda) < 0.0:
+        raise ValueError(f"rl.long2short_lambda must be >= 0, got {rl_cfg.long2short_lambda}")
+    if int(rl_cfg.long2short_min_correct) < 1:
+        raise ValueError(f"rl.long2short_min_correct must be >= 1, got {rl_cfg.long2short_min_correct}")
+    if float(rl_cfg.long2short_eps) <= 0.0:
+        raise ValueError(f"rl.long2short_eps must be > 0, got {rl_cfg.long2short_eps}")
     if getattr(rl_cfg, "debug_num_prompts", None) is not None:
         rl_cfg.debug_num_prompts = int(rl_cfg.debug_num_prompts)
         if rl_cfg.debug_num_prompts <= 0:
