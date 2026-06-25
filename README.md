@@ -93,7 +93,37 @@ PYTHONPATH="$(pwd)/.." python3 -m fitmotn.cli.train --config_json ./fitmotn_conf
 - [`fitmotn_reasoning_recovery_min_b.json`](./fitmotn_reasoning_recovery_min_b.json)
 - [`fitmotn_reasoning_recovery_conservative_b.json`](./fitmotn_reasoning_recovery_conservative_b.json)
 
+## Main entrypoints
+
+After `pip install -e .`, the main entrypoints are:
+
+```bash
+python -m fitmotn.cli.train --config_json ./fitmotn_config.example.json
+python -m fitmotn.cli.train_rl --config_json ./fitmotn_config.example.json
+python -m fitmotn.cli.eval_hf --model_or_ckpt /path/to/model_or_ckpt --tasks gsm8k
+python -m fitmotn.cli.build_boundary_gsm8k --config_json ./fitmotn_config.example.json --output_jsonl boundary.jsonl --verified_traces_jsonl verified.jsonl
+python scripts/analyze_rl_timing.py path/to/rl_train.jsonl --last-n 100
+```
+
+Current vLLM status: patched FitMoTN checkpoints are not supported by vLLM in
+this stage. `cli/eval_vllm.py` and `eval/vllm_runner.py` are only for baseline
+or explicitly vLLM-compatible models, and patched FitMoTN checkpoints should
+continue to fail with an explicit unsupported-path error until the later
+export/vLLM integration stage.
+
 ## 安装与运行环境
+
+For development installs:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Large checkpoints and runtime outputs should not be committed to the source
+repository. Keep model weights, `wandb/`, `logs/`, `outputs/`, and
+`checkpoints/` outside git. If a tiny weight-like file is needed as a test
+fixture, add an explicit allowlist entry for it instead of relying on broad
+weight-file tracking.
 
 ## 目录说明
 

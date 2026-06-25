@@ -1,3 +1,15 @@
-__pycache__/
-*.py[cod]
+__MACOSX/
 .DS_Store
+*.pyc
+*.py[cod]
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+wandb/
+logs/
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.safetensors

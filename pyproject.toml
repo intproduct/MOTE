@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fitmotn"
+version = "0.1.0"
+description = "FitMoTN training, RL, and evaluation utilities"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "transformers",
+    "datasets",
+    "numpy",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools]
+packages = [
+    "fitmotn",
+    "fitmotn.baselines",
+    "fitmotn.cli",
+    "fitmotn.config",
+    "fitmotn.data",
+    "fitmotn.diagnostics",
+    "fitmotn.eval",
+    "fitmotn.init",
+    "fitmotn.rl",
+    "fitmotn.tasks",
+    "fitmotn.train",
+    "fitmotn.utils",
+]
+
+[tool.setuptools.package-dir]
+fitmotn = "."
+"fitmotn.baselines" = "baselines"
+"fitmotn.cli" = "cli"
+"fitmotn.config" = "config"
+"fitmotn.data" = "data"
+"fitmotn.diagnostics" = "diagnostics"
+"fitmotn.eval" = "eval"
+"fitmotn.init" = "init"
+"fitmotn.rl" = "rl"
+"fitmotn.tasks" = "tasks"
+"fitmotn.train" = "train"
+"fitmotn.utils" = "utils"
