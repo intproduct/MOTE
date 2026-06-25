@@ -3,7 +3,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from ..config import load_config
+try:
+    from ..config import load_config
+except ImportError:
+    from ..config.loader import load_config
 from ..config.schema import DEFAULT_GSM8K_GRPO_PROMPT_TEMPLATE
 from ..rl.runtime import set_trainable_mode_for_rl
 from ..train.rl_controller import build_response_mask, run_fitmotn_rl_training

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-from ..checkpointing import load_fitmotn_metadata
+from ..export.format import EXPORT_MANIFEST_FILENAME, classify_model_path
+from ..export.manifest import read_raw_checkpoint_json
 from ..tasks.reasoning_specs import GSM8KTask, MMLUTask
 from ..tasks.answer_extraction import extract_final_answer
 from ..data.mixed_iterable import load_dataset_any
@@ -48,25 +50,50 @@ def _build_eval_tasks(fit_cfg) -> List[Any]:
 
 def inspect_vllm_compatibility(model_path: str) -> Dict[str, Any]:
     ckpt_dir = Path(model_path).resolve()
+    path_kind = classify_model_path(ckpt_dir)
     report: Dict[str, Any] = {
         "model_path": str(ckpt_dir),
-        "has_fitmotn_state": bool((ckpt_dir / "fitmotn_state.pt").exists()),
+        "path_kind": path_kind,
+        "has_fitmotn_state": path_kind == "raw_fitmotn_checkpoint",
+        "is_exported_fitmotn_dir": path_kind == "exported_fitmotn_dir",
         "supports_vllm_eval": True,
         "reason": None,
         "checkpoint_format": None,
+        "export_stage": None,
+        "vllm_ready": None,
     }
-    if report["has_fitmotn_state"]:
-        metadata = load_fitmotn_metadata(ckpt_dir)
+    if path_kind == "raw_fitmotn_checkpoint":
+        metadata, _ = read_raw_checkpoint_json(ckpt_dir)
         report["checkpoint_format"] = metadata.get("checkpoint_format")
-        if metadata.get("layers_to_patch"):
+        report["supports_vllm_eval"] = False
+        report["reason"] = "raw_fitmotn_checkpoint_requires_export_hf"
+    elif path_kind == "exported_fitmotn_dir":
+        try:
+            with (ckpt_dir / EXPORT_MANIFEST_FILENAME).open("r", encoding="utf-8") as f:
+                manifest = json.load(f)
+        except Exception:
+            manifest = {}
+        report["export_stage"] = manifest.get("export_stage")
+        report["vllm_ready"] = manifest.get("vllm_ready")
+        if manifest.get("vllm_ready") is not True:
             report["supports_vllm_eval"] = False
-            report["reason"] = "patched_fitmotn_checkpoint_not_supported_by_vllm_runner"
+            report["reason"] = "metadata_only_export_not_vllm_ready"
     return report
 
 
 def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Dict[str, Any]:
     compatibility = inspect_vllm_compatibility(model_path)
     if not compatibility["supports_vllm_eval"]:
+        if compatibility.get("reason") == "raw_fitmotn_checkpoint_requires_export_hf":
+            raise NotImplementedError(
+                "Raw FitMoTN checkpoint is not directly supported by vLLM. Run "
+                "`python -m fitmotn.cli.export_hf --checkpoint_dir ... --output_dir ...` first."
+            )
+        if compatibility.get("reason") == "metadata_only_export_not_vllm_ready":
+            raise NotImplementedError(
+                "This exported FitMoTN directory is metadata-only. Stage 4B/4C must complete HF roundtrip "
+                "and vLLM support before inference."
+            )
         raise NotImplementedError(
             "vLLM evaluation for patched FitMoTN checkpoints is intentionally not implemented in MVP. "
             f"reason={compatibility['reason']}"

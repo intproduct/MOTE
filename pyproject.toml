@@ -30,6 +30,7 @@ packages = [
     "fitmotn.data",
     "fitmotn.diagnostics",
     "fitmotn.eval",
+    "fitmotn.export",
     "fitmotn.init",
     "fitmotn.rl",
     "fitmotn.tasks",
@@ -45,6 +46,7 @@ fitmotn = "."
 "fitmotn.data" = "data"
 "fitmotn.diagnostics" = "diagnostics"
 "fitmotn.eval" = "eval"
+"fitmotn.export" = "export"
 "fitmotn.init" = "init"
 "fitmotn.rl" = "rl"
 "fitmotn.tasks" = "tasks"

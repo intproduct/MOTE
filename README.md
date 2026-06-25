@@ -1015,6 +1015,35 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 - 旧格式 `state_dict` 仍然兼容读取，不会破坏已有 checkpoint
 - `fitmotn_state.json` 仍然保留，方便人读和批量扫描
 
+## FitMoTN export and vLLM roadmap
+
+Stage 4A only defines a metadata-only FitMoTN export directory layout. It does not enable patched FitMoTN vLLM inference, does not make the export loadable with `AutoModelForCausalLM.from_pretrained(...)`, and does not write model weights.
+
+Raw FitMoTN checkpoints cannot be passed directly to vLLM. First create a metadata-only export:
+
+```bash
+python -m fitmotn.cli.export_hf \
+  --checkpoint_dir /path/to/raw-fitmotn-checkpoint \
+  --output_dir /path/to/exported-fitmotn \
+  --metadata_only \
+  --validate
+```
+
+The Stage 4A export directory contains:
+
+- `fitmotn_export_manifest.json`
+- `fitmotn_export_config.json`
+- `README.md`
+- optional tokenizer files only when `--copy_tokenizer` is explicitly passed
+
+Roadmap:
+
+- Stage 4B will add `configuration_fitmotn.py`, `modeling_fitmotn.py`, `auto_map`, state dict / weights export, and an HF AutoModel roundtrip validator.
+- Stage 4C will add vLLM offline runner support.
+- Stage 4D will add vLLM eval and boundary rollout backend support.
+
+Do not commit exported weights, raw checkpoints, tokenizer files copied from private models, or manifests containing private local paths.
+
 ## 论文级观测
 
 当前版本会在训练中持续记录这些结构化信息：
