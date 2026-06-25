@@ -17,6 +17,11 @@ from ..rl.boundary import (
     summarize_rollout_rewards,
 )
 from ..rl.data import load_gsm8k_rl_records
+from ..rl.generation import (
+    is_cache_compat_generation_error,
+    rollout_generation_state,
+    rollout_grad_context,
+)
 from ..rl.rewards_gsm8k import gsm8k_reward
 from ..rl.runtime import load_policy_for_rl
 from ..train.rl_controller import build_response_mask, build_rl_prompt_text
@@ -93,27 +98,37 @@ def main():
         input_ids = enc["input_ids"].to(model.device)
         attention_mask = enc["attention_mask"].to(model.device)
         response_start = int(input_ids.shape[1])
-        with torch.no_grad():
-            prev_use_cache = getattr(model.config, "use_cache", None) if hasattr(model, "config") else None
-            generated = model.generate(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                temperature=temperature,
-                top_p=top_p,
-                pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id,
-                use_cache=bool(prev_use_cache),
-            )
-            if prev_use_cache is not None:
-                model.config.use_cache = False
-            response_mask = build_response_mask(
-                generated,
-                response_start=response_start,
-                eos_token_id=tokenizer.eos_token_id,
-                pad_token_id=tokenizer.pad_token_id,
-            ).to(generated.device)
+        requested_use_cache = bool(getattr(cfg.rl, "rollout_use_cache", True))
+        pad_token_id = tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id
+        if pad_token_id is None:
+            pad_token_id = 0
+        generate_kwargs = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "max_new_tokens": max_new_tokens,
+            "do_sample": True,
+            "temperature": temperature,
+            "top_p": top_p,
+            "pad_token_id": pad_token_id,
+            "eos_token_id": tokenizer.eos_token_id,
+        }
+        try:
+            with rollout_grad_context(bool(getattr(cfg.rl, "rollout_inference_mode", True))):
+                with rollout_generation_state(model, use_cache=requested_use_cache):
+                    generated = model.generate(use_cache=requested_use_cache, **generate_kwargs)
+        except Exception as exc:
+            if requested_use_cache and is_cache_compat_generation_error(exc):
+                with rollout_grad_context(bool(getattr(cfg.rl, "rollout_inference_mode", True))):
+                    with rollout_generation_state(model, use_cache=False):
+                        generated = model.generate(use_cache=False, **generate_kwargs)
+            else:
+                raise
+        response_mask = build_response_mask(
+            generated,
+            response_start=response_start,
+            eos_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.pad_token_id,
+        ).to(generated.device)
 
         generated_texts = tokenizer.batch_decode(generated[:, response_start:], skip_special_tokens=True)
         rewards = []

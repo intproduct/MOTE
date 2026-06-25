@@ -27,6 +27,7 @@ from MOTE.gate import TopKGate
 from MOTE.config.defaults import make_default_config
 from MOTE.rl import data as rl_data
 from MOTE.rl.data import load_gsm8k_rl_records
+from MOTE.rl.generation import rollout_generation_state
 from MOTE.rl.grpo import compute_group_advantages, grpo_loss
 from MOTE.rl.logprobs import gather_response_logprobs
 from MOTE.rl.mgpo import compute_mgpo_weights
@@ -38,11 +39,14 @@ from MOTE.train.rl_controller import (
     build_zero_advantage_retry_limit_record,
     build_zero_advantage_skip_record,
     build_rl_prompt_text,
+    build_rollout_attention_and_response_mask,
     is_zero_advantage_batch,
     iter_response_chunks,
+    generate_rollout_sequences,
     log_cuda_memory,
     maybe_collect_train_forward_router_usage,
     resolve_amp_dtype,
+    rollout_cache_metadata,
     zero_advantage_retry_exceeded,
 )
 from MOTE.audit import to_jsonable
@@ -101,6 +105,73 @@ class FakeChatTokenizer:
         if kwargs.get("add_generation_prompt"):
             text += "[assistant]"
         return text
+
+
+class FakeRolloutTokenizer:
+    def __init__(self, pad_token_id=0, eos_token_id=2):
+        self.pad_token_id = pad_token_id
+        self.eos_token_id = eos_token_id
+
+    def __call__(self, texts, return_tensors=None, padding=False, add_special_tokens=True):
+        del return_tensors, padding, add_special_tokens
+        rows = []
+        max_len = max(len(text) for text in texts)
+        for text in texts:
+            tokens = [ord(ch) % 10 + 3 for ch in text]
+            pad_len = max_len - len(tokens)
+            rows.append([int(self.pad_token_id)] * pad_len + tokens)
+        input_ids = torch.tensor(rows, dtype=torch.long)
+        attention_mask = (input_ids != int(self.pad_token_id)).to(dtype=torch.long)
+        return {"input_ids": input_ids, "attention_mask": attention_mask}
+
+
+class FakeGenerationConfig:
+    def __init__(self, use_cache=False):
+        self.use_cache = use_cache
+
+
+class FakeRolloutModel(nn.Module):
+    def __init__(self, lengths=None, pad_token_id=0, eos_token_id=2, generation_config=True):
+        super().__init__()
+        self.param = nn.Parameter(torch.zeros(()))
+        self.config = types.SimpleNamespace(use_cache=False)
+        if generation_config:
+            self.generation_config = FakeGenerationConfig(use_cache=False)
+        self.lengths = list(lengths or [])
+        self.pad_token_id = pad_token_id
+        self.eos_token_id = eos_token_id
+        self.generate_calls = []
+        self.forward_use_cache = []
+
+    @property
+    def device(self):
+        return self.param.device
+
+    def generate(self, input_ids, attention_mask=None, use_cache=False, **kwargs):
+        del attention_mask, kwargs
+        self.generate_calls.append(
+            {
+                "use_cache": bool(use_cache),
+                "training": bool(self.training),
+                "config_use_cache": bool(getattr(self.config, "use_cache")),
+                "generation_config_use_cache": (
+                    bool(getattr(self.generation_config, "use_cache")) if hasattr(self, "generation_config") else None
+                ),
+            }
+        )
+        call_idx = len(self.generate_calls) - 1
+        extra = self.lengths[call_idx] if call_idx < len(self.lengths) else 2
+        suffix = torch.arange(10, 10 + int(extra), dtype=input_ids.dtype, device=input_ids.device).unsqueeze(0)
+        suffix = suffix.repeat(int(input_ids.shape[0]), 1)
+        if int(extra) > 0:
+            suffix[:, -1] = int(self.eos_token_id)
+        return torch.cat([input_ids, suffix], dim=1)
+
+    def forward(self, input_ids, attention_mask=None, use_cache=False, logits_to_keep=None):
+        del attention_mask, logits_to_keep
+        self.forward_use_cache.append(bool(use_cache))
+        logits = torch.zeros((*input_ids.shape, 32), dtype=torch.float32, device=input_ids.device)
+        return FakeOutput(logits)
 
 
 def test_group_advantages_are_per_prompt_group_and_safe_for_zero_std():
@@ -355,6 +426,111 @@ def test_response_only_logprobs_match_full_sequence_and_zero_prompt():
     assert torch.allclose(response_only[:, response_start:], full[:, response_start:], atol=1e-6)
     assert torch.allclose(fallback[:, response_start:], full[:, response_start:], atol=1e-6)
     assert torch.equal(response_only[:, :response_start], torch.zeros_like(response_only[:, :response_start]))
+
+
+def test_rollout_generation_state_restores_training_and_cache_state():
+    model = FakeRolloutModel(generation_config=True)
+    model.train()
+    model.config.use_cache = True
+    model.generation_config.use_cache = True
+    with rollout_generation_state(model, use_cache=False):
+        assert not model.training
+        assert model.config.use_cache is False
+        assert model.generation_config.use_cache is False
+    assert model.training
+    assert model.config.use_cache is True
+    assert model.generation_config.use_cache is True
+
+    model_without_generation_config = FakeRolloutModel(generation_config=False)
+    with rollout_generation_state(model_without_generation_config, use_cache=True):
+        assert not model_without_generation_config.training
+
+
+def test_rollout_cache_metadata_allows_cache_with_gradient_checkpointing():
+    cfg = make_default_config()
+    cfg.rl.rollout_use_cache = True
+    cfg.rl.rollout_inference_mode = True
+    cfg.rl.gradient_checkpointing = True
+    info = rollout_cache_metadata(cfg)
+    assert info["rollout_use_cache"] is True
+    assert info["effective_rollout_use_cache"] is True
+    assert info["rollout_use_cache_reason"] == "requested_enabled"
+    assert info["rollout_grad_context"] == "inference_mode"
+
+
+def test_rollout_generate_uses_cache_eval_and_logprobs_stay_no_cache():
+    cfg = make_default_config()
+    cfg.rl.rollout_use_cache = True
+    cfg.rl.rollout_inference_mode = True
+    cfg.rl.rollout_micro_batch_size = 0
+    cfg.rl.max_new_tokens = 2
+    tokenizer = FakeRolloutTokenizer()
+    model = FakeRolloutModel(lengths=[2])
+    model.train()
+    enc = tokenizer(["abc", "de"], return_tensors="pt", padding=True, add_special_tokens=True)
+
+    generated, original_seq_lens, info = generate_rollout_sequences(
+        fit_cfg=cfg,
+        model=model,
+        tokenizer=tokenizer,
+        input_ids=enc["input_ids"],
+        attention_mask=enc["attention_mask"],
+    )
+
+    assert model.training
+    assert model.generate_calls == [
+        {"use_cache": True, "training": False, "config_use_cache": True, "generation_config_use_cache": True}
+    ]
+    assert info["effective_rollout_use_cache"] is True
+    assert original_seq_lens == [generated.shape[1], generated.shape[1]]
+
+    response_start = enc["input_ids"].shape[1]
+    full_attention, response_mask = build_rollout_attention_and_response_mask(
+        generated,
+        enc["attention_mask"],
+        response_start=response_start,
+        original_seq_lens=original_seq_lens,
+        eos_token_id=tokenizer.eos_token_id,
+    )
+    _ = gather_response_logprobs(model, generated, full_attention, response_mask, response_start=response_start)
+    assert model.forward_use_cache[-1] is False
+
+
+def test_rollout_microbatch_padding_masks_manual_tail_and_pad_equals_eos():
+    cfg = make_default_config()
+    cfg.rl.rollout_use_cache = True
+    cfg.rl.rollout_micro_batch_size = 1
+    cfg.rl.max_new_tokens = 4
+    tokenizer = FakeRolloutTokenizer(pad_token_id=2, eos_token_id=2)
+    model = FakeRolloutModel(lengths=[3, 1], pad_token_id=2, eos_token_id=2)
+    enc = tokenizer(["abcd", "ef"], return_tensors="pt", padding=True, add_special_tokens=True)
+    response_start = enc["input_ids"].shape[1]
+
+    generated, original_seq_lens, _ = generate_rollout_sequences(
+        fit_cfg=cfg,
+        model=model,
+        tokenizer=tokenizer,
+        input_ids=enc["input_ids"],
+        attention_mask=enc["attention_mask"],
+    )
+    full_attention, response_mask = build_rollout_attention_and_response_mask(
+        generated,
+        enc["attention_mask"],
+        response_start=response_start,
+        original_seq_lens=original_seq_lens,
+        eos_token_id=tokenizer.eos_token_id,
+    )
+
+    assert len(model.generate_calls) == 2
+    assert generated.shape[0] == 2
+    assert response_mask.shape == generated.shape
+    assert original_seq_lens[0] > original_seq_lens[1]
+    assert full_attention[1, original_seq_lens[1] :].sum().item() == 0
+    assert response_mask[1, original_seq_lens[1] :].sum().item() == 0
+    assert torch.equal(full_attention[:, :response_start], enc["attention_mask"])
+    # The valid EOS position is included even when pad_token_id == eos_token_id;
+    # only the manually padded tail is masked out by original_seq_lens.
+    assert response_mask[1, original_seq_lens[1] - 1].item() == 1.0
 
 
 def test_resolve_amp_dtype_tracks_model_parameter_dtype():

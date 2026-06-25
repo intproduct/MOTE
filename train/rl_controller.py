@@ -19,6 +19,12 @@ from ..checkpointing import extract_patch_state_dict, save_fitmotn_metadata
 from ..eval.runner import run_eval_tasks
 from ..rl.data import format_rl_prompt, load_gsm8k_rl_records
 from ..rl.grpo import compute_group_advantages, grpo_loss
+from ..rl.generation import (
+    is_cache_compat_generation_error,
+    rollout_generation_state,
+    rollout_grad_context,
+    rollout_grad_context_name,
+)
 from ..rl.logprobs import gather_response_logprobs
 from ..rl.mgpo import compute_mgpo_weights
 from ..rl.reward_shaping import apply_long2short_reward_shift
@@ -407,6 +413,139 @@ def build_response_mask(
     return mask
 
 
+def rollout_cache_metadata(fit_cfg) -> Dict[str, Any]:
+    requested = bool(getattr(fit_cfg.rl, "rollout_use_cache", True))
+    return {
+        "rollout_use_cache": requested,
+        "effective_rollout_use_cache": requested,
+        "rollout_use_cache_reason": "requested_enabled" if requested else "requested_disabled",
+        "rollout_inference_mode": bool(getattr(fit_cfg.rl, "rollout_inference_mode", True)),
+        "rollout_grad_context": rollout_grad_context_name(bool(getattr(fit_cfg.rl, "rollout_inference_mode", True))),
+        "rollout_log_timing": bool(getattr(fit_cfg.rl, "rollout_log_timing", True)),
+    }
+
+
+def _set_model_cache_if_present(model, value: bool) -> None:
+    config = getattr(model, "config", None)
+    if config is not None and hasattr(config, "use_cache"):
+        config.use_cache = bool(value)
+    generation_config = getattr(model, "generation_config", None)
+    if generation_config is not None and hasattr(generation_config, "use_cache"):
+        generation_config.use_cache = bool(value)
+
+
+def _rollout_pad_token_id(tokenizer) -> int:
+    pad_token_id = getattr(tokenizer, "pad_token_id", None)
+    if pad_token_id is not None:
+        return int(pad_token_id)
+    eos_token_id = getattr(tokenizer, "eos_token_id", None)
+    if eos_token_id is not None:
+        return int(eos_token_id)
+    return 0
+
+
+def build_rollout_attention_and_response_mask(
+    generated: torch.Tensor,
+    prompt_attention_mask: torch.Tensor,
+    *,
+    response_start: int,
+    original_seq_lens: Sequence[int],
+    eos_token_id: Optional[int],
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    if int(generated.shape[0]) != int(prompt_attention_mask.shape[0]) or int(generated.shape[0]) != len(original_seq_lens):
+        raise ValueError("generated, prompt_attention_mask, and original_seq_lens must agree on batch size")
+    response_start = int(response_start)
+    full_attention = torch.zeros_like(generated, dtype=prompt_attention_mask.dtype, device=generated.device)
+    full_attention[:, :response_start] = prompt_attention_mask.to(device=generated.device)
+    for row, seq_len in enumerate(original_seq_lens):
+        seq_len = min(int(seq_len), int(generated.shape[1]))
+        if seq_len > response_start:
+            full_attention[row, response_start:seq_len] = 1
+    response_mask = build_response_mask(
+        generated,
+        response_start=response_start,
+        eos_token_id=eos_token_id,
+        pad_token_id=None,
+    ).to(generated.device)
+    response_mask = response_mask * full_attention.to(dtype=response_mask.dtype)
+    return full_attention, response_mask
+
+
+def _pad_generated_to_max_len(generated_chunks: Sequence[torch.Tensor], pad_token_id: int) -> torch.Tensor:
+    if not generated_chunks:
+        raise RuntimeError("No generated chunks were produced")
+    max_len = max(int(chunk.shape[1]) for chunk in generated_chunks)
+    padded_chunks = []
+    for chunk in generated_chunks:
+        pad_len = max_len - int(chunk.shape[1])
+        if pad_len <= 0:
+            padded_chunks.append(chunk)
+            continue
+        pad = torch.full(
+            (int(chunk.shape[0]), int(pad_len)),
+            int(pad_token_id),
+            dtype=chunk.dtype,
+            device=chunk.device,
+        )
+        padded_chunks.append(torch.cat([chunk, pad], dim=1))
+    return torch.cat(padded_chunks, dim=0)
+
+
+def generate_rollout_sequences(
+    *,
+    fit_cfg,
+    model,
+    tokenizer,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    logger: Optional[logging.Logger] = None,
+) -> Tuple[torch.Tensor, List[int], Dict[str, Any]]:
+    cache_info = rollout_cache_metadata(fit_cfg)
+    requested_use_cache = bool(cache_info["effective_rollout_use_cache"])
+    grad_context_enabled = bool(getattr(fit_cfg.rl, "rollout_inference_mode", True))
+    micro_batch_size = int(getattr(fit_cfg.rl, "rollout_micro_batch_size", 0))
+    pad_token_id = _rollout_pad_token_id(tokenizer)
+
+    generate_kwargs = {
+        "max_new_tokens": int(fit_cfg.rl.max_new_tokens),
+        "do_sample": True,
+        "temperature": float(fit_cfg.rl.temperature),
+        "top_p": float(fit_cfg.rl.top_p),
+        "pad_token_id": pad_token_id,
+        "eos_token_id": getattr(tokenizer, "eos_token_id", None),
+    }
+
+    def attempt(use_cache: bool) -> Tuple[torch.Tensor, List[int]]:
+        chunks: List[torch.Tensor] = []
+        seq_lens: List[int] = []
+        for start, end in iter_response_chunks(int(input_ids.shape[0]), micro_batch_size):
+            with rollout_grad_context(grad_context_enabled):
+                with rollout_generation_state(model, use_cache=bool(use_cache)):
+                    chunk = model.generate(
+                        input_ids=input_ids[start:end],
+                        attention_mask=attention_mask[start:end],
+                        use_cache=bool(use_cache),
+                        **generate_kwargs,
+                    )
+            chunks.append(chunk)
+            seq_lens.extend([int(chunk.shape[1])] * int(chunk.shape[0]))
+        return _pad_generated_to_max_len(chunks, pad_token_id), seq_lens
+
+    try:
+        generated, original_seq_lens = attempt(requested_use_cache)
+    except Exception as exc:
+        if requested_use_cache and is_cache_compat_generation_error(exc):
+            if logger is not None:
+                logger.warning("[RLRollout] use_cache=true generate failed; retrying once with use_cache=false: %s", exc)
+            generated, original_seq_lens = attempt(False)
+            cache_info["effective_rollout_use_cache"] = False
+            cache_info["rollout_use_cache_reason"] = "fallback_after_error"
+            cache_info["rollout_use_cache_error"] = str(exc)
+        else:
+            raise
+    return generated, original_seq_lens, cache_info
+
+
 def _mean(values: Iterable[float]) -> float:
     values = list(values)
     return float(sum(values) / max(1, len(values)))
@@ -573,8 +712,6 @@ def run_fitmotn_rl_training(fit_cfg):
         raise ValueError("run_fitmotn_rl_training requires rl.enabled=true")
     if str(getattr(fit_cfg.rl, "mode", "gsm8k_grpo")) != "gsm8k_grpo":
         raise ValueError("Only rl.mode='gsm8k_grpo' is supported")
-    if int(getattr(fit_cfg.rl, "rollout_micro_batch_size", 0)) != 0:
-        raise NotImplementedError("rl.rollout_micro_batch_size is reserved for a future rollout microbatch implementation")
 
     seed = getattr(fit_cfg.rl, "seed", None)
     if seed is None:
@@ -641,6 +778,7 @@ def run_fitmotn_rl_training(fit_cfg):
 
     amp_dtype = resolve_amp_dtype(model)
     amp_enabled = bool(getattr(fit_cfg.model, "use_amp", False) and torch.device(fit_cfg.model.device).type == "cuda" and amp_dtype is not None)
+    initial_rollout_cache_info = rollout_cache_metadata(fit_cfg)
     run_start_time = time.time()
     run_start_record = {
         "kind": "run_start",
@@ -657,6 +795,7 @@ def run_fitmotn_rl_training(fit_cfg):
         "amp_dtype": dtype_name_or_none(amp_dtype),
         "chat_system_prompt_present": bool(getattr(fit_cfg.rl, "chat_system_prompt", None)),
         "tokenizer_chat_template_present": bool(getattr(tokenizer, "chat_template", None)),
+        **initial_rollout_cache_info,
     }
     jsonl_append(train_jsonl_path, run_start_record)
 
@@ -668,6 +807,16 @@ def run_fitmotn_rl_training(fit_cfg):
     optimizer.zero_grad(set_to_none=True)
 
     while update_step < int(fit_cfg.rl.max_steps):
+        micro_step_start_time = time.time()
+        timing_info = {
+            "tokenize_sec": 0.0,
+            "generate_sec": 0.0,
+            "reward_sec": 0.0,
+            "old_logprobs_sec": 0.0,
+            "ref_logprobs_sec": 0.0,
+            "new_logprobs_backward_sec": 0.0,
+            "total_micro_step_sec": 0.0,
+        }
         micro_step += 1
         batch, data_pos = _cycle_batch(records, data_pos, int(fit_cfg.rl.batch_size))
         prompts = [build_rl_prompt_text(fit_cfg, tokenizer, row["question"]) for row in batch]
@@ -675,46 +824,41 @@ def run_fitmotn_rl_training(fit_cfg):
         rollout_prompts = [prompt for prompt in prompts for _ in range(int(fit_cfg.rl.group_size))]
         rollout_gold = [answer for answer in gold_answers for _ in range(int(fit_cfg.rl.group_size))]
 
+        tokenize_start_time = time.time()
         enc = tokenizer(rollout_prompts, return_tensors="pt", padding=True, add_special_tokens=True)
         input_ids = enc["input_ids"].to(model.device)
         attention_mask = enc["attention_mask"].to(model.device)
         response_start = int(input_ids.shape[1])
         next_update_step = int(update_step) + 1
+        timing_info["tokenize_sec"] = max(0.0, time.time() - tokenize_start_time)
 
-        model.eval()
         try:
             disable_runtime_usage_tracking(model)
             reset_runtime_usage_buffers(model)
         except Exception as exc:
             logger.warning("[RLUsage] failed to disable/reset usage buffers before generation: %s", exc)
         _maybe_log_cuda_memory(fit_cfg, logger, "before_generate", update_step=next_update_step, micro_step=micro_step)
-        with torch.no_grad():
-            prev_use_cache = getattr(model.config, "use_cache", None) if hasattr(model, "config") else None
-            generation_use_cache = bool(prev_use_cache) and not bool(getattr(fit_cfg.rl, "gradient_checkpointing", False))
-            generated = model.generate(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                max_new_tokens=int(fit_cfg.rl.max_new_tokens),
-                do_sample=True,
-                temperature=float(fit_cfg.rl.temperature),
-                top_p=float(fit_cfg.rl.top_p),
-                pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id,
-                use_cache=generation_use_cache,
-            )
-            if prev_use_cache is not None:
-                model.config.use_cache = False
-            _maybe_log_cuda_memory(fit_cfg, logger, "after_generate", update_step=next_update_step, micro_step=micro_step)
-            full_attention = torch.ones_like(generated, dtype=attention_mask.dtype, device=generated.device)
-            if response_start > 0:
-                full_attention[:, :response_start] = attention_mask
-            response_mask = build_response_mask(
-                generated,
-                response_start=response_start,
-                eos_token_id=tokenizer.eos_token_id,
-                pad_token_id=tokenizer.pad_token_id,
-            ).to(generated.device)
+        generate_start_time = time.time()
+        generated, original_seq_lens, rollout_cache_info = generate_rollout_sequences(
+            fit_cfg=fit_cfg,
+            model=model,
+            tokenizer=tokenizer,
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            logger=logger,
+        )
+        _set_model_cache_if_present(model, False)
+        timing_info["generate_sec"] = max(0.0, time.time() - generate_start_time)
+        _maybe_log_cuda_memory(fit_cfg, logger, "after_generate", update_step=next_update_step, micro_step=micro_step)
+        full_attention, response_mask = build_rollout_attention_and_response_mask(
+            generated,
+            attention_mask,
+            response_start=response_start,
+            original_seq_lens=original_seq_lens,
+            eos_token_id=getattr(tokenizer, "eos_token_id", None),
+        )
 
+        reward_start_time = time.time()
         generated_texts = tokenizer.batch_decode(generated[:, response_start:], skip_special_tokens=True)
         rewards = []
         reward_debugs = []
@@ -722,6 +866,7 @@ def run_fitmotn_rl_training(fit_cfg):
             reward, debug = gsm8k_reward(text, gold)
             rewards.append(float(reward))
             reward_debugs.append(debug)
+        timing_info["reward_sec"] = max(0.0, time.time() - reward_start_time)
 
         reward_tensor = torch.tensor(rewards, dtype=torch.float32, device=generated.device).reshape(
             int(fit_cfg.rl.batch_size),
@@ -780,8 +925,16 @@ def run_fitmotn_rl_training(fit_cfg):
                 reward_debugs=reward_debugs,
                 response_lens=response_lens,
             )
+            timing_info["total_micro_step_sec"] = max(0.0, time.time() - micro_step_start_time)
+            skip_record.update(rollout_cache_info)
+            if bool(getattr(fit_cfg.rl, "rollout_log_timing", True)):
+                skip_record.update(timing_info)
             jsonl_append(train_jsonl_path, skip_record)
-            logger.info("[RLTrain] %s", json.dumps(skip_record, ensure_ascii=False))
+            skip_log_record = dict(skip_record)
+            if bool(getattr(fit_cfg.rl, "rollout_log_timing", True)) and next_update_step % int(fit_cfg.rl.log_every) != 0:
+                for key in timing_info:
+                    skip_log_record.pop(key, None)
+            logger.info("[RLTrain] %s", json.dumps(skip_log_record, ensure_ascii=False))
             try:
                 disable_runtime_usage_tracking(model)
                 reset_runtime_usage_buffers(model)
@@ -807,6 +960,10 @@ def run_fitmotn_rl_training(fit_cfg):
             del mgpo_raw_weights
             del generated_texts
             del response_lens
+            del original_seq_lens
+            del rollout_cache_info
+            del timing_info
+            del skip_log_record
             del prompts
             del rollout_prompts
             del rollout_gold
@@ -836,6 +993,7 @@ def run_fitmotn_rl_training(fit_cfg):
             reset_runtime_usage_buffers(model)
         except Exception as exc:
             logger.warning("[RLUsage] failed to disable/reset usage buffers before old logprobs: %s", exc)
+        old_logprobs_start_time = time.time()
         old_logprobs = compute_old_logprobs_microbatched(
             model,
             generated,
@@ -844,6 +1002,7 @@ def run_fitmotn_rl_training(fit_cfg):
             int(getattr(fit_cfg.rl, "logprob_micro_batch_size", 1)),
             response_start=response_start,
         ).detach()
+        timing_info["old_logprobs_sec"] = max(0.0, time.time() - old_logprobs_start_time)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_old_logprobs", update_step=next_update_step, micro_step=micro_step)
 
         model.train()
@@ -862,6 +1021,7 @@ def run_fitmotn_rl_training(fit_cfg):
         router_usage_warning = None
         _maybe_log_cuda_memory(fit_cfg, logger, "before_new_logprobs", update_step=next_update_step, micro_step=micro_step)
 
+        ref_logprobs_start_time = time.time()
         if ref_model is not None:
             ref_logprobs = compute_old_logprobs_microbatched(
                 ref_model,
@@ -871,9 +1031,12 @@ def run_fitmotn_rl_training(fit_cfg):
                 int(getattr(fit_cfg.rl, "logprob_micro_batch_size", 1)),
                 response_start=response_start,
             ).detach()
+            timing_info["ref_logprobs_sec"] = max(0.0, time.time() - ref_logprobs_start_time)
         else:
             ref_logprobs = None
+            timing_info["ref_logprobs_sec"] = 0.0
 
+        new_logprobs_start_time = time.time()
         loss, loss_metrics = compute_new_logprobs_loss_microbatched(
             model=model,
             input_ids=generated,
@@ -894,6 +1057,7 @@ def run_fitmotn_rl_training(fit_cfg):
             update_step=next_update_step,
             micro_step=micro_step,
         )
+        timing_info["new_logprobs_backward_sec"] = max(0.0, time.time() - new_logprobs_start_time)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_new_logprobs_forward_or_chunks", update_step=next_update_step, micro_step=micro_step)
         try:
             train_forward_router_usage, router_usage_warning = maybe_collect_train_forward_router_usage(
@@ -921,6 +1085,7 @@ def run_fitmotn_rl_training(fit_cfg):
             update_step += 1
             zero_advantage_retry_count = 0
             _maybe_log_cuda_memory(fit_cfg, logger, "after_optimizer_step", update_step=update_step, micro_step=micro_step)
+        timing_info["total_micro_step_sec"] = max(0.0, time.time() - micro_step_start_time)
 
         if did_update and update_step % int(fit_cfg.rl.log_every) == 0:
             group_samples = None
@@ -967,6 +1132,8 @@ def run_fitmotn_rl_training(fit_cfg):
                 "chat_enable_thinking": bool(getattr(fit_cfg.rl, "chat_enable_thinking", False)),
                 "response_start": int(response_start),
                 "router_usage_warning": router_usage_warning,
+                **rollout_cache_info,
+                **(timing_info if bool(getattr(fit_cfg.rl, "rollout_log_timing", True)) else {}),
                 **_cuda_memory_snapshot(),
                 "time": time.time(),
             }
@@ -1030,6 +1197,9 @@ def run_fitmotn_rl_training(fit_cfg):
         del mgpo_raw_weights
         del generated_texts
         del response_lens
+        del original_seq_lens
+        del rollout_cache_info
+        del timing_info
         del ref_logprobs
         del loss
         del loss_metrics

@@ -300,6 +300,9 @@ class RLConfig:
     log_memory_every: int = 1
     logprob_micro_batch_size: int = 1
     rollout_micro_batch_size: int = 0
+    rollout_use_cache: bool = True
+    rollout_inference_mode: bool = True
+    rollout_log_timing: bool = True
     gradient_checkpointing: bool = False
     empty_cache_every: int = 0
     skip_zero_advantage_updates: bool = True

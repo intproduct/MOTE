@@ -103,6 +103,9 @@ class ConfigResumeTests(unittest.TestCase):
         self.assertEqual(cfg.rl.log_memory_every, 1)
         self.assertEqual(cfg.rl.logprob_micro_batch_size, 1)
         self.assertEqual(cfg.rl.rollout_micro_batch_size, 0)
+        self.assertTrue(cfg.rl.rollout_use_cache)
+        self.assertTrue(cfg.rl.rollout_inference_mode)
+        self.assertTrue(cfg.rl.rollout_log_timing)
         self.assertFalse(cfg.rl.gradient_checkpointing)
         self.assertEqual(cfg.rl.empty_cache_every, 0)
         self.assertTrue(cfg.rl.skip_zero_advantage_updates)
@@ -157,6 +160,9 @@ class ConfigResumeTests(unittest.TestCase):
                 "log_memory_every": 0,
                 "logprob_micro_batch_size": 2,
                 "rollout_micro_batch_size": 0,
+                "rollout_use_cache": False,
+                "rollout_inference_mode": False,
+                "rollout_log_timing": False,
                 "gradient_checkpointing": True,
                 "empty_cache_every": 3,
                 "skip_zero_advantage_updates": False,
@@ -173,6 +179,9 @@ class ConfigResumeTests(unittest.TestCase):
         self.assertEqual(cfg.rl.log_memory_every, 0)
         self.assertEqual(cfg.rl.logprob_micro_batch_size, 2)
         self.assertEqual(cfg.rl.rollout_micro_batch_size, 0)
+        self.assertFalse(cfg.rl.rollout_use_cache)
+        self.assertFalse(cfg.rl.rollout_inference_mode)
+        self.assertFalse(cfg.rl.rollout_log_timing)
         self.assertTrue(cfg.rl.gradient_checkpointing)
         self.assertEqual(cfg.rl.empty_cache_every, 3)
         self.assertFalse(cfg.rl.skip_zero_advantage_updates)
