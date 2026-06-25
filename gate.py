@@ -194,10 +194,11 @@ def topk_routing_hard(probs: tc.Tensor, k: int):
 
     k_eff = int(min(k, E))
     M = flat.shape[0]
+    if k_eff <= 0:
+        raise ValueError(f"k must select at least one expert, got k={k}")
 
     with tc.no_grad():
-        idx_sorted = tc.argsort(flat, dim=-1)
-        topk_idx = idx_sorted[:, -k_eff:]  # (M, k)
+        _, topk_idx = tc.topk(flat, k=k_eff, dim=-1, largest=True, sorted=False)  # (M, k)
 
         mask = tc.zeros((M, E), device=flat.device, dtype=flat.dtype)
         ones = tc.ones((M, k_eff), device=flat.device, dtype=flat.dtype)
@@ -1032,8 +1033,10 @@ class Quantum_layer_Gate(nn.Module):
             g = -tc.log(-tc.log(U + 1e-8) + 1e-8)
             logits = tc.log(probs.to(tc.float32) + 1e-8) + g
 
-            idx_sorted = tc.argsort(logits, dim=-1)
-            topk_idx = idx_sorted[:, -k:].detach()
+            if k <= 0:
+                raise ValueError(f"k must select at least one expert, got k={self.k}")
+            _, topk_idx = tc.topk(logits, k=k, dim=-1, largest=True, sorted=False)
+            topk_idx = topk_idx.detach()
 
             mask = tc.zeros((B, E), device=probs.device, dtype=probs.dtype)
             ones = tc.ones((B, k), device=probs.device, dtype=probs.dtype)

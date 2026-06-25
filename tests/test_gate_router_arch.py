@@ -25,7 +25,7 @@ if "MOTE.train" not in sys.modules:
     sys.modules["MOTE.train"] = train_pkg
 
 from MOTE.config.loader import load_config_from_json
-from MOTE.gate import GateConfig, SoftGate, TopKGate, gate_factory_config, normalize_legacy_gate_state_dict_for_model
+from MOTE.gate import GateConfig, SoftGate, TopKGate, gate_factory_config, normalize_legacy_gate_state_dict_for_model, topk_routing_hard
 from MOTE.patching import build_patch_model_config, patch_qwen_ffn_layers
 
 
@@ -136,6 +136,27 @@ class GateRouterArchTests(unittest.TestCase):
         self.assertEqual(tuple(soft_probs.shape), (9, 4))
         self.assertIsNone(soft_mask)
         self.assertIn("l_aux", soft_aux)
+
+    def test_topk_routing_hard_matches_argsort_selected_set_without_ties(self):
+        probs = torch.tensor(
+            [
+                [[0.11, 0.23, 0.07, 0.41, 0.18], [0.32, 0.04, 0.29, 0.21, 0.14]],
+                [[0.09, 0.51, 0.13, 0.19, 0.08], [0.27, 0.31, 0.05, 0.12, 0.25]],
+            ],
+            dtype=torch.float32,
+        )
+        for k in (1, 3):
+            _, mask = topk_routing_hard(probs, k)
+            flat = probs.reshape(-1, probs.shape[-1])
+            idx = torch.argsort(flat, dim=-1)[:, -min(k, probs.shape[-1]) :]
+            baseline = torch.zeros_like(flat).scatter(1, idx, 1.0).reshape_as(probs)
+            # Tied top-k indices are not stable across selection algorithms; this
+            # no-tie fixture checks selected sets/masks rather than index order.
+            self.assertTrue(torch.equal(mask, baseline))
+
+    def test_topk_routing_hard_rejects_zero_k(self):
+        with self.assertRaisesRegex(ValueError, "at least one expert"):
+            topk_routing_hard(torch.rand(2, 4), 0)
 
     def test_residual_mlp_scale_zero_equals_base_linear(self):
         gate = TopKGate(

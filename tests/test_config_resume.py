@@ -106,6 +106,7 @@ class ConfigResumeTests(unittest.TestCase):
         self.assertTrue(cfg.rl.rollout_use_cache)
         self.assertTrue(cfg.rl.rollout_inference_mode)
         self.assertTrue(cfg.rl.rollout_log_timing)
+        self.assertEqual(cfg.rl.rollout_max_prompt_tokens, 0)
         self.assertFalse(cfg.rl.gradient_checkpointing)
         self.assertEqual(cfg.rl.empty_cache_every, 0)
         self.assertTrue(cfg.rl.skip_zero_advantage_updates)
@@ -163,6 +164,7 @@ class ConfigResumeTests(unittest.TestCase):
                 "rollout_use_cache": False,
                 "rollout_inference_mode": False,
                 "rollout_log_timing": False,
+                "rollout_max_prompt_tokens": 128,
                 "gradient_checkpointing": True,
                 "empty_cache_every": 3,
                 "skip_zero_advantage_updates": False,
@@ -182,6 +184,7 @@ class ConfigResumeTests(unittest.TestCase):
         self.assertFalse(cfg.rl.rollout_use_cache)
         self.assertFalse(cfg.rl.rollout_inference_mode)
         self.assertFalse(cfg.rl.rollout_log_timing)
+        self.assertEqual(cfg.rl.rollout_max_prompt_tokens, 128)
         self.assertTrue(cfg.rl.gradient_checkpointing)
         self.assertEqual(cfg.rl.empty_cache_every, 3)
         self.assertFalse(cfg.rl.skip_zero_advantage_updates)
@@ -228,6 +231,7 @@ class ConfigResumeTests(unittest.TestCase):
             ({"rl": {"enabled": True, "max_steps": 1, "log_memory_every": -1}}, "rl.log_memory_every must be >= 0"),
             ({"rl": {"enabled": True, "max_steps": 1, "logprob_micro_batch_size": -1}}, "rl.logprob_micro_batch_size must be >= 0"),
             ({"rl": {"enabled": True, "max_steps": 1, "rollout_micro_batch_size": -1}}, "rl.rollout_micro_batch_size must be >= 0"),
+            ({"rl": {"enabled": True, "max_steps": 1, "rollout_max_prompt_tokens": -1}}, "rl.rollout_max_prompt_tokens must be >= 0"),
             ({"rl": {"enabled": True, "max_steps": 1, "empty_cache_every": -1}}, "rl.empty_cache_every must be >= 0"),
             ({"rl": {"enabled": True, "max_steps": 1, "max_zero_advantage_rollout_retries": 0}}, "rl.max_zero_advantage_rollout_retries must be >= 1"),
             ({"rl": {"enabled": True, "max_steps": 1, "zero_advantage_retry_action": "stop"}}, "rl.zero_advantage_retry_action must be one of"),

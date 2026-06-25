@@ -21,6 +21,7 @@ from ..rl.generation import (
     is_cache_compat_generation_error,
     rollout_generation_state,
     rollout_grad_context,
+    tokenize_rollout_prompts,
 )
 from ..rl.rewards_gsm8k import gsm8k_reward
 from ..rl.runtime import load_policy_for_rl
@@ -94,7 +95,11 @@ def main():
     for row in records:
         prompt = build_rl_prompt_text(cfg, tokenizer, row["question"])
         rollout_prompts = [prompt for _ in range(int(args.num_rollouts))]
-        enc = tokenizer(rollout_prompts, return_tensors="pt", padding=True, add_special_tokens=True)
+        enc = tokenize_rollout_prompts(
+            tokenizer,
+            rollout_prompts,
+            max_prompt_tokens=int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0)),
+        )
         input_ids = enc["input_ids"].to(model.device)
         attention_mask = enc["attention_mask"].to(model.device)
         response_start = int(input_ids.shape[1])

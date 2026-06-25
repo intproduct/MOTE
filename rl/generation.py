@@ -44,6 +44,35 @@ def rollout_grad_context_name(enabled: bool) -> str:
     return "inference_mode" if bool(enabled) else "no_grad"
 
 
+def tokenize_rollout_prompts(tokenizer, prompts, *, max_prompt_tokens: int = 0):
+    max_prompt_tokens = int(max_prompt_tokens)
+    if max_prompt_tokens <= 0:
+        return tokenizer(prompts, return_tensors="pt", padding=True, add_special_tokens=True)
+
+    had_truncation_side = hasattr(tokenizer, "truncation_side")
+    original_truncation_side = getattr(tokenizer, "truncation_side", None) if had_truncation_side else None
+    if not had_truncation_side:
+        enc = tokenizer(prompts, return_tensors="pt", padding=True, add_special_tokens=True)
+        for key, value in list(enc.items()):
+            if hasattr(value, "shape") and len(value.shape) >= 2 and int(value.shape[1]) > max_prompt_tokens:
+                enc[key] = value[:, -max_prompt_tokens:]
+        return enc
+    if had_truncation_side:
+        tokenizer.truncation_side = "left"
+    try:
+        return tokenizer(
+            prompts,
+            return_tensors="pt",
+            padding=True,
+            add_special_tokens=True,
+            truncation=True,
+            max_length=max_prompt_tokens,
+        )
+    finally:
+        if had_truncation_side:
+            tokenizer.truncation_side = original_truncation_side
+
+
 def is_cache_compat_generation_error(exc: Exception) -> bool:
     text = str(exc).lower()
     cache_terms = ("use_cache", "past_key_values", "cache", "gradient checkpoint")

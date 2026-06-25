@@ -24,6 +24,7 @@ from ..rl.generation import (
     rollout_generation_state,
     rollout_grad_context,
     rollout_grad_context_name,
+    tokenize_rollout_prompts,
 )
 from ..rl.logprobs import gather_response_logprobs
 from ..rl.mgpo import compute_mgpo_weights
@@ -248,6 +249,33 @@ def maybe_collect_train_forward_router_usage(model, enabled: bool) -> Tuple[Opti
     if not bool(enabled):
         return None, "usage_tracking_disabled"
     return collect_train_forward_router_usage(model), None
+
+
+def _rl_usage_tracking_enabled(fit_cfg) -> bool:
+    return bool(getattr(fit_cfg.rl, "enable_usage_tracking", False))
+
+
+def maybe_reset_runtime_usage_buffers(fit_cfg, model) -> bool:
+    if not _rl_usage_tracking_enabled(fit_cfg):
+        return False
+    reset_runtime_usage_buffers(model)
+    return True
+
+
+def maybe_disable_and_reset_runtime_usage(fit_cfg, model) -> bool:
+    if not _rl_usage_tracking_enabled(fit_cfg):
+        return False
+    disable_runtime_usage_tracking(model)
+    reset_runtime_usage_buffers(model)
+    return True
+
+
+def maybe_enable_runtime_usage_for_train_forward(fit_cfg, model) -> bool:
+    if not _rl_usage_tracking_enabled(fit_cfg):
+        return False
+    reset_runtime_usage_buffers(model)
+    enable_runtime_usage_tracking(model)
+    return True
 
 
 def is_zero_advantage_batch(advantages: torch.Tensor) -> bool:
@@ -795,6 +823,8 @@ def run_fitmotn_rl_training(fit_cfg):
         "amp_dtype": dtype_name_or_none(amp_dtype),
         "chat_system_prompt_present": bool(getattr(fit_cfg.rl, "chat_system_prompt", None)),
         "tokenizer_chat_template_present": bool(getattr(tokenizer, "chat_template", None)),
+        "enable_usage_tracking": _rl_usage_tracking_enabled(fit_cfg),
+        "rollout_max_prompt_tokens": int(getattr(fit_cfg.rl, "rollout_max_prompt_tokens", 0)),
         **initial_rollout_cache_info,
     }
     jsonl_append(train_jsonl_path, run_start_record)
@@ -825,18 +855,22 @@ def run_fitmotn_rl_training(fit_cfg):
         rollout_gold = [answer for answer in gold_answers for _ in range(int(fit_cfg.rl.group_size))]
 
         tokenize_start_time = time.time()
-        enc = tokenizer(rollout_prompts, return_tensors="pt", padding=True, add_special_tokens=True)
+        enc = tokenize_rollout_prompts(
+            tokenizer,
+            rollout_prompts,
+            max_prompt_tokens=int(getattr(fit_cfg.rl, "rollout_max_prompt_tokens", 0)),
+        )
         input_ids = enc["input_ids"].to(model.device)
         attention_mask = enc["attention_mask"].to(model.device)
         response_start = int(input_ids.shape[1])
         next_update_step = int(update_step) + 1
         timing_info["tokenize_sec"] = max(0.0, time.time() - tokenize_start_time)
 
-        try:
-            disable_runtime_usage_tracking(model)
-            reset_runtime_usage_buffers(model)
-        except Exception as exc:
-            logger.warning("[RLUsage] failed to disable/reset usage buffers before generation: %s", exc)
+        if _rl_usage_tracking_enabled(fit_cfg):
+            try:
+                maybe_disable_and_reset_runtime_usage(fit_cfg, model)
+            except Exception as exc:
+                logger.warning("[RLUsage] failed to disable/reset usage buffers before generation: %s", exc)
         _maybe_log_cuda_memory(fit_cfg, logger, "before_generate", update_step=next_update_step, micro_step=micro_step)
         generate_start_time = time.time()
         generated, original_seq_lens, rollout_cache_info = generate_rollout_sequences(
@@ -935,11 +969,11 @@ def run_fitmotn_rl_training(fit_cfg):
                 for key in timing_info:
                     skip_log_record.pop(key, None)
             logger.info("[RLTrain] %s", json.dumps(skip_log_record, ensure_ascii=False))
-            try:
-                disable_runtime_usage_tracking(model)
-                reset_runtime_usage_buffers(model)
-            except Exception as exc:
-                logger.warning("[RLUsage] failed to disable/reset usage buffers after zero-advantage skip: %s", exc)
+            if _rl_usage_tracking_enabled(fit_cfg):
+                try:
+                    maybe_disable_and_reset_runtime_usage(fit_cfg, model)
+                except Exception as exc:
+                    logger.warning("[RLUsage] failed to disable/reset usage buffers after zero-advantage skip: %s", exc)
             should_raise_zero_retry = zero_advantage_retry_exceeded(
                 zero_advantage_retry_count,
                 int(getattr(fit_cfg.rl, "max_zero_advantage_rollout_retries", 8)),
@@ -988,11 +1022,11 @@ def run_fitmotn_rl_training(fit_cfg):
                 zero_advantage_retry_count = 0
             continue
 
-        try:
-            disable_runtime_usage_tracking(model)
-            reset_runtime_usage_buffers(model)
-        except Exception as exc:
-            logger.warning("[RLUsage] failed to disable/reset usage buffers before old logprobs: %s", exc)
+        if _rl_usage_tracking_enabled(fit_cfg):
+            try:
+                maybe_disable_and_reset_runtime_usage(fit_cfg, model)
+            except Exception as exc:
+                logger.warning("[RLUsage] failed to disable/reset usage buffers before old logprobs: %s", exc)
         old_logprobs_start_time = time.time()
         old_logprobs = compute_old_logprobs_microbatched(
             model,
@@ -1009,12 +1043,7 @@ def run_fitmotn_rl_training(fit_cfg):
         if hasattr(model, "config") and hasattr(model.config, "use_cache"):
             model.config.use_cache = False
         try:
-            if bool(getattr(fit_cfg.rl, "enable_usage_tracking", False)):
-                reset_runtime_usage_buffers(model)
-                enable_runtime_usage_tracking(model)
-            else:
-                disable_runtime_usage_tracking(model)
-                reset_runtime_usage_buffers(model)
+            maybe_enable_runtime_usage_for_train_forward(fit_cfg, model)
         except Exception as exc:
             logger.warning("[RLUsage] failed to configure usage tracking before train forward: %s", exc)
         train_forward_router_usage = None
@@ -1062,16 +1091,16 @@ def run_fitmotn_rl_training(fit_cfg):
         try:
             train_forward_router_usage, router_usage_warning = maybe_collect_train_forward_router_usage(
                 model,
-                bool(getattr(fit_cfg.rl, "enable_usage_tracking", False)),
+                _rl_usage_tracking_enabled(fit_cfg),
             )
         except Exception as exc:
             router_usage_warning = str(exc)
             logger.warning("[RLUsage] failed to collect train forward usage: %s", exc)
-        try:
-            disable_runtime_usage_tracking(model)
-            reset_runtime_usage_buffers(model)
-        except Exception as exc:
-            logger.warning("[RLUsage] failed to disable/reset usage buffers after train forward: %s", exc)
+        if _rl_usage_tracking_enabled(fit_cfg):
+            try:
+                maybe_disable_and_reset_runtime_usage(fit_cfg, model)
+            except Exception as exc:
+                logger.warning("[RLUsage] failed to disable/reset usage buffers after train forward: %s", exc)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_backward", update_step=next_update_step, micro_step=micro_step)
 
         grad_norm = None

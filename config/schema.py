@@ -303,6 +303,7 @@ class RLConfig:
     rollout_use_cache: bool = True
     rollout_inference_mode: bool = True
     rollout_log_timing: bool = True
+    rollout_max_prompt_tokens: int = 0
     gradient_checkpointing: bool = False
     empty_cache_every: int = 0
     skip_zero_advantage_updates: bool = True

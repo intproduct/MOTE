@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import types
 import json
+import importlib
 from pathlib import Path
 from unittest.mock import patch
 
@@ -28,6 +29,7 @@ from MOTE.config.defaults import make_default_config
 from MOTE.rl import data as rl_data
 from MOTE.rl.data import load_gsm8k_rl_records
 from MOTE.rl.generation import rollout_generation_state
+from MOTE.rl.generation import tokenize_rollout_prompts
 from MOTE.rl.grpo import compute_group_advantages, grpo_loss
 from MOTE.rl.logprobs import gather_response_logprobs
 from MOTE.rl.mgpo import compute_mgpo_weights
@@ -45,11 +47,15 @@ from MOTE.train.rl_controller import (
     generate_rollout_sequences,
     log_cuda_memory,
     maybe_collect_train_forward_router_usage,
+    maybe_disable_and_reset_runtime_usage,
+    maybe_enable_runtime_usage_for_train_forward,
     resolve_amp_dtype,
     rollout_cache_metadata,
     zero_advantage_retry_exceeded,
 )
 from MOTE.audit import to_jsonable
+
+rl_controller_module = importlib.import_module("MOTE.train.rl_controller")
 
 
 class FakeOutput:
@@ -111,13 +117,33 @@ class FakeRolloutTokenizer:
     def __init__(self, pad_token_id=0, eos_token_id=2):
         self.pad_token_id = pad_token_id
         self.eos_token_id = eos_token_id
+        self.truncation_side = "right"
+        self.calls = []
 
-    def __call__(self, texts, return_tensors=None, padding=False, add_special_tokens=True):
-        del return_tensors, padding, add_special_tokens
+    def __call__(self, texts, return_tensors=None, padding=False, add_special_tokens=True, truncation=False, max_length=None):
+        self.calls.append(
+            {
+                "texts": list(texts),
+                "return_tensors": return_tensors,
+                "padding": padding,
+                "add_special_tokens": add_special_tokens,
+                "truncation": truncation,
+                "max_length": max_length,
+                "truncation_side": self.truncation_side,
+            }
+        )
         rows = []
-        max_len = max(len(text) for text in texts)
+        token_rows = []
         for text in texts:
             tokens = [ord(ch) % 10 + 3 for ch in text]
+            if truncation and max_length is not None and len(tokens) > int(max_length):
+                if self.truncation_side == "left":
+                    tokens = tokens[-int(max_length) :]
+                else:
+                    tokens = tokens[: int(max_length)]
+            token_rows.append(tokens)
+        max_len = max(len(tokens) for tokens in token_rows)
+        for tokens in token_rows:
             pad_len = max_len - len(tokens)
             rows.append([int(self.pad_token_id)] * pad_len + tokens)
         input_ids = torch.tensor(rows, dtype=torch.long)
@@ -148,7 +174,7 @@ class FakeRolloutModel(nn.Module):
         return self.param.device
 
     def generate(self, input_ids, attention_mask=None, use_cache=False, **kwargs):
-        del attention_mask, kwargs
+        del attention_mask
         self.generate_calls.append(
             {
                 "use_cache": bool(use_cache),
@@ -157,6 +183,7 @@ class FakeRolloutModel(nn.Module):
                 "generation_config_use_cache": (
                     bool(getattr(self.generation_config, "use_cache")) if hasattr(self, "generation_config") else None
                 ),
+                "kwargs": dict(kwargs),
             }
         )
         call_idx = len(self.generate_calls) - 1
@@ -355,6 +382,28 @@ def test_usage_tracking_disabled_does_not_collect_runtime_usage_tensors():
     assert warning == "usage_tracking_disabled"
 
 
+def test_usage_tracking_helpers_short_circuit_by_default_and_call_when_enabled():
+    cfg = make_default_config()
+    cfg.rl.enable_usage_tracking = False
+    model = nn.Linear(1, 1)
+    with patch.object(rl_controller_module, "reset_runtime_usage_buffers") as reset_mock:
+        assert maybe_disable_and_reset_runtime_usage(cfg, model) is False
+        assert maybe_enable_runtime_usage_for_train_forward(cfg, model) is False
+    reset_mock.assert_not_called()
+
+    cfg.rl.enable_usage_tracking = True
+    with patch.object(rl_controller_module, "reset_runtime_usage_buffers") as reset_mock, patch.object(
+        rl_controller_module, "disable_runtime_usage_tracking"
+    ) as disable_mock, patch.object(rl_controller_module, "enable_runtime_usage_tracking") as enable_mock:
+        assert maybe_disable_and_reset_runtime_usage(cfg, model) is True
+        disable_mock.assert_called_once_with(model)
+        reset_mock.assert_called_once_with(model)
+        reset_mock.reset_mock()
+        assert maybe_enable_runtime_usage_for_train_forward(cfg, model) is True
+        reset_mock.assert_called_once_with(model)
+        enable_mock.assert_called_once_with(model)
+
+
 def test_rl_sample_payload_is_jsonable_without_tensors():
     payload = {
         "kind": "samples",
@@ -458,6 +507,21 @@ def test_rollout_cache_metadata_allows_cache_with_gradient_checkpointing():
     assert info["rollout_grad_context"] == "inference_mode"
 
 
+def test_rollout_prompt_tokenization_default_and_left_truncation():
+    tokenizer = FakeRolloutTokenizer()
+    enc = tokenize_rollout_prompts(tokenizer, ["abcdef", "xy"], max_prompt_tokens=0)
+    assert tokenizer.calls[-1]["truncation"] is False
+    assert tokenizer.calls[-1]["max_length"] is None
+    assert enc["input_ids"].shape[1] == 6
+
+    enc = tokenize_rollout_prompts(tokenizer, ["abcdef", "uvwxyz"], max_prompt_tokens=3)
+    assert tokenizer.calls[-1]["truncation"] is True
+    assert tokenizer.calls[-1]["max_length"] == 3
+    assert tokenizer.calls[-1]["truncation_side"] == "left"
+    assert tokenizer.truncation_side == "right"
+    assert enc["input_ids"].shape[1] == 3
+
+
 def test_rollout_generate_uses_cache_eval_and_logprobs_stay_no_cache():
     cfg = make_default_config()
     cfg.rl.rollout_use_cache = True
@@ -478,9 +542,13 @@ def test_rollout_generate_uses_cache_eval_and_logprobs_stay_no_cache():
     )
 
     assert model.training
-    assert model.generate_calls == [
-        {"use_cache": True, "training": False, "config_use_cache": True, "generation_config_use_cache": True}
-    ]
+    assert len(model.generate_calls) == 1
+    assert model.generate_calls[0]["use_cache"] is True
+    assert model.generate_calls[0]["training"] is False
+    assert model.generate_calls[0]["config_use_cache"] is True
+    assert model.generate_calls[0]["generation_config_use_cache"] is True
+    for unused_key in ("output_scores", "return_dict_in_generate", "output_hidden_states", "output_attentions"):
+        assert unused_key not in model.generate_calls[0]["kwargs"]
     assert info["effective_rollout_use_cache"] is True
     assert original_seq_lens == [generated.shape[1], generated.shape[1]]
 
@@ -503,7 +571,7 @@ def test_rollout_microbatch_padding_masks_manual_tail_and_pad_equals_eos():
     cfg.rl.max_new_tokens = 4
     tokenizer = FakeRolloutTokenizer(pad_token_id=2, eos_token_id=2)
     model = FakeRolloutModel(lengths=[3, 1], pad_token_id=2, eos_token_id=2)
-    enc = tokenizer(["abcd", "ef"], return_tensors="pt", padding=True, add_special_tokens=True)
+    enc = tokenize_rollout_prompts(tokenizer, ["abcd", "ef"], max_prompt_tokens=3)
     response_start = enc["input_ids"].shape[1]
 
     generated, original_seq_lens, _ = generate_rollout_sequences(
@@ -522,6 +590,8 @@ def test_rollout_microbatch_padding_masks_manual_tail_and_pad_equals_eos():
     )
 
     assert len(model.generate_calls) == 2
+    assert len(tokenizer.calls) == 1
+    assert response_start == 3
     assert generated.shape[0] == 2
     assert response_mask.shape == generated.shape
     assert original_seq_lens[0] > original_seq_lens[1]

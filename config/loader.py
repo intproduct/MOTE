@@ -511,6 +511,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "log_memory_every",
         "logprob_micro_batch_size",
         "rollout_micro_batch_size",
+        "rollout_max_prompt_tokens",
         "empty_cache_every",
         "max_zero_advantage_rollout_retries",
         "save_every_updates",
@@ -566,7 +567,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             raise ValueError(f"rl.save_every_updates must be >= 0, got {rl_cfg.save_every_updates}")
         if int(rl_cfg.eval_every_updates) < 0:
             raise ValueError(f"rl.eval_every_updates must be >= 0, got {rl_cfg.eval_every_updates}")
-        for field_name in ["log_memory_every", "logprob_micro_batch_size", "rollout_micro_batch_size", "empty_cache_every"]:
+        for field_name in ["log_memory_every", "logprob_micro_batch_size", "rollout_micro_batch_size", "rollout_max_prompt_tokens", "empty_cache_every"]:
             value = int(getattr(rl_cfg, field_name))
             if value < 0:
                 raise ValueError(f"rl.{field_name} must be >= 0, got {value}")
