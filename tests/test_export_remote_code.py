@@ -76,6 +76,44 @@ def test_tiny_noop_hf_roundtrip(tmp_path):
     assert result.ok, result.errors
 
 
+def test_nonempty_layers_to_patch_calls_patching_helper(monkeypatch):
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+    pytest.importorskip("torch")
+
+    from transformers import GPT2Config
+
+    import fitmotn.patching as patching
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM
+
+    calls = {}
+
+    def fake_patch_qwen_ffn_layers(*, model, layer_idxs, motn_cfg, device, dtype, log=None):
+        calls["layer_idxs"] = list(layer_idxs)
+        calls["motn_cfg"] = dict(motn_cfg)
+        calls["device"] = str(device)
+        calls["dtype"] = str(dtype)
+        return model
+
+    monkeypatch.setattr(patching, "patch_qwen_ffn_layers", fake_patch_qwen_ffn_layers)
+
+    base = GPT2Config(vocab_size=16, n_positions=16, n_ctx=16, n_embd=8, n_layer=1, n_head=1, bos_token_id=1, eos_token_id=2)
+    config = FitMoTNConfig(
+        base_model_name_or_path="tiny-gpt2-local",
+        base_model_config=base.to_dict(),
+        fitmotn_patch_config={"patch_backend": "motn", "E": 2, "dtype": "float32"},
+        layers_to_patch=[0],
+        patch_backend="motn",
+    )
+
+    FitMoTNForCausalLM(config)
+
+    assert calls["layer_idxs"] == [0]
+    assert calls["motn_cfg"]["patch_backend"] == "motn"
+    assert calls["motn_cfg"]["E"] == 2
+
+
 def test_safe_serialization_requires_safetensors(monkeypatch):
     original_import = builtins.__import__
 

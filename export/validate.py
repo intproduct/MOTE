@@ -16,6 +16,14 @@ from .format import (
 )
 
 
+HF_WEIGHT_PATTERNS = (
+    "pytorch_model.bin",
+    "pytorch_model-*.bin",
+    "model.safetensors",
+    "model-*.safetensors",
+)
+
+
 @dataclass
 class ExportValidationResult:
     ok: bool
@@ -44,6 +52,10 @@ def _load_json(path: Path, errors: list[dict[str, Any]]) -> dict[str, Any] | Non
         errors.append(_error("invalid_json_type", f"{path.name} must contain a JSON object", path))
         return None
     return data
+
+
+def _has_hf_weight_file(target: Path) -> bool:
+    return any(list(target.glob(pattern)) for pattern in HF_WEIGHT_PATTERNS)
 
 
 def validate_export_layout(path: str | Path) -> ExportValidationResult:
@@ -98,6 +110,14 @@ def validate_export_layout(path: str | Path) -> ExportValidationResult:
         if hf_config is not None:
             if hf_config.get("model_type") != "fitmotn":
                 errors.append(_error("invalid_hf_config", "config.json model_type must be 'fitmotn'", target / "config.json"))
+            if hf_config.get("architectures") != ["FitMoTNForCausalLM"]:
+                errors.append(
+                    _error(
+                        "invalid_hf_config",
+                        "config.json architectures must be ['FitMoTNForCausalLM']",
+                        target / "config.json",
+                    )
+                )
             auto_map = hf_config.get("auto_map") or {}
             for key, expected in FITMOTN_AUTO_MAP.items():
                 if auto_map.get(key) != expected:
@@ -105,6 +125,8 @@ def validate_export_layout(path: str | Path) -> ExportValidationResult:
             patch_cfg = hf_config.get("fitmotn_patch_config")
             if not isinstance(patch_cfg, dict):
                 errors.append(_error("invalid_hf_config", "config.json fitmotn_patch_config must be a JSON object", target / "config.json"))
+        if not _has_hf_weight_file(target):
+            errors.append(_error("missing_file", "HF roundtrip export must contain at least one HF weight file", target))
         if export_config is not None:
             for key, expected in [
                 ("hf_roundtrip_ready", True),

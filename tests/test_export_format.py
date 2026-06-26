@@ -127,12 +127,14 @@ def test_validate_hf_roundtrip_layout(tmp_path):
         json.dumps(
             {
                 "model_type": "fitmotn",
+                "architectures": ["FitMoTNForCausalLM"],
                 "auto_map": FITMOTN_AUTO_MAP,
                 "fitmotn_patch_config": {"patch_backend": "motn", "E": 4},
             }
         ),
         encoding="utf-8",
     )
+    (exported / "model.safetensors").write_bytes(b"weights")
     (exported / "configuration_fitmotn.py").write_text("# config\n", encoding="utf-8")
     (exported / "modeling_fitmotn.py").write_text("# model\n", encoding="utf-8")
     (exported / "README.md").write_text("export", encoding="utf-8")

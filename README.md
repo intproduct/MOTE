@@ -1017,7 +1017,7 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 
 ## FitMoTN export and vLLM roadmap
 
-Raw FitMoTN checkpoints cannot be passed directly to vLLM. Stage 4A can still create a metadata-only export for scanning and layout validation:
+Raw FitMoTN checkpoints are training artifacts. For post-training inference or evaluation, prefer a full Stage 4B exported Hugging Face directory instead of pointing tools at the raw checkpoint. Stage 4A can still create a metadata-only export for scanning and layout validation:
 
 ```bash
 python -m fitmotn.cli.export_hf \
@@ -1052,7 +1052,7 @@ from transformers import AutoModelForCausalLM
 model = AutoModelForCausalLM.from_pretrained("/path/to/exported-fitmotn-hf", trust_remote_code=True)
 ```
 
-The exported wrapper requires the local `fitmotn` package to be installed. Stage 4B remains `vllm_ready=false`.
+The exported wrapper requires the local `fitmotn` package to be installed. Use the full exported HF directory for `eval_hf.py`, `eval_auto.py`, and ad-hoc `AutoModelForCausalLM` loading; metadata-only exports and raw checkpoints are not the recommended inference/evaluation targets. Stage 4B remains `vllm_ready=false`.
 
 Roadmap:
 

@@ -9,6 +9,7 @@ import torch as tc
 from ..config import load_config
 from ..eval.restore import restore_fitmotn_model
 from ..eval.runner import run_eval_tasks
+from ..export.format import EXPORT_MANIFEST_FILENAME, EXPORT_STAGE_HF_ROUNDTRIP, classify_model_path
 from ..runtime import load_causal_lm_and_tokenizer
 
 
@@ -25,9 +26,33 @@ def parse_args():
     return parser.parse_args()
 
 
+def _export_stage(target: Path) -> str | None:
+    try:
+        with (target / EXPORT_MANIFEST_FILENAME).open("r", encoding="utf-8") as f:
+            payload = json.load(f)
+        return payload.get("export_stage")
+    except Exception:
+        return None
+
+
 def _load_model_and_tokenizer(target: Path, cfg, device: str):
-    if (target / "fitmotn_state.pt").exists():
+    path_kind = classify_model_path(target)
+    if path_kind == "raw_fitmotn_checkpoint":
         return restore_fitmotn_model(target, device=device)
+    if path_kind == "exported_fitmotn_dir":
+        stage = _export_stage(target)
+        if stage != EXPORT_STAGE_HF_ROUNDTRIP:
+            raise ValueError(
+                "Metadata-only FitMoTN exports are not loadable by eval_auto. "
+                "Run `python -m fitmotn.cli.export_hf --checkpoint_dir ... --output_dir ... --no-metadata_only` first."
+            )
+        return load_causal_lm_and_tokenizer(
+            target,
+            device=tc.device(device),
+            trust_remote_code=True,
+            torch_dtype=cfg.model.torch_dtype,
+            use_cache=True,
+        )
     return load_causal_lm_and_tokenizer(
         target,
         device=tc.device(device),

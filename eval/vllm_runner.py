@@ -77,7 +77,10 @@ def inspect_vllm_compatibility(model_path: str) -> Dict[str, Any]:
         report["vllm_ready"] = manifest.get("vllm_ready")
         if manifest.get("vllm_ready") is not True:
             report["supports_vllm_eval"] = False
-            report["reason"] = "metadata_only_export_not_vllm_ready"
+            if manifest.get("export_stage") == "hf_roundtrip":
+                report["reason"] = "hf_roundtrip_export_not_vllm_ready"
+            else:
+                report["reason"] = "metadata_only_export_not_vllm_ready"
     return report
 
 
@@ -93,6 +96,11 @@ def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Di
             raise NotImplementedError(
                 "This exported FitMoTN directory is metadata-only. Stage 4B/4C must complete HF roundtrip "
                 "and vLLM support before inference."
+            )
+        if compatibility.get("reason") == "hf_roundtrip_export_not_vllm_ready":
+            raise NotImplementedError(
+                "This exported FitMoTN directory is HF roundtrip-ready, but vLLM support is not implemented yet. "
+                "Stage 4C will add vLLM offline runner support."
             )
         raise NotImplementedError(
             "vLLM evaluation for patched FitMoTN checkpoints is intentionally not implemented in MVP. "

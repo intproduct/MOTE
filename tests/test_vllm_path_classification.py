@@ -52,6 +52,34 @@ def test_vllm_metadata_only_export_guard_mentions_stage_4(tmp_path):
         evaluate_with_vllm(str(exported), fit_cfg=None)
 
 
+def test_vllm_hf_roundtrip_export_guard_mentions_stage_4c(tmp_path):
+    exported = tmp_path / "exported_hf"
+    exported.mkdir()
+    (exported / EXPORT_MANIFEST_FILENAME).write_text(
+        json.dumps(
+            {
+                "format_name": "fitmotn_hf_export",
+                "format_version": 1,
+                "export_stage": "hf_roundtrip",
+                "hf_roundtrip_ready": True,
+                "vllm_ready": False,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / EXPORT_CONFIG_FILENAME).write_text(
+        json.dumps({"base_model_name_or_path": "fake-base"}),
+        encoding="utf-8",
+    )
+
+    report = inspect_vllm_compatibility(str(exported))
+    assert report["supports_vllm_eval"] is False
+    assert report["reason"] == "hf_roundtrip_export_not_vllm_ready"
+    assert report["export_stage"] == "hf_roundtrip"
+    with pytest.raises(NotImplementedError, match="HF roundtrip-ready.*Stage 4C"):
+        evaluate_with_vllm(str(exported), fit_cfg=None)
+
+
 def test_ordinary_hf_dir_does_not_trigger_fitmotn_guard(tmp_path, monkeypatch):
     hf_dir = tmp_path / "hf"
     hf_dir.mkdir()
