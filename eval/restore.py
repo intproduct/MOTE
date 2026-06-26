@@ -10,7 +10,14 @@ from ..patching import patch_qwen_ffn_layers
 from ..runtime import load_causal_lm_and_tokenizer
 
 
-def restore_fitmotn_model(ckpt_dir: str | Path, device: str = "cuda:0"):
+def restore_fitmotn_model(
+    ckpt_dir: str | Path,
+    device: str = "cuda:0",
+    *,
+    trust_remote_code: bool | None = None,
+    torch_dtype: str | None = None,
+    use_cache: bool = True,
+):
     ckpt_path = Path(ckpt_dir).resolve()
     metadata = load_fitmotn_metadata(ckpt_path)
     base_model_path = metadata["base_model_path"]
@@ -21,15 +28,15 @@ def restore_fitmotn_model(ckpt_dir: str | Path, device: str = "cuda:0"):
     state_dict = get_restore_state_dict(metadata)
     fit_cfg = metadata.get("fit_cfg") or {}
     model_cfg = fit_cfg.get("model") if isinstance(fit_cfg, dict) else getattr(fit_cfg, "model", {})
-    torch_dtype = metadata.get("resolved_model_dtype", None)
-    if torch_dtype is None:
-        torch_dtype = getattr(model_cfg, "torch_dtype", None) if not isinstance(model_cfg, dict) else model_cfg.get("torch_dtype", "auto")
+    resolved_torch_dtype = torch_dtype if torch_dtype is not None else metadata.get("resolved_model_dtype", None)
+    if resolved_torch_dtype is None:
+        resolved_torch_dtype = getattr(model_cfg, "torch_dtype", None) if not isinstance(model_cfg, dict) else model_cfg.get("torch_dtype", "auto")
     model, tokenizer, ref_dtype = load_causal_lm_and_tokenizer(
         base_model_path,
         device=tc.device(device),
-        trust_remote_code=bool(metadata.get("trust_remote_code", True)),
-        torch_dtype=torch_dtype,
-        use_cache=True,
+        trust_remote_code=bool(metadata.get("trust_remote_code", True) if trust_remote_code is None else trust_remote_code),
+        torch_dtype=resolved_torch_dtype,
+        use_cache=use_cache,
     )
     if "dtype" not in patch_cfg:
         patch_cfg["dtype"] = ref_dtype

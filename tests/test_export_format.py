@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from fitmotn.export import classify_model_path, is_exported_fitmotn_dir, is_raw_fitmotn_checkpoint
-from fitmotn.export.format import EXPORT_CONFIG_FILENAME, EXPORT_MANIFEST_FILENAME
+from fitmotn.export.format import EXPORT_CONFIG_FILENAME, EXPORT_MANIFEST_FILENAME, FITMOTN_AUTO_MAP
 from fitmotn.export.validate import validate_export_layout
 
 
@@ -92,3 +92,52 @@ def test_validate_export_layout(tmp_path):
     result = validate_export_layout(with_config)
     assert result.ok
     assert any(warning["code"] == "placeholder_hf_config" for warning in result.warnings)
+
+
+def test_validate_hf_roundtrip_layout(tmp_path):
+    exported = tmp_path / "hf_roundtrip"
+    exported.mkdir()
+    (exported / EXPORT_MANIFEST_FILENAME).write_text(
+        json.dumps(
+            {
+                "format_name": "fitmotn_hf_export",
+                "format_version": 1,
+                "export_stage": "hf_roundtrip",
+                "hf_roundtrip_ready": True,
+                "vllm_ready": False,
+                "exported_code_ready": True,
+                "auto_map_ready": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / EXPORT_CONFIG_FILENAME).write_text(
+        json.dumps(
+            {
+                "base_model_name_or_path": "fake-base",
+                "hf_roundtrip_ready": True,
+                "vllm_ready": False,
+                "exported_code_ready": True,
+                "auto_map_ready": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / "config.json").write_text(
+        json.dumps(
+            {
+                "model_type": "fitmotn",
+                "auto_map": FITMOTN_AUTO_MAP,
+                "fitmotn_patch_config": {"patch_backend": "motn", "E": 4},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / "configuration_fitmotn.py").write_text("# config\n", encoding="utf-8")
+    (exported / "modeling_fitmotn.py").write_text("# model\n", encoding="utf-8")
+    (exported / "README.md").write_text("export", encoding="utf-8")
+
+    result = validate_export_layout(exported)
+
+    assert result.ok
+    assert result.errors == []

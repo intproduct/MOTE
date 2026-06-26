@@ -6,9 +6,14 @@ from pathlib import Path
 EXPORT_FORMAT_NAME = "fitmotn_hf_export"
 EXPORT_FORMAT_VERSION = 1
 EXPORT_STAGE_METADATA_ONLY = "metadata_only"
+EXPORT_STAGE_HF_ROUNDTRIP = "hf_roundtrip"
 EXPORT_MANIFEST_FILENAME = "fitmotn_export_manifest.json"
 EXPORT_CONFIG_FILENAME = "fitmotn_export_config.json"
 RAW_CHECKPOINT_MARKERS = ("fitmotn_state.pt", "fitmotn_state.json")
+FITMOTN_AUTO_MAP = {
+    "AutoConfig": "configuration_fitmotn.FitMoTNConfig",
+    "AutoModelForCausalLM": "modeling_fitmotn.FitMoTNForCausalLM",
+}
 
 
 def _as_path(path: str | Path) -> Path:

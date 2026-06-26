@@ -31,6 +31,7 @@ packages = [
     "fitmotn.diagnostics",
     "fitmotn.eval",
     "fitmotn.export",
+    "fitmotn.export.remote_code",
     "fitmotn.init",
     "fitmotn.rl",
     "fitmotn.tasks",
@@ -47,6 +48,7 @@ fitmotn = "."
 "fitmotn.diagnostics" = "diagnostics"
 "fitmotn.eval" = "eval"
 "fitmotn.export" = "export"
+"fitmotn.export.remote_code" = "export/remote_code"
 "fitmotn.init" = "init"
 "fitmotn.rl" = "rl"
 "fitmotn.tasks" = "tasks"

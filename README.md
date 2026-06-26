@@ -1017,9 +1017,7 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 
 ## FitMoTN export and vLLM roadmap
 
-Stage 4A only defines a metadata-only FitMoTN export directory layout. It does not enable patched FitMoTN vLLM inference, does not make the export loadable with `AutoModelForCausalLM.from_pretrained(...)`, and does not write model weights.
-
-Raw FitMoTN checkpoints cannot be passed directly to vLLM. First create a metadata-only export:
+Raw FitMoTN checkpoints cannot be passed directly to vLLM. Stage 4A can still create a metadata-only export for scanning and layout validation:
 
 ```bash
 python -m fitmotn.cli.export_hf \
@@ -1029,16 +1027,35 @@ python -m fitmotn.cli.export_hf \
   --validate
 ```
 
-The Stage 4A export directory contains:
+The metadata-only export directory contains:
 
 - `fitmotn_export_manifest.json`
 - `fitmotn_export_config.json`
 - `README.md`
 - optional tokenizer files only when `--copy_tokenizer` is explicitly passed
 
+Stage 4B adds an opt-in Hugging Face roundtrip export:
+
+```bash
+python -m fitmotn.cli.export_hf \
+  --checkpoint_dir /path/to/raw-fitmotn-checkpoint \
+  --output_dir /path/to/exported-fitmotn-hf \
+  --no-metadata_only \
+  --base_model /path/to/base-model \
+  --validate_layout
+```
+
+The Stage 4B export writes `config.json`, `configuration_fitmotn.py`, `modeling_fitmotn.py`, model weights, export metadata, `README.md`, and tokenizer/generation files when available. It can be loaded with:
+
+```python
+from transformers import AutoModelForCausalLM
+model = AutoModelForCausalLM.from_pretrained("/path/to/exported-fitmotn-hf", trust_remote_code=True)
+```
+
+The exported wrapper requires the local `fitmotn` package to be installed. Stage 4B remains `vllm_ready=false`.
+
 Roadmap:
 
-- Stage 4B will add `configuration_fitmotn.py`, `modeling_fitmotn.py`, `auto_map`, state dict / weights export, and an HF AutoModel roundtrip validator.
 - Stage 4C will add vLLM offline runner support.
 - Stage 4D will add vLLM eval and boundary rollout backend support.
 

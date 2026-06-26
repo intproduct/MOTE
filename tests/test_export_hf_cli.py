@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import sys
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
 
+import fitmotn.cli.export_hf as export_cli
 from fitmotn.cli.export_hf import main
 from fitmotn.export.format import EXPORT_CONFIG_FILENAME, EXPORT_MANIFEST_FILENAME
 
@@ -85,12 +87,58 @@ def test_copy_tokenizer_false_does_not_import_transformers(tmp_path, monkeypatch
     assert main(["--checkpoint_dir", str(raw), "--output_dir", str(out)]) == 0
 
 
-def test_rejects_no_metadata_only_and_hf_input(tmp_path):
+def test_full_export_is_opt_in_and_uses_tokenizer_default(tmp_path, monkeypatch):
     raw = tmp_path / "raw"
     out = tmp_path / "out"
     _write_raw_checkpoint(raw)
-    with pytest.raises(ValueError, match="metadata_only"):
-        main(["--checkpoint_dir", str(raw), "--output_dir", str(out), "--no-metadata_only"])
+    calls = {}
+
+    def fake_export(*args, **kwargs):
+        calls["args"] = args
+        calls["kwargs"] = kwargs
+        return SimpleNamespace(output_dir=Path(args[1]))
+
+    monkeypatch.setattr(export_cli, "export_fitmotn_hf_roundtrip", fake_export)
+
+    assert main(["--checkpoint_dir", str(raw), "--output_dir", str(out), "--no-metadata_only", "--no-validate_layout"]) == 0
+
+    assert calls["kwargs"]["copy_tokenizer"] is True
+    assert calls["kwargs"]["base_trust_remote_code"] is False
+    assert calls["kwargs"]["safe_serialization"] is True
+
+
+def test_full_export_respects_no_copy_tokenizer(tmp_path, monkeypatch):
+    raw = tmp_path / "raw"
+    out = tmp_path / "out"
+    _write_raw_checkpoint(raw)
+    calls = {}
+
+    def fake_export(*args, **kwargs):
+        calls["kwargs"] = kwargs
+        return SimpleNamespace(output_dir=Path(args[1]))
+
+    monkeypatch.setattr(export_cli, "export_fitmotn_hf_roundtrip", fake_export)
+
+    assert main([
+        "--checkpoint_dir",
+        str(raw),
+        "--output_dir",
+        str(out),
+        "--no-metadata_only",
+        "--no-copy_tokenizer",
+        "--base_trust_remote_code",
+        "--safe_serialization",
+        "false",
+        "--no-validate_layout",
+    ]) == 0
+
+    assert calls["kwargs"]["copy_tokenizer"] is False
+    assert calls["kwargs"]["base_trust_remote_code"] is True
+    assert calls["kwargs"]["safe_serialization"] is False
+
+
+def test_rejects_hf_input(tmp_path):
+    out = tmp_path / "out"
 
     hf_dir = tmp_path / "hf"
     hf_dir.mkdir()
