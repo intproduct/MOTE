@@ -80,7 +80,7 @@ from transformers import AutoModelForCausalLM
 model = AutoModelForCausalLM.from_pretrained(export_dir, trust_remote_code=True)
 ```
 
-The wrapped patched model is stored under `base_model`. vLLM support is intentionally disabled in this stage; Stage 4C will add vLLM offline runner support.
+The wrapped patched model is exposed through `base_model`. vLLM support is intentionally disabled in this stage; Stage 4C will add vLLM offline runner support.
 
 Do not commit private exported weights, tokenizer files, checkpoints, or manifests containing private local paths.
 """,

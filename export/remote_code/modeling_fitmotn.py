@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from typing import Any
 
 import torch
@@ -55,14 +56,14 @@ def _base_config_from_dict(base_model_config: dict[str, Any]):
 
 class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
     config_class = FitMoTNConfig
-    base_model_prefix = "base_model"
+    base_model_prefix = "wrapped_model"
     supports_gradient_checkpointing = True
 
     def __init__(self, config: FitMoTNConfig) -> None:
         super().__init__(config)
         base_config = _base_config_from_dict(config.base_model_config)
         try:
-            self.base_model = AutoModelForCausalLM.from_config(base_config)
+            self.wrapped_model = AutoModelForCausalLM.from_config(base_config)
         except Exception as exc:
             model_type = getattr(base_config, "model_type", config.base_model_config.get("model_type"))
             raise ValueError(
@@ -78,12 +79,12 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
             patch_cfg = dict(getattr(config, "fitmotn_patch_config", {}) or {})
             patch_backend = str(getattr(config, "patch_backend", None) or patch_cfg.get("patch_backend") or "motn").lower()
             patch_cfg["patch_backend"] = patch_backend
-            ref = next(self.base_model.parameters(), None)
+            ref = next(self.wrapped_model.parameters(), None)
             device = ref.device if ref is not None else torch.device("cpu")
             dtype = ref.dtype if ref is not None else torch.float32
             patch_cfg["dtype"] = _torch_dtype_from_string(patch_cfg.get("dtype"), dtype)
-            self.base_model = patch_qwen_ffn_layers(
-                model=self.base_model,
+            self.wrapped_model = patch_qwen_ffn_layers(
+                model=self.wrapped_model,
                 layer_idxs=layers_to_patch,
                 motn_cfg=patch_cfg,
                 device=device,
@@ -130,3 +131,32 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
                 self.config.vocab_size = int(new_num_tokens)
             return resized
         return super().resize_token_embeddings(new_num_tokens, pad_to_multiple_of, mean_resizing)
+
+    def save_pretrained(self, *args: Any, **kwargs: Any):
+        with _skip_broken_deepspeed_probe():
+            return super().save_pretrained(*args, **kwargs)
+
+
+@contextmanager
+def _skip_broken_deepspeed_probe():
+    try:
+        import accelerate.utils.imports as accelerate_imports
+        import accelerate.utils.other as accelerate_other
+    except Exception:
+        yield
+        return
+
+    original_imports = getattr(accelerate_imports, "is_deepspeed_available", None)
+    original_other = getattr(accelerate_other, "is_deepspeed_available", None)
+
+    try:
+        if original_imports is not None:
+            accelerate_imports.is_deepspeed_available = lambda: False
+        if original_other is not None:
+            accelerate_other.is_deepspeed_available = lambda: False
+        yield
+    finally:
+        if original_imports is not None:
+            accelerate_imports.is_deepspeed_available = original_imports
+        if original_other is not None:
+            accelerate_other.is_deepspeed_available = original_other
