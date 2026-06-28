@@ -73,14 +73,21 @@ def _write_readme(output_dir: Path) -> None:
     (output_dir / "README.md").write_text(
         """# FitMoTN HF roundtrip export
 
-This directory is a Stage 4B FitMoTN export. It is loadable through Hugging Face custom code:
+This directory is a Stage 4C FitMoTN export. It is loadable through Hugging Face custom code:
 
 ```python
-from transformers import AutoModelForCausalLM
+from transformers import AutoModel, AutoModelForCausalLM
+decoder = AutoModel.from_pretrained(export_dir, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(export_dir, trust_remote_code=True)
 ```
 
-The wrapped patched model is exposed through `base_model`. vLLM support is intentionally disabled in this stage; Stage 4C will add vLLM offline runner support.
+Stage 4C uses vLLM's Transformers modeling backend. FitMoTN/MoTN routing is implemented inside the
+custom Transformers model as a patched FFN replacement. It does not provide native vLLM model
+registration, expert-parallel MoE execution, fused MoTN kernels, custom CUDA ops, or vLLM
+expert-parallel support.
+
+Raw FitMoTN checkpoints and metadata-only exports remain unsupported by vLLM. Use this full HF
+export directory with `trust_remote_code=True`.
 
 Do not commit private exported weights, tokenizer files, checkpoints, or manifests containing private local paths.
 """,
@@ -100,8 +107,49 @@ def _assert_saved_config(output_dir: Path) -> None:
             raise ValueError(f"saved config.json missing auto_map[{key!r}]={expected!r}")
 
 
+def _canonical_wrapper_state_dict(wrapper: Any, restored_model: Any) -> dict[str, Any]:
+    restored_state = restored_model.state_dict()
+    wrapper_keys = set(wrapper.state_dict().keys())
+    base_prefix = str(getattr(restored_model, "base_model_prefix", "model") or "model")
+    candidates = [base_prefix]
+    if "model" not in candidates:
+        candidates.append("model")
+    if "transformer" not in candidates:
+        candidates.append("transformer")
+
+    remapped: dict[str, Any] = {}
+    for key, value in restored_state.items():
+        new_key = key
+        for prefix in candidates:
+            marker = prefix + "."
+            if key.startswith(marker):
+                new_key = "model." + key[len(marker) :]
+                break
+        if new_key in wrapper_keys:
+            remapped[new_key] = value
+        elif key.startswith("lm_head.") and key in wrapper_keys:
+            remapped[key] = value
+        elif key in wrapper_keys:
+            remapped[key] = value
+    return remapped
+
+
+def _is_allowed_tied_weight_miss(key: str, wrapper: Any) -> bool:
+    if key != "lm_head.weight":
+        return False
+    input_emb = wrapper.get_input_embeddings() if hasattr(wrapper, "get_input_embeddings") else None
+    output_emb = wrapper.get_output_embeddings() if hasattr(wrapper, "get_output_embeddings") else None
+    return (
+        input_emb is not None
+        and output_emb is not None
+        and hasattr(input_emb, "weight")
+        and hasattr(output_emb, "weight")
+        and input_emb.weight is output_emb.weight
+    )
+
+
 def _load_state_into_wrapper(wrapper: Any, restored_model: Any) -> tuple[list[str], list[str]]:
-    result = wrapper.base_model.load_state_dict(restored_model.state_dict(), strict=False)
+    result = wrapper.load_state_dict(_canonical_wrapper_state_dict(wrapper, restored_model), strict=False)
     if hasattr(result, "missing_keys"):
         missing = list(result.missing_keys)
         unexpected = list(result.unexpected_keys)
@@ -111,8 +159,9 @@ def _load_state_into_wrapper(wrapper: Any, restored_model: Any) -> tuple[list[st
     else:
         missing = []
         unexpected = []
+    missing = [key for key in missing if not _is_allowed_tied_weight_miss(key, wrapper)]
     if missing or unexpected:
-        raise ValueError(f"wrapper.base_model state load was not exact; missing={missing}, unexpected={unexpected}")
+        raise ValueError(f"wrapper state load was not exact; missing={missing}, unexpected={unexpected}")
     return missing, unexpected
 
 
@@ -170,6 +219,10 @@ def export_fitmotn_hf_roundtrip(
         original_model_type=base_cfg.get("model_type"),
         exported_code_ready=True,
         auto_map_ready=True,
+        vllm_ready=True,
+        vllm_backend="transformers",
+        vllm_model_impl="transformers",
+        fitmotn_disable_usage_tracking=True,
         architectures=["FitMoTNForCausalLM"],
         use_cache=True,
     )

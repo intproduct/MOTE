@@ -124,15 +124,15 @@ def make_unique_positions(
         g = tc.Generator(device="cpu")
         g.manual_seed(seed)
 
-        remaining = tc.arange(len(all_pos), dtype=tc.int64)
+        remaining = tc.arange(len(all_pos), dtype=tc.int64, device="cpu")
         picked: List[List[int]] = []
 
-        cnt = tc.zeros(q_in, dtype=tc.float32)  # 覆盖计数
+        cnt = tc.zeros(q_in, dtype=tc.float32, device="cpu")  # 覆盖计数
         target = (N * k_in) / float(q_in)
 
         # ---- (a) 先保证 coverage ----
         if ensure_coverage:
-            perm0 = tc.randperm(len(all_pos), generator=g).tolist()
+            perm0 = tc.randperm(len(all_pos), generator=g, device="cpu").tolist()
             used = set()
             need = set(range(q_in))
 
@@ -148,7 +148,7 @@ def make_unique_positions(
                     need.difference_update(combo)
 
             if used:
-                mask = tc.ones(len(all_pos), dtype=tc.bool)
+                mask = tc.ones(len(all_pos), dtype=tc.bool, device="cpu")
                 for u in used:
                     mask[u] = False
                 remaining = tc.nonzero(mask, as_tuple=False).squeeze(-1)
@@ -158,7 +158,7 @@ def make_unique_positions(
             m = remaining.numel()
             c = min(int(cand_per_round), int(m))
 
-            perm = tc.randperm(m, generator=g)[:c]
+            perm = tc.randperm(m, generator=g, device="cpu")[:c]
             cand_idx = remaining.index_select(0, perm).tolist()
 
             best_j = None
@@ -230,10 +230,10 @@ def make_unique_positions(
                 g = tc.Generator(device="cpu")
                 g.manual_seed(seed)
 
-                remaining = tc.arange(len(remain_pos), dtype=tc.int64)
+                remaining = tc.arange(len(remain_pos), dtype=tc.int64, device="cpu")
                 picked: List[List[int]] = []
 
-                cnt = tc.zeros(q_in, dtype=tc.float32)
+                cnt = tc.zeros(q_in, dtype=tc.float32, device="cpu")
                 target = (n_rand * k_in) / float(q_in)
 
                 used_idx: set[int] = set()
@@ -241,7 +241,7 @@ def make_unique_positions(
 
                 # (a) coverage（在剩余集合里尽量 cover）
                 if ensure_coverage:
-                    perm0 = tc.randperm(len(remain_pos), generator=g).tolist()
+                    perm0 = tc.randperm(len(remain_pos), generator=g, device="cpu").tolist()
 
                     for idx in perm0:
                         if not need or len(picked) >= n_rand:
@@ -255,7 +255,7 @@ def make_unique_positions(
                             need.difference_update(combo)
 
                     if used_idx:
-                        mask = tc.ones(len(remain_pos), dtype=tc.bool)
+                        mask = tc.ones(len(remain_pos), dtype=tc.bool, device="cpu")
                         for u in used_idx:
                             mask[u] = False
                         remaining = tc.nonzero(mask, as_tuple=False).squeeze(-1)
@@ -264,7 +264,7 @@ def make_unique_positions(
                 while len(picked) < n_rand and remaining.numel() > 0:
                     m = remaining.numel()
                     c = min(int(cand_per_round), int(m))
-                    perm = tc.randperm(m, generator=g)[:c]
+                    perm = tc.randperm(m, generator=g, device="cpu")[:c]
                     cand_idx = remaining.index_select(0, perm).tolist()
 
                     best_j = None
@@ -296,7 +296,7 @@ def make_unique_positions(
     if shuffle and len(pool) > 1:
         g = tc.Generator(device="cpu")
         g.manual_seed(seed)
-        perm = tc.randperm(len(pool), generator=g).tolist()
+        perm = tc.randperm(len(pool), generator=g, device="cpu").tolist()
         pool = [pool[i] for i in perm]
 
     N_eff = min(N, len(pool))
@@ -344,6 +344,14 @@ class BlockMeta:
 
 
 def dense_weight_init_stats(weight: tc.Tensor) -> Dict[str, float | int]:
+    if getattr(weight, "is_meta", False):
+        return {
+            "mean": float("nan"),
+            "std": 0.0,
+            "min": float("nan"),
+            "max": float("nan"),
+            "numel": int(weight.numel()),
+        }
     w = weight.detach().to(device="cpu", dtype=tc.float32)
     return {
         "mean": float(w.mean().item()),

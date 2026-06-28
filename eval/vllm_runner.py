@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import json
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -75,6 +76,8 @@ def inspect_vllm_compatibility(model_path: str) -> Dict[str, Any]:
             manifest = {}
         report["export_stage"] = manifest.get("export_stage")
         report["vllm_ready"] = manifest.get("vllm_ready")
+        report["vllm_backend"] = manifest.get("vllm_backend")
+        report["vllm_model_impl"] = manifest.get("vllm_model_impl")
         if manifest.get("vllm_ready") is not True:
             report["supports_vllm_eval"] = False
             if manifest.get("export_stage") == "hf_roundtrip":
@@ -84,7 +87,22 @@ def inspect_vllm_compatibility(model_path: str) -> Dict[str, Any]:
     return report
 
 
-def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Dict[str, Any]:
+def evaluate_with_vllm(
+    model_path: str,
+    fit_cfg,
+    limit_per_task: int = 32,
+    *,
+    model_impl: str | None = None,
+    dtype: str | None = None,
+    tensor_parallel_size: int | None = None,
+    gpu_memory_utilization: float | None = None,
+    max_model_len: int | None = None,
+    enforce_eager: bool | None = None,
+    seed: int | None = None,
+    temperature: float = 0.0,
+    top_p: float = 1.0,
+    max_tokens: int = 128,
+) -> Dict[str, Any]:
     compatibility = inspect_vllm_compatibility(model_path)
     if not compatibility["supports_vllm_eval"]:
         if compatibility.get("reason") == "raw_fitmotn_checkpoint_requires_export_hf":
@@ -111,9 +129,41 @@ def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Di
     except Exception as exc:
         raise ImportError("vLLM is required for eval_vllm.py") from exc
 
-    llm = LLM(model=str(model_path), trust_remote_code=True)
-    sampling = SamplingParams(temperature=0.0, top_p=1.0, max_tokens=128)
-    results: Dict[str, Any] = {"tasks": {}, "summary": {}, "capability": compatibility}
+    is_fitmotn_export = compatibility.get("is_exported_fitmotn_dir") is True
+    llm_kwargs: Dict[str, Any] = {"model": str(model_path), "trust_remote_code": True}
+    if is_fitmotn_export:
+        llm_kwargs["tokenizer"] = str(model_path)
+        llm_kwargs["model_impl"] = model_impl or "transformers"
+        llm_kwargs["enforce_eager"] = True if enforce_eager is None else bool(enforce_eager)
+    else:
+        if model_impl is not None:
+            llm_kwargs["model_impl"] = model_impl
+        if enforce_eager is not None:
+            llm_kwargs["enforce_eager"] = bool(enforce_eager)
+    for key, value in [
+        ("dtype", dtype),
+        ("tensor_parallel_size", tensor_parallel_size),
+        ("gpu_memory_utilization", gpu_memory_utilization),
+        ("max_model_len", max_model_len),
+        ("seed", seed),
+    ]:
+        if value is not None:
+            llm_kwargs[key] = value
+    load_start = time.perf_counter()
+    llm = LLM(**llm_kwargs)
+    load_seconds = time.perf_counter() - load_start
+    sampling = SamplingParams(temperature=float(temperature), top_p=float(top_p), max_tokens=int(max_tokens))
+    results: Dict[str, Any] = {
+        "tasks": {},
+        "summary": {},
+        "capability": compatibility,
+        "vllm_options": llm_kwargs,
+        "timing": {"load_seconds": load_seconds},
+        "throughput": {},
+    }
+    total_prompts = 0
+    total_generated_tokens = 0
+    generate_seconds = 0.0
     for task in _build_eval_tasks(fit_cfg):
         raw = load_dataset_any(task.kind, task.path, task.split, hf_name=task.hf_name, hf_config=task.hf_config)
         n = 0
@@ -128,9 +178,16 @@ def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Di
             eval_types.append(eval_type)
             if len(prompts) >= limit_per_task:
                 break
+        gen_start = time.perf_counter()
         outputs = llm.generate(prompts, sampling)
+        generate_seconds += time.perf_counter() - gen_start
+        total_prompts += len(prompts)
         for output, ref, eval_type in zip(outputs, refs, eval_types):
             text = output.outputs[0].text if output.outputs else ""
+            if output.outputs:
+                token_ids = getattr(output.outputs[0], "token_ids", None)
+                if token_ids is not None:
+                    total_generated_tokens += len(token_ids)
             if eval_type == "mcq":
                 correct += _mcq_choice_match(text, ref)
             else:
@@ -139,4 +196,9 @@ def evaluate_with_vllm(model_path: str, fit_cfg, limit_per_task: int = 32) -> Di
         acc = correct / max(1, n)
         results["tasks"][task.name] = {"acc": acc, "n": n}
         results["summary"][task.name] = {"primary_metric": "acc", "primary_score": acc}
+    results["timing"]["generate_seconds"] = generate_seconds
+    if generate_seconds > 0:
+        results["throughput"]["prompts_per_second"] = float(total_prompts) / generate_seconds
+        if total_generated_tokens:
+            results["throughput"]["generated_tokens_per_second"] = float(total_generated_tokens) / generate_seconds
     return results

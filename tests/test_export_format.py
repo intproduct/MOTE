@@ -143,3 +143,60 @@ def test_validate_hf_roundtrip_layout(tmp_path):
 
     assert result.ok
     assert result.errors == []
+
+
+def test_validate_vllm_ready_hf_roundtrip_layout(tmp_path):
+    exported = tmp_path / "hf_roundtrip_vllm"
+    exported.mkdir()
+    (exported / EXPORT_MANIFEST_FILENAME).write_text(
+        json.dumps(
+            {
+                "format_name": "fitmotn_hf_export",
+                "format_version": 1,
+                "export_stage": "hf_roundtrip",
+                "hf_roundtrip_ready": True,
+                "vllm_ready": True,
+                "vllm_backend": "transformers",
+                "vllm_model_impl": "transformers",
+                "vllm_requires_trust_remote_code": True,
+                "exported_code_ready": True,
+                "auto_map_ready": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / EXPORT_CONFIG_FILENAME).write_text(
+        json.dumps(
+            {
+                "base_model_name_or_path": "fake-base",
+                "hf_roundtrip_ready": True,
+                "vllm_ready": True,
+                "vllm_backend": "transformers",
+                "vllm_model_impl": "transformers",
+                "vllm_requires_trust_remote_code": True,
+                "exported_code_ready": True,
+                "auto_map_ready": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / "config.json").write_text(
+        json.dumps(
+            {
+                "model_type": "fitmotn",
+                "architectures": ["FitMoTNForCausalLM"],
+                "auto_map": FITMOTN_AUTO_MAP,
+                "fitmotn_patch_config": {"patch_backend": "motn", "E": 4},
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / "model.safetensors").write_bytes(b"weights")
+    (exported / "configuration_fitmotn.py").write_text("# config\n", encoding="utf-8")
+    (exported / "modeling_fitmotn.py").write_text("# model\n", encoding="utf-8")
+    (exported / "README.md").write_text("export", encoding="utf-8")
+
+    result = validate_export_layout(exported)
+
+    assert result.ok
+    assert result.errors == []

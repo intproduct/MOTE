@@ -55,6 +55,10 @@ class FitMoTNConfig(PretrainedConfig):
         original_model_type: str | None = None,
         exported_code_ready: bool = True,
         auto_map_ready: bool = True,
+        vllm_ready: bool = True,
+        vllm_backend: str | None = "transformers",
+        vllm_model_impl: str | None = "transformers",
+        fitmotn_disable_usage_tracking: bool = True,
         **kwargs: Any,
     ) -> None:
         base_cfg = _json_safe(dict(base_model_config or {}))
@@ -66,6 +70,7 @@ class FitMoTNConfig(PretrainedConfig):
             "auto_map",
             {
                 "AutoConfig": "configuration_fitmotn.FitMoTNConfig",
+                "AutoModel": "modeling_fitmotn.FitMoTNModel",
                 "AutoModelForCausalLM": "modeling_fitmotn.FitMoTNForCausalLM",
             },
         )
@@ -82,6 +87,10 @@ class FitMoTNConfig(PretrainedConfig):
         self.original_model_type = original_model_type or base_cfg.get("model_type")
         self.exported_code_ready = bool(exported_code_ready)
         self.auto_map_ready = bool(auto_map_ready)
+        self.vllm_ready = bool(vllm_ready)
+        self.vllm_backend = None if vllm_backend is None else str(vllm_backend)
+        self.vllm_model_impl = None if vllm_model_impl is None else str(vllm_model_impl)
+        self.fitmotn_disable_usage_tracking = bool(fitmotn_disable_usage_tracking)
 
     def to_dict(self) -> dict[str, Any]:
         data = super().to_dict()

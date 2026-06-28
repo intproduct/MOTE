@@ -1017,7 +1017,7 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 
 ## FitMoTN export and vLLM roadmap
 
-Raw FitMoTN checkpoints are training artifacts. For post-training inference or evaluation, prefer a full Stage 4B exported Hugging Face directory instead of pointing tools at the raw checkpoint. Stage 4A can still create a metadata-only export for scanning and layout validation:
+Raw FitMoTN checkpoints are training artifacts. For post-training inference or evaluation, prefer a full Stage 4C exported Hugging Face directory instead of pointing tools at the raw checkpoint. Stage 4A can still create a metadata-only export for scanning and layout validation:
 
 ```bash
 python -m fitmotn.cli.export_hf \
@@ -1034,7 +1034,7 @@ The metadata-only export directory contains:
 - `README.md`
 - optional tokenizer files only when `--copy_tokenizer` is explicitly passed
 
-Stage 4B adds an opt-in Hugging Face roundtrip export:
+Stage 4C adds an opt-in Hugging Face roundtrip export that is also vLLM-ready through vLLM's Transformers modeling backend:
 
 ```bash
 python -m fitmotn.cli.export_hf \
@@ -1045,19 +1045,27 @@ python -m fitmotn.cli.export_hf \
   --validate_layout
 ```
 
-The Stage 4B export writes `config.json`, `configuration_fitmotn.py`, `modeling_fitmotn.py`, model weights, export metadata, `README.md`, and tokenizer/generation files when available. It can be loaded with:
+The Stage 4C export writes `config.json`, `configuration_fitmotn.py`, `modeling_fitmotn.py`, model weights, export metadata, `README.md`, and tokenizer/generation files when available. It can be loaded with:
 
 ```python
-from transformers import AutoModelForCausalLM
+from transformers import AutoModel, AutoModelForCausalLM
+decoder = AutoModel.from_pretrained("/path/to/exported-fitmotn-hf", trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained("/path/to/exported-fitmotn-hf", trust_remote_code=True)
 ```
 
-The exported wrapper requires the local `fitmotn` package to be installed. Use the full exported HF directory for `eval_hf.py`, `eval_auto.py`, and ad-hoc `AutoModelForCausalLM` loading; metadata-only exports and raw checkpoints are not the recommended inference/evaluation targets. Stage 4B remains `vllm_ready=false`.
+The exported wrapper requires the local `fitmotn` package to be installed. Use the full exported HF directory for `eval_hf.py`, `eval_auto.py`, ad-hoc `AutoModel` / `AutoModelForCausalLM` loading, and Stage 4C vLLM evaluation. Metadata-only exports and raw checkpoints remain unsupported by vLLM.
 
-Roadmap:
+Stage 4C uses vLLM's Transformers modeling backend. FitMoTN/MoTN routing is implemented inside the custom Transformers model as a patched FFN replacement. Stage 4C does not provide native vLLM model registration, expert-parallel MoE execution, fused MoTN kernels, custom CUDA ops, or vLLM expert-parallel support.
 
-- Stage 4C will add vLLM offline runner support.
-- Stage 4D will add vLLM eval and boundary rollout backend support.
+Example vLLM command:
+
+```bash
+python -m fitmotn.cli.eval_vllm \
+  --model_or_ckpt /path/to/exported-fitmotn \
+  --model_impl transformers \
+  --enforce_eager \
+  --limit_per_task 32
+```
 
 Do not commit exported weights, raw checkpoints, tokenizer files copied from private models, or manifests containing private local paths.
 
@@ -1162,33 +1170,37 @@ vLLM 入口：
 示例：
 
 ```bash
-python3 -m MOTN.fitmotn.cli.eval_vllm \
-  --model_or_ckpt /path/to/baseline_or_vllm_compatible_model \
+python -m fitmotn.cli.eval_vllm \
+  --model_or_ckpt /path/to/exported-fitmotn \
+  --model_impl transformers \
+  --enforce_eager \
   --limit_per_task 32
 ```
 
 ### 当前 vLLM 边界
 
-MVP 明确只支持：
+Stage 4C 支持：
 
 - baseline 模型评测
 - 原生兼容 vLLM 的 checkpoint 评测
+- full HF FitMoTN export directory，通过 vLLM Transformers modeling backend 加载
 
-MVP 明确不支持：
+Stage 4C 仍不支持：
 
-- patched FitMoTN checkpoint 直接用 vLLM 执行
+- raw patched FitMoTN checkpoint 直接用 vLLM 执行
+- metadata-only FitMoTN export 直接用 vLLM 执行
+- native vLLM model registration
+- expert-parallel MoE execution
+- fused MoTN kernels 或 custom CUDA ops
 
-如果你把 `final_model/` 这类 patched FitMoTN checkpoint 直接传给 `eval_vllm.py`，当前实现会显式报错：
+如果你把 `final_model/` 这类 raw patched FitMoTN checkpoint 直接传给 `eval_vllm.py`，当前实现会显式报错：
 
 - `NotImplementedError`
 - 同时会在输出 JSON 中写入 `capability` 字段，说明当前模型路径为什么不支持 vLLM 评测
 
 这是有意为之，目的是避免 silently fallback，防止 MOTN 核心方法被偷偷替换或退化。
 
-阶段性警告：
-
-- 当前 `eval/vllm_runner.py` 不支持 patched FitMoTN checkpoint 的直接 vLLM 执行，这属于评测边界限制，不是 MOTN 核心训练逻辑缺陷
-- 本轮只保留显式报错和 README 说明，不实现 patched checkpoint 的 vLLM 兼容桥接
+Use a full HF export produced by `python -m fitmotn.cli.export_hf --no-metadata_only ...` for Stage 4C vLLM evaluation.
 
 ## Stage A / Stage B 说明
 

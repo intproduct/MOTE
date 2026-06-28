@@ -174,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
             for warning in rt.warnings:
                 print(f"[export_hf] roundtrip validation warning: {warning['message']}")
         print(f"[export_hf] wrote HF roundtrip FitMoTN export: {result.output_dir}")
-        print("[export_hf] HF roundtrip export is ready. Stage 4C will add vLLM offline runner support.")
+        print("[export_hf] export is Stage 4C vLLM-ready via the Transformers backend.")
         return 0
 
     manifest, export_config = build_export_payloads(checkpoint_dir, base_model=args.base_model, tokenizer=args.tokenizer)

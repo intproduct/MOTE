@@ -62,12 +62,18 @@ def resolve_layer_idxs(n_layers: int, mode: str) -> List[int]:
     raise ValueError(f"Unsupported layers_to_patch={mode}")
 
 
+def resolve_transformer_layers(model: nn.Module):
+    if hasattr(model, "model") and hasattr(model.model, "layers"):
+        return model.model.layers
+    if hasattr(model, "layers"):
+        return model.layers
+    raise TypeError("model does not have transformer layers at model.model.layers or model.layers")
+
+
 def patch_qwen_ffn_layers(model: nn.Module, layer_idxs: Iterable[int], motn_cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None) -> nn.Module:
-    if not hasattr(model, "model") or not hasattr(model.model, "layers"):
-        raise TypeError("model does not have model.layers")
     patch_cfg = dict(motn_cfg or {})
     patch_backend = str(patch_cfg.get("patch_backend", "motn")).lower()
-    layers = model.model.layers
+    layers = resolve_transformer_layers(model)
     for idx in sorted(set(int(i) for i in layer_idxs)):
         layer = layers[idx]
         old_mlp = layer.mlp

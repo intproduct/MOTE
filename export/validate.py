@@ -69,7 +69,6 @@ def validate_export_layout(path: str | Path) -> ExportValidationResult:
         common_checks = [
             ("format_name", EXPORT_FORMAT_NAME),
             ("format_version", EXPORT_FORMAT_VERSION),
-            ("vllm_ready", False),
         ]
         for key, expected in common_checks:
             if manifest.get(key) != expected:
@@ -82,12 +81,21 @@ def validate_export_layout(path: str | Path) -> ExportValidationResult:
         elif stage == EXPORT_STAGE_HF_ROUNDTRIP:
             for key, expected in [
                 ("hf_roundtrip_ready", True),
-                ("vllm_ready", False),
                 ("exported_code_ready", True),
                 ("auto_map_ready", True),
             ]:
                 if manifest.get(key) != expected:
                     errors.append(_error("invalid_manifest_field", f"{key} must be {expected!r}", target / EXPORT_MANIFEST_FILENAME))
+            if manifest.get("vllm_ready") not in (False, True):
+                errors.append(_error("invalid_manifest_field", "vllm_ready must be a boolean", target / EXPORT_MANIFEST_FILENAME))
+            if manifest.get("vllm_ready") is True:
+                for key, expected in [
+                    ("vllm_backend", "transformers"),
+                    ("vllm_model_impl", "transformers"),
+                    ("vllm_requires_trust_remote_code", True),
+                ]:
+                    if manifest.get(key) != expected:
+                        errors.append(_error("invalid_manifest_field", f"{key} must be {expected!r}", target / EXPORT_MANIFEST_FILENAME))
         else:
             errors.append(_error("invalid_manifest_field", f"export_stage must be {EXPORT_STAGE_METADATA_ONLY!r} or {EXPORT_STAGE_HF_ROUNDTRIP!r}", target / EXPORT_MANIFEST_FILENAME))
 
@@ -122,6 +130,8 @@ def validate_export_layout(path: str | Path) -> ExportValidationResult:
             for key, expected in FITMOTN_AUTO_MAP.items():
                 if auto_map.get(key) != expected:
                     errors.append(_error("invalid_hf_config", f"config.json auto_map[{key!r}] must be {expected!r}", target / "config.json"))
+            if manifest is not None and manifest.get("vllm_ready") is True and "AutoModel" not in auto_map:
+                errors.append(_error("invalid_hf_config", "vLLM-ready config.json must include auto_map['AutoModel']", target / "config.json"))
             patch_cfg = hf_config.get("fitmotn_patch_config")
             if not isinstance(patch_cfg, dict):
                 errors.append(_error("invalid_hf_config", "config.json fitmotn_patch_config must be a JSON object", target / "config.json"))
@@ -130,10 +140,19 @@ def validate_export_layout(path: str | Path) -> ExportValidationResult:
         if export_config is not None:
             for key, expected in [
                 ("hf_roundtrip_ready", True),
-                ("vllm_ready", False),
                 ("exported_code_ready", True),
                 ("auto_map_ready", True),
             ]:
                 if export_config.get(key) != expected:
                     errors.append(_error("invalid_export_config_field", f"{key} must be {expected!r}", target / EXPORT_CONFIG_FILENAME))
+            if export_config.get("vllm_ready") not in (False, True):
+                errors.append(_error("invalid_export_config_field", "vllm_ready must be a boolean", target / EXPORT_CONFIG_FILENAME))
+            if export_config.get("vllm_ready") is True:
+                for key, expected in [
+                    ("vllm_backend", "transformers"),
+                    ("vllm_model_impl", "transformers"),
+                    ("vllm_requires_trust_remote_code", True),
+                ]:
+                    if export_config.get(key) != expected:
+                        errors.append(_error("invalid_export_config_field", f"{key} must be {expected!r}", target / EXPORT_CONFIG_FILENAME))
     return ExportValidationResult(ok=not errors, errors=errors, warnings=warnings)

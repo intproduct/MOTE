@@ -12,6 +12,7 @@ EXPORT_CONFIG_FILENAME = "fitmotn_export_config.json"
 RAW_CHECKPOINT_MARKERS = ("fitmotn_state.pt", "fitmotn_state.json")
 FITMOTN_AUTO_MAP = {
     "AutoConfig": "configuration_fitmotn.FitMoTNConfig",
+    "AutoModel": "modeling_fitmotn.FitMoTNModel",
     "AutoModelForCausalLM": "modeling_fitmotn.FitMoTNForCausalLM",
 }
 

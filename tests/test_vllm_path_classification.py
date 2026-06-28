@@ -91,3 +91,34 @@ def test_ordinary_hf_dir_does_not_trigger_fitmotn_guard(tmp_path, monkeypatch):
     assert report["path_kind"] == "hf_model_dir"
     with pytest.raises(ImportError, match="vLLM is required"):
         evaluate_with_vllm(str(hf_dir), fit_cfg=None)
+
+
+def test_vllm_ready_export_reaches_import_path(tmp_path, monkeypatch):
+    exported = tmp_path / "exported_vllm"
+    exported.mkdir()
+    (exported / EXPORT_MANIFEST_FILENAME).write_text(
+        json.dumps(
+            {
+                "format_name": "fitmotn_hf_export",
+                "format_version": 1,
+                "export_stage": "hf_roundtrip",
+                "hf_roundtrip_ready": True,
+                "vllm_ready": True,
+                "vllm_backend": "transformers",
+                "vllm_model_impl": "transformers",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (exported / EXPORT_CONFIG_FILENAME).write_text(
+        json.dumps({"base_model_name_or_path": "fake-base", "vllm_ready": True}),
+        encoding="utf-8",
+    )
+    monkeypatch.setitem(sys.modules, "vllm", None)
+
+    report = inspect_vllm_compatibility(str(exported))
+    assert report["supports_vllm_eval"] is True
+    assert report["vllm_ready"] is True
+    assert report["vllm_backend"] == "transformers"
+    with pytest.raises(ImportError, match="vLLM is required"):
+        evaluate_with_vllm(str(exported), fit_cfg=None)

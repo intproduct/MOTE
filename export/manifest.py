@@ -164,9 +164,9 @@ def build_hf_roundtrip_payloads(
     patch_backend = str(patch_summary.get("patch_backend") or fitmotn_patch_config.get("patch_backend") or "motn").lower()
     load_warnings = list(warnings or [])
     if missing_keys:
-        load_warnings.append(f"Missing keys while loading wrapper.base_model: {missing_keys}")
+        load_warnings.append(f"Missing keys while loading wrapper: {missing_keys}")
     if unexpected_keys:
-        load_warnings.append(f"Unexpected keys while loading wrapper.base_model: {unexpected_keys}")
+        load_warnings.append(f"Unexpected keys while loading wrapper: {unexpected_keys}")
 
     manifest = {
         "base_model_name_or_path": base_model,
@@ -178,11 +178,17 @@ def build_hf_roundtrip_payloads(
         "hf_roundtrip_ready": True,
         "exported_code_ready": True,
         "auto_map_ready": True,
-        "next_steps": ["Stage 4C will add vLLM offline runner support."],
+        "next_steps": [
+            "Use vLLM with model_impl='transformers' and trust_remote_code=True for Stage 4C inference.",
+            "Native vLLM model registration, fused MoTN kernels, and expert-parallel execution are not part of Stage 4C.",
+        ],
         "patch_metadata_summary": patch_summary,
         "source_checkpoint_dir": str(checkpoint_path),
         "tokenizer_source": tokenizer,
-        "vllm_ready": False,
+        "vllm_ready": True,
+        "vllm_backend": "transformers",
+        "vllm_model_impl": "transformers",
+        "vllm_requires_trust_remote_code": True,
         "safe_serialization": bool(safe_serialization),
         "max_shard_size": str(max_shard_size),
         "warnings": load_warnings,
@@ -204,12 +210,15 @@ def build_hf_roundtrip_payloads(
         "hf_roundtrip_ready": True,
         "layers_to_patch": layers_to_patch,
         "notes": [
-            "Stage 4B export is Hugging Face AutoModel roundtrip-ready.",
-            "vLLM support remains disabled until Stage 4C.",
+            "Stage 4C export is Hugging Face AutoModel and AutoModelForCausalLM roundtrip-ready.",
+            "vLLM support uses the Transformers modeling backend only.",
         ],
         "patch_backend": patch_backend,
         "tokenizer_source": tokenizer,
-        "vllm_ready": False,
+        "vllm_ready": True,
+        "vllm_backend": "transformers",
+        "vllm_model_impl": "transformers",
+        "vllm_requires_trust_remote_code": True,
     }
     return json_safe(manifest), json_safe(export_config)
 

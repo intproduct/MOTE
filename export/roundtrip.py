@@ -78,6 +78,8 @@ def validate_hf_roundtrip(export_dir: str | Path, device: str = "cpu", torch_dty
     auto_map = config_data.get("auto_map") or {}
     if auto_map.get("AutoConfig") != "configuration_fitmotn.FitMoTNConfig":
         errors.append(_err("invalid_auto_map", "AutoConfig auto_map entry is missing or invalid", config_path))
+    if auto_map.get("AutoModel") != "modeling_fitmotn.FitMoTNModel":
+        errors.append(_err("invalid_auto_map", "AutoModel auto_map entry is missing or invalid", config_path))
     if auto_map.get("AutoModelForCausalLM") != "modeling_fitmotn.FitMoTNForCausalLM":
         errors.append(_err("invalid_auto_map", "AutoModelForCausalLM auto_map entry is missing or invalid", config_path))
     if errors:

@@ -97,6 +97,13 @@ class FakeModel(nn.Module):
         self.config = types.SimpleNamespace(num_hidden_layers=n_layers)
 
 
+class FakeDecoderOnly(nn.Module):
+    def __init__(self, n_layers: int = 2, hidden_size: int = 8, intermediate_size: int = 16):
+        super().__init__()
+        self.layers = nn.ModuleList([FakeDecoderLayer(hidden_size, intermediate_size) for _ in range(n_layers)])
+        self.config = types.SimpleNamespace(num_hidden_layers=n_layers)
+
+
 class ADTNFixedBackendTests(unittest.TestCase):
     def _cfg(self, *, patch_backend: str = "motn"):
         cfg = make_default_config()
@@ -123,6 +130,15 @@ class ADTNFixedBackendTests(unittest.TestCase):
 
     def _fake_model(self, n_layers: int = 2, hidden_size: int = 8, intermediate_size: int = 16):
         return FakeModel(n_layers=n_layers, hidden_size=hidden_size, intermediate_size=intermediate_size)
+
+    def test_patch_qwen_ffn_layers_supports_decoder_layers_directly(self):
+        model = FakeDecoderOnly(n_layers=1, hidden_size=8, intermediate_size=16)
+        cfg = build_patch_model_config(self._cfg(patch_backend="motn"))
+
+        patched = patch_qwen_ffn_layers(model, [0], cfg, device=torch.device("cpu"), dtype=torch.float32)
+
+        self.assertIs(patched, model)
+        self.assertIsInstance(model.layers[0].mlp, motn_model_module.MOTNFFNLayer)
 
     def _block_init_cfg(self, *, patch_backend: str = "motn", mode: str = "base_stats_normal"):
         cfg = make_default_config()
