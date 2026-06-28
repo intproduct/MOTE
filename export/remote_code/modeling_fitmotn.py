@@ -57,6 +57,7 @@ def _base_config_from_dict(base_model_config: dict[str, Any]):
 class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
     config_class = FitMoTNConfig
     base_model_prefix = "wrapped_model"
+    _tied_weights_keys = None
     supports_gradient_checkpointing = True
 
     def __init__(self, config: FitMoTNConfig) -> None:
@@ -90,6 +91,18 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
                 device=device,
                 dtype=dtype,
             )
+        self._sync_wrapped_tied_weight_keys()
+
+    def _sync_wrapped_tied_weight_keys(self) -> None:
+        keys = []
+        for attr in ("_tied_weights_keys", "_dynamic_tied_weights_keys"):
+            for key in getattr(self.wrapped_model, attr, None) or []:
+                keys.append(f"{self.base_model_prefix}.{key}")
+        self._tied_weights_keys = sorted(set(keys)) or None
+
+    @property
+    def all_tied_weights_keys(self):
+        return list(self._tied_weights_keys or [])
 
     def forward(self, *args: Any, **kwargs: Any):
         return self.base_model(*args, **kwargs)

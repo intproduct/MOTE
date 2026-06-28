@@ -66,6 +66,7 @@ def test_tiny_noop_hf_roundtrip(tmp_path):
     )
     model = FitMoTNForCausalLM(config)
     assert model.base_model is model.wrapped_model
+    assert "wrapped_model.lm_head.weight" in model.all_tied_weights_keys
     model.save_pretrained(tmp_path, safe_serialization=False)
     package = "fitmotn.export.remote_code"
     for filename in ("configuration_fitmotn.py", "modeling_fitmotn.py"):
