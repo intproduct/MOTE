@@ -207,11 +207,15 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
                 keys.append(f"model.{key}")
         if bool(getattr(self.config, "tie_word_embeddings", False)):
             keys.append("lm_head.weight")
-        self._tied_weights_keys = sorted(set(keys)) or None
+        unique_keys = sorted(set(keys))
+        self._tied_weights_keys = {key: True for key in unique_keys} or None
 
     @property
     def all_tied_weights_keys(self):
-        return list(self._tied_weights_keys or [])
+        tied = self._tied_weights_keys or {}
+        if hasattr(tied, "keys"):
+            return list(tied.keys())
+        return list(tied)
 
     def forward(self, *args: Any, labels: torch.Tensor | None = None, return_dict: bool | None = None, **kwargs: Any):
         return_dict = return_dict if return_dict is not None else getattr(self.config, "use_return_dict", True)
