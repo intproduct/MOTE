@@ -273,7 +273,13 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
         output_embeddings = self.get_output_embeddings()
         input_embeddings = self.get_input_embeddings()
         if output_embeddings is not None and input_embeddings is not None:
-            self._tie_or_clone_weights(output_embeddings, input_embeddings)
+            tie_or_clone = getattr(self, "_tie_or_clone_weights", None)
+            if tie_or_clone is not None:
+                tie_or_clone(output_embeddings, input_embeddings)
+            elif bool(getattr(self.config, "torchscript", False)):
+                output_embeddings.weight = nn.Parameter(input_embeddings.weight.clone())
+            else:
+                output_embeddings.weight = input_embeddings.weight
         return None
 
     def resize_token_embeddings(self, new_num_tokens: int | None = None, pad_to_multiple_of: int | None = None, mean_resizing: bool = True):

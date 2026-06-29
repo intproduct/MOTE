@@ -307,13 +307,18 @@ def test_optional_vllm_smoke_loads_tiny_patched_export(tmp_path, monkeypatch):
     monkeypatch.setenv("HF_MODULES_CACHE", str(tmp_path / "hf_modules_cache"))
     monkeypatch.setattr(dynamic_module_utils, "HF_MODULES_CACHE", str(tmp_path / "hf_modules_cache"))
 
-    llm = vllm.LLM(
-        model=str(tmp_path),
-        tokenizer=str(tmp_path),
-        trust_remote_code=True,
-        model_impl="transformers",
-        enforce_eager=True,
-    )
+    try:
+        llm = vllm.LLM(
+            model=str(tmp_path),
+            tokenizer=str(tmp_path),
+            trust_remote_code=True,
+            model_impl="transformers",
+            enforce_eager=True,
+        )
+    except Exception as exc:
+        if "NVMLError" in type(exc).__name__ or "NVML" in str(exc) or "blocked the request" in str(exc):
+            pytest.skip(f"vLLM could not initialize NVML in this environment: {exc}")
+        raise
     outputs = llm.generate(["1+1="], vllm.SamplingParams(temperature=0.0, max_tokens=8))
     assert outputs
 
