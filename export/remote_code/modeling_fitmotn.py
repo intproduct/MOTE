@@ -122,6 +122,7 @@ def _build_patched_decoder(config: FitMoTNConfig) -> nn.Module:
         )
         if bool(getattr(config, "fitmotn_disable_usage_tracking", True)):
             set_motn_usage_tracking(decoder, False)
+    _normalize_tied_weight_key_containers(decoder)
     return decoder
 
 
@@ -154,6 +155,22 @@ def _remap_legacy_nested_keys(state_dict: dict[str, Any]) -> dict[str, Any]:
                 remapped[new_key] = value
             remapped.pop(key, None)
     return remapped
+
+
+def _as_tied_weight_key_dict(value: Any) -> dict[str, bool] | None:
+    if value is None:
+        return None
+    if hasattr(value, "keys"):
+        return {str(key): True for key in value.keys()}
+    return {str(key): True for key in value}
+
+
+def _normalize_tied_weight_key_containers(module: nn.Module) -> None:
+    for submodule in module.modules():
+        for attr in ("_tied_weights_keys", "_dynamic_tied_weights_keys"):
+            value = getattr(submodule, attr, None)
+            if value is not None:
+                setattr(submodule, attr, _as_tied_weight_key_dict(value))
 
 
 class FitMoTNModel(PreTrainedModel):

@@ -123,6 +123,23 @@ def test_causal_lm_state_dict_uses_canonical_model_prefix():
     assert not any(k.startswith("model.model.") for k in keys)
 
 
+def test_tied_weight_key_containers_are_transformers_version_compatible():
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+    pytest.importorskip("torch")
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM
+
+    model = FitMoTNForCausalLM(_fitmotn_config_from_base(_tiny_gpt2_config()))
+
+    for module in model.modules():
+        for attr in ("_tied_weights_keys", "_dynamic_tied_weights_keys"):
+            tied = getattr(module, attr, None)
+            if tied is not None:
+                assert hasattr(tied, "keys")
+
+
 def test_tiny_noop_hf_roundtrip(tmp_path, monkeypatch):
     transformers = pytest.importorskip("transformers")
     if not transformers.utils.is_torch_available():
