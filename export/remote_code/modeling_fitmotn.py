@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import importlib.util
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -17,7 +19,16 @@ except Exception:  # pragma: no cover - older transformers keeps generation on P
 try:
     from .configuration_fitmotn import FitMoTNConfig
 except Exception:  # pragma: no cover - supports direct local imports in tests
-    from configuration_fitmotn import FitMoTNConfig
+    try:
+        from configuration_fitmotn import FitMoTNConfig
+    except Exception:  # pragma: no cover - supports older HF dynamic module loaders
+        config_path = Path(__file__).with_name("configuration_fitmotn.py")
+        spec = importlib.util.spec_from_file_location("configuration_fitmotn", config_path)
+        if spec is None or spec.loader is None:
+            raise
+        config_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(config_module)
+        FitMoTNConfig = config_module.FitMoTNConfig
 
 
 FITMOTN_IMPORT_ERROR = "Loading exported FitMoTN models requires the fitmotn package to be installed, e.g. pip install -e ."
