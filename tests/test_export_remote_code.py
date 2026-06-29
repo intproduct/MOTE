@@ -140,6 +140,26 @@ def test_tied_weight_key_containers_are_transformers_version_compatible():
                 assert hasattr(tied, "keys")
 
 
+def test_tied_weight_key_containers_remain_compatible_after_tie_weights():
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+    pytest.importorskip("torch")
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM
+
+    model = FitMoTNForCausalLM(_fitmotn_config_from_base(_tiny_gpt2_config()))
+    model.tie_weights()
+
+    for name, module in model.named_modules():
+        tied = getattr(module, "_tied_weights_keys", {}) or {}
+        dynamic_tied = getattr(module, "_dynamic_tied_weights_keys", {}) or {}
+        assert hasattr(tied, "keys"), name
+        assert hasattr(dynamic_tied, "keys"), name
+        list(tied.keys())
+        list(dynamic_tied.keys())
+
+
 def test_tiny_noop_hf_roundtrip(tmp_path, monkeypatch):
     transformers = pytest.importorskip("transformers")
     if not transformers.utils.is_torch_available():

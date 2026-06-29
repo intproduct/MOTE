@@ -227,6 +227,7 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
         self._sync_tied_weight_keys()
         if bool(getattr(config, "tie_word_embeddings", False)):
             self.tie_weights()
+        _normalize_tied_weight_key_containers(self)
 
     def _sync_tied_weight_keys(self) -> None:
         keys = []
@@ -312,6 +313,7 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
                 output_embeddings.weight = nn.Parameter(input_embeddings.weight.clone())
             else:
                 output_embeddings.weight = input_embeddings.weight
+        _normalize_tied_weight_key_containers(self)
         return None
 
     def resize_token_embeddings(self, new_num_tokens: int | None = None, pad_to_multiple_of: int | None = None, mean_resizing: bool = True):
@@ -325,6 +327,7 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
         return resized
 
     def save_pretrained(self, *args: Any, **kwargs: Any):
+        _normalize_tied_weight_key_containers(self)
         with _skip_broken_deepspeed_probe():
             return super().save_pretrained(*args, **kwargs)
 
