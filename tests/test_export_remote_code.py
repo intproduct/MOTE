@@ -10,7 +10,7 @@ from fitmotn.export.remote_code.configuration_fitmotn import FitMoTNConfig
 from fitmotn.export.roundtrip import validate_hf_roundtrip
 
 
-def _tiny_gpt2_config(vocab_size: int = 23, hidden_size: int = 8):
+def _tiny_gpt2_config(vocab_size: int = 23, hidden_size: int = 8, tie_word_embeddings: bool = False):
     from transformers import GPT2Config
 
     base = GPT2Config(
@@ -24,6 +24,7 @@ def _tiny_gpt2_config(vocab_size: int = 23, hidden_size: int = 8):
         eos_token_id=2,
     )
     base.use_cache = True
+    base.tie_word_embeddings = bool(tie_word_embeddings)
     return base
 
 
@@ -176,7 +177,7 @@ def test_tiny_noop_hf_roundtrip(tmp_path, monkeypatch):
     config = _fitmotn_config_from_base(_tiny_gpt2_config(vocab_size=16, hidden_size=8))
     model = FitMoTNForCausalLM(config)
     assert model.base_model is model.model
-    assert "lm_head.weight" in model.all_tied_weights_keys
+    assert "lm_head.weight" not in model.all_tied_weights_keys
     model.save_pretrained(tmp_path, safe_serialization=False)
     package = "fitmotn.export.remote_code"
     for filename in ("configuration_fitmotn.py", "modeling_fitmotn.py"):
