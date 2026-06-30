@@ -20,15 +20,18 @@ from ..eval.runner import run_eval_tasks
 from ..rl.data import format_rl_prompt, load_gsm8k_rl_records
 from ..rl.grpo import compute_group_advantages, grpo_loss
 from ..rl.generation import (
-    is_cache_compat_generation_error,
-    rollout_generation_state,
-    rollout_grad_context,
     rollout_grad_context_name,
     tokenize_rollout_prompts,
 )
 from ..rl.logprobs import gather_response_logprobs
 from ..rl.mgpo import compute_mgpo_weights
 from ..rl.reward_shaping import apply_long2short_reward_shift
+from ..rl.rollout_backends import (
+    HFRolloutBackend,
+    RolloutBackend,
+    RolloutSyncResult,
+    build_generation_config_from_fit_cfg,
+)
 from ..rl.rewards_gsm8k import gsm8k_reward
 from ..rl.runtime import (
     RLPolicyLoadInfo,
@@ -43,6 +46,7 @@ from ..rl.runtime import (
     reset_runtime_usage_buffers,
     set_trainable_mode_for_rl,
 )
+from ..rl.vllm_rollout import VLLMRolloutBackend
 from ..utils.paths import assert_no_unsafe_paths
 
 
@@ -528,50 +532,16 @@ def generate_rollout_sequences(
     attention_mask: torch.Tensor,
     logger: Optional[logging.Logger] = None,
 ) -> Tuple[torch.Tensor, List[int], Dict[str, Any]]:
-    cache_info = rollout_cache_metadata(fit_cfg)
-    requested_use_cache = bool(cache_info["effective_rollout_use_cache"])
-    grad_context_enabled = bool(getattr(fit_cfg.rl, "rollout_inference_mode", True))
-    micro_batch_size = int(getattr(fit_cfg.rl, "rollout_micro_batch_size", 0))
-    pad_token_id = _rollout_pad_token_id(tokenizer)
-
-    generate_kwargs = {
-        "max_new_tokens": int(fit_cfg.rl.max_new_tokens),
-        "do_sample": True,
-        "temperature": float(fit_cfg.rl.temperature),
-        "top_p": float(fit_cfg.rl.top_p),
-        "pad_token_id": pad_token_id,
-        "eos_token_id": getattr(tokenizer, "eos_token_id", None),
-    }
-
-    def attempt(use_cache: bool) -> Tuple[torch.Tensor, List[int]]:
-        chunks: List[torch.Tensor] = []
-        seq_lens: List[int] = []
-        for start, end in iter_response_chunks(int(input_ids.shape[0]), micro_batch_size):
-            with rollout_grad_context(grad_context_enabled):
-                with rollout_generation_state(model, use_cache=bool(use_cache)):
-                    chunk = model.generate(
-                        input_ids=input_ids[start:end],
-                        attention_mask=attention_mask[start:end],
-                        use_cache=bool(use_cache),
-                        **generate_kwargs,
-                    )
-            chunks.append(chunk)
-            seq_lens.extend([int(chunk.shape[1])] * int(chunk.shape[0]))
-        return _pad_generated_to_max_len(chunks, pad_token_id), seq_lens
-
-    try:
-        generated, original_seq_lens = attempt(requested_use_cache)
-    except Exception as exc:
-        if requested_use_cache and is_cache_compat_generation_error(exc):
-            if logger is not None:
-                logger.warning("[RLRollout] use_cache=true generate failed; retrying once with use_cache=false: %s", exc)
-            generated, original_seq_lens = attempt(False)
-            cache_info["effective_rollout_use_cache"] = False
-            cache_info["rollout_use_cache_reason"] = "fallback_after_error"
-            cache_info["rollout_use_cache_error"] = str(exc)
-        else:
-            raise
-    return generated, original_seq_lens, cache_info
+    batch = HFRolloutBackend(logger=logger).generate(
+        model=model,
+        tokenizer=tokenizer,
+        prompts=[],
+        input_ids=input_ids,
+        attention_mask=attention_mask,
+        generation_config=build_generation_config_from_fit_cfg(fit_cfg),
+        update_step=0,
+    )
+    return batch.sequences, batch.original_seq_lens, batch.metadata
 
 
 def _mean(values: Iterable[float]) -> float:
@@ -648,6 +618,96 @@ def _save_rl_model_artifacts(
         metadata.pop("state_dict", None)
         save_fitmotn_metadata(output_dir, metadata)
     return output_dir
+
+
+def _build_rollout_backend(
+    *,
+    fit_cfg,
+    rl_dir: Path,
+    model,
+    tokenizer,
+    load_info: RLPolicyLoadInfo,
+    trainable_mode_info: Dict[str, Any],
+    logger: logging.Logger,
+) -> RolloutBackend:
+    backend_name = str(getattr(fit_cfg.rl, "rollout_backend", "hf") or "hf").strip().lower()
+    if backend_name == "hf":
+        return HFRolloutBackend(logger=logger)
+    if backend_name != "vllm":
+        raise ValueError(f"Unsupported rl.rollout_backend={backend_name!r}")
+
+    def save_policy_checkpoint(output_dir: Path, update_step: int, checkpoint_name: str, extra_metadata: Dict[str, Any]) -> Path:
+        return _save_rl_model_artifacts(
+            model=model,
+            tokenizer=tokenizer,
+            output_dir=output_dir,
+            load_info=load_info,
+            fit_cfg=fit_cfg,
+            update_step=int(update_step),
+            checkpoint_name=checkpoint_name,
+            trainable_mode_info=trainable_mode_info,
+            extra_metadata=extra_metadata,
+        )
+
+    return VLLMRolloutBackend(
+        fit_cfg=fit_cfg,
+        rl_dir=rl_dir,
+        save_policy_checkpoint=save_policy_checkpoint,
+        logger=logger,
+    )
+
+
+def _rollout_resource_policy_metadata(fit_cfg) -> Dict[str, Any]:
+    return {
+        "rollout_backend": str(getattr(fit_cfg.rl, "rollout_backend", "hf") or "hf"),
+        "vllm_sync_strategy": str(getattr(fit_cfg.rl, "vllm_sync_strategy", "export_reload") or "export_reload"),
+        "vllm_device": getattr(fit_cfg.rl, "vllm_device", None),
+        "vllm_gpu_memory_utilization": float(getattr(fit_cfg.rl, "vllm_gpu_memory_utilization", 0.85)),
+        "vllm_tensor_parallel_size": int(getattr(fit_cfg.rl, "vllm_tensor_parallel_size", 1)),
+        "vllm_max_model_len": int(getattr(fit_cfg.rl, "vllm_max_model_len", 0)),
+        "vllm_max_num_seqs": int(getattr(fit_cfg.rl, "vllm_max_num_seqs", 0)),
+        "vllm_fail_on_cuda_oom": bool(getattr(fit_cfg.rl, "vllm_fail_on_cuda_oom", True)),
+        "vllm_empty_cache_before_engine_init": bool(getattr(fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)),
+        "vllm_fallback_to_hf": bool(getattr(fit_cfg.rl, "vllm_fallback_to_hf", False)),
+        "allow_stale_vllm_policy": bool(getattr(fit_cfg.rl, "allow_stale_vllm_policy", False)),
+        "vllm_allow_text_prompt_fallback": bool(getattr(fit_cfg.rl, "vllm_allow_text_prompt_fallback", False)),
+        "vllm_weight_transfer_backend": str(getattr(fit_cfg.rl, "vllm_weight_transfer_backend", "nccl") or "nccl"),
+        "vllm_native_transfer_required_level": str(
+            getattr(fit_cfg.rl, "vllm_native_transfer_required_level", "four_phase") or "four_phase"
+        ),
+        "vllm_weight_transfer_dryrun_mode": str(
+            getattr(fit_cfg.rl, "vllm_weight_transfer_dryrun_mode", "static") or "static"
+        ),
+        "vllm_weight_transfer_fallback_to_export_reload": bool(
+            getattr(fit_cfg.rl, "vllm_weight_transfer_fallback_to_export_reload", False)
+        ),
+        "vllm_weight_transfer_validate_coverage": bool(
+            getattr(fit_cfg.rl, "vllm_weight_transfer_validate_coverage", True)
+        ),
+        "vllm_weight_transfer_validate_after_sync": bool(
+            getattr(fit_cfg.rl, "vllm_weight_transfer_validate_after_sync", True)
+        ),
+        "vllm_weight_transfer_packed": bool(getattr(fit_cfg.rl, "vllm_weight_transfer_packed", True)),
+    }
+
+
+def _sync_result_metadata(result: Optional[RolloutSyncResult]) -> Dict[str, Any]:
+    if result is None:
+        return {
+            "vllm_policy_version": None,
+            "policy_lag_updates": 0,
+            "vllm_export_dir": None,
+            "vllm_sync_sec": 0.0,
+            "vllm_engine_rebuild_sec": 0.0,
+        }
+    return {
+        "vllm_policy_version": int(result.policy_version),
+        "policy_lag_updates": int(result.policy_lag_updates),
+        "vllm_export_dir": result.export_dir,
+        "vllm_sync_sec": float(result.sync_sec),
+        "vllm_engine_rebuild_sec": float(result.engine_rebuild_sec),
+        **dict(result.metadata or {}),
+    }
 
 
 def _safe_load_info_summary(load_info: RLPolicyLoadInfo) -> Dict[str, Any]:
@@ -803,6 +863,20 @@ def run_fitmotn_rl_training(fit_cfg):
     trainable_summary = build_trainable_summary(model, trainable_mode_info["trainable_names"], optimizer=optimizer)
     log_trainable_summary(trainable_summary, rl_dir, logger)
     ref_model = load_reference_for_rl(fit_cfg, logger=logger)
+    rollout_backend = _build_rollout_backend(
+        fit_cfg=fit_cfg,
+        rl_dir=rl_dir,
+        model=model,
+        tokenizer=tokenizer,
+        load_info=load_info,
+        trainable_mode_info=trainable_mode_info,
+        logger=logger,
+    )
+    rollout_generation_config = build_generation_config_from_fit_cfg(fit_cfg)
+    last_rollout_sync: Optional[RolloutSyncResult] = None
+    if rollout_backend.name == "vllm":
+        last_rollout_sync = rollout_backend.sync_policy(model=model, tokenizer=tokenizer, update_step=0, force=True)
+        logger.info("[RLRollout] backend=vllm initial_sync=%s", json.dumps(to_jsonable(_sync_result_metadata(last_rollout_sync)), ensure_ascii=False))
 
     amp_dtype = resolve_amp_dtype(model)
     amp_enabled = bool(getattr(fit_cfg.model, "use_amp", False) and torch.device(fit_cfg.model.device).type == "cuda" and amp_dtype is not None)
@@ -825,6 +899,8 @@ def run_fitmotn_rl_training(fit_cfg):
         "tokenizer_chat_template_present": bool(getattr(tokenizer, "chat_template", None)),
         "enable_usage_tracking": _rl_usage_tracking_enabled(fit_cfg),
         "rollout_max_prompt_tokens": int(getattr(fit_cfg.rl, "rollout_max_prompt_tokens", 0)),
+        **_rollout_resource_policy_metadata(fit_cfg),
+        **_sync_result_metadata(last_rollout_sync),
         **initial_rollout_cache_info,
     }
     jsonl_append(train_jsonl_path, run_start_record)
@@ -873,14 +949,19 @@ def run_fitmotn_rl_training(fit_cfg):
                 logger.warning("[RLUsage] failed to disable/reset usage buffers before generation: %s", exc)
         _maybe_log_cuda_memory(fit_cfg, logger, "before_generate", update_step=next_update_step, micro_step=micro_step)
         generate_start_time = time.time()
-        generated, original_seq_lens, rollout_cache_info = generate_rollout_sequences(
-            fit_cfg=fit_cfg,
+        rollout_batch = rollout_backend.generate(
             model=model,
             tokenizer=tokenizer,
+            prompts=rollout_prompts,
             input_ids=input_ids,
             attention_mask=attention_mask,
-            logger=logger,
+            generation_config=rollout_generation_config,
+            update_step=update_step,
         )
+        generated = rollout_batch.sequences
+        original_seq_lens = rollout_batch.original_seq_lens
+        rollout_cache_info = dict(rollout_batch.metadata or {})
+        response_start = int(rollout_batch.response_start)
         _set_model_cache_if_present(model, False)
         timing_info["generate_sec"] = max(0.0, time.time() - generate_start_time)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_generate", update_step=next_update_step, micro_step=micro_step)
@@ -961,6 +1042,7 @@ def run_fitmotn_rl_training(fit_cfg):
             )
             timing_info["total_micro_step_sec"] = max(0.0, time.time() - micro_step_start_time)
             skip_record.update(rollout_cache_info)
+            skip_record.update(_sync_result_metadata(last_rollout_sync))
             if bool(getattr(fit_cfg.rl, "rollout_log_timing", True)):
                 skip_record.update(timing_info)
             jsonl_append(train_jsonl_path, skip_record)
@@ -1114,6 +1196,18 @@ def run_fitmotn_rl_training(fit_cfg):
             update_step += 1
             zero_advantage_retry_count = 0
             _maybe_log_cuda_memory(fit_cfg, logger, "after_optimizer_step", update_step=update_step, micro_step=micro_step)
+            if rollout_backend.name == "vllm":
+                last_rollout_sync = rollout_backend.sync_policy(
+                    model=model,
+                    tokenizer=tokenizer,
+                    update_step=update_step,
+                    force=False,
+                )
+                if last_rollout_sync.synced:
+                    logger.info(
+                        "[RLRollout] backend=vllm sync=%s",
+                        json.dumps(to_jsonable(_sync_result_metadata(last_rollout_sync)), ensure_ascii=False),
+                    )
         timing_info["total_micro_step_sec"] = max(0.0, time.time() - micro_step_start_time)
 
         if did_update and update_step % int(fit_cfg.rl.log_every) == 0:
@@ -1162,6 +1256,7 @@ def run_fitmotn_rl_training(fit_cfg):
                 "response_start": int(response_start),
                 "router_usage_warning": router_usage_warning,
                 **rollout_cache_info,
+                **_sync_result_metadata(last_rollout_sync),
                 **(timing_info if bool(getattr(fit_cfg.rl, "rollout_log_timing", True)) else {}),
                 **_cuda_memory_snapshot(),
                 "time": time.time(),
@@ -1240,6 +1335,11 @@ def run_fitmotn_rl_training(fit_cfg):
         if did_update and int(getattr(fit_cfg.rl, "empty_cache_every", 0)) > 0 and update_step % int(fit_cfg.rl.empty_cache_every) == 0:
             torch.cuda.empty_cache()
 
+    try:
+        rollout_backend.close()
+    except Exception as exc:
+        logger.warning("[RLRollout] backend close failed: %s", exc)
+
     final_model_dir = rl_dir / "final_model"
     _save_rl_model_artifacts(
         model=model,
@@ -1266,11 +1366,23 @@ def run_fitmotn_rl_training(fit_cfg):
         "trainable_mode_info": {key: value for key, value in trainable_mode_info.items() if key != "trainable_names"},
         "load_info": _safe_load_info_summary(load_info),
         "rl_cfg": to_jsonable(asdict(fit_cfg.rl)),
+        **_rollout_resource_policy_metadata(fit_cfg),
+        **_sync_result_metadata(last_rollout_sync),
         "final_model_restore_compatible": bool(load_info.layer_idxs),
     }
     json_dump(summary_path, summary)
     json_dump(final_model_dir / "rl_run_summary.json", summary)
-    jsonl_append(train_jsonl_path, {"kind": "run_end", "update_step": int(update_step), "micro_step": int(micro_step), "time": time.time()})
+    jsonl_append(
+        train_jsonl_path,
+        {
+            "kind": "run_end",
+            "update_step": int(update_step),
+            "micro_step": int(micro_step),
+            **_rollout_resource_policy_metadata(fit_cfg),
+            **_sync_result_metadata(last_rollout_sync),
+            "time": time.time(),
+        },
+    )
     logger.info("[RLRun] finished dir=%s final_model=%s", rl_dir, final_model_dir)
     return {
         "rl_dir": str(rl_dir),

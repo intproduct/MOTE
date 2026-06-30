@@ -17,6 +17,16 @@ VALID_LR_SCHEDULER_TYPES = {"linear", "constant", "constant_with_warmup", "cosin
 VALID_RESUME_STAGES = {"auto", "stage_b", "full"}
 VALID_TEMPERATURE_SCHEDULE_TYPES = {"cosine", "constant"}
 VALID_RL_MODES = {"gsm8k_grpo"}
+VALID_RL_ROLLOUT_BACKENDS = {"hf", "vllm"}
+VALID_VLLM_SYNC_STRATEGIES = {
+    "export_reload",
+    "weight_transfer_dryrun_static",
+    "weight_transfer_dryrun_runtime",
+    "weight_transfer_nccl",
+    "weight_transfer_ipc",
+}
+VALID_VLLM_NATIVE_TRANSFER_LEVELS = {"none", "update_only", "four_phase"}
+VALID_VLLM_WEIGHT_TRANSFER_BACKENDS = {"nccl", "ipc"}
 VALID_RL_TRAINABLE_MODES = {"all", "patch_only", "motn_only", "gate_only", "router_only", "global_only"}
 VALID_FORMAT_MODES = {"raw", "chat"}
 VALID_ZERO_ADVANTAGE_RETRY_ACTIONS = {"warn_continue", "raise"}
@@ -69,7 +79,7 @@ PATH_FIELDS = {
     "data": set(DATA_PATH_FIELDS),
     "output": {"root_dir"},
     "train": {"resume_fitmotn_from"},
-    "rl": {"resume_from", "train_json"},
+    "rl": {"resume_from", "train_json", "vllm_export_root"},
     "diagnostics": {"prompts_file"},
 }
 
@@ -209,6 +219,7 @@ def _resolve_and_validate_paths(cfg: FitMoTNConfig) -> None:
     _resolve_optional_path("train", cfg.train, "resume_fitmotn_from", cfg)
     _resolve_optional_path("rl", cfg.rl, "resume_from", cfg)
     _resolve_optional_path("rl", cfg.rl, "train_json", cfg)
+    _resolve_optional_path("rl", cfg.rl, "vllm_export_root", cfg)
     _resolve_optional_path("diagnostics", cfg.diagnostics, "prompts_file", cfg)
 
     require_gsm8k = bool(getattr(cfg.rl, "enabled", False) and getattr(cfg.rl, "use_config_data", True))
@@ -473,6 +484,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
 
     rl_cfg.resume_from = _normalize_optional_path(getattr(rl_cfg, "resume_from", None))
     rl_cfg.train_json = _normalize_optional_path(getattr(rl_cfg, "train_json", None))
+    rl_cfg.vllm_export_root = _normalize_optional_path(getattr(rl_cfg, "vllm_export_root", None))
     rl_cfg.train_source = str(getattr(rl_cfg, "train_source", "gsm8k_train") or "gsm8k_train")
     rl_cfg.output_subdir = str(getattr(rl_cfg, "output_subdir", "rl_grpo") or "rl_grpo").strip() or "rl_grpo"
     rl_cfg.prompt_template = str(getattr(rl_cfg, "prompt_template", "") or "")
@@ -488,6 +500,58 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.enable_usage_tracking = bool(getattr(rl_cfg, "enable_usage_tracking", False))
     rl_cfg.gradient_checkpointing = bool(getattr(rl_cfg, "gradient_checkpointing", False))
     rl_cfg.rollout_use_cache = bool(getattr(rl_cfg, "rollout_use_cache", True))
+    rollout_backend = str(getattr(rl_cfg, "rollout_backend", "hf") or "hf").strip().lower()
+    if rollout_backend not in VALID_RL_ROLLOUT_BACKENDS:
+        raise ValueError(f"rl.rollout_backend must be one of {sorted(VALID_RL_ROLLOUT_BACKENDS)}, got {rollout_backend!r}")
+    rl_cfg.rollout_backend = rollout_backend
+    vllm_sync_strategy = str(getattr(rl_cfg, "vllm_sync_strategy", "export_reload") or "export_reload").strip().lower()
+    if vllm_sync_strategy not in VALID_VLLM_SYNC_STRATEGIES:
+        raise ValueError(
+            f"rl.vllm_sync_strategy must be one of {sorted(VALID_VLLM_SYNC_STRATEGIES)}, got {vllm_sync_strategy!r}"
+        )
+    rl_cfg.vllm_sync_strategy = vllm_sync_strategy
+    rl_cfg.vllm_model_impl = str(getattr(rl_cfg, "vllm_model_impl", "transformers") or "transformers")
+    rl_cfg.vllm_dtype = str(getattr(rl_cfg, "vllm_dtype", "auto") or "auto")
+    weight_transfer_backend = str(getattr(rl_cfg, "vllm_weight_transfer_backend", "nccl") or "nccl").strip().lower()
+    if weight_transfer_backend not in VALID_VLLM_WEIGHT_TRANSFER_BACKENDS:
+        raise ValueError(
+            "rl.vllm_weight_transfer_backend must be one of "
+            f"{sorted(VALID_VLLM_WEIGHT_TRANSFER_BACKENDS)}, got {weight_transfer_backend!r}"
+        )
+    rl_cfg.vllm_weight_transfer_backend = weight_transfer_backend
+    required_level = str(getattr(rl_cfg, "vllm_native_transfer_required_level", "four_phase") or "four_phase").strip().lower()
+    if required_level not in VALID_VLLM_NATIVE_TRANSFER_LEVELS:
+        raise ValueError(
+            "rl.vllm_native_transfer_required_level must be one of "
+            f"{sorted(VALID_VLLM_NATIVE_TRANSFER_LEVELS)}, got {required_level!r}"
+        )
+    rl_cfg.vllm_native_transfer_required_level = required_level
+    dryrun_mode = str(getattr(rl_cfg, "vllm_weight_transfer_dryrun_mode", "static") or "static").strip().lower()
+    if dryrun_mode not in {"static", "runtime"}:
+        raise ValueError("rl.vllm_weight_transfer_dryrun_mode must be 'static' or 'runtime'")
+    rl_cfg.vllm_weight_transfer_dryrun_mode = dryrun_mode
+    rl_cfg.vllm_weight_transfer_master_addr = str(
+        getattr(rl_cfg, "vllm_weight_transfer_master_addr", "127.0.0.1") or "127.0.0.1"
+    )
+    vllm_device = getattr(rl_cfg, "vllm_device", None)
+    rl_cfg.vllm_device = None if vllm_device is None or str(vllm_device).strip() == "" else str(vllm_device).strip()
+    rl_cfg.vllm_enforce_eager = bool(getattr(rl_cfg, "vllm_enforce_eager", True))
+    rl_cfg.vllm_disable_log_stats = bool(getattr(rl_cfg, "vllm_disable_log_stats", True))
+    rl_cfg.vllm_weight_transfer_packed = bool(getattr(rl_cfg, "vllm_weight_transfer_packed", True))
+    rl_cfg.vllm_weight_transfer_validate_coverage = bool(getattr(rl_cfg, "vllm_weight_transfer_validate_coverage", True))
+    rl_cfg.vllm_weight_transfer_fail_on_partial = bool(getattr(rl_cfg, "vllm_weight_transfer_fail_on_partial", True))
+    rl_cfg.vllm_weight_transfer_fallback_to_export_reload = bool(
+        getattr(rl_cfg, "vllm_weight_transfer_fallback_to_export_reload", False)
+    )
+    rl_cfg.vllm_weight_transfer_validate_after_sync = bool(getattr(rl_cfg, "vllm_weight_transfer_validate_after_sync", True))
+    rl_cfg.vllm_enable_sleep_mode = bool(getattr(rl_cfg, "vllm_enable_sleep_mode", False))
+    rl_cfg.vllm_wake_weights_before_update = bool(getattr(rl_cfg, "vllm_wake_weights_before_update", True))
+    rl_cfg.vllm_wake_kv_cache_after_update = bool(getattr(rl_cfg, "vllm_wake_kv_cache_after_update", True))
+    rl_cfg.vllm_fallback_to_hf = bool(getattr(rl_cfg, "vllm_fallback_to_hf", False))
+    rl_cfg.allow_stale_vllm_policy = bool(getattr(rl_cfg, "allow_stale_vllm_policy", False))
+    rl_cfg.vllm_allow_text_prompt_fallback = bool(getattr(rl_cfg, "vllm_allow_text_prompt_fallback", False))
+    rl_cfg.vllm_fail_on_cuda_oom = bool(getattr(rl_cfg, "vllm_fail_on_cuda_oom", True))
+    rl_cfg.vllm_empty_cache_before_engine_init = bool(getattr(rl_cfg, "vllm_empty_cache_before_engine_init", False))
     rl_cfg.rollout_inference_mode = bool(getattr(rl_cfg, "rollout_inference_mode", True))
     rl_cfg.rollout_log_timing = bool(getattr(rl_cfg, "rollout_log_timing", True))
     rl_cfg.skip_zero_advantage_updates = bool(getattr(rl_cfg, "skip_zero_advantage_updates", True))
@@ -512,6 +576,14 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "logprob_micro_batch_size",
         "rollout_micro_batch_size",
         "rollout_max_prompt_tokens",
+        "vllm_tensor_parallel_size",
+        "vllm_max_model_len",
+        "vllm_max_num_seqs",
+        "vllm_sync_every_updates",
+        "vllm_keep_sync_exports",
+        "vllm_weight_transfer_master_port",
+        "vllm_sync_validation_every",
+        "vllm_sleep_level_before_sync",
         "empty_cache_every",
         "max_zero_advantage_rollout_retries",
         "save_every_updates",
@@ -522,7 +594,16 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     ]
     for field_name in int_fields:
         setattr(rl_cfg, field_name, int(getattr(rl_cfg, field_name)))
-    for field_name in ["lr", "eps_clip", "beta", "temperature", "top_p", "max_grad_norm"]:
+    for field_name in [
+        "lr",
+        "eps_clip",
+        "beta",
+        "temperature",
+        "top_p",
+        "max_grad_norm",
+        "vllm_gpu_memory_utilization",
+        "vllm_weight_transfer_timeout_sec",
+    ]:
         setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
     for field_name in ["mgpo_p0", "mgpo_gamma", "mgpo_weight_min", "mgpo_weight_max", "mgpo_eps", "long2short_lambda", "long2short_eps"]:
         setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
@@ -571,6 +652,36 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             value = int(getattr(rl_cfg, field_name))
             if value < 0:
                 raise ValueError(f"rl.{field_name} must be >= 0, got {value}")
+        if int(rl_cfg.vllm_tensor_parallel_size) < 1:
+            raise ValueError(f"rl.vllm_tensor_parallel_size must be >= 1, got {rl_cfg.vllm_tensor_parallel_size}")
+        for field_name in ["vllm_max_model_len", "vllm_max_num_seqs"]:
+            if int(getattr(rl_cfg, field_name)) < 0:
+                raise ValueError(f"rl.{field_name} must be >= 0, got {getattr(rl_cfg, field_name)}")
+        if int(rl_cfg.vllm_sync_every_updates) < 1:
+            raise ValueError(f"rl.vllm_sync_every_updates must be >= 1, got {rl_cfg.vllm_sync_every_updates}")
+        if int(rl_cfg.vllm_keep_sync_exports) < 0:
+            raise ValueError(f"rl.vllm_keep_sync_exports must be >= 0, got {rl_cfg.vllm_keep_sync_exports}")
+        if int(rl_cfg.vllm_weight_transfer_master_port) < 0:
+            raise ValueError(
+                "rl.vllm_weight_transfer_master_port must be >= 0, "
+                f"got {rl_cfg.vllm_weight_transfer_master_port}"
+            )
+        if int(rl_cfg.vllm_sync_validation_every) < 1:
+            raise ValueError(f"rl.vllm_sync_validation_every must be >= 1, got {rl_cfg.vllm_sync_validation_every}")
+        if int(rl_cfg.vllm_sleep_level_before_sync) < 0:
+            raise ValueError(
+                f"rl.vllm_sleep_level_before_sync must be >= 0, got {rl_cfg.vllm_sleep_level_before_sync}"
+            )
+        if float(rl_cfg.vllm_weight_transfer_timeout_sec) <= 0.0:
+            raise ValueError(
+                "rl.vllm_weight_transfer_timeout_sec must be > 0, "
+                f"got {rl_cfg.vllm_weight_transfer_timeout_sec}"
+            )
+        if not (0.0 < float(rl_cfg.vllm_gpu_memory_utilization) <= 1.0):
+            raise ValueError(
+                "rl.vllm_gpu_memory_utilization must satisfy 0 < value <= 1, "
+                f"got {rl_cfg.vllm_gpu_memory_utilization}"
+            )
         if int(rl_cfg.max_zero_advantage_rollout_retries) < 1:
             raise ValueError(
                 "rl.max_zero_advantage_rollout_retries must be >= 1, "

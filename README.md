@@ -105,11 +105,11 @@ python -m fitmotn.cli.build_boundary_gsm8k --config_json ./fitmotn_config.exampl
 python scripts/analyze_rl_timing.py path/to/rl_train.jsonl --last-n 100
 ```
 
-Current vLLM status: patched FitMoTN checkpoints are not supported by vLLM in
-this stage. `cli/eval_vllm.py` and `eval/vllm_runner.py` are only for baseline
-or explicitly vLLM-compatible models, and patched FitMoTN checkpoints should
-continue to fail with an explicit unsupported-path error until the later
-export/vLLM integration stage.
+Current vLLM status: raw patched FitMoTN checkpoints are still not passed
+directly to vLLM. Use a full Stage 4C HF export for vLLM evaluation, or set
+`rl.rollout_backend="vllm"` for Stage 4D RL rollout generation. Stage 4D uses
+vLLM only to sample rollouts; rewards, response masks, old/ref/new logprobs,
+and GRPO loss still run through the PyTorch/HF training path.
 
 ## 安装与运行环境
 
@@ -1069,6 +1069,49 @@ python -m fitmotn.cli.eval_vllm \
 
 Do not commit exported weights, raw checkpoints, tokenizer files copied from private models, or manifests containing private local paths.
 
+### Stage 4D vLLM RL rollouts
+
+Stage 4D can use vLLM as an optional rollout generation backend for GSM8K GRPO:
+
+```json
+{
+  "rl": {
+    "enabled": true,
+    "mode": "gsm8k_grpo",
+    "rollout_backend": "vllm",
+    "vllm_sync_strategy": "export_reload",
+    "vllm_sync_every_updates": 1,
+    "vllm_model_impl": "transformers",
+    "vllm_enforce_eager": true,
+    "vllm_gpu_memory_utilization": 0.85
+  }
+}
+```
+
+The default remains `rollout_backend="hf"`. With `rollout_backend="vllm"`, the training loop keeps the existing duplicated prompt expansion for GRPO groups and asks vLLM for one completion per expanded prompt. The vLLM adapter uses token-id prompts by default; text prompt fallback is disabled unless `rl.vllm_allow_text_prompt_fallback=true`.
+
+Policy sync is correctness-first. At run start and after each real `optimizer.step()` when sync is due, the current HF training policy is saved as an internal raw checkpoint, exported through the Stage 4C HF roundtrip path, and the vLLM engine is rebuilt from that export. `vllm_sync_every_updates=1` is the default so `policy_lag_updates=0`. Stale vLLM rollouts raise unless `rl.allow_stale_vllm_policy=true`, and any allowed lag is logged.
+
+Resource policy is explicit: Stage 4D does not silently move, unload, offload, or re-place the HF training model to make room for vLLM. Configure placement with the process CUDA environment and vLLM fields such as `rl.vllm_device`, `rl.vllm_tensor_parallel_size`, `rl.vllm_gpu_memory_utilization`, `rl.vllm_max_model_len`, and `rl.vllm_max_num_seqs`. CUDA OOMs from vLLM init/generation are raised with policy hints by default. HF fallback occurs only when `rl.vllm_fallback_to_hf=true`, and logs `vllm_fallback_used=true` plus `vllm_error`.
+
+Stage 4E adds capability-gated native weight-transfer diagnostics and an opt-in native sync strategy:
+
+```json
+{
+  "rl": {
+    "rollout_backend": "vllm",
+    "vllm_sync_strategy": "weight_transfer_dryrun_static",
+    "vllm_weight_transfer_dryrun_mode": "static"
+  }
+}
+```
+
+`weight_transfer_dryrun_static` inspects the live HF model and Stage 4C checkpoint-format names only. `weight_transfer_dryrun_runtime` also compares vLLM runtime names/shapes when an engine is available. Dryruns never mutate vLLM weights and never mark the rollout policy fresh.
+
+`vllm_sync_strategy="weight_transfer_nccl"` is allowed for real RL training only when the installed vLLM capability probe reports `native_transfer_level="four_phase"`: `WeightTransferConfig`, `LLM.init_weight_transfer_engine`, `LLM.start_weight_update`, `LLM.update_weights`, `LLM.finish_weight_update`, NCCL trainer APIs, and required update-info dataclasses must all be present. Runtimes that probe as `none` or `update_only` raise by default, or fall back to `export_reload` only when `rl.vllm_weight_transfer_fallback_to_export_reload=true`. Native transfer also requires full policy coverage and full module-aware MoTN coverage; logs include exact required/transferred MoTN keys, tensor counts, bytes, capability summaries, checksum validation metadata, rollout-facing validation metadata, and fallback errors.
+
+Native vLLM MoE support, expert parallelism, fused MoTN kernels, custom CUDA ops, async RL pipelining, IPC weight transfer, and direct model offloading are still future work. `export_reload` remains the default stable path.
+
 ## 论文级观测
 
 当前版本会在训练中持续记录这些结构化信息：
@@ -1185,13 +1228,26 @@ Stage 4C 支持：
 - 原生兼容 vLLM 的 checkpoint 评测
 - full HF FitMoTN export directory，通过 vLLM Transformers modeling backend 加载
 
-Stage 4C 仍不支持：
+Stage 4D additionally supports `rl.rollout_backend="vllm"` for RL rollout
+generation only. GRPO grouping still uses the existing duplicated prompt
+expansion, and PyTorch/HF still computes rewards, masks, old/ref/new logprobs,
+and the GRPO loss.
+
+Stage 4E adds native weight-transfer capability probing and dryrun diagnostics.
+Real `weight_transfer_nccl` is gated on `native_transfer_level="four_phase"`.
+Local vLLM builds that expose only update-style APIs are treated as
+`update_only`, which is diagnostic only; use `export_reload` or explicit
+export-reload fallback for training.
+
+Stage 4C/4D/4E 仍不支持：
 
 - raw patched FitMoTN checkpoint 直接用 vLLM 执行
 - metadata-only FitMoTN export 直接用 vLLM 执行
 - native vLLM model registration
 - expert-parallel MoE execution
 - fused MoTN kernels 或 custom CUDA ops
+- IPC weight transfer 或 unsafe direct in-memory vLLM weight sync
+- async RL pipelining
 
 如果你把 `final_model/` 这类 raw patched FitMoTN checkpoint 直接传给 `eval_vllm.py`，当前实现会显式报错：
 
