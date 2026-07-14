@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 import shutil
+import socket
 import time
-from concurrent.futures import ThreadPoolExecutor, wait
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 from .rollout_backends import RolloutSyncResult
 from .vllm_weight_mapping import (
     build_weight_mapping_report,
-    iter_transfer_tensors,
     selected_tensor_checksums,
 )
 from .vllm_weight_transfer_capabilities import (
     VLLMWeightTransferCapabilityReport,
     probe_vllm_weight_transfer_capabilities,
 )
+from .vllm_weight_transfer_adapters import NCCLTransferSettings, select_nccl_transfer_adapter
 
 
 SavePolicyCheckpointFn = Callable[[Path, int, str, Dict[str, Any]], Path]
@@ -39,6 +39,7 @@ class VLLMPolicySyncManager:
         self.last_result = RolloutSyncResult(synced=False, policy_version=-1, policy_lag_updates=0)
         self.capability_report: Optional[VLLMWeightTransferCapabilityReport] = None
         self.weight_transfer_initialized = False
+        self.weight_transfer_master_port: Optional[int] = None
 
     @property
     def strategy(self) -> str:
@@ -151,6 +152,10 @@ class VLLMPolicySyncManager:
         sync_sec = max(0.0, time.perf_counter() - sync_start)
         self.policy_version = int(update_step)
         self.export_dir = Path(result.output_dir)
+        # The rollout backend rebuilds its engine from this export. Any native
+        # transfer engine previously attached to the old vLLM instance is no
+        # longer initialized.
+        self.weight_transfer_initialized = False
         self._prune_exports(root)
         self.last_result = RolloutSyncResult(
             synced=True,
@@ -229,37 +234,41 @@ class VLLMPolicySyncManager:
         force: bool,
         runtime_params: Optional[Dict[str, Any]],
     ) -> RolloutSyncResult:
-        del force
         lag = self.policy_lag(update_step)
         mode = "runtime" if runtime_params is not None else "static"
         start = time.perf_counter()
-        metadata = {
+        diagnostic_metadata = {
             "vllm_sync_strategy": self.strategy,
             "vllm_weight_transfer_dryrun": True,
             "vllm_weight_transfer_dryrun_mode": mode,
+            "vllm_weight_transfer_dryrun_requested_mode": (
+                "runtime" if self.strategy == "weight_transfer_dryrun_runtime" else "static"
+            ),
             "native_transfer_level": self._capabilities().native_transfer_level,
             "native_transfer_capability_report": self._capabilities().to_dict(),
             "rollout_facing_validation": {
                 "mode": "not_run",
                 "ok": None,
-                "reason": "dryrun does not mutate or validate vLLM policy freshness",
+                "reason": "dryrun validates mapping but uses export_reload for policy freshness",
             },
             **self._mapping_metadata(model=model, runtime_params=runtime_params),
         }
-        self.last_result = RolloutSyncResult(
-            synced=False,
-            policy_version=int(self.policy_version),
-            policy_lag_updates=int(lag),
-            export_dir=None if self.export_dir is None else str(self.export_dir),
-            sync_sec=max(0.0, time.perf_counter() - start),
-            metadata=metadata,
-        )
-        return self.last_result
+        diagnostic_sec = max(0.0, time.perf_counter() - start)
+        diagnostic_metadata["vllm_weight_transfer_dryrun_sec"] = diagnostic_sec
+        # A dryrun is a diagnostic for native in-place transfer, not a stale
+        # rollout policy mode. Keep the rollout engine usable and fresh through
+        # the proven export/reload path while attaching the mapping report.
+        result = self._sync_export_reload(model=model, update_step=update_step, force=force)
+        result.sync_sec += diagnostic_sec
+        result.metadata.update(diagnostic_metadata)
+        result.metadata["policy_lag_updates_before_sync"] = int(lag)
+        self.last_result = result
+        return result
 
     def _native_unavailable_error(self, report: VLLMWeightTransferCapabilityReport) -> RuntimeError:
         required = str(getattr(self.fit_cfg.rl, "vllm_native_transfer_required_level", "four_phase") or "four_phase")
         return RuntimeError(
-            "rl.vllm_sync_strategy='weight_transfer_nccl' requires native_transfer_level='four_phase' "
+            "rl.vllm_sync_strategy='weight_transfer_nccl' cannot satisfy the configured native transfer gate "
             f"for real RL training, but this vLLM runtime reports {report.native_transfer_level!r} "
             f"(required={required!r}). Missing APIs: {report.missing}. "
             "Use rl.vllm_sync_strategy='export_reload' or set "
@@ -318,11 +327,21 @@ class VLLMPolicySyncManager:
         }
         try:
             self._enforce_mapping_coverage(metadata)
-            if report.native_transfer_level != "four_phase":
-                raise self._native_unavailable_error(report)
             if llm is None:
                 raise RuntimeError("vLLM native weight transfer requires an initialized vLLM engine")
-            transfer_result = self._run_four_phase_nccl_update(llm=llm, model=model, update_step=update_step)
+            required_level = str(
+                getattr(self.fit_cfg.rl, "vllm_native_transfer_required_level", "four_phase") or "four_phase"
+            ).strip().lower()
+            try:
+                adapter = select_nccl_transfer_adapter(report, required_level=required_level)
+            except Exception as exc:
+                raise self._native_unavailable_error(report) from exc
+            transfer_result = self._run_nccl_update(
+                adapter=adapter,
+                llm=llm,
+                model=model,
+                update_step=update_step,
+            )
             metadata.update(transfer_result)
             metadata.update(self._post_sync_validation_metadata(model=model, llm=llm, update_step=update_step))
         except Exception as exc:
@@ -352,89 +371,39 @@ class VLLMPolicySyncManager:
             f"Capability ipc_available={report.ipc_available}. Use weight_transfer_nccl or export_reload."
         )
 
-    def _run_four_phase_nccl_update(self, *, llm, model, update_step: int) -> Dict[str, Any]:
-        from vllm.distributed.weight_transfer.nccl_engine import (  # type: ignore
-            NCCLTrainerSendWeightsArgs,
-            NCCLWeightTransferEngine,
-            NCCLWeightTransferInitInfo,
-            NCCLWeightTransferUpdateInfo,
-        )
+    def _resolve_weight_transfer_master_port(self) -> int:
+        configured = int(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_port", 0))
+        if configured > 0:
+            self.weight_transfer_master_port = configured
+            return configured
+        if self.weight_transfer_master_port is None:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind((str(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1")), 0))
+                self.weight_transfer_master_port = int(sock.getsockname()[1])
+        return int(self.weight_transfer_master_port)
 
+    def _run_nccl_update(self, *, adapter, llm, model, update_step: int) -> Dict[str, Any]:
         mapping = build_weight_mapping_report(model)
-        names = [entry.transfer_name for entry in mapping.entries]
-        dtype_names = [entry.dtype for entry in mapping.entries]
-        shapes = [entry.shape for entry in mapping.entries]
-        packed = bool(getattr(self.fit_cfg.rl, "vllm_weight_transfer_packed", True))
-        timeout = float(getattr(self.fit_cfg.rl, "vllm_weight_transfer_timeout_sec", 300.0))
-        timings: Dict[str, float] = {}
-        init_start = time.perf_counter()
-        if not self.weight_transfer_initialized:
-            init_fn = getattr(llm, "init_weight_transfer_engine", None)
-            if not callable(init_fn):
-                raise RuntimeError("vLLM LLM.init_weight_transfer_engine is unavailable")
-            init_info = NCCLWeightTransferInitInfo(
-                master_address=str(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1") or "127.0.0.1"),
-                master_port=int(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_port", 0)),
-                rank_offset=1,
-                world_size=int(getattr(self.fit_cfg.rl, "vllm_tensor_parallel_size", 1)) + 1,
-            )
-            init_fn(init_info)
-            self.weight_transfer_initialized = True
-        timings["weight_transfer_init_sec"] = max(0.0, time.perf_counter() - init_start)
-
         start = time.perf_counter()
-        update_info = llm.start_weight_update(is_checkpoint_format=True)
-        if update_info is None:
-            update_info = NCCLWeightTransferUpdateInfo(
-                names=names,
-                dtype_names=dtype_names,
-                shapes=shapes,
-                packed=packed,
-                is_checkpoint_format=True,
-            )
-        timings["weight_transfer_start_sec"] = max(0.0, time.perf_counter() - start)
-
-        update_start = time.perf_counter()
-        group = NCCLWeightTransferEngine.trainer_init(
-            NCCLWeightTransferInitInfo(
-                master_address=str(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1") or "127.0.0.1"),
-                master_port=int(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_port", 0)),
-                rank_offset=0,
-                world_size=int(getattr(self.fit_cfg.rl, "vllm_tensor_parallel_size", 1)) + 1,
-            )
+        result, initialized = adapter.transfer(
+            llm=llm,
+            model=model,
+            mapping=mapping,
+            settings=NCCLTransferSettings(
+                master_address=str(
+                    getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1") or "127.0.0.1"
+                ),
+                master_port=self._resolve_weight_transfer_master_port(),
+                tensor_parallel_size=int(getattr(self.fit_cfg.rl, "vllm_tensor_parallel_size", 1)),
+                packed=bool(getattr(self.fit_cfg.rl, "vllm_weight_transfer_packed", True)),
+                timeout_sec=float(getattr(self.fit_cfg.rl, "vllm_weight_transfer_timeout_sec", 300.0)),
+            ),
+            initialized=bool(self.weight_transfer_initialized),
+            update_step=int(update_step),
         )
-        trainer_args = NCCLTrainerSendWeightsArgs(group=group, packed=packed)
-        executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="vllm_weight_transfer")
-        try:
-            receive_future = executor.submit(llm.update_weights, update_info)
-            send_future = executor.submit(
-                NCCLWeightTransferEngine.trainer_send_weights,
-                iter_transfer_tensors(mapping, model),
-                trainer_args,
-            )
-            done, pending = wait([receive_future, send_future], timeout=timeout)
-            if pending:
-                for future in pending:
-                    future.cancel()
-                raise TimeoutError(
-                    "Timed out during vLLM NCCL weight transfer. "
-                    "Receiver-side update_weights and trainer_send_weights must both complete; "
-                    f"timeout_sec={timeout}."
-                )
-            for future in done:
-                future.result()
-        finally:
-            executor.shutdown(wait=False, cancel_futures=True)
-        timings["weight_transfer_update_sec"] = max(0.0, time.perf_counter() - update_start)
-
-        finish_start = time.perf_counter()
-        llm.finish_weight_update()
-        timings["weight_transfer_finish_sec"] = max(0.0, time.perf_counter() - finish_start)
-        return {
-            **timings,
-            "weight_transfer_update_step": int(update_step),
-            "weight_transfer_packed": bool(getattr(self.fit_cfg.rl, "vllm_weight_transfer_packed", True)),
-        }
+        self.weight_transfer_initialized = bool(initialized)
+        result["weight_transfer_total_sec"] = max(0.0, time.perf_counter() - start)
+        return result
 
     def _post_sync_validation_metadata(self, *, model, llm, update_step: int) -> Dict[str, Any]:
         every = max(1, int(getattr(self.fit_cfg.rl, "vllm_sync_validation_every", 1)))

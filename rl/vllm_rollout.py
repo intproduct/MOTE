@@ -14,6 +14,7 @@ from .rollout_backends import (
     rollout_pad_token_id,
 )
 from .vllm_sync import SavePolicyCheckpointFn, VLLMPolicySyncManager
+from .vllm_actor import VLLMActorClient
 
 
 def _is_cuda_oom(exc: BaseException) -> bool:
@@ -54,8 +55,22 @@ class VLLMRolloutBackend:
         self.llm = None
         self._vllm = None
         self._sampling_params_cls = None
+        self._actor: Optional[VLLMActorClient] = None
         self._last_sync = RolloutSyncResult(synced=False, policy_version=-1, policy_lag_updates=0)
         self._hf_fallback = HFRolloutBackend(logger=logger)
+
+    @property
+    def uses_subprocess_actor(self) -> bool:
+        return str(getattr(self.fit_cfg.rl, "vllm_execution_mode", "in_process") or "in_process").strip().lower() == "subprocess"
+
+    def _actor_client(self) -> VLLMActorClient:
+        if self._actor is None:
+            self._actor = VLLMActorClient(
+                start_method=str(getattr(self.fit_cfg.rl, "vllm_actor_start_method", "spawn") or "spawn"),
+                request_timeout_sec=float(getattr(self.fit_cfg.rl, "vllm_actor_request_timeout_sec", 600.0)),
+                shutdown_timeout_sec=float(getattr(self.fit_cfg.rl, "vllm_actor_shutdown_timeout_sec", 30.0)),
+            )
+        return self._actor
 
     def _import_vllm(self):
         if self._vllm is not None:
@@ -111,6 +126,8 @@ class VLLMRolloutBackend:
         return kwargs
 
     def _build_engine(self, export_dir: str) -> float:
+        if self.uses_subprocess_actor:
+            return self._actor_client().load_engine(self._llm_kwargs(export_dir))
         LLM, _ = self._import_vllm()
         if bool(getattr(self.fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)) and torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -132,6 +149,20 @@ class VLLMRolloutBackend:
         force: bool = False,
     ) -> RolloutSyncResult:
         try:
+            if (
+                bool(getattr(self.fit_cfg.rl, "vllm_enable_sleep_mode", False))
+                and self.sync_manager.strategy in {
+                    "export_reload",
+                    "weight_transfer_dryrun_static",
+                    "weight_transfer_dryrun_runtime",
+                }
+                and self.sync_manager.sync_due(update_step, force=force)
+            ):
+                sleep_level = max(1, int(getattr(self.fit_cfg.rl, "vllm_sleep_level_before_sync", 1)))
+                if self.uses_subprocess_actor and self._actor is not None and self._actor.is_alive:
+                    self._actor.sleep(level=sleep_level)
+                elif self.llm is not None and callable(getattr(self.llm, "sleep", None)):
+                    self.llm.sleep(level=sleep_level)
             sync_result = self.sync_manager.sync(
                 model=model,
                 tokenizer=tokenizer,
@@ -142,7 +173,7 @@ class VLLMRolloutBackend:
             )
             native_sync = bool(sync_result.metadata.get("vllm_weight_transfer_native_sync", False))
             if sync_result.synced and not native_sync:
-                self.close()
+                self._unload_engine()
                 rebuild_sec = self._build_engine(str(sync_result.export_dir))
                 sync_result.engine_rebuild_sec = rebuild_sec
                 sync_result.metadata["vllm_engine_rebuild_sec"] = rebuild_sec
@@ -153,6 +184,8 @@ class VLLMRolloutBackend:
             raise
 
     def _runtime_params(self) -> Optional[Dict[str, Any]]:
+        if self.uses_subprocess_actor:
+            return None
         llm = self.llm
         if llm is None:
             return None
@@ -186,8 +219,7 @@ class VLLMRolloutBackend:
                 continue
         return None
 
-    def _sampling_params(self, tokenizer, generation_config: RolloutGenerationConfig):
-        _, SamplingParams = self._import_vllm()
+    def _sampling_params_kwargs(self, tokenizer, generation_config: RolloutGenerationConfig) -> Dict[str, Any]:
         kwargs: Dict[str, Any] = {
             "max_tokens": int(generation_config.max_new_tokens),
             "temperature": float(generation_config.temperature),
@@ -196,6 +228,13 @@ class VLLMRolloutBackend:
         eos_token_id = getattr(tokenizer, "eos_token_id", None)
         if eos_token_id is not None:
             kwargs["stop_token_ids"] = [int(eos_token_id)]
+        return kwargs
+
+    def _sampling_params(self, tokenizer, generation_config: RolloutGenerationConfig):
+        kwargs = self._sampling_params_kwargs(tokenizer, generation_config)
+        if self.uses_subprocess_actor:
+            return kwargs
+        _, SamplingParams = self._import_vllm()
         return SamplingParams(**kwargs)
 
     def _generate_token_ids(
@@ -203,11 +242,27 @@ class VLLMRolloutBackend:
         *,
         prompts: List[str],
         input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
         sampling_params,
     ):
+        if input_ids.shape != attention_mask.shape:
+            raise ValueError("input_ids and attention_mask must have the same shape for vLLM token prompts")
+        prompt_token_ids: List[List[int]] = []
+        for row, mask in zip(input_ids, attention_mask):
+            effective = row[mask.to(device=row.device, dtype=torch.bool)]
+            ids = effective.detach().cpu().to(dtype=torch.long).tolist()
+            if not ids:
+                raise ValueError("vLLM token prompt contains no unmasked tokens")
+            prompt_token_ids.append(ids)
+        if self.uses_subprocess_actor:
+            if not isinstance(sampling_params, dict):
+                raise TypeError("subprocess vLLM actor requires serializable sampling parameter kwargs")
+            return self._actor_client().generate(
+                prompt_token_ids=prompt_token_ids,
+                sampling_kwargs=sampling_params,
+            )
         if self.llm is None:
             raise RuntimeError("vLLM engine is not initialized; call sync_policy(..., force=True) before rollout generation")
-        prompt_token_ids = [row.detach().cpu().to(dtype=torch.long).tolist() for row in input_ids]
         try:
             return self.llm.generate(
                 prompts=[{"prompt_token_ids": ids} for ids in prompt_token_ids],
@@ -282,11 +337,17 @@ class VLLMRolloutBackend:
             "vllm_sync_strategy": self.sync_manager.strategy,
             "vllm_fallback_used": False,
             "vllm_error": None,
+            "vllm_execution_mode": "subprocess" if self.uses_subprocess_actor else "in_process",
         }
         try:
             lag = self.sync_manager.assert_fresh_or_allowed(update_step)
             sampling_params = self._sampling_params(tokenizer, generation_config)
-            outputs = self._generate_token_ids(prompts=prompts, input_ids=input_ids, sampling_params=sampling_params)
+            outputs = self._generate_token_ids(
+                prompts=prompts,
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                sampling_params=sampling_params,
+            )
             generated_ids = [self._extract_generated_ids(output) for output in outputs]
             sequences, original_seq_lens = self.build_full_sequences_from_token_outputs(
                 input_ids=input_ids,
@@ -346,7 +407,11 @@ class VLLMRolloutBackend:
             )
             return fallback
 
-    def close(self) -> None:
+    def _unload_engine(self) -> None:
+        if self.uses_subprocess_actor:
+            if self._actor is not None:
+                self._actor.unload_engine()
+            return
         llm = self.llm
         self.llm = None
         if llm is None:
@@ -368,3 +433,9 @@ class VLLMRolloutBackend:
                     return
                 except Exception:
                     pass
+
+    def close(self) -> None:
+        if self._actor is not None:
+            self._actor.close()
+            self._actor = None
+        self._unload_engine()

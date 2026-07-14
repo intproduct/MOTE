@@ -340,6 +340,10 @@ class RLConfig:
     vllm_device: Optional[str] = None
     vllm_fail_on_cuda_oom: bool = True
     vllm_empty_cache_before_engine_init: bool = False
+    vllm_execution_mode: str = "in_process"
+    vllm_actor_start_method: str = "spawn"
+    vllm_actor_request_timeout_sec: float = 600.0
+    vllm_actor_shutdown_timeout_sec: float = 30.0
     gradient_checkpointing: bool = False
     empty_cache_every: int = 0
     skip_zero_advantage_updates: bool = True

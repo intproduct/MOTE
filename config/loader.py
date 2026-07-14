@@ -27,6 +27,7 @@ VALID_VLLM_SYNC_STRATEGIES = {
 }
 VALID_VLLM_NATIVE_TRANSFER_LEVELS = {"none", "update_only", "four_phase"}
 VALID_VLLM_WEIGHT_TRANSFER_BACKENDS = {"nccl", "ipc"}
+VALID_VLLM_EXECUTION_MODES = {"in_process", "subprocess"}
 VALID_RL_TRAINABLE_MODES = {"all", "patch_only", "motn_only", "gate_only", "router_only", "global_only"}
 VALID_FORMAT_MODES = {"raw", "chat"}
 VALID_ZERO_ADVANTAGE_RETRY_ACTIONS = {"warn_continue", "raise"}
@@ -606,6 +607,11 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             f"{sorted(VALID_VLLM_NATIVE_TRANSFER_LEVELS)}, got {required_level!r}"
         )
     rl_cfg.vllm_native_transfer_required_level = required_level
+    if vllm_sync_strategy == "weight_transfer_nccl" and required_level == "none":
+        raise ValueError(
+            "rl.vllm_native_transfer_required_level='none' cannot authorize real NCCL transfer; "
+            "use 'update_only' for explicit experimental support or 'four_phase' for the strict gate"
+        )
     dryrun_mode = str(getattr(rl_cfg, "vllm_weight_transfer_dryrun_mode", "static") or "static").strip().lower()
     if dryrun_mode not in {"static", "runtime"}:
         raise ValueError("rl.vllm_weight_transfer_dryrun_mode must be 'static' or 'runtime'")
@@ -632,6 +638,26 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.vllm_allow_text_prompt_fallback = bool(getattr(rl_cfg, "vllm_allow_text_prompt_fallback", False))
     rl_cfg.vllm_fail_on_cuda_oom = bool(getattr(rl_cfg, "vllm_fail_on_cuda_oom", True))
     rl_cfg.vllm_empty_cache_before_engine_init = bool(getattr(rl_cfg, "vllm_empty_cache_before_engine_init", False))
+    execution_mode = str(getattr(rl_cfg, "vllm_execution_mode", "in_process") or "in_process").strip().lower()
+    if execution_mode not in VALID_VLLM_EXECUTION_MODES:
+        raise ValueError(
+            f"rl.vllm_execution_mode must be one of {sorted(VALID_VLLM_EXECUTION_MODES)}, got {execution_mode!r}"
+        )
+    rl_cfg.vllm_execution_mode = execution_mode
+    actor_start_method = str(getattr(rl_cfg, "vllm_actor_start_method", "spawn") or "spawn").strip().lower()
+    if actor_start_method not in {"spawn", "forkserver"}:
+        raise ValueError("rl.vllm_actor_start_method must be 'spawn' or 'forkserver'")
+    rl_cfg.vllm_actor_start_method = actor_start_method
+    if execution_mode == "subprocess" and vllm_sync_strategy in {"weight_transfer_nccl", "weight_transfer_ipc", "weight_transfer_dryrun_runtime"}:
+        raise ValueError(
+            "rl.vllm_execution_mode='subprocess' currently supports export_reload and "
+            "weight_transfer_dryrun_static only; native/runtime tensor inspection remains in-process"
+        )
+    if execution_mode == "subprocess" and bool(rl_cfg.vllm_allow_text_prompt_fallback):
+        raise ValueError(
+            "rl.vllm_allow_text_prompt_fallback is not supported by the subprocess actor; "
+            "token-id prompts are required to preserve tokenizer parity"
+        )
     rl_cfg.rollout_inference_mode = bool(getattr(rl_cfg, "rollout_inference_mode", True))
     rl_cfg.rollout_log_timing = bool(getattr(rl_cfg, "rollout_log_timing", True))
     rl_cfg.skip_zero_advantage_updates = bool(getattr(rl_cfg, "skip_zero_advantage_updates", True))
@@ -683,6 +709,8 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "max_grad_norm",
         "vllm_gpu_memory_utilization",
         "vllm_weight_transfer_timeout_sec",
+        "vllm_actor_request_timeout_sec",
+        "vllm_actor_shutdown_timeout_sec",
     ]:
         setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
     for field_name in ["mgpo_p0", "mgpo_gamma", "mgpo_weight_min", "mgpo_weight_max", "mgpo_eps", "long2short_lambda", "long2short_eps"]:
@@ -756,6 +784,14 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             raise ValueError(
                 "rl.vllm_weight_transfer_timeout_sec must be > 0, "
                 f"got {rl_cfg.vllm_weight_transfer_timeout_sec}"
+            )
+        if float(rl_cfg.vllm_actor_request_timeout_sec) <= 0.0:
+            raise ValueError(
+                f"rl.vllm_actor_request_timeout_sec must be > 0, got {rl_cfg.vllm_actor_request_timeout_sec}"
+            )
+        if float(rl_cfg.vllm_actor_shutdown_timeout_sec) <= 0.0:
+            raise ValueError(
+                f"rl.vllm_actor_shutdown_timeout_sec must be > 0, got {rl_cfg.vllm_actor_shutdown_timeout_sec}"
             )
         if not (0.0 < float(rl_cfg.vllm_gpu_memory_utilization) <= 1.0):
             raise ValueError(

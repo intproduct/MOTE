@@ -20,6 +20,9 @@ dependencies = [
 dev = [
     "pytest",
 ]
+vllm = [
+    "vllm",
+]
 
 [tool.setuptools]
 packages = [

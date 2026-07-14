@@ -84,6 +84,7 @@ def test_vllm_token_prompt_required_unless_text_fallback_enabled(tmp_path):
         backend._generate_token_ids(
             prompts=["a"],
             input_ids=torch.tensor([[1, 2]], dtype=torch.long),
+            attention_mask=torch.tensor([[1, 1]], dtype=torch.long),
             sampling_params={},
         )
 
@@ -117,11 +118,42 @@ def test_vllm_text_prompt_fallback_is_explicit(tmp_path):
     outputs = backend._generate_token_ids(
         prompts=["prompt text"],
         input_ids=torch.tensor([[1, 2]], dtype=torch.long),
+        attention_mask=torch.tensor([[1, 1]], dtype=torch.long),
         sampling_params={},
     )
 
     assert outputs[0].outputs[0].token_ids == [9]
     assert llm.calls[-1]["args"] == (["prompt text"], {})
+
+
+def test_vllm_token_prompts_strip_left_padding(tmp_path):
+    captured = {}
+
+    class FakeLLM:
+        def generate(self, *args, **kwargs):
+            captured.update(kwargs)
+            return [FakeRequestOutput([9]), FakeRequestOutput([10])]
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=_cfg(tmp_path),
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend.llm = FakeLLM()
+    backend._vllm = object
+    backend._sampling_params_cls = lambda **kwargs: kwargs
+
+    backend._generate_token_ids(
+        prompts=["short", "long"],
+        input_ids=torch.tensor([[0, 0, 11, 12], [21, 22, 23, 24]], dtype=torch.long),
+        attention_mask=torch.tensor([[0, 0, 1, 1], [1, 1, 1, 1]], dtype=torch.long),
+        sampling_params={},
+    )
+
+    assert captured["prompts"] == [
+        {"prompt_token_ids": [11, 12]},
+        {"prompt_token_ids": [21, 22, 23, 24]},
+    ]
 
 
 def test_mock_vllm_outputs_preserve_expanded_prompt_order_and_masks(tmp_path):
@@ -215,11 +247,13 @@ def test_export_reload_sync_calls_stage4c_hooks(tmp_path, monkeypatch):
         rl_dir=tmp_path,
         save_policy_checkpoint=save_policy,
     )
+    manager.weight_transfer_initialized = True
     result = manager.sync(model=None, tokenizer=None, update_step=1, force=True)
 
     assert result.synced is True
     assert result.policy_version == 1
     assert result.policy_lag_updates == 0
+    assert manager.weight_transfer_initialized is False
     assert calls["save"]
     assert calls["export"][0][0].name == "raw-policy-u1"
     assert calls["export"][0][1].name == "hf-policy-u1"

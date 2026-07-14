@@ -668,6 +668,8 @@ def _rollout_resource_policy_metadata(fit_cfg) -> Dict[str, Any]:
         "vllm_max_num_seqs": int(getattr(fit_cfg.rl, "vllm_max_num_seqs", 0)),
         "vllm_fail_on_cuda_oom": bool(getattr(fit_cfg.rl, "vllm_fail_on_cuda_oom", True)),
         "vllm_empty_cache_before_engine_init": bool(getattr(fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)),
+        "vllm_execution_mode": str(getattr(fit_cfg.rl, "vllm_execution_mode", "in_process") or "in_process"),
+        "vllm_actor_start_method": str(getattr(fit_cfg.rl, "vllm_actor_start_method", "spawn") or "spawn"),
         "vllm_fallback_to_hf": bool(getattr(fit_cfg.rl, "vllm_fallback_to_hf", False)),
         "allow_stale_vllm_policy": bool(getattr(fit_cfg.rl, "allow_stale_vllm_policy", False)),
         "vllm_allow_text_prompt_fallback": bool(getattr(fit_cfg.rl, "vllm_allow_text_prompt_fallback", False)),

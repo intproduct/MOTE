@@ -1,0 +1,63 @@
+{
+  "model": {
+    "model_path": "${MODEL_ROOT}/Qwen3-0.6B",
+    "layers_to_patch": "last_quarter",
+    "device": "cuda:0",
+    "torch_dtype": "bfloat16",
+    "use_amp": true,
+    "trust_remote_code": true,
+    "E": 4,
+    "d": 2,
+    "k_in": 3,
+    "topk": 2
+  },
+  "data": {
+    "datas_dir": "${DATA_ROOT}",
+    "gsm8k_cache_path": "${CACHE_ROOT}/gsm8k_main",
+    "gsm8k_hf_name": "openai/gsm8k",
+    "gsm8k_hf_config": "main",
+    "use_wiki_local": false,
+    "use_fineweb": false,
+    "use_code": false,
+    "use_math_train": false,
+    "use_gsm8k_train": true
+  },
+  "rl": {
+    "enabled": true,
+    "mode": "gsm8k_grpo",
+    "run_after_sft": false,
+    "max_steps": 2,
+    "batch_size": 1,
+    "group_size": 2,
+    "grad_accum": 1,
+    "max_new_tokens": 32,
+    "trainable_mode": "patch_only",
+    "rollout_backend": "vllm",
+    "vllm_execution_mode": "subprocess",
+    "vllm_actor_start_method": "spawn",
+    "vllm_enable_sleep_mode": true,
+    "vllm_sleep_level_before_sync": 1,
+    "vllm_device": "cuda:1",
+    "vllm_sync_strategy": "export_reload",
+    "vllm_sync_every_updates": 1,
+    "vllm_model_impl": "transformers",
+    "vllm_enforce_eager": true,
+    "vllm_gpu_memory_utilization": 0.6,
+    "vllm_max_model_len": 1024,
+    "vllm_max_num_seqs": 4,
+    "vllm_fallback_to_hf": false,
+    "allow_stale_vllm_policy": false,
+    "log_every": 1,
+    "save_every_updates": 2,
+    "eval_every_updates": 0,
+    "debug_num_prompts": 8,
+    "seed": 1234
+  },
+  "output": {
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
+    "run_name": "stage4_vllm_smoke"
+  },
+  "runtime": {
+    "dev_mode": false
+  }
+}

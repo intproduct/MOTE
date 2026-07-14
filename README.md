@@ -1,5 +1,7 @@
 # FitMoTN
 
+[全中文使用说明](./README_ZH.md)
+
 FitMoTN 是一个独立可运行的 MOTN 训练与评测仓库，用来在不改写原始方法语义的前提下，把数据、patch、训练、checkpoint、恢复和评测整理成一套更标准的工程化流程。
 
 它的设计目标不是“重新发明一套 MOTN”，而是把旧实验脚本里的关键逻辑拆出来，并用 Hugging Face Trainer 承接通用训练外壳，方便：
@@ -117,7 +119,10 @@ For development installs:
 
 ```bash
 pip install -e ".[dev]"
+pytest -q
 ```
+
+The test bootstrap binds both `fitmotn` and legacy `MOTE` imports to the current checkout, so a sibling editable installation cannot silently supply code from a different worktree.
 
 Large checkpoints and runtime outputs should not be committed to the source
 repository. Keep model weights, `wandb/`, `logs/`, `outputs/`, and
@@ -201,8 +206,10 @@ pip install -U evalscope
 vLLM 评测额外需要：
 
 ```bash
-pip install -U vllm
+pip install -e ".[vllm]"
 ```
+
+vLLM/CUDA 依赖只适用于受支持的 NVIDIA Linux 环境。Mac 可以运行配置、export、mock、actor 控制面和 CPU 测试，但不能据此宣称真实 vLLM/CUDA/NCCL 已通过。
 
 一个最小依赖检查可以这样做：
 
@@ -1092,7 +1099,30 @@ The default remains `rollout_backend="hf"`. With `rollout_backend="vllm"`, the t
 
 Policy sync is correctness-first. At run start and after each real `optimizer.step()` when sync is due, the current HF training policy is saved as an internal raw checkpoint, exported through the Stage 4C HF roundtrip path, and the vLLM engine is rebuilt from that export. `vllm_sync_every_updates=1` is the default so `policy_lag_updates=0`. Stale vLLM rollouts raise unless `rl.allow_stale_vllm_policy=true`, and any allowed lag is logged.
 
+Token-ID prompts are built from the non-padding positions in `attention_mask`. This is required because the RL tokenizer uses left padding and vLLM token prompts do not receive an HF attention mask; passing left-side pad/EOS IDs as real prompt tokens would change the rollout policy.
+
 Resource policy is explicit: Stage 4D does not silently move, unload, offload, or re-place the HF training model to make room for vLLM. Configure placement with the process CUDA environment and vLLM fields such as `rl.vllm_device`, `rl.vllm_tensor_parallel_size`, `rl.vllm_gpu_memory_utilization`, `rl.vllm_max_model_len`, and `rl.vllm_max_num_seqs`. CUDA OOMs from vLLM init/generation are raised with policy hints by default. HF fallback occurs only when `rl.vllm_fallback_to_hf=true`, and logs `vllm_fallback_used=true` plus `vllm_error`.
+
+Stage 4 now has two execution modes:
+
+- `rl.vllm_execution_mode="in_process"` (default): the training process owns the vLLM engine. Native runtime tensor inspection and experimental NCCL transfer require this mode.
+- `rl.vllm_execution_mode="subprocess"`: a persistent spawned rollout actor owns the engine and communicates with the trainer through a synchronous control channel. This mode supports `export_reload` and `weight_transfer_dryrun_static`, and is intended for a separate rollout GPU such as `rl.vllm_device="cuda:1"`.
+
+Minimal two-GPU smoke configuration:
+
+```json
+{
+  "rl": {
+    "rollout_backend": "vllm",
+    "vllm_execution_mode": "subprocess",
+    "vllm_device": "cuda:1",
+    "vllm_sync_strategy": "export_reload",
+    "vllm_sync_every_updates": 1
+  }
+}
+```
+
+The actor is currently synchronous, not an asynchronous rollout pipeline. It deliberately rejects native NCCL/IPC, runtime dryrun inspection, and text-prompt fallback until their cross-process CUDA lifetime semantics are implemented and verified.
 
 Stage 4E adds capability-gated native weight-transfer diagnostics and an opt-in native sync strategy:
 
@@ -1106,11 +1136,25 @@ Stage 4E adds capability-gated native weight-transfer diagnostics and an opt-in 
 }
 ```
 
-`weight_transfer_dryrun_static` inspects the live HF model and Stage 4C checkpoint-format names only. `weight_transfer_dryrun_runtime` also compares vLLM runtime names/shapes when an engine is available. Dryruns never mutate vLLM weights and never mark the rollout policy fresh.
+`weight_transfer_dryrun_static` inspects the live HF model and Stage 4C checkpoint-format names only. `weight_transfer_dryrun_runtime` also compares vLLM runtime names/shapes when an in-process engine is available. A dryrun never performs native in-place transfer; it uses the proven `export_reload` path to bootstrap/update the rollout engine so policy freshness and actual rollout remain functional, and attaches the native-transfer diagnostic report to that sync result.
 
-`vllm_sync_strategy="weight_transfer_nccl"` is allowed for real RL training only when the installed vLLM capability probe reports `native_transfer_level="four_phase"`: `WeightTransferConfig`, `LLM.init_weight_transfer_engine`, `LLM.start_weight_update`, `LLM.update_weights`, `LLM.finish_weight_update`, NCCL trainer APIs, and required update-info dataclasses must all be present. Runtimes that probe as `none` or `update_only` raise by default, or fall back to `export_reload` only when `rl.vllm_weight_transfer_fallback_to_export_reload=true`. Native transfer also requires full policy coverage and full module-aware MoTN coverage; logs include exact required/transferred MoTN keys, tensor counts, bytes, capability summaries, checksum validation metadata, rollout-facing validation metadata, and fallback errors.
+`vllm_sync_strategy="weight_transfer_nccl"` uses a capability-selected adapter. The default `rl.vllm_native_transfer_required_level="four_phase"` remains the strict gate and requires `start_weight_update`/`finish_weight_update`. A runtime exposing the current request-style `init_weight_transfer_engine`/`update_weights` API can be tested only by explicitly choosing `vllm_native_transfer_required_level="update_only"`. The update-only adapter wraps backend dataclasses in vLLM init/update request objects and is still experimental until the target CUDA topology passes the manual validation plan. Runtimes below the configured gate raise by default, or fall back to `export_reload` only when `rl.vllm_weight_transfer_fallback_to_export_reload=true`.
+
+Native transfer requires full policy and module-aware MoTN coverage. Logs include the selected adapter, effective master port, exact required/transferred MoTN keys, tensor counts, bytes, capability summaries, checksum validation metadata, rollout-facing validation metadata, and fallback errors. `vllm_weight_transfer_master_port=0` now selects one process-local free port and reuses it for the manager lifetime.
 
 Native vLLM MoE support, expert parallelism, fused MoTN kernels, custom CUDA ops, async RL pipelining, IPC weight transfer, and direct model offloading are still future work. `export_reload` remains the default stable path.
+
+### Stage 4 CUDA acceptance
+
+The repository includes code and a reproducible plan for the tests that cannot run on a Mac:
+
+- [`docs/stage4_vllm_validation.md`](./docs/stage4_vllm_validation.md): gated NVIDIA/CUDA acceptance plan.
+- [`fitmotn_config.stage4_vllm_smoke.example.json`](./fitmotn_config.stage4_vllm_smoke.example.json): two-update RL smoke configuration.
+- `scripts/validate_stage4_cuda.py`: raw checkpoint vs HF export vs vLLM parity validator.
+- `scripts/validate_stage4_rl_run.py`: validates policy version, lag, fallback and finite losses from an RL run.
+- `scripts/smoke_vllm_actor_control.py`: Mac/CPU-safe spawn, request and shutdown control-plane smoke test; it does not load vLLM.
+
+Do not mark Stage 4C/4D/native sync GPU-validated until the corresponding evidence JSON and environment record from that plan have been archived.
 
 ## 论文级观测
 
@@ -1233,11 +1277,12 @@ generation only. GRPO grouping still uses the existing duplicated prompt
 expansion, and PyTorch/HF still computes rewards, masks, old/ref/new logprobs,
 and the GRPO loss.
 
-Stage 4E adds native weight-transfer capability probing and dryrun diagnostics.
-Real `weight_transfer_nccl` is gated on `native_transfer_level="four_phase"`.
-Local vLLM builds that expose only update-style APIs are treated as
-`update_only`, which is diagnostic only; use `export_reload` or explicit
-export-reload fallback for training.
+Stage 4E adds native weight-transfer capability probing, dryrun diagnostics,
+and capability-selected NCCL adapters. The default real-transfer gate remains
+`native_transfer_level="four_phase"`. Builds exposing only request-style
+update APIs may be exercised only through explicit
+`vllm_native_transfer_required_level="update_only"`; that path is code-tested
+with mocks but is not considered CUDA-validated.
 
 Stage 4C/4D/4E 仍不支持：
 
@@ -1247,7 +1292,7 @@ Stage 4C/4D/4E 仍不支持：
 - expert-parallel MoE execution
 - fused MoTN kernels 或 custom CUDA ops
 - IPC weight transfer 或 unsafe direct in-memory vLLM weight sync
-- async RL pipelining
+- asynchronous RL pipelining (the subprocess actor currently uses synchronous requests)
 
 如果你把 `final_model/` 这类 raw patched FitMoTN checkpoint 直接传给 `eval_vllm.py`，当前实现会显式报错：
 

@@ -78,7 +78,8 @@ class FakeModel:
         return self
 
 
-def test_lm_eval_chat_runtime_kwargs_and_summary_are_recorded():
+def test_lm_eval_chat_runtime_kwargs_and_summary_are_recorded(tmp_path, monkeypatch):
+    monkeypatch.setenv("OUTPUT_ROOT", str(tmp_path / "outputs"))
     cfg = make_default_config()
     cfg.eval.runtime.apply_chat_template = True
     cfg.eval.runtime.enable_thinking = False
