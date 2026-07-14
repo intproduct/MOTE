@@ -96,6 +96,40 @@ def test_actor_protocol_rejects_generate_before_load():
         raise AssertionError("actor must reject generation before an engine is loaded")
 
 
+def test_actor_protocol_rejects_policy_provenance_mismatch(monkeypatch):
+    class FakeLLM:
+        def __init__(self, **kwargs):
+            pass
+
+    fake_vllm = types.ModuleType("vllm")
+    fake_vllm.LLM = FakeLLM
+    monkeypatch.setitem(sys.modules, "vllm", fake_vllm)
+    state = {"llm": None, "closed": False, "policy_descriptor": None}
+    _handle_actor_request(
+        state,
+        {
+            "command": "load_engine",
+            "llm_kwargs": {"model": "export"},
+            "policy_descriptor": {"policy_version": 1},
+        },
+    )
+
+    try:
+        _handle_actor_request(
+            state,
+            {
+                "command": "generate",
+                "prompt_token_ids": [[1]],
+                "sampling_kwargs": {},
+                "expected_policy_descriptor": {"policy_version": 2},
+            },
+        )
+    except RuntimeError as exc:
+        assert "provenance mismatch" in str(exc)
+    else:
+        raise AssertionError("actor must reject rollout against an unexpected policy")
+
+
 def test_actor_config_rejects_native_sync(tmp_path):
     path = tmp_path / "config.json"
     path.write_text(

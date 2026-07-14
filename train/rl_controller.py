@@ -1257,8 +1257,16 @@ def run_fitmotn_rl_training(fit_cfg):
                 "chat_enable_thinking": bool(getattr(fit_cfg.rl, "chat_enable_thinking", False)),
                 "response_start": int(response_start),
                 "router_usage_warning": router_usage_warning,
-                **rollout_cache_info,
                 **_sync_result_metadata(last_rollout_sync),
+                "vllm_post_update_policy_version": (
+                    int(last_rollout_sync.policy_version) if last_rollout_sync is not None else None
+                ),
+                "vllm_post_update_policy_fingerprint": (
+                    (last_rollout_sync.metadata or {}).get("vllm_policy_fingerprint")
+                    if last_rollout_sync is not None
+                    else None
+                ),
+                **rollout_cache_info,
                 **(timing_info if bool(getattr(fit_cfg.rl, "rollout_log_timing", True)) else {}),
                 **_cuda_memory_snapshot(),
                 "time": time.time(),

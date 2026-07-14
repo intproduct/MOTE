@@ -35,22 +35,38 @@ def _shutdown_engine(llm: Any) -> None:
 def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dict[str, Any]:
     command = str(request.get("command", ""))
     if command == "ping":
-        return {"ready": True, "engine_loaded": state.get("llm") is not None}
+        return {
+            "ready": True,
+            "engine_loaded": state.get("llm") is not None,
+            "policy_descriptor": state.get("policy_descriptor"),
+        }
     if command == "load_engine":
         _shutdown_engine(state.get("llm"))
         from vllm import LLM  # type: ignore
 
         start = time.perf_counter()
         state["llm"] = LLM(**dict(request["llm_kwargs"]))
-        return {"load_sec": max(0.0, time.perf_counter() - start)}
+        state["policy_descriptor"] = dict(request.get("policy_descriptor") or {})
+        return {
+            "load_sec": max(0.0, time.perf_counter() - start),
+            "policy_descriptor": state["policy_descriptor"],
+        }
     if command == "unload_engine":
         _shutdown_engine(state.get("llm"))
         state["llm"] = None
+        state["policy_descriptor"] = None
         return {"unloaded": True}
     if command == "generate":
         llm = state.get("llm")
         if llm is None:
             raise RuntimeError("vLLM actor engine is not loaded")
+        expected_descriptor = dict(request.get("expected_policy_descriptor") or {})
+        loaded_descriptor = dict(state.get("policy_descriptor") or {})
+        if expected_descriptor and expected_descriptor != loaded_descriptor:
+            raise RuntimeError(
+                "vLLM actor policy provenance mismatch: "
+                f"expected={expected_descriptor}, loaded={loaded_descriptor}"
+            )
         from vllm import SamplingParams  # type: ignore
 
         sampling_params = SamplingParams(**dict(request["sampling_kwargs"]))
@@ -103,7 +119,7 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
 
 
 def _actor_main(connection) -> None:
-    state: Dict[str, Any] = {"llm": None, "closed": False}
+    state: Dict[str, Any] = {"llm": None, "closed": False, "policy_descriptor": None}
     connection.send({"kind": "ready"})
     try:
         while not state["closed"]:
@@ -203,8 +219,17 @@ class VLLMActorClient:
             )
         return dict(response.get("payload") or {})
 
-    def load_engine(self, llm_kwargs: Dict[str, Any]) -> float:
-        result = self._request("load_engine", llm_kwargs=dict(llm_kwargs))
+    def load_engine(
+        self,
+        llm_kwargs: Dict[str, Any],
+        *,
+        policy_descriptor: Optional[Dict[str, Any]] = None,
+    ) -> float:
+        result = self._request(
+            "load_engine",
+            llm_kwargs=dict(llm_kwargs),
+            policy_descriptor=dict(policy_descriptor or {}),
+        )
         return float(result.get("load_sec", 0.0))
 
     def ping(self) -> Dict[str, Any]:
@@ -220,11 +245,18 @@ class VLLMActorClient:
     def wake_up(self, *, tags: Optional[list[str]] = None) -> Dict[str, Any]:
         return self._request("wake_up", tags=tags)
 
-    def generate(self, *, prompt_token_ids: list[list[int]], sampling_kwargs: Dict[str, Any]) -> list[ActorRequestOutput]:
+    def generate(
+        self,
+        *,
+        prompt_token_ids: list[list[int]],
+        sampling_kwargs: Dict[str, Any],
+        expected_policy_descriptor: Optional[Dict[str, Any]] = None,
+    ) -> list[ActorRequestOutput]:
         result = self._request(
             "generate",
             prompt_token_ids=prompt_token_ids,
             sampling_kwargs=dict(sampling_kwargs),
+            expected_policy_descriptor=dict(expected_policy_descriptor or {}),
         )
         return [
             ActorRequestOutput(

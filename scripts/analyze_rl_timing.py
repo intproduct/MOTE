@@ -16,9 +16,28 @@ TIMING_FIELDS = [
     "ref_logprobs_sec",
     "new_logprobs_backward_sec",
     "total_micro_step_sec",
+    "vllm_sync_sec",
+    "vllm_engine_rebuild_sec",
+    "vllm_fingerprint_sec",
+    "vllm_checkpoint_save_sec",
+    "vllm_export_convert_sec",
+    "vllm_export_validation_sec",
+    "vllm_export_commit_sec",
+    "vllm_export_cleanup_sec",
+    "vllm_generate_sec",
+    "vllm_generated_tok_per_sec",
 ]
 
-STAGE_FIELDS = [field for field in TIMING_FIELDS if field != "total_micro_step_sec"]
+STAGE_FIELDS = [
+    "tokenize_sec",
+    "generate_sec",
+    "reward_sec",
+    "old_logprobs_sec",
+    "ref_logprobs_sec",
+    "new_logprobs_backward_sec",
+    "vllm_sync_sec",
+    "vllm_engine_rebuild_sec",
+]
 
 
 def _as_number(value: Any) -> float | None:

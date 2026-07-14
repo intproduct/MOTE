@@ -1639,6 +1639,18 @@ EvalScope runtime / generation 参数状态约定：
 - `unsupported_generation_args`
 - `task_config`
 
+### Stage 4F/4G 训练正确性与稳定导出
+
+推荐的 export_reload 路径现已提供逐次 rollout 的请求、提示词、采样
+参数和策略指纹，训练进程及子进程 actor 都会校验实际加载的策略身份。
+同步产物采用临时目录、校验、清单和原子重命名流程；失败不会发布半成品，
+相同策略快照可复用，旧临时目录和历史产物可按配置清理。正式实验应保持
+vllm_verify_engine_policy=true、allow_stale_vllm_policy=false 和
+vllm_fallback_to_hf=false。
+
+完整的 20-update 严格 smoke、断点恢复/失败注入和 200-update soak
+方案见 docs/stage4_vllm_validation.md。
+
 ### 示例配置文件
 
 仓库新增了两个示例配置：

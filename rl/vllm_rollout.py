@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -15,6 +16,7 @@ from .rollout_backends import (
 )
 from .vllm_sync import SavePolicyCheckpointFn, VLLMPolicySyncManager
 from .vllm_actor import VLLMActorClient
+from .vllm_integrity import prompt_batch_fingerprint, sampling_fingerprint
 
 
 def _is_cuda_oom(exc: BaseException) -> bool:
@@ -56,6 +58,9 @@ class VLLMRolloutBackend:
         self._vllm = None
         self._sampling_params_cls = None
         self._actor: Optional[VLLMActorClient] = None
+        self._engine_policy_descriptor: Dict[str, Any] = {}
+        self._rollout_session_id = uuid.uuid4().hex[:12]
+        self._rollout_request_sequence = 0
         self._last_sync = RolloutSyncResult(synced=False, policy_version=-1, policy_lag_updates=0)
         self._hf_fallback = HFRolloutBackend(logger=logger)
 
@@ -125,9 +130,22 @@ class VLLMRolloutBackend:
             kwargs["weight_transfer_config"] = WeightTransferConfig(backend=backend)
         return kwargs
 
-    def _build_engine(self, export_dir: str) -> float:
+    def _build_engine(self, export_dir: str, *, policy_descriptor: Optional[Dict[str, Any]] = None) -> float:
+        descriptor = dict(policy_descriptor or {})
         if self.uses_subprocess_actor:
-            return self._actor_client().load_engine(self._llm_kwargs(export_dir))
+            load_sec = self._actor_client().load_engine(
+                self._llm_kwargs(export_dir),
+                policy_descriptor=descriptor,
+            )
+            if bool(getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)):
+                loaded = dict(self._actor_client().ping().get("policy_descriptor") or {})
+                if loaded != descriptor:
+                    raise RuntimeError(
+                        "vLLM actor loaded an unexpected policy descriptor: "
+                        f"expected={descriptor}, loaded={loaded}"
+                    )
+            self._engine_policy_descriptor = descriptor
+            return load_sec
         LLM, _ = self._import_vllm()
         if bool(getattr(self.fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)) and torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -138,6 +156,7 @@ class VLLMRolloutBackend:
             if _is_cuda_oom(exc) and bool(getattr(self.fit_cfg.rl, "vllm_fail_on_cuda_oom", True)):
                 raise RuntimeError(_format_oom_message(exc)) from exc
             raise
+        self._engine_policy_descriptor = descriptor
         return max(0.0, time.perf_counter() - start)
 
     def sync_policy(
@@ -174,9 +193,27 @@ class VLLMRolloutBackend:
             native_sync = bool(sync_result.metadata.get("vllm_weight_transfer_native_sync", False))
             if sync_result.synced and not native_sync:
                 self._unload_engine()
-                rebuild_sec = self._build_engine(str(sync_result.export_dir))
+                descriptor = {
+                    "policy_version": int(sync_result.policy_version),
+                    "policy_fingerprint": sync_result.metadata.get("vllm_policy_fingerprint"),
+                    "export_dir": str(sync_result.export_dir),
+                }
+                rebuild_sec = self._build_engine(
+                    str(sync_result.export_dir),
+                    policy_descriptor=descriptor,
+                )
                 sync_result.engine_rebuild_sec = rebuild_sec
                 sync_result.metadata["vllm_engine_rebuild_sec"] = rebuild_sec
+                sync_result.metadata["vllm_engine_policy_verified"] = bool(
+                    getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)
+                )
+                sync_result.metadata["vllm_engine_policy_descriptor"] = descriptor
+            elif sync_result.synced and native_sync:
+                self._engine_policy_descriptor = {
+                    "policy_version": int(sync_result.policy_version),
+                    "policy_fingerprint": sync_result.metadata.get("vllm_policy_fingerprint"),
+                    "export_dir": None if sync_result.export_dir is None else str(sync_result.export_dir),
+                }
             self._last_sync = sync_result
             return sync_result
         except Exception:
@@ -244,6 +281,7 @@ class VLLMRolloutBackend:
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor,
         sampling_params,
+        expected_policy_descriptor: Optional[Dict[str, Any]] = None,
     ):
         if input_ids.shape != attention_mask.shape:
             raise ValueError("input_ids and attention_mask must have the same shape for vLLM token prompts")
@@ -260,9 +298,17 @@ class VLLMRolloutBackend:
             return self._actor_client().generate(
                 prompt_token_ids=prompt_token_ids,
                 sampling_kwargs=sampling_params,
+                expected_policy_descriptor=expected_policy_descriptor,
             )
         if self.llm is None:
             raise RuntimeError("vLLM engine is not initialized; call sync_policy(..., force=True) before rollout generation")
+        if bool(getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)):
+            expected = dict(expected_policy_descriptor or {})
+            if expected and expected != self._engine_policy_descriptor:
+                raise RuntimeError(
+                    "in-process vLLM policy provenance mismatch: "
+                    f"expected={expected}, loaded={self._engine_policy_descriptor}"
+                )
         try:
             return self.llm.generate(
                 prompts=[{"prompt_token_ids": ids} for ids in prompt_token_ids],
@@ -341,13 +387,35 @@ class VLLMRolloutBackend:
         }
         try:
             lag = self.sync_manager.assert_fresh_or_allowed(update_step)
-            sampling_params = self._sampling_params(tokenizer, generation_config)
+            sampling_kwargs = self._sampling_params_kwargs(tokenizer, generation_config)
+            sampling_params = sampling_kwargs if self.uses_subprocess_actor else self._sampling_params(
+                tokenizer, generation_config
+            )
+            effective_prompt_ids = []
+            for row, mask in zip(input_ids, attention_mask):
+                effective = row[mask.to(device=row.device, dtype=torch.bool)]
+                effective_prompt_ids.append(effective.detach().cpu().to(dtype=torch.long).tolist())
+            self._rollout_request_sequence += 1
+            request_id = (
+                f"{self._rollout_session_id}-u{int(update_step)}-r{self._rollout_request_sequence}"
+            )
+            policy_descriptor = {
+                "policy_version": int(self.sync_manager.policy_version),
+                "policy_fingerprint": self._last_sync.metadata.get("vllm_policy_fingerprint"),
+                "export_dir": None if self.sync_manager.export_dir is None else str(self.sync_manager.export_dir),
+            }
             outputs = self._generate_token_ids(
                 prompts=prompts,
                 input_ids=input_ids,
                 attention_mask=attention_mask,
                 sampling_params=sampling_params,
+                expected_policy_descriptor=policy_descriptor,
             )
+            if len(outputs) != int(input_ids.shape[0]):
+                raise RuntimeError(
+                    "vLLM returned an unexpected number of rollout rows: "
+                    f"request_id={request_id}, expected={int(input_ids.shape[0])}, actual={len(outputs)}"
+                )
             generated_ids = [self._extract_generated_ids(output) for output in outputs]
             sequences, original_seq_lens = self.build_full_sequences_from_token_outputs(
                 input_ids=input_ids,
@@ -359,10 +427,23 @@ class VLLMRolloutBackend:
             metadata.update(
                 {
                     "vllm_policy_version": int(self.sync_manager.policy_version),
+                    "vllm_policy_fingerprint": policy_descriptor["policy_fingerprint"],
                     "policy_lag_updates": int(lag),
+                    "rollout_request_id": request_id,
+                    "rollout_prompt_fingerprint": prompt_batch_fingerprint(effective_prompt_ids),
+                    "rollout_sampling_fingerprint": sampling_fingerprint(
+                        {
+                            **sampling_kwargs,
+                            "seed": generation_config.seed,
+                        }
+                    ),
+                    "rollout_output_row_count": int(len(outputs)),
+                    "vllm_engine_policy_verified": bool(
+                        getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)
+                    ),
                     "vllm_export_dir": None if self.sync_manager.export_dir is None else str(self.sync_manager.export_dir),
-                    "vllm_sync_sec": float(self._last_sync.sync_sec),
-                    "vllm_engine_rebuild_sec": float(self._last_sync.engine_rebuild_sec),
+                    "rollout_policy_sync_sec": float(self._last_sync.sync_sec),
+                    "rollout_policy_engine_rebuild_sec": float(self._last_sync.engine_rebuild_sec),
                     "vllm_generate_sec": generate_sec,
                     "vllm_num_prompts": int(len(prompts)),
                     "vllm_num_generated_tokens": generated_tokens,
@@ -414,6 +495,7 @@ class VLLMRolloutBackend:
             return
         llm = self.llm
         self.llm = None
+        self._engine_policy_descriptor = {}
         if llm is None:
             return
         for attr in ("shutdown", "close"):

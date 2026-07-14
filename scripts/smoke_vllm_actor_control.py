@@ -3,8 +3,17 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
+import sys
 
-from fitmotn.rl.vllm_actor import VLLMActorClient
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+try:
+    from fitmotn.rl.vllm_actor import VLLMActorClient
+except ModuleNotFoundError:
+    from rl.vllm_actor import VLLMActorClient
 
 
 def main() -> int:

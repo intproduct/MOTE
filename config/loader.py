@@ -623,6 +623,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.vllm_device = None if vllm_device is None or str(vllm_device).strip() == "" else str(vllm_device).strip()
     rl_cfg.vllm_enforce_eager = bool(getattr(rl_cfg, "vllm_enforce_eager", True))
     rl_cfg.vllm_disable_log_stats = bool(getattr(rl_cfg, "vllm_disable_log_stats", True))
+    rl_cfg.vllm_export_validate_roundtrip = bool(getattr(rl_cfg, "vllm_export_validate_roundtrip", True))
     rl_cfg.vllm_weight_transfer_packed = bool(getattr(rl_cfg, "vllm_weight_transfer_packed", True))
     rl_cfg.vllm_weight_transfer_validate_coverage = bool(getattr(rl_cfg, "vllm_weight_transfer_validate_coverage", True))
     rl_cfg.vllm_weight_transfer_fail_on_partial = bool(getattr(rl_cfg, "vllm_weight_transfer_fail_on_partial", True))
@@ -638,6 +639,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.vllm_allow_text_prompt_fallback = bool(getattr(rl_cfg, "vllm_allow_text_prompt_fallback", False))
     rl_cfg.vllm_fail_on_cuda_oom = bool(getattr(rl_cfg, "vllm_fail_on_cuda_oom", True))
     rl_cfg.vllm_empty_cache_before_engine_init = bool(getattr(rl_cfg, "vllm_empty_cache_before_engine_init", False))
+    rl_cfg.vllm_verify_engine_policy = bool(getattr(rl_cfg, "vllm_verify_engine_policy", True))
     execution_mode = str(getattr(rl_cfg, "vllm_execution_mode", "in_process") or "in_process").strip().lower()
     if execution_mode not in VALID_VLLM_EXECUTION_MODES:
         raise ValueError(
@@ -687,6 +689,8 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "vllm_max_num_seqs",
         "vllm_sync_every_updates",
         "vllm_keep_sync_exports",
+        "vllm_export_roundtrip_validation_every",
+        "vllm_policy_fingerprint_samples_per_tensor",
         "vllm_weight_transfer_master_port",
         "vllm_sync_validation_every",
         "vllm_sleep_level_before_sync",
@@ -711,6 +715,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "vllm_weight_transfer_timeout_sec",
         "vllm_actor_request_timeout_sec",
         "vllm_actor_shutdown_timeout_sec",
+        "vllm_export_temp_max_age_sec",
     ]:
         setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
     for field_name in ["mgpo_p0", "mgpo_gamma", "mgpo_weight_min", "mgpo_weight_max", "mgpo_eps", "long2short_lambda", "long2short_eps"]:
@@ -769,6 +774,16 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             raise ValueError(f"rl.vllm_sync_every_updates must be >= 1, got {rl_cfg.vllm_sync_every_updates}")
         if int(rl_cfg.vllm_keep_sync_exports) < 0:
             raise ValueError(f"rl.vllm_keep_sync_exports must be >= 0, got {rl_cfg.vllm_keep_sync_exports}")
+        if int(rl_cfg.vllm_export_roundtrip_validation_every) < 1:
+            raise ValueError(
+                "rl.vllm_export_roundtrip_validation_every must be >= 1, "
+                f"got {rl_cfg.vllm_export_roundtrip_validation_every}"
+            )
+        if int(rl_cfg.vllm_policy_fingerprint_samples_per_tensor) < 1:
+            raise ValueError(
+                "rl.vllm_policy_fingerprint_samples_per_tensor must be >= 1, "
+                f"got {rl_cfg.vllm_policy_fingerprint_samples_per_tensor}"
+            )
         if int(rl_cfg.vllm_weight_transfer_master_port) < 0:
             raise ValueError(
                 "rl.vllm_weight_transfer_master_port must be >= 0, "
@@ -792,6 +807,11 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         if float(rl_cfg.vllm_actor_shutdown_timeout_sec) <= 0.0:
             raise ValueError(
                 f"rl.vllm_actor_shutdown_timeout_sec must be > 0, got {rl_cfg.vllm_actor_shutdown_timeout_sec}"
+            )
+        if float(rl_cfg.vllm_export_temp_max_age_sec) < 0.0:
+            raise ValueError(
+                "rl.vllm_export_temp_max_age_sec must be >= 0, "
+                f"got {rl_cfg.vllm_export_temp_max_age_sec}"
             )
         if not (0.0 < float(rl_cfg.vllm_gpu_memory_utilization) <= 1.0):
             raise ValueError(

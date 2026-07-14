@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 import socket
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
@@ -16,6 +17,14 @@ from .vllm_weight_transfer_capabilities import (
     probe_vllm_weight_transfer_capabilities,
 )
 from .vllm_weight_transfer_adapters import NCCLTransferSettings, select_nccl_transfer_adapter
+from .vllm_integrity import (
+    SYNC_MANIFEST_NAME,
+    SYNC_STATE_NAME,
+    atomic_write_json,
+    directory_size_bytes,
+    load_json_object,
+    model_policy_fingerprint,
+)
 
 
 SavePolicyCheckpointFn = Callable[[Path, int, str, Dict[str, Any]], Path]
@@ -103,7 +112,6 @@ class VLLMPolicySyncManager:
         raise ValueError(f"Unsupported rl.vllm_sync_strategy={self.strategy!r}")
 
     def _sync_export_reload(self, *, model, update_step: int, force: bool = False) -> RolloutSyncResult:
-        del model
         lag_before = self.policy_lag(update_step)
         if not self.sync_due(update_step, force=force):
             lag = self.assert_fresh_or_allowed(update_step)
@@ -122,41 +130,143 @@ class VLLMPolicySyncManager:
 
         root = Path(getattr(self.fit_cfg.rl, "vllm_export_root", None) or (self.rl_dir / "vllm_sync")).expanduser()
         root.mkdir(parents=True, exist_ok=True)
-        checkpoint_dir = root / f"raw-policy-u{int(update_step)}"
-        export_dir = root / f"hf-policy-u{int(update_step)}"
         sync_start = time.perf_counter()
-        self.save_policy_checkpoint(
-            checkpoint_dir,
-            int(update_step),
-            checkpoint_dir.name,
-            {
-                "vllm_sync_strategy": self.strategy,
-                "vllm_policy_version": int(update_step),
-                "policy_lag_updates_before_sync": int(lag_before),
-            },
+        cleanup_start = time.perf_counter()
+        stale_temps_removed = self._cleanup_incomplete_exports(root)
+        cleanup_sec = max(0.0, time.perf_counter() - cleanup_start)
+        fingerprint_start = time.perf_counter()
+        policy_fingerprint = model_policy_fingerprint(
+            model,
+            sample_elements_per_tensor=int(
+                getattr(self.fit_cfg.rl, "vllm_policy_fingerprint_samples_per_tensor", 16)
+            ),
         )
-        result = export_fitmotn_hf_roundtrip(
-            checkpoint_dir,
-            export_dir,
-            base_model=getattr(self.fit_cfg.model, "model_path", None),
-            torch_dtype=str(getattr(self.fit_cfg.model, "torch_dtype", "auto") or "auto"),
-            roundtrip_device="cpu",
-            base_trust_remote_code=bool(getattr(self.fit_cfg.model, "trust_remote_code", True)),
+        fingerprint_sec = max(0.0, time.perf_counter() - fingerprint_start)
+        artifact_id = f"u{int(update_step)}-{policy_fingerprint[:12]}"
+        checkpoint_dir = root / f"raw-policy-{artifact_id}"
+        export_dir = root / f"hf-policy-{artifact_id}"
+        existing_manifest = load_json_object(export_dir / SYNC_MANIFEST_NAME)
+        reused = bool(
+            export_dir.is_dir()
+            and existing_manifest
+            and existing_manifest.get("complete") is True
+            and int(existing_manifest.get("policy_version", -1)) == int(update_step)
+            and existing_manifest.get("policy_fingerprint") == policy_fingerprint
         )
-        layout = validate_export_layout(result.output_dir)
-        if not layout.ok:
-            raise RuntimeError(f"Stage 4C export layout validation failed for vLLM sync: {layout.errors}")
-        roundtrip = validate_hf_roundtrip(result.output_dir, device="cpu", torch_dtype=str(getattr(self.fit_cfg.model, "torch_dtype", "auto") or "auto"))
-        if not roundtrip.ok:
-            raise RuntimeError(f"Stage 4C HF roundtrip validation failed for vLLM sync: {roundtrip.errors}")
-        sync_sec = max(0.0, time.perf_counter() - sync_start)
+        checkpoint_sec = 0.0
+        export_sec = 0.0
+        commit_sec = 0.0
+        validation_start = time.perf_counter()
+        roundtrip_every = max(
+            1,
+            int(getattr(self.fit_cfg.rl, "vllm_export_roundtrip_validation_every", 1)),
+        )
+        run_roundtrip = bool(getattr(self.fit_cfg.rl, "vllm_export_validate_roundtrip", True)) and (
+            int(update_step) == 0 or int(update_step) % roundtrip_every == 0
+        )
+        temporary_checkpoint: Optional[Path] = None
+        temporary_export: Optional[Path] = None
+        try:
+            if not reused:
+                transaction = uuid.uuid4().hex
+                temporary_checkpoint = root / f".raw-policy-{artifact_id}.tmp-{transaction}"
+                temporary_export = root / f".hf-policy-{artifact_id}.tmp-{transaction}"
+                temporary_checkpoint.mkdir(parents=True, exist_ok=False)
+                checkpoint_start = time.perf_counter()
+                self.save_policy_checkpoint(
+                    temporary_checkpoint,
+                    int(update_step),
+                    checkpoint_dir.name,
+                    {
+                        "vllm_sync_strategy": self.strategy,
+                        "vllm_policy_version": int(update_step),
+                        "vllm_policy_fingerprint": policy_fingerprint,
+                        "policy_lag_updates_before_sync": int(lag_before),
+                    },
+                )
+                checkpoint_sec = max(0.0, time.perf_counter() - checkpoint_start)
+                export_start = time.perf_counter()
+                result = export_fitmotn_hf_roundtrip(
+                    temporary_checkpoint,
+                    temporary_export,
+                    base_model=getattr(self.fit_cfg.model, "model_path", None),
+                    torch_dtype=str(getattr(self.fit_cfg.model, "torch_dtype", "auto") or "auto"),
+                    roundtrip_device="cpu",
+                    base_trust_remote_code=bool(getattr(self.fit_cfg.model, "trust_remote_code", True)),
+                )
+                export_sec = max(0.0, time.perf_counter() - export_start)
+                candidate_export = Path(result.output_dir)
+            else:
+                candidate_export = export_dir
+
+            layout = validate_export_layout(candidate_export)
+            if not layout.ok:
+                raise RuntimeError(f"Stage 4C export layout validation failed for vLLM sync: {layout.errors}")
+            if run_roundtrip:
+                roundtrip = validate_hf_roundtrip(
+                    candidate_export,
+                    device="cpu",
+                    torch_dtype=str(getattr(self.fit_cfg.model, "torch_dtype", "auto") or "auto"),
+                )
+                if not roundtrip.ok:
+                    raise RuntimeError(f"Stage 4C HF roundtrip validation failed for vLLM sync: {roundtrip.errors}")
+                roundtrip_warnings = list(roundtrip.warnings)
+            else:
+                roundtrip_warnings = []
+            validation_sec = max(0.0, time.perf_counter() - validation_start)
+
+            if not reused:
+                manifest = {
+                    "format_version": 1,
+                    "complete": True,
+                    "policy_version": int(update_step),
+                    "policy_fingerprint": policy_fingerprint,
+                    "raw_checkpoint_name": checkpoint_dir.name,
+                    "export_name": export_dir.name,
+                    "created_at_unix": time.time(),
+                    "layout_warnings": list(layout.warnings),
+                    "roundtrip_validated": bool(run_roundtrip),
+                    "roundtrip_warnings": roundtrip_warnings,
+                }
+                atomic_write_json(candidate_export / SYNC_MANIFEST_NAME, manifest)
+                commit_start = time.perf_counter()
+                if checkpoint_dir.exists():
+                    shutil.rmtree(checkpoint_dir)
+                if export_dir.exists():
+                    shutil.rmtree(export_dir)
+                if temporary_checkpoint is None or temporary_export is None:
+                    raise RuntimeError("vLLM export transaction paths were not initialized")
+                temporary_checkpoint.replace(checkpoint_dir)
+                temporary_checkpoint = None
+                temporary_export.replace(export_dir)
+                temporary_export = None
+                commit_sec = max(0.0, time.perf_counter() - commit_start)
+        except Exception:
+            for path in (temporary_checkpoint, temporary_export):
+                if path is not None and path.exists():
+                    shutil.rmtree(path, ignore_errors=True)
+            raise
+
         self.policy_version = int(update_step)
-        self.export_dir = Path(result.output_dir)
+        self.export_dir = export_dir
         # The rollout backend rebuilds its engine from this export. Any native
         # transfer engine previously attached to the old vLLM instance is no
         # longer initialized.
         self.weight_transfer_initialized = False
-        self._prune_exports(root)
+        prune_start = time.perf_counter()
+        pruned_artifacts = self._prune_exports(root)
+        prune_sec = max(0.0, time.perf_counter() - prune_start)
+        state = {
+            "format_version": 1,
+            "policy_version": int(self.policy_version),
+            "policy_fingerprint": policy_fingerprint,
+            "export_dir": str(self.export_dir),
+            "raw_checkpoint_dir": str(checkpoint_dir),
+            "updated_at_unix": time.time(),
+        }
+        atomic_write_json(root / SYNC_STATE_NAME, state)
+        artifact_bytes = directory_size_bytes(checkpoint_dir) + directory_size_bytes(export_dir)
+        sync_sec = max(0.0, time.perf_counter() - sync_start)
         self.last_result = RolloutSyncResult(
             synced=True,
             policy_version=int(self.policy_version),
@@ -167,14 +277,29 @@ class VLLMPolicySyncManager:
                 "vllm_sync_strategy": self.strategy,
                 "vllm_export_dir": str(self.export_dir),
                 "vllm_export_root": str(root),
+                "vllm_policy_fingerprint": policy_fingerprint,
+                "vllm_export_reused": bool(reused),
+                "vllm_export_transaction_committed": True,
+                "vllm_export_roundtrip_validated": bool(run_roundtrip),
                 "vllm_export_layout_warnings": layout.warnings,
-                "vllm_export_roundtrip_warnings": roundtrip.warnings,
+                "vllm_export_roundtrip_warnings": roundtrip_warnings,
+                "vllm_fingerprint_sec": fingerprint_sec,
+                "vllm_checkpoint_save_sec": checkpoint_sec,
+                "vllm_export_convert_sec": export_sec,
+                "vllm_export_validation_sec": validation_sec,
+                "vllm_export_commit_sec": commit_sec,
+                "vllm_export_cleanup_sec": cleanup_sec + prune_sec,
+                "vllm_sync_artifact_bytes": int(artifact_bytes),
+                "vllm_stale_temp_artifacts_removed": int(stale_temps_removed),
+                "vllm_pruned_artifacts": int(pruned_artifacts),
             },
         )
         if self.logger is not None:
             self.logger.info(
-                "[VLLMSync] update=%s export_dir=%s sync_sec=%.3f",
+                "[VLLMSync] update=%s fingerprint=%s reused=%s export_dir=%s sync_sec=%.3f",
                 int(update_step),
+                policy_fingerprint[:12],
+                reused,
                 self.export_dir,
                 sync_sec,
             )
@@ -483,18 +608,57 @@ class VLLMPolicySyncManager:
                 "error": str(exc),
             }
 
-    def _prune_exports(self, root: Path) -> None:
+    def _cleanup_incomplete_exports(self, root: Path) -> int:
+        max_age = max(0.0, float(getattr(self.fit_cfg.rl, "vllm_export_temp_max_age_sec", 3600.0)))
+        now = time.time()
+        removed = 0
+        for path in root.glob(".*policy-*.tmp-*"):
+            try:
+                age = max(0.0, now - path.stat().st_mtime)
+                if max_age > 0.0 and age < max_age:
+                    continue
+                if path.is_dir():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
+                removed += 1
+            except OSError:
+                continue
+        return removed
+
+    def _prune_exports(self, root: Path) -> int:
         keep = int(getattr(self.fit_cfg.rl, "vllm_keep_sync_exports", 1))
         if keep <= 0:
-            return
+            return 0
         exports = sorted(root.glob("hf-policy-u*"), key=lambda p: p.stat().st_mtime, reverse=True)
-        raws = sorted(root.glob("raw-policy-u*"), key=lambda p: p.stat().st_mtime, reverse=True)
-        for path in exports[keep:] + raws[keep:]:
+        removed = 0
+        retained_raw_names = set()
+        for path in exports[:keep]:
+            manifest = load_json_object(path / SYNC_MANIFEST_NAME) or {}
+            raw_name = manifest.get("raw_checkpoint_name")
+            if raw_name:
+                retained_raw_names.add(str(raw_name))
+        removal_paths = list(exports[keep:])
+        for path in exports[keep:]:
+            manifest = load_json_object(path / SYNC_MANIFEST_NAME) or {}
+            raw_name = manifest.get("raw_checkpoint_name")
+            if raw_name:
+                removal_paths.append(root / str(raw_name))
+        for raw in root.glob("raw-policy-u*"):
+            if raw.name not in retained_raw_names and raw not in removal_paths:
+                removal_paths.append(raw)
+        seen = set()
+        for path in removal_paths:
+            if path in seen:
+                continue
+            seen.add(path)
             try:
                 if path.is_dir():
                     shutil.rmtree(path)
                 elif path.exists():
                     path.unlink()
+                removed += 1
             except Exception as exc:
                 if self.logger is not None:
                     self.logger.warning("[VLLMSync] failed to prune old sync artifact %s: %s", path, exc)
+        return removed

@@ -318,6 +318,10 @@ class RLConfig:
     vllm_sync_every_updates: int = 1
     vllm_export_root: Optional[str] = None
     vllm_keep_sync_exports: int = 1
+    vllm_export_validate_roundtrip: bool = True
+    vllm_export_roundtrip_validation_every: int = 1
+    vllm_export_temp_max_age_sec: float = 3600.0
+    vllm_policy_fingerprint_samples_per_tensor: int = 16
     vllm_weight_transfer_backend: str = "nccl"
     vllm_weight_transfer_packed: bool = True
     vllm_weight_transfer_timeout_sec: float = 300.0
@@ -344,6 +348,7 @@ class RLConfig:
     vllm_actor_start_method: str = "spawn"
     vllm_actor_request_timeout_sec: float = 600.0
     vllm_actor_shutdown_timeout_sec: float = 30.0
+    vllm_verify_engine_policy: bool = True
     gradient_checkpointing: bool = False
     empty_cache_every: int = 0
     skip_zero_advantage_updates: bool = True

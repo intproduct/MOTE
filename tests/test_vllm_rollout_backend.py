@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import types
+import json
 from pathlib import Path
 
 import pytest
@@ -19,6 +20,7 @@ if "MOTE.rl" not in sys.modules:
 
 from MOTE.config.defaults import make_default_config
 from MOTE.rl.rollout_backends import RolloutGenerationConfig
+from MOTE.rl.rollout_backends import RolloutSyncResult
 from MOTE.rl.vllm_rollout import VLLMRolloutBackend
 from MOTE.rl.vllm_sync import VLLMPolicySyncManager
 from MOTE.train.rl_controller import build_rollout_attention_and_response_mask
@@ -255,7 +257,165 @@ def test_export_reload_sync_calls_stage4c_hooks(tmp_path, monkeypatch):
     assert result.policy_lag_updates == 0
     assert manager.weight_transfer_initialized is False
     assert calls["save"]
-    assert calls["export"][0][0].name == "raw-policy-u1"
-    assert calls["export"][0][1].name == "hf-policy-u1"
-    assert calls["layout"][0].name == "hf-policy-u1"
-    assert calls["roundtrip"][0][0].name == "hf-policy-u1"
+    assert calls["export"][0][0].name.startswith(".raw-policy-u1-")
+    assert ".tmp-" in calls["export"][0][0].name
+    assert calls["export"][0][1].name.startswith(".hf-policy-u1-")
+    assert result.export_dir is not None
+    assert Path(result.export_dir).name.startswith("hf-policy-u1-")
+    assert calls["layout"][0].name.startswith(".hf-policy-u1-")
+    assert calls["roundtrip"][0][0].name.startswith(".hf-policy-u1-")
+    assert result.metadata["vllm_export_transaction_committed"] is True
+    assert result.metadata["vllm_export_reused"] is False
+
+
+def test_export_reload_reuses_committed_matching_policy(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    calls = {"save": 0, "export": 0}
+
+    def save_policy(output_dir, update_step, checkpoint_name, extra):
+        calls["save"] += 1
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        return Path(output_dir)
+
+    def fake_export(checkpoint_dir, output_dir, **kwargs):
+        calls["export"] += 1
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        return types.SimpleNamespace(output_dir=Path(output_dir))
+
+    monkeypatch.setattr("MOTE.export.hf_export.export_fitmotn_hf_roundtrip", fake_export)
+    monkeypatch.setattr(
+        "MOTE.export.validate.validate_export_layout",
+        lambda path: types.SimpleNamespace(ok=True, errors=[], warnings=[]),
+    )
+    monkeypatch.setattr(
+        "MOTE.export.roundtrip.validate_hf_roundtrip",
+        lambda path, **kwargs: types.SimpleNamespace(ok=True, errors=[], warnings=[]),
+    )
+    model = torch.nn.Linear(2, 2)
+    first = VLLMPolicySyncManager(
+        fit_cfg=cfg, rl_dir=tmp_path, save_policy_checkpoint=save_policy
+    ).sync(model=model, tokenizer=None, update_step=3, force=True)
+    second = VLLMPolicySyncManager(
+        fit_cfg=cfg, rl_dir=tmp_path, save_policy_checkpoint=save_policy
+    ).sync(model=model, tokenizer=None, update_step=3, force=True)
+
+    assert calls == {"save": 1, "export": 1}
+    assert first.export_dir == second.export_dir
+    assert second.metadata["vllm_export_reused"] is True
+    assert second.metadata["vllm_checkpoint_save_sec"] == 0.0
+    assert (Path(second.export_dir) / "fitmotn_vllm_sync_manifest.json").is_file()
+    assert (Path(cfg.rl.vllm_export_root) / "fitmotn_vllm_sync_state.json").is_file()
+
+
+def test_export_reload_failure_removes_transaction_directories(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+
+    def save_policy(output_dir, update_step, checkpoint_name, extra):
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        return Path(output_dir)
+
+    def fake_export(checkpoint_dir, output_dir, **kwargs):
+        Path(output_dir).mkdir(parents=True)
+        return types.SimpleNamespace(output_dir=Path(output_dir))
+
+    monkeypatch.setattr("MOTE.export.hf_export.export_fitmotn_hf_roundtrip", fake_export)
+    monkeypatch.setattr(
+        "MOTE.export.validate.validate_export_layout",
+        lambda path: types.SimpleNamespace(ok=False, errors=["broken"], warnings=[]),
+    )
+    manager = VLLMPolicySyncManager(
+        fit_cfg=cfg, rl_dir=tmp_path, save_policy_checkpoint=save_policy
+    )
+    with pytest.raises(RuntimeError, match="layout validation failed"):
+        manager.sync(model=torch.nn.Linear(2, 2), tokenizer=None, update_step=1, force=True)
+
+    root = Path(cfg.rl.vllm_export_root)
+    assert list(root.glob(".*policy-*.tmp-*")) == []
+    assert list(root.glob("hf-policy-u*")) == []
+
+
+def test_export_retention_prunes_raw_and_hf_as_manifest_pairs(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_keep_sync_exports = 1
+
+    def save_policy(output_dir, update_step, checkpoint_name, extra):
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        return Path(output_dir)
+
+    def fake_export(checkpoint_dir, output_dir, **kwargs):
+        Path(output_dir).mkdir(parents=True)
+        return types.SimpleNamespace(output_dir=Path(output_dir))
+
+    monkeypatch.setattr("MOTE.export.hf_export.export_fitmotn_hf_roundtrip", fake_export)
+    monkeypatch.setattr(
+        "MOTE.export.validate.validate_export_layout",
+        lambda path: types.SimpleNamespace(ok=True, errors=[], warnings=[]),
+    )
+    monkeypatch.setattr(
+        "MOTE.export.roundtrip.validate_hf_roundtrip",
+        lambda path, **kwargs: types.SimpleNamespace(ok=True, errors=[], warnings=[]),
+    )
+    manager = VLLMPolicySyncManager(
+        fit_cfg=cfg, rl_dir=tmp_path, save_policy_checkpoint=save_policy
+    )
+    model = torch.nn.Linear(2, 2)
+    manager.sync(model=model, tokenizer=None, update_step=1, force=True)
+    with torch.no_grad():
+        model.weight.add_(1.0)
+    latest = manager.sync(model=model, tokenizer=None, update_step=2, force=True)
+
+    root = Path(cfg.rl.vllm_export_root)
+    exports = list(root.glob("hf-policy-u*"))
+    raws = list(root.glob("raw-policy-u*"))
+    assert exports == [Path(latest.export_dir)]
+    assert len(raws) == 1
+    manifest = json.loads(
+        (exports[0] / "fitmotn_vllm_sync_manifest.json").read_text(encoding="utf-8")
+    )
+    assert raws[0].name == manifest["raw_checkpoint_name"]
+
+
+def test_rollout_metadata_has_request_and_input_provenance(tmp_path):
+    cfg = _cfg(tmp_path)
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+
+    class FakeLLM:
+        def generate(self, *args, **kwargs):
+            return [FakeRequestOutput([9]), FakeRequestOutput([10])]
+
+    export_dir = str(tmp_path / "hf-policy-u2-test")
+    descriptor = {"policy_version": 2, "policy_fingerprint": "abc", "export_dir": export_dir}
+    backend.llm = FakeLLM()
+    backend._vllm = object
+    backend._sampling_params_cls = lambda **kwargs: kwargs
+    backend._engine_policy_descriptor = descriptor
+    backend.sync_manager.policy_version = 2
+    backend.sync_manager.export_dir = Path(export_dir)
+    backend._last_sync = RolloutSyncResult(
+        synced=True,
+        policy_version=2,
+        policy_lag_updates=0,
+        export_dir=export_dir,
+        metadata={"vllm_policy_fingerprint": "abc"},
+    )
+    kwargs = dict(
+        model=None,
+        tokenizer=FakeTokenizer(),
+        prompts=["a", "b"],
+        input_ids=torch.tensor([[0, 1, 2], [3, 4, 5]]),
+        attention_mask=torch.tensor([[0, 1, 1], [1, 1, 1]]),
+        generation_config=RolloutGenerationConfig(max_new_tokens=4, temperature=0.7, top_p=0.95),
+        update_step=2,
+    )
+    first = backend.generate(**kwargs)
+    second = backend.generate(**kwargs)
+
+    assert first.metadata["rollout_request_id"] != second.metadata["rollout_request_id"]
+    assert first.metadata["rollout_prompt_fingerprint"] == second.metadata["rollout_prompt_fingerprint"]
+    assert first.metadata["rollout_sampling_fingerprint"] == second.metadata["rollout_sampling_fingerprint"]
+    assert first.metadata["vllm_policy_fingerprint"] == "abc"
+    assert first.metadata["vllm_engine_policy_verified"] is True
