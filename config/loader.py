@@ -31,6 +31,8 @@ VALID_RL_TRAINABLE_MODES = {"all", "patch_only", "motn_only", "gate_only", "rout
 VALID_FORMAT_MODES = {"raw", "chat"}
 VALID_ZERO_ADVANTAGE_RETRY_ACTIONS = {"warn_continue", "raise"}
 VALID_BLOCK_INIT_MODES = {"gamma_normal", "base_stats_normal", "base_stats_trunc_normal"}
+VALID_EXTRA_DATASET_FORMATS = {"text", "chat_messages", "prompt_response", "reasoning_qa"}
+VALID_EXTRA_DATASET_SOURCES = {"hf", "local_jsonl", "jsonl", "jsonl_gz", "load_from_disk", "auto"}
 
 MODEL_ALIASES = {
     "qwen3_8b": "${MODEL_ROOT}/Qwen3-8B",
@@ -236,6 +238,83 @@ def _resolve_and_validate_paths(cfg: FitMoTNConfig) -> None:
             _resolve_optional_path("data", cfg.data, field_name, cfg)
 
 
+def _normalize_extra_datasets(cfg: FitMoTNConfig) -> None:
+    value = getattr(cfg.data, "extra_datasets", [])
+    if value is None:
+        cfg.data.extra_datasets = []
+        return
+    if not isinstance(value, list):
+        raise TypeError("data.extra_datasets must be a list")
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    role_defaults = {"human": "user", "user": "user", "gpt": "assistant", "assistant": "assistant", "model": "assistant", "system": "system"}
+    path_fields = {"path", "cache_path"}
+    for idx, item in enumerate(value):
+        if not isinstance(item, Mapping):
+            raise TypeError(f"data.extra_datasets[{idx}] must be an object/dict")
+        ds = dict(item)
+        name = str(ds.get("name", "")).strip()
+        if not name:
+            raise ValueError(f"data.extra_datasets[{idx}].name is required")
+        if name in seen:
+            raise ValueError(f"data.extra_datasets contains duplicate name {name!r}")
+        seen.add(name)
+        dataset_format = str(ds.get("format", "")).strip().lower()
+        if dataset_format not in VALID_EXTRA_DATASET_FORMATS:
+            raise ValueError(
+                f"data.extra_datasets[{idx}].format must be one of {sorted(VALID_EXTRA_DATASET_FORMATS)}, got {dataset_format!r}"
+            )
+        source = str(ds.get("source", "")).strip().lower()
+        if source not in VALID_EXTRA_DATASET_SOURCES:
+            raise ValueError(
+                f"data.extra_datasets[{idx}].source must be one of {sorted(VALID_EXTRA_DATASET_SOURCES)}, got {source!r}"
+            )
+        ds["name"] = name
+        ds["format"] = dataset_format
+        ds["source"] = source
+        ds["enabled"] = bool(ds.get("enabled", True))
+        ds["split"] = str(ds.get("split", "train") or "train")
+        weight = float(ds.get("weight", 1.0))
+        if not math.isfinite(weight) or weight < 0.0:
+            raise ValueError(f"data.extra_datasets[{idx}].weight must be a finite non-negative number, got {weight}")
+        ds["weight"] = weight
+        if ds.get("max_samples") is not None:
+            max_samples = int(ds["max_samples"])
+            if max_samples <= 0:
+                raise ValueError(f"data.extra_datasets[{idx}].max_samples must be > 0 when set, got {max_samples}")
+            ds["max_samples"] = max_samples
+        default_group = "pretrain" if dataset_format == "text" else "task"
+        ds["group"] = str(ds.get("group", default_group) or default_group)
+        ds["bucket"] = str(ds.get("bucket", "pretrain_general" if ds["group"] == "pretrain" else "extra_task") or "extra_task")
+        ds["source_family"] = str(
+            ds.get("source_family", "text" if dataset_format == "text" else ("reasoning" if dataset_format == "reasoning_qa" else "chat"))
+        )
+        role_map = dict(role_defaults)
+        role_map.update({str(k).strip().lower(): str(v).strip().lower() for k, v in dict(ds.get("role_map") or {}).items()})
+        ds["role_map"] = role_map
+        ds["role_key"] = str(ds.get("role_key", "role") or "role")
+        ds["content_key"] = str(ds.get("content_key", "content") or "content")
+        ds["skip_if_no_assistant"] = bool(ds.get("skip_if_no_assistant", True))
+        ds["skip_empty"] = bool(ds.get("skip_empty", True))
+        for field_name in path_fields:
+            if ds.get(field_name) is not None:
+                ds[field_name] = resolve_path(
+                    str(ds[field_name]),
+                    key=f"data.extra_datasets[{idx}].{field_name}",
+                    source="config",
+                    cfg=cfg,
+                    allow_none=True,
+                )
+        if source == "hf" and not str(ds.get("hf_name", "")).strip():
+            raise ValueError(f"data.extra_datasets[{idx}].hf_name is required when source='hf'")
+        if source in {"local_jsonl", "jsonl", "jsonl_gz", "load_from_disk"} and not str(ds.get("path", "")).strip():
+            raise ValueError(f"data.extra_datasets[{idx}].path is required when source={source!r}")
+        if source == "auto" and not (str(ds.get("path", "")).strip() or str(ds.get("cache_path", "")).strip() or str(ds.get("hf_name", "")).strip()):
+            raise ValueError(f"data.extra_datasets[{idx}] requires path, cache_path, or hf_name when source='auto'")
+        normalized.append(ds)
+    cfg.data.extra_datasets = normalized
+
+
 def _setdefault_task_value(mapping: dict[str, int], task_name: str, value: Any) -> None:
     if task_name not in mapping:
         mapping[task_name] = int(value)
@@ -331,6 +410,7 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
     data_cfg.custom_reasoning_bucket = str(getattr(data_cfg, "custom_reasoning_bucket", "gsm8k_core") or "gsm8k_core")
     if data_cfg.use_custom_reasoning_jsonl and not data_cfg.custom_reasoning_jsonl_path:
         raise ValueError("data.custom_reasoning_jsonl_path is required when data.use_custom_reasoning_jsonl=true")
+    _normalize_extra_datasets(cfg)
 
     resume_path = getattr(train_cfg, "resume_fitmotn_from", None)
     if resume_path is not None:

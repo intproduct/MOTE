@@ -11,6 +11,7 @@ from torch.utils.data import IterableDataset, get_worker_info
 
 from ..chat_formatting import build_reasoning_messages, make_standard_chat_supervised_example, tokenizer_supports_chat_template
 from .caching import download_and_cache_dataset, load_dataset_auto_cached, resolve_split
+from .adapters import normalize_chat_like_example, normalize_text_example
 from .shard_loader import iter_jsonl, iter_jsonl_gz, iter_local_token_shards
 from .specs import HFChatTask, HFTextTask, TaskSpec
 from .tokenization import (
@@ -373,34 +374,23 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             sup["source_family"] = task.source_family
             sup["eval_type"] = "causal_lm"
             return sup
-        if task.kind in ["hf_text"]:
-            txt = ex.get(task.text_field) if isinstance(task, HFTextTask) else None
+        if isinstance(task, HFTextTask):
+            txt = normalize_text_example(ex, text_field=getattr(task, "text_field", None) if isinstance(task, HFTextTask) else None)
             if txt is None:
-                for cand in ["text", "content", "body", "document", "code", "completion"]:
-                    if cand in ex and ex[cand] is not None:
-                        txt = ex[cand]
-                        break
+                self._record_skip(task, "missing_text", None)
+                return None
             sup = make_causal_lm_example_from_text(self.tokenizer, str(txt), self.max_len, add_eos=True)
             sup["task"] = task.name
             sup["group"] = task.group
             sup["bucket"] = task.bucket
+            sup["source_family"] = task.source_family
             sup["eval_type"] = "causal_lm"
             return sup
-        if task.kind == "hf_chat":
-            if not isinstance(task, HFChatTask):
-                raise TypeError(f"[{task.name}] hf_chat task must be HFChatTask")
-            messages = ex.get(task.messages_field) if task.messages_field else None
-            if not messages:
-                messages = []
-                sys_text = ex.get(task.system_field) if task.system_field else None
-                prompt = ex.get(task.prompt_field) if task.prompt_field else None
-                response = ex.get(task.response_field) if task.response_field else None
-                if sys_text:
-                    messages.append({"role": "system", "content": str(sys_text)})
-                if prompt:
-                    messages.append({"role": "user", "content": str(prompt)})
-                if response:
-                    messages.append({"role": "assistant", "content": str(response)})
+        if isinstance(task, HFChatTask):
+            messages = normalize_chat_like_example(ex, task)
+            if messages is None:
+                self._record_skip(task, "missing_chat_fields", None)
+                return None
             sup = make_chat_supervised_example(self.tokenizer, messages=messages, max_len=self.max_len, add_eos=True)
             sup["task"] = task.name
             sup["group"] = task.group

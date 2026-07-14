@@ -156,6 +156,7 @@ class DataConfig:
     wt_custom_reasoning: float = 1.0
     custom_reasoning_dataset_name: str = "custom_verified_math"
     custom_reasoning_bucket: str = "gsm8k_core"
+    extra_datasets: List[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

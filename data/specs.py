@@ -49,10 +49,24 @@ class HFTextTask(TaskSpec):
 
 @dataclass
 class HFChatTask(TaskSpec):
+    dataset_format: str = "chat_messages"
+    text_field: Optional[str] = None
     messages_field: Optional[str] = None
     prompt_field: Optional[str] = None
     response_field: Optional[str] = None
     system_field: Optional[str] = None
+    role_key: str = "role"
+    content_key: str = "content"
+    role_map: Dict[str, str] = field(default_factory=dict)
+    instruction_field: Optional[str] = None
+    input_field: Optional[str] = None
+    output_field: Optional[str] = None
+    question_field: Optional[str] = None
+    solution_field: Optional[str] = None
+    answer_field: Optional[str] = None
+    answer_extraction: Optional[str] = None
+    skip_if_no_assistant: bool = True
+    skip_empty: bool = True
     max_samples: Optional[int] = None
     kind: str = "hf_chat"
     group: str = "task"

@@ -8,6 +8,7 @@ from ..data.access import inspect_task_dataset
 from ..data.specs import TaskSpec
 from ..runtime import normalize_hf_config
 from .reasoning_normalization import normalize_reasoning_sample
+from .extra_dataset_specs import build_extra_dataset_tasks
 from .synthetic_arithmetic import build_synthetic_arithmetic_dataset
 
 
@@ -420,6 +421,8 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 "[Data] disable task=mmlu_auxiliary_train reason=unsupported training split %s (only auxiliary_train is allowed)",
                 train_split,
             )
-    if requested_task_flags and not tasks:
+    hardcoded_task_count = len(tasks)
+    if requested_task_flags and hardcoded_task_count == 0:
         raise ValueError(f"reasoning task pool is empty after dataset checks; requested={requested_task_flags}")
+    tasks.extend(build_extra_dataset_tasks(cfg, group="task", logger=logger))
     return tasks

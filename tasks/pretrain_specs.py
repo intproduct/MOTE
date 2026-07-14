@@ -6,6 +6,7 @@ from ..config.schema import DataConfig
 from ..data.access import check_code_dataset_accessible
 from ..data.specs import HFTextTask, LocalTokenShardTask, TaskSpec
 from ..runtime import normalize_hf_config
+from .extra_dataset_specs import build_extra_dataset_tasks
 
 
 def build_pretrain_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
@@ -60,6 +61,7 @@ def build_pretrain_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 source_family="code",
             )
         )
+    tasks.extend(build_extra_dataset_tasks(cfg, group="pretrain", logger=logger))
     if not tasks:
         raise ValueError("pretrain task pool is empty")
     return tasks
