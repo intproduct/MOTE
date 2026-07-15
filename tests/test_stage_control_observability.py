@@ -32,6 +32,10 @@ from MOTE.config.defaults import make_default_config
 from MOTE.config.loader import _finalize_train_config, load_config_from_json
 from MOTE.data.tokenization import make_supervised_example
 from MOTE.train.stages import build_stage_plan, resolve_stage_temperature, set_optimizer_stage_lrs
+from MOTE.train.stages import MutableStageState
+from MOTE.train.callbacks import MOTNScheduleCallback
+from MOTE.train.observability import UpdateBatchMeta
+from transformers import TrainerControl, TrainerState
 from MOTE.train.trainer import compute_loss_observability
 
 
@@ -220,6 +224,50 @@ class StageControlObservabilityTests(unittest.TestCase):
         weights[1, 2:] = 2.0
         _, weighted_metrics = compute_loss_observability(logits, labels, buckets=["gsm8k_core", "aux_reasoning"], loss_weights=weights)
         self.assertGreater(weighted_metrics["final_answer_weighted_tokens"], 0)
+
+    def test_stage_transition_forces_checkpoint_save(self):
+        cfg = make_default_config()
+        cfg.model.patch_backend = "adtn_fixed"
+        cfg.train.epochs = 0
+        cfg.train.steps = 10
+        cfg.train.stage_a_ratio = 0.5
+        cfg.train.save_on_stage_transition = True
+        cfg.train.usage_light_every = 0
+        cfg.train.usage_light_jsonl_every = 0
+        cfg.train.usage_report_every = 0
+        cfg.train.eval_every_updates = 0
+        plan = build_stage_plan(cfg.train)
+        stage_state = MutableStageState(plan)
+        model = torch.nn.Linear(2, 2)
+        model.fitmotn_runtime = {
+            "batch_size": 1,
+            "grad_accum": 1,
+            "seq_len": 1,
+            "tokens_per_update": 1,
+            "update_batch_meta": UpdateBatchMeta(),
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            callback = MOTNScheduleCallback(
+                cfg,
+                stage_state,
+                root / "train.jsonl",
+                root / "train_light.jsonl",
+                root / "usage.jsonl",
+                root / "eval.jsonl",
+            )
+            state = TrainerState(global_step=5)
+            control = callback.on_step_end(
+                None,
+                state,
+                TrainerControl(),
+                model=model,
+                optimizer=None,
+            )
+
+        self.assertTrue(control.should_save)
+        self.assertTrue(model.fitmotn_runtime["checkpoint_stage_boundary_pending"])
+        self.assertEqual(model.fitmotn_runtime["checkpoint_stage_boundary_name"], "stage_a_recover_end")
 
 
 if __name__ == "__main__":

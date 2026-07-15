@@ -1022,6 +1022,29 @@ python -m MOTN.fitmotn.cli.debug_reasoning_sample \
 - 旧格式 `state_dict` 仍然兼容读取，不会破坏已有 checkpoint
 - `fitmotn_state.json` 仍然保留，方便人读和批量扫描
 
+## Reliable checkpoints and resume modes
+
+SFT and RL stage checkpoints are written transactionally. Files are first written to a hidden sibling directory, inventoried in `fitmotn_checkpoint_manifest.json`, validated, and only then published with a directory rename. A failed save raises by default and never publishes a partial `checkpoint-*` directory.
+
+The two resume modes have deliberately different semantics and are mutually exclusive:
+
+- `resume_weights_from` loads FitMoTN/model weights and starts a new training plan. Legacy `train.resume_fitmotn_from` and `rl.resume_from` remain weight-resume aliases.
+- `resume_checkpoint_from` continues the same run. SFT restores Trainer/optimizer/scheduler/global-step/data-skip/RNG state. RL restores optimizer and loop counters, data position, retry state, Python/Torch/CUDA RNG state, and the original KL-reference source.
+
+Checkpoint retention is controlled independently for SFT and RL with `checkpoint_keep_last_n` and `checkpoint_keep_every_n`. SFT stage-boundary checkpoints are preserved when `save_on_stage_transition=true`; `final_model/` is never pruned. Use a periodic `checkpoint-*`, not `final_model/`, for exact SFT resume.
+
+Run preflight and checkpoint validation before a long experiment:
+
+```bash
+python -m fitmotn.cli.doctor --config ./fitmotn_config.example.json
+python -m fitmotn.cli.validate_checkpoint /path/to/checkpoint-2000 --require-exact sft
+python -m fitmotn.cli.validate_checkpoint /path/to/rl/checkpoint-100 --require-exact rl
+```
+
+With vLLM rollouts, RL exact resume restores the training-side state but cannot guarantee bitwise restoration of vLLM engine-internal sampling state.
+
+Transactional SFT checkpoint publication currently supports single-process Trainer runs. Multi-process DDP/FSDP/DeepSpeed saves fail explicitly instead of falling back to a non-atomic path, because rank-specific RNG and sharded state require coordinated publication.
+
 ## FitMoTN export and vLLM roadmap
 
 Raw FitMoTN checkpoints are training artifacts. For post-training inference or evaluation, prefer a full Stage 4C exported Hugging Face directory instead of pointing tools at the raw checkpoint. Stage 4A can still create a metadata-only export for scanning and layout validation:

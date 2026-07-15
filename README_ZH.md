@@ -272,6 +272,9 @@ gate_proj(MoTN) + up_proj(MoTN) + activation + down_proj(MoTN)
 - `lr`、`block_lr`、`router_lr`；
 - `max_grad_norm`；
 - `save_every_updates`；
+- `resume_weights_from`、`resume_checkpoint_from`；
+- `checkpoint_keep_last_n`、`checkpoint_keep_every_n`；
+- `save_on_stage_transition`、`checkpoint_fail_on_save_error`；
 - `eval_every_updates`；
 - `stage_a_ratio`；
 - `stage_a_pretrain_ratio`、`stage_a_task_ratio`；
@@ -487,17 +490,81 @@ run_dir/
 
 新格式默认只保存 patched 层状态，不再重复保存整模型 state dict。旧 checkpoint 的完整 `state_dict` 仍可兼容读取。
 
-## 十二、恢复 checkpoint
+## 十二、checkpoint 可靠性与恢复
 
-恢复顺序为：
+SFT 和 RL 的阶段 checkpoint 现在采用事务式保存：先写入同一文件系统下的隐藏临时目录，生成 `fitmotn_checkpoint_manifest.json` 并校验文件大小与哈希，最后再通过目录重命名发布。保存失败默认直接终止训练，且不会留下看似完整的 `checkpoint-*`。启动新保存时会清理超过 `checkpoint_temp_max_age_sec` 的过期临时目录。
 
-1. 加载基础模型；
-2. 按 checkpoint 中的真实 `layers_to_patch` 重新 patch；
-3. 加载 `patch_state_dict`；
-4. 旧格式回退到完整 `state_dict`；
-5. 使用 `strict=False` 灌入状态。
+每个已提交 checkpoint 的 manifest 记录：
 
-这一步用于防止 patched 结构被普通 `save_pretrained()` 平铺或丢失。
+- checkpoint 类型、update、训练阶段和是否为阶段边界；
+- 文件清单、大小和中小文件 SHA-256；
+- 是否支持仅权重恢复、SFT 精确续训或 RL 精确续训。
+
+保存和保留策略：
+
+```json
+{
+  "train": {
+    "save_every_updates": 1000,
+    "checkpoint_keep_last_n": 3,
+    "checkpoint_keep_every_n": 0,
+    "save_on_stage_transition": true,
+    "checkpoint_fail_on_save_error": true
+  }
+}
+```
+
+- `checkpoint_keep_last_n` 保留最近 N 个阶段 checkpoint；
+- `checkpoint_keep_every_n` 大于 0 时，额外永久保留 update 为该值整数倍的 checkpoint；
+- SFT 阶段边界 checkpoint 默认永久保留；
+- `final_model/` 独立保留，不参与阶段 checkpoint 裁剪。
+
+恢复分为两种不同语义，不能同时配置：
+
+1. `resume_weights_from`：只加载模型/FitMoTN 权重，开始一段新的训练计划；旧字段 `resume_fitmotn_from` 和 RL 的 `resume_from` 仍作为该模式的兼容别名。
+2. `resume_checkpoint_from`：从同一次实验精确续训。SFT 会恢复 Trainer、优化器、学习率调度器、global step、数据跳过位置和 RNG；RL 会恢复优化器、update/micro-step、数据位置、重试计数、Python/Torch/CUDA RNG 以及原始 KL reference source。
+
+SFT 示例：
+
+```json
+{
+  "train": {
+    "resume_checkpoint_from": "/path/to/run/checkpoints/checkpoint-2000"
+  }
+}
+```
+
+RL 示例：
+
+```json
+{
+  "rl": {
+    "enabled": true,
+    "resume_checkpoint_from": "/path/to/run/rl_grpo/checkpoint-100"
+  }
+}
+```
+
+注意：`final_model/` 是权重与结果交付目录，不包含 SFT Trainer 的完整优化器/调度器状态；需要精确续训时应选择 `checkpoint-*`。RL 使用 vLLM rollout 时，FitMoTN、优化器、数据位置和主进程 RNG 均会恢复，但 vLLM 引擎内部采样状态不承诺逐位一致；正式复现实验应从固定 seed 重新跑，或使用 HF rollout 做严格中断一致性验证。
+
+当前事务式 SFT checkpoint 明确支持单进程 Trainer（可配合另一张 GPU 上的 vLLM rollout）。多进程 DDP/FSDP/DeepSpeed 需要协调各 rank 的 RNG/分片状态，代码会在保存时显式报错，不会退回非原子保存。若实验需要多进程训练，应先完成对应的多 rank checkpoint 实现与 GPU 验收。
+
+训练前配置检查：
+
+```bash
+python -m fitmotn.cli.doctor --config ./my_fitmotn_config.json
+```
+
+该命令检查保存频率、预计生成/保留 checkpoint 数、磁盘空间、输出文件系统可写性、精确续训 checkpoint 完整性，以及 vLLM 训练/rollout 设备风险。
+
+单独验证 checkpoint：
+
+```bash
+python -m fitmotn.cli.validate_checkpoint /path/to/checkpoint-2000 --require-exact sft
+python -m fitmotn.cli.validate_checkpoint /path/to/rl/checkpoint-100 --require-exact rl
+```
+
+普通 FitMoTN 权重恢复仍按“加载基础模型 → 按真实 `layers_to_patch` patch → 加载 `patch_state_dict` → 旧格式回退 `state_dict`”的顺序执行，避免 patched 结构被普通 `save_pretrained()` 平铺或丢失。
 
 ## 十三、Hugging Face 与 lm-eval 评测
 

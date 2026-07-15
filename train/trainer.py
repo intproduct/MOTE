@@ -1,15 +1,23 @@
 from __future__ import annotations
 
 import logging
+import shutil
+import uuid
 from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from transformers import Trainer
+from transformers.trainer import PREFIX_CHECKPOINT_DIR
 
 from ..ADTN import TensorBlock
-from ..checkpointing import save_fitmotn_metadata
+from ..checkpointing import (
+    cleanup_checkpoint_transactions,
+    commit_prepared_checkpoint,
+    prune_checkpoints,
+    save_fitmotn_metadata,
+)
 from ..gate import SoftGate, TopKGate, _SoftGate, _TopKGate
 from .observability import register_microbatch
 
@@ -103,6 +111,7 @@ class FitMoTNTrainer(Trainer):
         scheduler_builder=None,
         observability_state=None,
         optimizer_logger=None,
+        checkpoint_policy=None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -111,6 +120,7 @@ class FitMoTNTrainer(Trainer):
         self.scheduler_builder = scheduler_builder
         self.observability_state = observability_state
         self.optimizer_logger = optimizer_logger or logging.getLogger(__name__)
+        self.checkpoint_policy = checkpoint_policy
         if self.observability_state is not None:
             setattr(self.model, "fitmotn_runtime", self.observability_state)
 
@@ -302,3 +312,64 @@ class FitMoTNTrainer(Trainer):
             except TypeError:
                 metadata = self.fitmotn_metadata_builder()
             save_fitmotn_metadata(target_dir, metadata)
+
+    def _save_checkpoint(self, model, trial):
+        policy = self.checkpoint_policy
+        if policy is None:
+            return super()._save_checkpoint(model, trial)
+        if int(getattr(self.args, "world_size", 1)) > 1:
+            raise RuntimeError(
+                "Atomic FitMoTN SFT checkpoints currently support single-process Trainer runs only; "
+                "multi-process/FSDP/DeepSpeed checkpoint publication requires coordinated rank state."
+            )
+        if not self.args.should_save:
+            return None
+        step = int(self.state.global_step)
+        checkpoint_name = f"{PREFIX_CHECKPOINT_DIR}-{step}"
+        real_root = Path(self._get_output_dir(trial=trial)).resolve()
+        real_root.mkdir(parents=True, exist_ok=True)
+        cleanup_checkpoint_transactions(
+            real_root,
+            max_age_sec=float(getattr(policy, "checkpoint_temp_max_age_sec", 3600.0)),
+        )
+        staging_root = real_root / f".checkpoint-staging.tmp-{uuid.uuid4().hex}"
+        prepared = real_root / f".checkpoint-{checkpoint_name}.tmp-{uuid.uuid4().hex}"
+        old_output_dir = self.args.output_dir
+        runtime = self.observability_state or {}
+        stage_name = runtime.get("checkpoint_stage_boundary_name") or runtime.get("current_stage")
+        stage_boundary = bool(runtime.get("checkpoint_stage_boundary_pending", False))
+        fail_on_error = bool(getattr(policy, "checkpoint_fail_on_save_error", True))
+        try:
+            staging_root.mkdir(parents=False, exist_ok=False)
+            self.args.output_dir = str(staging_root)
+            super()._save_checkpoint(model, trial)
+            staged_checkpoint = staging_root / checkpoint_name
+            if not staged_checkpoint.is_dir():
+                raise RuntimeError(f"Trainer did not create expected staged checkpoint: {staged_checkpoint}")
+            staged_checkpoint.replace(prepared)
+            commit_prepared_checkpoint(
+                prepared,
+                real_root / checkpoint_name,
+                checkpoint_kind="sft",
+                update_step=step,
+                stage_name=stage_name,
+                stage_boundary=stage_boundary,
+                extra={"trainer_global_step": step},
+            )
+            prune_checkpoints(
+                real_root,
+                keep_last_n=int(getattr(policy, "checkpoint_keep_last_n", 3)),
+                keep_every_n=int(getattr(policy, "checkpoint_keep_every_n", 0)),
+                preserve_stage_boundaries=True,
+            )
+            runtime["checkpoint_stage_boundary_pending"] = False
+            runtime["checkpoint_stage_boundary_name"] = None
+            runtime["last_checkpoint_path"] = str(real_root / checkpoint_name)
+        except Exception as exc:
+            self.optimizer_logger.error("[Checkpoint] atomic SFT checkpoint failed at step=%s: %s", step, exc)
+            if fail_on_error:
+                raise
+        finally:
+            self.args.output_dir = old_output_dir
+            shutil.rmtree(staging_root, ignore_errors=True)
+            shutil.rmtree(prepared, ignore_errors=True)

@@ -18,6 +18,9 @@ from ..checkpointing import (
     get_restore_state_dict,
     load_fitmotn_metadata,
     save_fitmotn_metadata,
+    transactional_save_checkpoint,
+    transactional_update_checkpoint,
+    validate_checkpoint,
 )
 from ..gate import normalize_legacy_gate_state_dict_for_model
 from ..data.builders import build_stage_aware_train_dataset
@@ -66,7 +69,15 @@ def make_run_name(fit_cfg) -> str:
 
 
 def _is_resume_training(fit_cfg) -> bool:
-    return bool(getattr(fit_cfg.train, "resume_fitmotn_from", None))
+    return bool(_resume_source(fit_cfg))
+
+
+def _resume_source(fit_cfg) -> str | None:
+    return (
+        getattr(fit_cfg.train, "resume_checkpoint_from", None)
+        or getattr(fit_cfg.train, "resume_weights_from", None)
+        or getattr(fit_cfg.train, "resume_fitmotn_from", None)
+    )
 
 
 def _validate_resume_source(path_value: str | Path) -> tuple[Path, Path]:
@@ -89,7 +100,7 @@ def _path_is_same_or_inside(child: Path, parent: Path) -> bool:
 
 
 def _validate_resume_output_paths(fit_cfg, run_dir: Path) -> None:
-    resume_from = getattr(fit_cfg.train, "resume_fitmotn_from", None)
+    resume_from = _resume_source(fit_cfg)
     if not resume_from:
         return
     resume_dir = Path(resume_from).expanduser().resolve()
@@ -103,7 +114,7 @@ def _validate_resume_output_paths(fit_cfg, run_dir: Path) -> None:
 
 
 def _warn_resume_continuation_risks(fit_cfg, metadata: Dict[str, Any] | None, logger) -> None:
-    if not getattr(fit_cfg.train, "resume_fitmotn_from", None):
+    if not getattr(fit_cfg.train, "resume_fitmotn_from", None) or getattr(fit_cfg.train, "resume_checkpoint_from", None):
         return
     if int(getattr(fit_cfg.train, "gate_freeze_steps", 0)) > 0:
         logger.warning(
@@ -213,11 +224,16 @@ def _validate_resume_structure(fit_cfg, metadata: Dict[str, Any], ckpt_layer_idx
 
 
 def _load_resume_metadata(fit_cfg, logger) -> Dict[str, Any]:
-    ckpt_dir, state_path = _validate_resume_source(getattr(fit_cfg.train, "resume_fitmotn_from"))
+    source = _resume_source(fit_cfg)
+    ckpt_dir, state_path = _validate_resume_source(source)
+    if getattr(fit_cfg.train, "resume_checkpoint_from", None):
+        report = validate_checkpoint(ckpt_dir, require_exact_resume="sft")
+        if not report["ok"]:
+            raise RuntimeError(f"SFT exact-resume checkpoint validation failed: {report['errors']}")
     metadata = load_fitmotn_metadata(ckpt_dir)
     metadata["_resume_ckpt_dir"] = str(ckpt_dir)
     metadata["_resume_state_path"] = str(state_path)
-    if getattr(fit_cfg.train, "extra_updates", None) is None:
+    if not getattr(fit_cfg.train, "resume_checkpoint_from", None) and getattr(fit_cfg.train, "extra_updates", None) is None:
         logger.warning("[Resume] extra_updates is not set; using resolved total_updates for continuation.")
     logger.info("[Resume] resumed_from=%s state_path=%s", ckpt_dir, state_path)
     return metadata
@@ -473,6 +489,9 @@ def run_fitmotn_training(fit_cfg):
     runtime_state["approx_init_summary"] = None
     runtime_state["is_resume_training"] = bool(is_resume_training)
     runtime_state["resume_fitmotn_from"] = getattr(fit_cfg.train, "resume_fitmotn_from", None)
+    runtime_state["resume_weights_from"] = getattr(fit_cfg.train, "resume_weights_from", None)
+    runtime_state["resume_checkpoint_from"] = getattr(fit_cfg.train, "resume_checkpoint_from", None)
+    runtime_state["resume_mode"] = "exact" if getattr(fit_cfg.train, "resume_checkpoint_from", None) else ("weights" if is_resume_training else "none")
     runtime_state["resume_stage"] = getattr(fit_cfg.train, "resume_stage", "auto")
     runtime_state["stage2_only_on_resume"] = bool(getattr(fit_cfg.train, "stage2_only_on_resume", True))
     runtime_state["extra_updates"] = getattr(fit_cfg.train, "extra_updates", None)
@@ -599,6 +618,7 @@ def run_fitmotn_training(fit_cfg):
         scheduler_builder=scheduler_builder,
         observability_state=runtime_state,
         optimizer_logger=logger,
+        checkpoint_policy=fit_cfg.train,
     )
     trainer.add_callback(
         MOTNScheduleCallback(
@@ -618,12 +638,22 @@ def run_fitmotn_training(fit_cfg):
             logger.info("[Runtime] reset CUDA peak memory stats before training")
         except Exception as exc:
             logger.warning("[Runtime] failed to reset CUDA peak memory stats: %s", exc)
-    trainer.train()
+    trainer.train(resume_from_checkpoint=getattr(fit_cfg.train, "resume_checkpoint_from", None))
 
     final_model_dir = run_dir / "final_model"
-    trainer.save_model(str(final_model_dir))
-    tokenizer.save_pretrained(final_model_dir)
-    save_fitmotn_metadata(final_model_dir, metadata_builder(checkpoint_name=final_model_dir.name))
+    def save_final_model(prepared_dir: Path) -> None:
+        trainer.save_model(str(prepared_dir))
+        tokenizer.save_pretrained(prepared_dir)
+        save_fitmotn_metadata(prepared_dir, metadata_builder(checkpoint_name=final_model_dir.name))
+
+    transactional_save_checkpoint(
+        final_model_dir,
+        save_final_model,
+        checkpoint_kind="sft_final",
+        update_step=int(getattr(trainer.state, "global_step", stage_plan.total_updates)),
+        stage_name=runtime_state.get("current_stage"),
+        temp_max_age_sec=float(getattr(fit_cfg.train, "checkpoint_temp_max_age_sec", 3600.0)),
+    )
 
     model.eval()
     final_full = run_eval_tasks(
@@ -667,11 +697,21 @@ def run_fitmotn_training(fit_cfg):
         "compare_vs_baseline": compare_summary,
     })
     metadata = metadata_builder(checkpoint_name=final_model_dir.name)
-    save_fitmotn_metadata(final_model_dir, metadata)
     trainer_control = getattr(trainer, "control", None)
     stop_reason = "early_stop" if bool(getattr(trainer_control, "should_training_stop", False)) else None
     run_summary = build_run_summary(runtime_state, eval_summary, final_model_dir=str(final_model_dir), stop_reason=stop_reason)
     json_dump(run_summary_path, run_summary)
-    json_dump(final_model_dir / "run_summary.json", run_summary)
+    def finalize_sft_model(prepared_dir: Path) -> None:
+        save_fitmotn_metadata(prepared_dir, metadata)
+        json_dump(prepared_dir / "run_summary.json", run_summary)
+    transactional_update_checkpoint(
+        final_model_dir,
+        finalize_sft_model,
+        checkpoint_kind="sft_final",
+        update_step=int(getattr(trainer.state, "global_step", stage_plan.total_updates)),
+        stage_name=runtime_state.get("current_stage"),
+        extra={"final_evaluation_complete": True},
+        temp_max_age_sec=float(getattr(fit_cfg.train, "checkpoint_temp_max_age_sec", 3600.0)),
+    )
     logger.info("[Run] finished %s", run_name)
     return {"run_dir": str(run_dir), "final_model_dir": str(final_model_dir), "eval_summary": str(eval_summary_path), "run_summary": str(run_summary_path)}

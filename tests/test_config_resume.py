@@ -87,6 +87,10 @@ class ConfigResumeTests(unittest.TestCase):
             cfg = load_config_from_json(path)
 
         self.assertIsNone(cfg.train.resume_fitmotn_from)
+        self.assertIsNone(cfg.train.resume_weights_from)
+        self.assertIsNone(cfg.train.resume_checkpoint_from)
+        self.assertEqual(cfg.train.checkpoint_keep_last_n, 3)
+        self.assertTrue(cfg.train.save_on_stage_transition)
         self.assertFalse(cfg.rl.enabled)
         self.assertEqual(cfg.rl.mode, "gsm8k_grpo")
         self.assertEqual(cfg.train.resume_stage, "auto")
@@ -112,6 +116,57 @@ class ConfigResumeTests(unittest.TestCase):
         self.assertTrue(cfg.rl.skip_zero_advantage_updates)
         self.assertEqual(cfg.rl.max_zero_advantage_rollout_retries, 8)
         self.assertEqual(cfg.rl.zero_advantage_retry_action, "warn_continue")
+        self.assertIsNone(cfg.rl.resume_weights_from)
+        self.assertIsNone(cfg.rl.resume_checkpoint_from)
+        self.assertEqual(cfg.rl.checkpoint_keep_last_n, 3)
+
+    def test_legacy_resume_aliases_weight_resume(self):
+        payload = with_base({"train": {"resume_fitmotn_from": "checkpoint-1"}})
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "config.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            cfg = load_config_from_json(path)
+
+        self.assertEqual(cfg.train.resume_fitmotn_from, cfg.train.resume_weights_from)
+        self.assertIsNone(cfg.train.resume_checkpoint_from)
+
+    def test_exact_and_weight_resume_are_mutually_exclusive(self):
+        cases = [
+            {
+                "train": {
+                    "resume_weights_from": "checkpoint-1",
+                    "resume_checkpoint_from": "checkpoint-2",
+                }
+            },
+            {
+                "rl": {
+                    "resume_weights_from": "checkpoint-1",
+                    "resume_checkpoint_from": "checkpoint-2",
+                }
+            },
+        ]
+        for payload in cases:
+            with self.subTest(payload=payload), tempfile.TemporaryDirectory() as tmpdir:
+                path = Path(tmpdir) / "config.json"
+                path.write_text(json.dumps(with_base(payload)), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "mutually exclusive"):
+                    load_config_from_json(path)
+
+    def test_checkpoint_policy_fields_validate(self):
+        cases = [
+            ({"train": {"save_every_updates": 0}}, "train.save_every_updates"),
+            ({"train": {"checkpoint_keep_last_n": -1}}, "retention"),
+            (
+                {"rl": {"enabled": True, "max_steps": 1, "checkpoint_temp_max_age_sec": -1}},
+                "checkpoint_temp_max_age_sec",
+            ),
+        ]
+        for payload, message in cases:
+            with self.subTest(payload=payload), tempfile.TemporaryDirectory() as tmpdir:
+                path = Path(tmpdir) / "config.json"
+                path.write_text(json.dumps(with_base(payload)), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, message):
+                    load_config_from_json(path)
 
     def test_invalid_resume_stage_raises(self):
         payload = with_base({"train": {"resume_stage": "stage_c"}})
@@ -227,6 +282,10 @@ class ConfigResumeTests(unittest.TestCase):
             ({"rl": {"enabled": True, "mode": "other", "max_steps": 1}}, "rl.mode must be one of"),
             ({"rl": {"enabled": True, "trainable_mode": "name_match", "max_steps": 1}}, "rl.trainable_mode must be one of"),
             ({"rl": {"enabled": False, "run_after_sft": True}}, "rl.run_after_sft=true requires rl.enabled=true"),
+            (
+                {"rl": {"enabled": True, "run_after_sft": True, "max_steps": 1, "resume_weights_from": "checkpoint-1"}},
+                "cannot be combined with an RL resume checkpoint",
+            ),
             ({"rl": {"enabled": True, "max_steps": 0}}, "rl.max_steps must be > 0"),
             ({"rl": {"enabled": True, "max_steps": 1, "log_memory_every": -1}}, "rl.log_memory_every must be >= 0"),
             ({"rl": {"enabled": True, "max_steps": 1, "logprob_micro_batch_size": -1}}, "rl.logprob_micro_batch_size must be >= 0"),

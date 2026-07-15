@@ -15,7 +15,15 @@ import torch
 
 from ..audit import build_environment_snapshot, json_dump, jsonl_append, to_jsonable
 from ..chat_formatting import build_chat_prompt_text_for_generation, tokenizer_supports_chat_template
-from ..checkpointing import extract_patch_state_dict, save_fitmotn_metadata
+from ..checkpointing import (
+    RL_TRAINING_STATE_NAME,
+    extract_patch_state_dict,
+    prune_checkpoints,
+    save_fitmotn_metadata,
+    transactional_save_checkpoint,
+    transactional_update_checkpoint,
+    validate_checkpoint,
+)
 from ..eval.runner import run_eval_tasks
 from ..rl.data import format_rl_prompt, load_gsm8k_rl_records
 from ..rl.grpo import compute_group_advantages, grpo_loss
@@ -371,7 +379,7 @@ def build_rl_logger(rl_dir: Path) -> logging.Logger:
 
 
 def _make_implicit_rl_run_name(fit_cfg) -> str:
-    resume_from = getattr(fit_cfg.rl, "resume_from", None)
+    resume_from = getattr(fit_cfg.rl, "resume_checkpoint_from", None) or getattr(fit_cfg.rl, "resume_from", None)
     if resume_from:
         resume_path = Path(resume_from).expanduser().resolve()
         parent_name = resume_path.parent.name if resume_path.name == "final_model" else resume_path.name
@@ -387,13 +395,13 @@ def resolve_rl_output_dir(fit_cfg) -> Path:
     run_name = fit_cfg.output.run_name or _make_implicit_rl_run_name(fit_cfg)
     rl_dir = root_dir / run_name / str(getattr(fit_cfg.rl, "output_subdir", "rl_grpo"))
 
-    resume_from = getattr(fit_cfg.rl, "resume_from", None)
+    resume_from = getattr(fit_cfg.rl, "resume_checkpoint_from", None) or getattr(fit_cfg.rl, "resume_from", None)
     if resume_from:
         resume_path = Path(resume_from).expanduser().resolve()
         try:
             if rl_dir.resolve() == resume_path or resume_path in rl_dir.resolve().parents:
                 raise ValueError(
-                    f"RL output dir {rl_dir} must not be the same as or inside rl.resume_from={resume_path}"
+                    f"RL output dir {rl_dir} must not be the same as or inside the resume checkpoint={resume_path}"
                 )
         except FileNotFoundError:
             pass
@@ -576,12 +584,27 @@ def _save_rl_model_artifacts(
     checkpoint_name: str,
     trainable_mode_info: Dict[str, Any],
     extra_metadata: Dict[str, Any] | None = None,
+    training_state: Dict[str, Any] | None = None,
+    fail_on_model_save_error: bool = True,
+    logger: logging.Logger | None = None,
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     try:
         model.save_pretrained(output_dir)
-    except Exception:
-        pass
+        model_save_status = {"ok": True, "error": None}
+    except Exception as exc:
+        model_save_status = {"ok": False, "error": str(exc)}
+        if logger is not None:
+            logger.error("[RLCheckpoint] model.save_pretrained failed for %s: %s", output_dir, exc)
+    (output_dir / "model_save_status.json").write_text(
+        json.dumps(model_save_status, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    if not model_save_status["ok"]:
+        if fail_on_model_save_error:
+            raise RuntimeError(
+                f"RL checkpoint model.save_pretrained failed: {model_save_status['error']}"
+            )
     tokenizer.save_pretrained(output_dir)
 
     if load_info.layer_idxs:
@@ -613,11 +636,73 @@ def _save_rl_model_artifacts(
                 "global_step": int(update_step),
                 "resolved_model_dtype": dtype_name_from_load_info(load_info),
                 "trainable_mode": str(trainable_mode_info.get("requested_mode")),
+                "model_save_status": model_save_status,
             }
         )
         metadata.pop("state_dict", None)
         save_fitmotn_metadata(output_dir, metadata)
+    if training_state is not None:
+        torch.save(training_state, output_dir / RL_TRAINING_STATE_NAME)
     return output_dir
+
+
+def _capture_rl_training_state(
+    *,
+    optimizer,
+    update_step: int,
+    micro_step: int,
+    optimizer_micro_step: int,
+    data_pos: int,
+    zero_advantage_retry_count: int,
+    reference_source: str | None = None,
+) -> Dict[str, Any]:
+    return {
+        "format": "fitmotn_rl_training_state_v1",
+        "optimizer_state_dict": optimizer.state_dict(),
+        "update_step": int(update_step),
+        "micro_step": int(micro_step),
+        "optimizer_micro_step": int(optimizer_micro_step),
+        "data_pos": int(data_pos),
+        "zero_advantage_retry_count": int(zero_advantage_retry_count),
+        "reference_source": None if reference_source is None else str(reference_source),
+        "python_random_state": random.getstate(),
+        "torch_rng_state": torch.get_rng_state(),
+        "cuda_rng_state_all": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+    }
+
+
+def _load_rl_training_state(path: str | Path) -> Dict[str, Any]:
+    state_path = Path(path).expanduser().resolve() / RL_TRAINING_STATE_NAME
+    if not state_path.is_file():
+        raise FileNotFoundError(f"RL exact-resume state is missing: {state_path}")
+    try:
+        state = torch.load(state_path, map_location="cpu", weights_only=False)
+    except TypeError:
+        state = torch.load(state_path, map_location="cpu")
+    if not isinstance(state, dict) or state.get("format") != "fitmotn_rl_training_state_v1":
+        raise RuntimeError(f"Unsupported RL training state format at {state_path}")
+    required = {
+        "optimizer_state_dict",
+        "update_step",
+        "micro_step",
+        "optimizer_micro_step",
+        "data_pos",
+        "python_random_state",
+        "torch_rng_state",
+        "reference_source",
+    }
+    missing = sorted(required - set(state))
+    if missing:
+        raise RuntimeError(f"Incomplete RL exact-resume state at {state_path}: missing={missing}")
+    return state
+
+
+def _restore_rl_rng_state(state: Dict[str, Any]) -> None:
+    random.setstate(state["python_random_state"])
+    torch.set_rng_state(state["torch_rng_state"])
+    cuda_state = state.get("cuda_rng_state_all")
+    if cuda_state is not None and torch.cuda.is_available():
+        torch.cuda.set_rng_state_all(cuda_state)
 
 
 def _build_rollout_backend(
@@ -647,6 +732,8 @@ def _build_rollout_backend(
             checkpoint_name=checkpoint_name,
             trainable_mode_info=trainable_mode_info,
             extra_metadata=extra_metadata,
+            fail_on_model_save_error=bool(getattr(fit_cfg.rl, "checkpoint_fail_on_save_error", True)),
+            logger=logger,
         )
 
     return VLLMRolloutBackend(
@@ -825,7 +912,22 @@ def run_fitmotn_rl_training(fit_cfg):
     summary_path = rl_dir / "rl_run_summary.json"
 
     records = load_gsm8k_rl_records(fit_cfg, logger=logger)
-    model, tokenizer, load_info = load_policy_for_rl(fit_cfg, resume_from=getattr(fit_cfg.rl, "resume_from", None), logger=logger)
+    exact_resume_path = getattr(fit_cfg.rl, "resume_checkpoint_from", None)
+    restored_training_state = None
+    if exact_resume_path:
+        exact_report = validate_checkpoint(exact_resume_path, require_exact_resume="rl")
+        if not exact_report["ok"]:
+            raise RuntimeError(f"RL exact-resume checkpoint validation failed: {exact_report['errors']}")
+        restored_training_state = _load_rl_training_state(exact_resume_path)
+    policy_resume_path = exact_resume_path or getattr(fit_cfg.rl, "resume_from", None)
+    reference_source = (
+        restored_training_state.get("reference_source")
+        if restored_training_state is not None
+        else (getattr(fit_cfg.rl, "resume_from", None) or fit_cfg.model.model_path)
+    )
+    if restored_training_state is not None and not reference_source:
+        raise RuntimeError("RL exact-resume state is missing reference_source")
+    model, tokenizer, load_info = load_policy_for_rl(fit_cfg, resume_from=policy_resume_path, logger=logger)
     if str(getattr(fit_cfg.rl, "prompt_format", "raw") or "raw").strip().lower() == "chat" and not tokenizer_supports_chat_template(tokenizer):
         raise ValueError("rl.prompt_format=chat requires tokenizer.apply_chat_template")
     _maybe_log_cuda_memory(fit_cfg, logger, "after_model_load", reset_peak=True)
@@ -861,10 +963,19 @@ def run_fitmotn_rl_training(fit_cfg):
     if not trainable_params:
         raise RuntimeError("No trainable parameters selected for RL")
     optimizer = torch.optim.AdamW(trainable_params, lr=float(fit_cfg.rl.lr))
+    if restored_training_state is not None:
+        optimizer.load_state_dict(restored_training_state["optimizer_state_dict"])
+        logger.info(
+            "[RLResume] exact checkpoint=%s update_step=%s micro_step=%s data_pos=%s",
+            exact_resume_path,
+            restored_training_state.get("update_step"),
+            restored_training_state.get("micro_step"),
+            restored_training_state.get("data_pos"),
+        )
     _maybe_log_cuda_memory(fit_cfg, logger, "after_optimizer_build")
     trainable_summary = build_trainable_summary(model, trainable_mode_info["trainable_names"], optimizer=optimizer)
     log_trainable_summary(trainable_summary, rl_dir, logger)
-    ref_model = load_reference_for_rl(fit_cfg, logger=logger)
+    ref_model = load_reference_for_rl(fit_cfg, logger=logger, resume_from=reference_source)
     rollout_backend = _build_rollout_backend(
         fit_cfg=fit_cfg,
         rl_dir=rl_dir,
@@ -876,8 +987,14 @@ def run_fitmotn_rl_training(fit_cfg):
     )
     rollout_generation_config = build_generation_config_from_fit_cfg(fit_cfg)
     last_rollout_sync: Optional[RolloutSyncResult] = None
+    restored_update_step = int(restored_training_state.get("update_step", 0)) if restored_training_state else 0
     if rollout_backend.name == "vllm":
-        last_rollout_sync = rollout_backend.sync_policy(model=model, tokenizer=tokenizer, update_step=0, force=True)
+        last_rollout_sync = rollout_backend.sync_policy(
+            model=model,
+            tokenizer=tokenizer,
+            update_step=restored_update_step,
+            force=True,
+        )
         logger.info("[RLRollout] backend=vllm initial_sync=%s", json.dumps(to_jsonable(_sync_result_metadata(last_rollout_sync)), ensure_ascii=False))
 
     amp_dtype = resolve_amp_dtype(model)
@@ -888,6 +1005,8 @@ def run_fitmotn_rl_training(fit_cfg):
         "kind": "run_start",
         "time": run_start_time,
         "seed": int(seed),
+        "resume_mode": "exact" if exact_resume_path else ("weights" if policy_resume_path else "none"),
+        "resume_checkpoint_from": exact_resume_path,
         "num_prompts": int(len(records)),
         "rl_cfg": to_jsonable(asdict(fit_cfg.rl)),
         "trainable_summary": trainable_summary,
@@ -907,12 +1026,14 @@ def run_fitmotn_rl_training(fit_cfg):
     }
     jsonl_append(train_jsonl_path, run_start_record)
 
-    data_pos = 0
-    micro_step = 0
-    optimizer_micro_step = 0
-    update_step = 0
-    zero_advantage_retry_count = 0
+    data_pos = int(restored_training_state.get("data_pos", 0)) if restored_training_state else 0
+    micro_step = int(restored_training_state.get("micro_step", 0)) if restored_training_state else 0
+    optimizer_micro_step = int(restored_training_state.get("optimizer_micro_step", 0)) if restored_training_state else 0
+    update_step = restored_update_step
+    zero_advantage_retry_count = int(restored_training_state.get("zero_advantage_retry_count", 0)) if restored_training_state else 0
     optimizer.zero_grad(set_to_none=True)
+    if restored_training_state is not None:
+        _restore_rl_rng_state(restored_training_state)
 
     while update_step < int(fit_cfg.rl.max_steps):
         micro_step_start_time = time.time()
@@ -1301,16 +1422,43 @@ def run_fitmotn_rl_training(fit_cfg):
 
         if did_update and int(fit_cfg.rl.save_every_updates) > 0 and update_step % int(fit_cfg.rl.save_every_updates) == 0:
             ckpt_dir = rl_dir / f"checkpoint-{int(update_step)}"
-            _save_rl_model_artifacts(
-                model=model,
-                tokenizer=tokenizer,
-                output_dir=ckpt_dir,
-                load_info=load_info,
-                fit_cfg=fit_cfg,
+            training_state = _capture_rl_training_state(
+                optimizer=optimizer,
                 update_step=update_step,
-                checkpoint_name=ckpt_dir.name,
-                trainable_mode_info=trainable_mode_info,
-                extra_metadata={"micro_step": int(micro_step)},
+                micro_step=micro_step,
+                optimizer_micro_step=optimizer_micro_step,
+                data_pos=data_pos,
+                zero_advantage_retry_count=zero_advantage_retry_count,
+                reference_source=reference_source,
+            )
+            def save_periodic(prepared_dir: Path) -> None:
+                _save_rl_model_artifacts(
+                    model=model,
+                    tokenizer=tokenizer,
+                    output_dir=prepared_dir,
+                    load_info=load_info,
+                    fit_cfg=fit_cfg,
+                    update_step=update_step,
+                    checkpoint_name=ckpt_dir.name,
+                    trainable_mode_info=trainable_mode_info,
+                    extra_metadata={"micro_step": int(micro_step)},
+                    training_state=training_state,
+                    fail_on_model_save_error=bool(getattr(fit_cfg.rl, "checkpoint_fail_on_save_error", True)),
+                    logger=logger,
+                )
+            transactional_save_checkpoint(
+                ckpt_dir,
+                save_periodic,
+                checkpoint_kind="rl",
+                update_step=update_step,
+                stage_name="rl",
+                temp_max_age_sec=float(getattr(fit_cfg.rl, "checkpoint_temp_max_age_sec", 3600.0)),
+            )
+            prune_checkpoints(
+                rl_dir,
+                keep_last_n=int(getattr(fit_cfg.rl, "checkpoint_keep_last_n", 3)),
+                keep_every_n=int(getattr(fit_cfg.rl, "checkpoint_keep_every_n", 0)),
+                preserve_stage_boundaries=True,
             )
             _maybe_log_cuda_memory(fit_cfg, logger, "after_checkpoint_save", update_step=update_step, micro_step=micro_step)
 
@@ -1351,16 +1499,37 @@ def run_fitmotn_rl_training(fit_cfg):
         logger.warning("[RLRollout] backend close failed: %s", exc)
 
     final_model_dir = rl_dir / "final_model"
-    _save_rl_model_artifacts(
-        model=model,
-        tokenizer=tokenizer,
-        output_dir=final_model_dir,
-        load_info=load_info,
-        fit_cfg=fit_cfg,
+    final_training_state = _capture_rl_training_state(
+        optimizer=optimizer,
         update_step=update_step,
-        checkpoint_name=final_model_dir.name,
-        trainable_mode_info=trainable_mode_info,
-        extra_metadata={"micro_step": int(micro_step), "duration_sec": max(0.0, time.time() - run_start_time)},
+        micro_step=micro_step,
+        optimizer_micro_step=optimizer_micro_step,
+        data_pos=data_pos,
+        zero_advantage_retry_count=zero_advantage_retry_count,
+        reference_source=reference_source,
+    )
+    def save_final_rl(prepared_dir: Path) -> None:
+        _save_rl_model_artifacts(
+            model=model,
+            tokenizer=tokenizer,
+            output_dir=prepared_dir,
+            load_info=load_info,
+            fit_cfg=fit_cfg,
+            update_step=update_step,
+            checkpoint_name=final_model_dir.name,
+            trainable_mode_info=trainable_mode_info,
+            extra_metadata={"micro_step": int(micro_step), "duration_sec": max(0.0, time.time() - run_start_time)},
+            training_state=final_training_state,
+            fail_on_model_save_error=bool(getattr(fit_cfg.rl, "checkpoint_fail_on_save_error", True)),
+            logger=logger,
+        )
+    transactional_save_checkpoint(
+        final_model_dir,
+        save_final_rl,
+        checkpoint_kind="rl_final",
+        update_step=update_step,
+        stage_name="rl",
+        temp_max_age_sec=float(getattr(fit_cfg.rl, "checkpoint_temp_max_age_sec", 3600.0)),
     )
     _maybe_log_cuda_memory(fit_cfg, logger, "after_checkpoint_save", update_step=update_step, micro_step=micro_step)
     summary = {
@@ -1368,6 +1537,8 @@ def run_fitmotn_rl_training(fit_cfg):
         "rl_dir": str(rl_dir),
         "final_model_dir": str(final_model_dir),
         "updates_done": int(update_step),
+        "resume_mode": "exact" if exact_resume_path else ("weights" if policy_resume_path else "none"),
+        "resume_checkpoint_from": exact_resume_path,
         "micro_steps": int(micro_step),
         "optimizer_micro_steps": int(optimizer_micro_step),
         "num_prompts": int(len(records)),
@@ -1381,7 +1552,17 @@ def run_fitmotn_rl_training(fit_cfg):
         "final_model_restore_compatible": bool(load_info.layer_idxs),
     }
     json_dump(summary_path, summary)
-    json_dump(final_model_dir / "rl_run_summary.json", summary)
+    def finalize_rl_model(prepared_dir: Path) -> None:
+        json_dump(prepared_dir / "rl_run_summary.json", summary)
+    transactional_update_checkpoint(
+        final_model_dir,
+        finalize_rl_model,
+        checkpoint_kind="rl_final",
+        update_step=update_step,
+        stage_name="rl",
+        extra={"run_summary_complete": True},
+        temp_max_age_sec=float(getattr(fit_cfg.rl, "checkpoint_temp_max_age_sec", 3600.0)),
+    )
     jsonl_append(
         train_jsonl_path,
         {
@@ -1425,6 +1606,8 @@ def run_fitmotn_training_and_optional_rl(fit_cfg):
 
     rl_fit_cfg = copy.deepcopy(fit_cfg)
     rl_fit_cfg.rl.resume_from = str(final_model_path)
+    rl_fit_cfg.rl.resume_weights_from = str(final_model_path)
+    rl_fit_cfg.rl.resume_checkpoint_from = None
     rl_result = run_fitmotn_rl_training(rl_fit_cfg)
     if isinstance(sft_result, dict):
         combined = dict(sft_result)

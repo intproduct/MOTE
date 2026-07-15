@@ -63,7 +63,11 @@ class MutableStageState:
 
 
 def infer_total_updates(cfg: TrainConfig) -> int:
-    if getattr(cfg, "resume_fitmotn_from", None) and getattr(cfg, "extra_updates", None) is not None:
+    if (
+        getattr(cfg, "resume_fitmotn_from", None)
+        and not getattr(cfg, "resume_checkpoint_from", None)
+        and getattr(cfg, "extra_updates", None) is not None
+    ):
         return max(1, int(cfg.extra_updates))
     if cfg.epochs and cfg.epochs > 0:
         steps_per_epoch = int(cfg.epoch_samples // max(1, cfg.batch_size * cfg.grad_accum))
@@ -75,7 +79,12 @@ def build_stage_plan(cfg: TrainConfig) -> StagePlan:
     total_updates = infer_total_updates(cfg)
     task_bucket_mode = str(getattr(cfg, "task_bucket_mode", "flat")).strip().lower()
     resume_stage = str(getattr(cfg, "resume_stage", "auto") or "auto").strip().lower()
-    stage2_only_resume = bool(getattr(cfg, "resume_fitmotn_from", None)) and bool(getattr(cfg, "stage2_only_on_resume", True)) and resume_stage in {"auto", "stage_b"}
+    stage2_only_resume = (
+        bool(getattr(cfg, "resume_fitmotn_from", None))
+        and not bool(getattr(cfg, "resume_checkpoint_from", None))
+        and bool(getattr(cfg, "stage2_only_on_resume", True))
+        and resume_stage in {"auto", "stage_b"}
+    )
     if stage2_only_resume:
         stage_a_updates = 0
         stage_b_updates = total_updates

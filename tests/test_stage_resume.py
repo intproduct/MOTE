@@ -53,6 +53,24 @@ class StageResumeTests(unittest.TestCase):
         self.assertEqual(plan.stages[0].start_update, 0)
         self.assertEqual(plan.stages[0].end_update, 10)
 
+    def test_exact_resume_preserves_original_full_stage_plan(self):
+        cfg = make_default_config()
+        cfg.train.epochs = 0
+        cfg.train.steps = 10
+        cfg.train.resume_checkpoint_from = "/tmp/checkpoint-4"
+        cfg.train.stage2_only_on_resume = True
+        cfg.train.extra_updates = 3
+        cfg = _finalize_train_config(
+            cfg,
+            {"epochs", "steps", "resume_checkpoint_from", "stage2_only_on_resume", "extra_updates"},
+        )
+
+        plan = build_stage_plan(cfg.train)
+
+        self.assertEqual(plan.total_updates, 10)
+        self.assertEqual(plan.stage_a_updates + plan.stage_b_updates, 10)
+        self.assertEqual(plan.stages[0].name, "stage_a_recover")
+
 
 if __name__ == "__main__":
     unittest.main()

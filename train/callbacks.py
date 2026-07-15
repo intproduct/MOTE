@@ -204,6 +204,21 @@ class MOTNScheduleCallback(TrainerCallback):
                 loss=runtime.get("current_loss"),
             )
             finalize_update_batch_meta(runtime)
+            boundaries = [
+                item
+                for item in self.stage_state.plan.stages[:-1]
+                if int(item.end_update) == step
+            ]
+            if boundaries and bool(getattr(self.fit_cfg.train, "save_on_stage_transition", True)):
+                runtime["checkpoint_stage_boundary_pending"] = True
+                runtime["checkpoint_stage_boundary_name"] = f"{boundaries[-1].name}_end"
+                control.should_save = True
+                if self.logger is not None:
+                    self.logger.info(
+                        "[Checkpoint] forcing stage-boundary save stage=%s step=%s",
+                        boundaries[-1].name,
+                        step,
+                    )
 
         usage_tracking_enabled = bool(getattr(self.fit_cfg.train, "enable_usage_runtime_tracking", True))
         if usage_tracking_enabled and self._should_run(step, getattr(self.fit_cfg.train, "usage_light_every", getattr(self.fit_cfg.train, "log_every", 50))):

@@ -81,8 +81,8 @@ PATH_FIELDS = {
     "model": {"model_path"},
     "data": set(DATA_PATH_FIELDS),
     "output": {"root_dir"},
-    "train": {"resume_fitmotn_from"},
-    "rl": {"resume_from", "train_json", "vllm_export_root"},
+    "train": {"resume_fitmotn_from", "resume_weights_from", "resume_checkpoint_from"},
+    "rl": {"resume_from", "resume_weights_from", "resume_checkpoint_from", "train_json", "vllm_export_root"},
     "diagnostics": {"prompts_file"},
 }
 
@@ -220,7 +220,11 @@ def _resolve_and_validate_paths(cfg: FitMoTNConfig) -> None:
     _resolve_optional_path("model", cfg.model, "model_path", cfg, allow_none=False)
     _resolve_optional_path("output", cfg.output, "root_dir", cfg, allow_none=False)
     _resolve_optional_path("train", cfg.train, "resume_fitmotn_from", cfg)
+    _resolve_optional_path("train", cfg.train, "resume_weights_from", cfg)
+    _resolve_optional_path("train", cfg.train, "resume_checkpoint_from", cfg)
     _resolve_optional_path("rl", cfg.rl, "resume_from", cfg)
+    _resolve_optional_path("rl", cfg.rl, "resume_weights_from", cfg)
+    _resolve_optional_path("rl", cfg.rl, "resume_checkpoint_from", cfg)
     _resolve_optional_path("rl", cfg.rl, "train_json", cfg)
     _resolve_optional_path("rl", cfg.rl, "vllm_export_root", cfg)
     _resolve_optional_path("diagnostics", cfg.diagnostics, "prompts_file", cfg)
@@ -413,10 +417,17 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
         raise ValueError("data.custom_reasoning_jsonl_path is required when data.use_custom_reasoning_jsonl=true")
     _normalize_extra_datasets(cfg)
 
-    resume_path = getattr(train_cfg, "resume_fitmotn_from", None)
-    if resume_path is not None:
-        resume_path = str(resume_path).strip()
-        train_cfg.resume_fitmotn_from = resume_path or None
+    legacy_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_fitmotn_from", None))
+    weights_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_weights_from", None))
+    exact_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_checkpoint_from", None))
+    if legacy_resume and weights_resume and legacy_resume != weights_resume:
+        raise ValueError("train.resume_fitmotn_from and train.resume_weights_from point to different checkpoints")
+    weights_resume = weights_resume or legacy_resume
+    if weights_resume and exact_resume:
+        raise ValueError("train.resume_weights_from and train.resume_checkpoint_from are mutually exclusive")
+    train_cfg.resume_fitmotn_from = weights_resume
+    train_cfg.resume_weights_from = weights_resume
+    train_cfg.resume_checkpoint_from = exact_resume
 
     resume_stage = str(getattr(train_cfg, "resume_stage", "auto") or "auto").strip().lower()
     if resume_stage not in VALID_RESUME_STAGES:
@@ -527,6 +538,18 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
         raise ValueError(f"train.final_answer_weight must be > 0, got {train_cfg.final_answer_weight}")
     train_cfg.final_answer_marker = str(getattr(train_cfg, "final_answer_marker", "####"))
     train_cfg.final_answer_weight_enabled = bool(getattr(train_cfg, "final_answer_weight_enabled", False))
+    train_cfg.save_every_updates = int(getattr(train_cfg, "save_every_updates", 1000))
+    train_cfg.checkpoint_keep_last_n = int(getattr(train_cfg, "checkpoint_keep_last_n", 3))
+    train_cfg.checkpoint_keep_every_n = int(getattr(train_cfg, "checkpoint_keep_every_n", 0))
+    train_cfg.save_on_stage_transition = bool(getattr(train_cfg, "save_on_stage_transition", True))
+    train_cfg.checkpoint_fail_on_save_error = bool(getattr(train_cfg, "checkpoint_fail_on_save_error", True))
+    train_cfg.checkpoint_temp_max_age_sec = float(getattr(train_cfg, "checkpoint_temp_max_age_sec", 3600.0))
+    if train_cfg.save_every_updates < 1:
+        raise ValueError("train.save_every_updates must be >= 1")
+    if train_cfg.checkpoint_keep_last_n < 0 or train_cfg.checkpoint_keep_every_n < 0:
+        raise ValueError("train checkpoint retention values must be >= 0")
+    if train_cfg.checkpoint_temp_max_age_sec < 0.0:
+        raise ValueError("train.checkpoint_temp_max_age_sec must be >= 0")
 
     train_cfg.usage_dump_every = int(getattr(train_cfg, "usage_report_every", 0))
     train_cfg.usage_light_every = int(getattr(train_cfg, "usage_light_every", 0))
@@ -563,7 +586,19 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         raise ValueError(f"rl.trainable_mode must be one of {sorted(VALID_RL_TRAINABLE_MODES)}, got {trainable_mode!r}")
     rl_cfg.trainable_mode = trainable_mode
 
-    rl_cfg.resume_from = _normalize_optional_path(getattr(rl_cfg, "resume_from", None))
+    legacy_rl_resume = _normalize_optional_path(getattr(rl_cfg, "resume_from", None))
+    rl_weights_resume = _normalize_optional_path(getattr(rl_cfg, "resume_weights_from", None))
+    rl_exact_resume = _normalize_optional_path(getattr(rl_cfg, "resume_checkpoint_from", None))
+    if legacy_rl_resume and rl_weights_resume and legacy_rl_resume != rl_weights_resume:
+        raise ValueError("rl.resume_from and rl.resume_weights_from point to different checkpoints")
+    rl_weights_resume = rl_weights_resume or legacy_rl_resume
+    if rl_weights_resume and rl_exact_resume:
+        raise ValueError("rl.resume_weights_from and rl.resume_checkpoint_from are mutually exclusive")
+    rl_cfg.resume_from = rl_weights_resume
+    rl_cfg.resume_weights_from = rl_weights_resume
+    rl_cfg.resume_checkpoint_from = rl_exact_resume
+    if rl_cfg.run_after_sft and (rl_weights_resume or rl_exact_resume):
+        raise ValueError("rl.run_after_sft=true cannot be combined with an RL resume checkpoint")
     rl_cfg.train_json = _normalize_optional_path(getattr(rl_cfg, "train_json", None))
     rl_cfg.vllm_export_root = _normalize_optional_path(getattr(rl_cfg, "vllm_export_root", None))
     rl_cfg.train_source = str(getattr(rl_cfg, "train_source", "gsm8k_train") or "gsm8k_train")
@@ -581,6 +616,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.enable_usage_tracking = bool(getattr(rl_cfg, "enable_usage_tracking", False))
     rl_cfg.gradient_checkpointing = bool(getattr(rl_cfg, "gradient_checkpointing", False))
     rl_cfg.rollout_use_cache = bool(getattr(rl_cfg, "rollout_use_cache", True))
+    rl_cfg.checkpoint_fail_on_save_error = bool(getattr(rl_cfg, "checkpoint_fail_on_save_error", True))
     rollout_backend = str(getattr(rl_cfg, "rollout_backend", "hf") or "hf").strip().lower()
     if rollout_backend not in VALID_RL_ROLLOUT_BACKENDS:
         raise ValueError(f"rl.rollout_backend must be one of {sorted(VALID_RL_ROLLOUT_BACKENDS)}, got {rollout_backend!r}")
@@ -697,6 +733,8 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "empty_cache_every",
         "max_zero_advantage_rollout_retries",
         "save_every_updates",
+        "checkpoint_keep_last_n",
+        "checkpoint_keep_every_n",
         "eval_every_updates",
         "sample_log_count",
         "eval_limit_gsm8k",
@@ -716,6 +754,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "vllm_actor_request_timeout_sec",
         "vllm_actor_shutdown_timeout_sec",
         "vllm_export_temp_max_age_sec",
+        "checkpoint_temp_max_age_sec",
     ]:
         setattr(rl_cfg, field_name, float(getattr(rl_cfg, field_name)))
     for field_name in ["mgpo_p0", "mgpo_gamma", "mgpo_weight_min", "mgpo_weight_max", "mgpo_eps", "long2short_lambda", "long2short_eps"]:
@@ -759,6 +798,10 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             raise ValueError(f"rl.max_grad_norm must be > 0 when rl.enabled=true, got {rl_cfg.max_grad_norm}")
         if int(rl_cfg.save_every_updates) < 0:
             raise ValueError(f"rl.save_every_updates must be >= 0, got {rl_cfg.save_every_updates}")
+        if int(rl_cfg.checkpoint_keep_last_n) < 0 or int(rl_cfg.checkpoint_keep_every_n) < 0:
+            raise ValueError("rl checkpoint retention values must be >= 0")
+        if float(rl_cfg.checkpoint_temp_max_age_sec) < 0.0:
+            raise ValueError("rl.checkpoint_temp_max_age_sec must be >= 0")
         if int(rl_cfg.eval_every_updates) < 0:
             raise ValueError(f"rl.eval_every_updates must be >= 0, got {rl_cfg.eval_every_updates}")
         for field_name in ["log_memory_every", "logprob_micro_batch_size", "rollout_micro_batch_size", "rollout_max_prompt_tokens", "empty_cache_every"]:

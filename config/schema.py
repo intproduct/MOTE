@@ -198,6 +198,8 @@ class TrainConfig:
     epochs: float = 1.0
     epoch_samples: int = 200_000
     resume_fitmotn_from: Optional[str] = None
+    resume_weights_from: Optional[str] = None
+    resume_checkpoint_from: Optional[str] = None
     resume_stage: str = "auto"
     extra_updates: Optional[int] = None
     stage2_only_on_resume: bool = True
@@ -210,6 +212,11 @@ class TrainConfig:
     stage_b_router_lr: Optional[float] = None
     log_every: int = 50
     save_every_updates: int = 1000
+    checkpoint_keep_last_n: int = 3
+    checkpoint_keep_every_n: int = 0
+    save_on_stage_transition: bool = True
+    checkpoint_fail_on_save_error: bool = True
+    checkpoint_temp_max_age_sec: float = 3600.0
     eval_every_updates: int = 1000
     max_grad_norm: float = 1.0
 
@@ -278,6 +285,8 @@ class RLConfig:
     mode: str = "gsm8k_grpo"
     run_after_sft: bool = False
     resume_from: Optional[str] = None
+    resume_weights_from: Optional[str] = None
+    resume_checkpoint_from: Optional[str] = None
     train_source: str = "gsm8k_train"
     train_json: Optional[str] = None
     max_steps: int = 0
@@ -355,6 +364,10 @@ class RLConfig:
     max_zero_advantage_rollout_retries: int = 8
     zero_advantage_retry_action: str = "warn_continue"
     save_every_updates: int = 50
+    checkpoint_keep_last_n: int = 3
+    checkpoint_keep_every_n: int = 0
+    checkpoint_fail_on_save_error: bool = True
+    checkpoint_temp_max_age_sec: float = 3600.0
     eval_every_updates: int = 0
     debug_num_prompts: Optional[int] = None
     sample_log_count: int = 4

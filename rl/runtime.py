@@ -90,12 +90,18 @@ def load_policy_for_rl(fit_cfg, resume_from: str | Path | None = None, logger: l
     )
 
 
-def load_reference_for_rl(fit_cfg, logger: logging.Logger | None = None):
+def load_reference_for_rl(
+    fit_cfg,
+    logger: logging.Logger | None = None,
+    *,
+    resume_from: str | Path | None = None,
+):
     if float(getattr(fit_cfg.rl, "beta", 0.0)) <= 0.0 or bool(getattr(fit_cfg.rl, "no_ref_model", True)):
         if logger is not None:
             logger.info("[RLLoad] reference model disabled because beta<=0 or no_ref_model=true")
         return None
-    ref_model, _, _ = load_policy_for_rl(fit_cfg, resume_from=getattr(fit_cfg.rl, "resume_from", None), logger=logger)
+    ref_source = resume_from or getattr(fit_cfg.rl, "resume_from", None)
+    ref_model, _, _ = load_policy_for_rl(fit_cfg, resume_from=ref_source, logger=logger)
     ref_model.eval()
     for param in ref_model.parameters():
         param.requires_grad_(False)
