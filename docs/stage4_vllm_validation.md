@@ -17,7 +17,7 @@ engine rebuild costs.
 ## Supported execution modes
 
 - `rl.vllm_execution_mode="in_process"`: the training process owns the vLLM engine. This is required for native NCCL tensor inspection and transfer.
-- `rl.vllm_execution_mode="subprocess"`: a persistent spawned rollout actor owns the vLLM engine. The first implementation is synchronous and supports `export_reload` and `weight_transfer_dryrun_static`. It is intended for a separate rollout GPU such as `cuda:1`.
+- `rl.vllm_execution_mode="subprocess"`: a persistent spawned rollout actor owns the vLLM engine. It is synchronous and supports `export_reload` and `weight_transfer_dryrun_static`. Stage 5B assigns a private CUDA device set to this actor.
 
 With `vllm_enable_sleep_mode=true`, an engine whose policy is due for replacement is asked to sleep before checkpoint/export and rebuild. This lifecycle is code-tested only; GPU memory reclamation must be measured on the target vLLM build.
 
@@ -82,7 +82,7 @@ Tighten the logit threshold for FP32. Any greedy mismatch must be investigated r
 
 ## Gate 3: two-update RL smoke run
 
-Edit `fitmotn_config.stage4_vllm_smoke.example.json` for the host. The checked-in example assumes training on `cuda:0` and the subprocess rollout actor on `cuda:1`.
+Edit `fitmotn_config.stage4_vllm_smoke.example.json` for the host. The checked-in example assumes trainer logical `cuda:0` and actor-visible physical device `1`; inside the isolated actor that rollout device is remapped to logical `cuda:0`.
 
 ```bash
 export MODEL_ROOT=/path/to/models
@@ -172,7 +172,7 @@ For the first NVIDIA run, change rl.max_steps to 20 and keep:
 }
 ~~~
 
-The checked-in smoke config uses trainer cuda:0 and actor cuda:1. On a
+The checked-in smoke config uses trainer logical cuda:0 and an isolated actor whose assigned physical GPU is remapped to actor-local cuda:0. On a
 one-GPU host, begin with in_process mode and conservative memory limits. A
 two-GPU host is preferred.
 

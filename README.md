@@ -1129,7 +1129,7 @@ Resource policy is explicit: Stage 4D does not silently move, unload, offload, o
 Stage 4 now has two execution modes:
 
 - `rl.vllm_execution_mode="in_process"` (default): the training process owns the vLLM engine. Native runtime tensor inspection and experimental NCCL transfer require this mode.
-- `rl.vllm_execution_mode="subprocess"`: a persistent spawned rollout actor owns the engine and communicates with the trainer through a synchronous control channel. This mode supports `export_reload` and `weight_transfer_dryrun_static`, and is intended for a separate rollout GPU such as `rl.vllm_device="cuda:1"`.
+- `rl.vllm_execution_mode="subprocess"`: a persistent spawned rollout actor owns the engine and communicates with the trainer through a synchronous control channel. This mode supports `export_reload` and `weight_transfer_dryrun_static`. Stage 5B isolates its rollout GPUs with `rl.vllm_actor_cuda_visible_devices`.
 
 Minimal two-GPU smoke configuration:
 
@@ -1138,7 +1138,8 @@ Minimal two-GPU smoke configuration:
   "rl": {
     "rollout_backend": "vllm",
     "vllm_execution_mode": "subprocess",
-    "vllm_device": "cuda:1",
+    "vllm_actor_cuda_visible_devices": ["1"],
+    "vllm_device": "cuda:0",
     "vllm_sync_strategy": "export_reload",
     "vllm_sync_every_updates": 1
   }
@@ -1146,6 +1147,18 @@ Minimal two-GPU smoke configuration:
 ```
 
 The actor is currently synchronous, not an asynchronous rollout pipeline. It deliberately rejects native NCCL/IPC, runtime dryrun inspection, and text-prompt fallback until their cross-process CUDA lifetime semantics are implemented and verified.
+
+### Stage 5B isolated multi-GPU rollout
+
+Stage 5B supports one single-process trainer plus an isolated subprocess vLLM actor on one or more GPUs. `rl.vllm_actor_cuda_visible_devices` becomes the actor's private `CUDA_VISIBLE_DEVICES`; its GPUs are remapped from zero, so `vllm_device="cuda:0"` refers to the first actor GPU. The device count must exactly match `vllm_tensor_parallel_size`.
+
+Two-A800 and three-A800/TP2 examples, resource-handshake evidence, fail-fast topology rules, and the acceptance command are documented in [docs/stage5b_multigpu.md](./docs/stage5b_multigpu.md). Stage 5B does not claim trainer DDP/FSDP, rollout replicas, or subprocess native NCCL transfer.
+
+### Stage 5C multi-actor rollout
+
+Stage 5C accepts an arbitrary `rl.vllm_rollout_actors` list. Each isolated actor may use its own TP size and memory limits. A policy is exported once, all engines rebuild concurrently, and rollout rows are distributed across actors and restored by original GRPO group/sample index. The whole rollout batch fails if any actor fails or has a different policy descriptor.
+
+Three-, four-, and eight-A800 examples plus the one-command acceptance runner are documented in [docs/stage5c_multiactor.md](./docs/stage5c_multiactor.md). This is rollout parallelism; trainer DDP/FSDP remains out of scope.
 
 Stage 4E adds capability-gated native weight-transfer diagnostics and an opt-in native sync strategy:
 

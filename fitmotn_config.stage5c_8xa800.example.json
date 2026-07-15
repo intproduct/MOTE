@@ -1,0 +1,75 @@
+{
+  "model": {
+    "model_path": "${MODEL_ROOT}/Qwen3-8B",
+    "layers_to_patch": "last_quarter",
+    "device": "cuda:0",
+    "torch_dtype": "bfloat16",
+    "use_amp": true,
+    "trust_remote_code": true,
+    "E": 16,
+    "d": 2,
+    "k_in": 5,
+    "topk": 4
+  },
+  "data": {
+    "datas_dir": "${DATA_ROOT}",
+    "gsm8k_cache_path": "${CACHE_ROOT}/gsm8k_main",
+    "gsm8k_hf_name": "openai/gsm8k",
+    "gsm8k_hf_config": "main",
+    "use_wiki_local": false,
+    "use_fineweb": false,
+    "use_code": false,
+    "use_math_train": false,
+    "use_gsm8k_train": true
+  },
+  "rl": {
+    "enabled": true,
+    "mode": "gsm8k_grpo",
+    "max_steps": 20,
+    "batch_size": 1,
+    "group_size": 16,
+    "grad_accum": 8,
+    "max_new_tokens": 384,
+    "temperature": 1.1,
+    "top_p": 0.95,
+    "trainable_mode": "patch_only",
+    "gradient_checkpointing": true,
+    "logprob_micro_batch_size": 1,
+    "rollout_backend": "vllm",
+    "vllm_execution_mode": "subprocess",
+    "vllm_actor_start_method": "spawn",
+    "vllm_rollout_actors": [
+      {"name": "rollout_0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+      {"name": "rollout_1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+      {"name": "rollout_2", "cuda_visible_devices": ["3"], "tensor_parallel_size": 1},
+      {"name": "rollout_3", "cuda_visible_devices": ["4"], "tensor_parallel_size": 1},
+      {"name": "rollout_4", "cuda_visible_devices": ["5"], "tensor_parallel_size": 1},
+      {"name": "rollout_5", "cuda_visible_devices": ["6"], "tensor_parallel_size": 1},
+      {"name": "rollout_6", "cuda_visible_devices": ["7"], "tensor_parallel_size": 1}
+    ],
+    "vllm_sync_strategy": "export_reload",
+    "vllm_sync_every_updates": 1,
+    "vllm_keep_sync_exports": 2,
+    "vllm_verify_engine_policy": true,
+    "vllm_model_impl": "transformers",
+    "vllm_enforce_eager": true,
+    "vllm_gpu_memory_utilization": 0.45,
+    "vllm_max_model_len": 1024,
+    "vllm_max_num_seqs": 8,
+    "vllm_actor_resource_log_every": 1,
+    "vllm_fallback_to_hf": false,
+    "allow_stale_vllm_policy": false,
+    "mgpo_enabled": true,
+    "mgpo_p0": 0.5,
+    "mgpo_gamma": 1.0,
+    "save_every_updates": 10,
+    "seed": 1234
+  },
+  "output": {
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
+    "run_name": "stage5c_8xa800"
+  },
+  "runtime": {
+    "dev_mode": false
+  }
+}

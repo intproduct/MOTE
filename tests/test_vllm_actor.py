@@ -11,7 +11,7 @@ if "MOTE" not in sys.modules:
     mote_pkg.__path__ = [str(ROOT)]
     sys.modules["MOTE"] = mote_pkg
 
-from MOTE.rl.vllm_actor import _handle_actor_request
+from MOTE.rl.vllm_actor import _engine_topology_snapshot, _handle_actor_request
 from MOTE.config.loader import load_config_from_json
 
 
@@ -24,6 +24,23 @@ class FakeCompletion:
 class FakeOutput:
     def __init__(self, token_ids):
         self.outputs = [FakeCompletion(token_ids)]
+
+
+def test_actor_reads_runtime_tensor_parallel_topology():
+    parallel = types.SimpleNamespace(
+        tensor_parallel_size=2,
+        pipeline_parallel_size=1,
+        data_parallel_size=1,
+    )
+    llm = types.SimpleNamespace(
+        llm_engine=types.SimpleNamespace(
+            vllm_config=types.SimpleNamespace(parallel_config=parallel)
+        )
+    )
+    result = _engine_topology_snapshot(llm, {"tensor_parallel_size": 2, "device": "cuda:0"})
+    assert result["observed_tensor_parallel_size"] == 2
+    assert result["tensor_parallel_verified"] is True
+    assert result["source"] == "llm.llm_engine.vllm_config.parallel_config"
 
 
 def test_actor_protocol_load_generate_unload(monkeypatch):
@@ -57,9 +74,12 @@ def test_actor_protocol_load_generate_unload(monkeypatch):
     monkeypatch.setitem(sys.modules, "vllm", fake_vllm)
 
     state = {"llm": None, "closed": False}
-    assert _handle_actor_request(state, {"command": "ping"})["engine_loaded"] is False
+    ping = _handle_actor_request(state, {"command": "ping"})
+    assert ping["engine_loaded"] is False
+    assert "cuda_visible_devices" in ping["actor_resources"]
     _handle_actor_request(state, {"command": "load_engine", "llm_kwargs": {"model": "export"}})
     assert calls["llm_kwargs"]["model"] == "export"
+    assert state["engine_topology"]["requested_tensor_parallel_size"] == 1
     result = _handle_actor_request(
         state,
         {

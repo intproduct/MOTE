@@ -20,11 +20,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Smoke-test the vLLM subprocess actor control channel without loading CUDA")
     parser.add_argument("--start-method", default="spawn", choices=["spawn", "forkserver"])
     parser.add_argument("--timeout-sec", type=float, default=30.0)
+    parser.add_argument("--cuda-visible-devices", default="")
     args = parser.parse_args()
     client = VLLMActorClient(
         start_method=args.start_method,
         request_timeout_sec=args.timeout_sec,
         shutdown_timeout_sec=args.timeout_sec,
+        cuda_visible_devices=[part.strip() for part in args.cuda_visible_devices.split(",") if part.strip()],
     )
     try:
         client.start()

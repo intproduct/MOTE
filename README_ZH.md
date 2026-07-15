@@ -820,7 +820,8 @@ python -m fitmotn.cli.train_rl --config_json ./my_rl_config.json
     "rollout_backend": "vllm",
     "vllm_execution_mode": "subprocess",
     "vllm_actor_start_method": "spawn",
-    "vllm_device": "cuda:1",
+    "vllm_actor_cuda_visible_devices": ["1"],
+    "vllm_device": "cuda:0",
     "vllm_sync_strategy": "export_reload",
     "vllm_sync_every_updates": 1
   }
@@ -847,6 +848,49 @@ python -m fitmotn.cli.train_rl --config_json ./my_rl_config.json
 - IPC transfer；
 - runtime tensor dryrun；
 - text prompt fallback。
+
+### Stage 5B：隔离式多卡 rollout
+
+Stage 5B 支持“单进程 trainer + 独立 1～N 卡 vLLM actor”。actor 使用自己的
+`CUDA_VISIBLE_DEVICES`，避免 TP worker 与训练卡发生隐式重叠。2×A800 和
+3×A800（rollout TP2）的示例、配置语义和验收流程见
+[docs/stage5b_multigpu.md](./docs/stage5b_multigpu.md)。
+
+关键配置：
+
+```json
+{
+  "model": {"device": "cuda:0"},
+  "rl": {
+    "vllm_execution_mode": "subprocess",
+    "vllm_actor_cuda_visible_devices": ["1", "2"],
+    "vllm_device": "cuda:0",
+    "vllm_tensor_parallel_size": 2
+  }
+}
+```
+
+actor 内的 `cuda:0` 是设备隔离后的局部编号。Stage 5B 不包含 trainer DDP/FSDP、
+多 rollout replica 或 subprocess 原生 NCCL 同步。
+
+### Stage 5C：N 卡多 actor rollout
+
+Stage 5C 支持任意长度的 `rl.vllm_rollout_actors` 列表，每个 actor 可以使用
+TP1、TP2 或 TP4。policy 每次只导出一次，所有 actor 并行重建，并在 policy
+version/fingerprint 全部一致后并发生成。GRPO sample 会跨 actor 分片并按原始索引
+恢复，任一 actor 失败会使整批 rollout 作废。
+
+3、4、8 张 A800 的配置以及一次性验收命令见
+[docs/stage5c_multiactor.md](./docs/stage5c_multiactor.md)。一键入口：
+
+```bash
+python scripts/run_stage5c_a800_acceptance.py \
+  --config fitmotn_config.stage5c_3xa800_2replica.example.json \
+  --max-steps 2 --min-updates 2 \
+  --run-name stage5c_3gpu_smoke_u2
+```
+
+Stage 5C 扩展的是 rollout 并行，不是 trainer DDP/FSDP。
 
 本机控制面检查：
 

@@ -9,6 +9,11 @@ from typing import Any, Mapping
 from ..utils.paths import resolve_path
 from .defaults import make_default_config
 from .schema import FitMoTNConfig
+from ..rl.device_topology import (
+    normalize_rollout_actor_configs,
+    normalize_visible_devices,
+    validate_actor_topology,
+)
 
 
 VALID_EVAL_BACKENDS = {"lm_eval", "evalscope", "both"}
@@ -682,10 +687,19 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             f"rl.vllm_execution_mode must be one of {sorted(VALID_VLLM_EXECUTION_MODES)}, got {execution_mode!r}"
         )
     rl_cfg.vllm_execution_mode = execution_mode
+    rl_cfg.vllm_actor_cuda_visible_devices = normalize_visible_devices(
+        getattr(rl_cfg, "vllm_actor_cuda_visible_devices", None)
+    )
+    rl_cfg.vllm_rollout_actors = normalize_rollout_actor_configs(
+        getattr(rl_cfg, "vllm_rollout_actors", None)
+    )
     actor_start_method = str(getattr(rl_cfg, "vllm_actor_start_method", "spawn") or "spawn").strip().lower()
     if actor_start_method not in {"spawn", "forkserver"}:
         raise ValueError("rl.vllm_actor_start_method must be 'spawn' or 'forkserver'")
     rl_cfg.vllm_actor_start_method = actor_start_method
+    if rl_cfg.vllm_actor_cuda_visible_devices and rl_cfg.vllm_device is None:
+        rl_cfg.vllm_device = "cuda:0"
+    validate_actor_topology(rl_cfg)
     if execution_mode == "subprocess" and vllm_sync_strategy in {"weight_transfer_nccl", "weight_transfer_ipc", "weight_transfer_dryrun_runtime"}:
         raise ValueError(
             "rl.vllm_execution_mode='subprocess' currently supports export_reload and "
@@ -730,6 +744,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "vllm_weight_transfer_master_port",
         "vllm_sync_validation_every",
         "vllm_sleep_level_before_sync",
+        "vllm_actor_resource_log_every",
         "empty_cache_every",
         "max_zero_advantage_rollout_retries",
         "save_every_updates",
@@ -808,6 +823,8 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             value = int(getattr(rl_cfg, field_name))
             if value < 0:
                 raise ValueError(f"rl.{field_name} must be >= 0, got {value}")
+        if int(rl_cfg.vllm_actor_resource_log_every) < 0:
+            raise ValueError("rl.vllm_actor_resource_log_every must be >= 0")
         if int(rl_cfg.vllm_tensor_parallel_size) < 1:
             raise ValueError(f"rl.vllm_tensor_parallel_size must be >= 1, got {rl_cfg.vllm_tensor_parallel_size}")
         for field_name in ["vllm_max_model_len", "vllm_max_num_seqs"]:

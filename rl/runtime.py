@@ -135,10 +135,10 @@ def set_trainable_mode_for_rl(model: torch.nn.Module, mode: str, logger: logging
             param.requires_grad_(False)
         selected_ids: set[int] = set()
         if effective_mode == "all":
-            if logger is not None:
-                logger.warning("[RLTrainable] trainable_mode=all will train the base LLM; this is not recommended for MOTE attribution")
-            for param in model.parameters():
-                param.requires_grad_(True)
+            raise ValueError(
+                "rl.trainable_mode='all' is disabled because patch_state_only_v2 cannot safely resume/export "
+                "dense parameter updates; use patch_only until the checkpoint v3 format is implemented"
+            )
         elif effective_mode == "gate_only":
             for module in model.modules():
                 if isinstance(module, ROUTER_GATE_TYPES):

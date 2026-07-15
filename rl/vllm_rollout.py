@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -17,6 +18,7 @@ from .rollout_backends import (
 from .vllm_sync import SavePolicyCheckpointFn, VLLMPolicySyncManager
 from .vllm_actor import VLLMActorClient
 from .vllm_integrity import prompt_batch_fingerprint, sampling_fingerprint
+from .device_topology import rollout_actor_specs, rollout_topology_config
 
 
 def _is_cuda_oom(exc: BaseException) -> bool:
@@ -57,10 +59,13 @@ class VLLMRolloutBackend:
         self.llm = None
         self._vllm = None
         self._sampling_params_cls = None
-        self._actor: Optional[VLLMActorClient] = None
+        self._actor_specs = rollout_actor_specs(fit_cfg.rl) if self.uses_subprocess_actor else []
+        self._actors: Dict[str, VLLMActorClient] = {}
+        self._actor_resource_snapshot: Dict[str, Dict[str, Any]] = {}
         self._engine_policy_descriptor: Dict[str, Any] = {}
         self._rollout_session_id = uuid.uuid4().hex[:12]
         self._rollout_request_sequence = 0
+        self._last_actor_dispatch_metadata: Dict[str, Any] = {}
         self._last_sync = RolloutSyncResult(synced=False, policy_version=-1, policy_lag_updates=0)
         self._hf_fallback = HFRolloutBackend(logger=logger)
 
@@ -68,14 +73,21 @@ class VLLMRolloutBackend:
     def uses_subprocess_actor(self) -> bool:
         return str(getattr(self.fit_cfg.rl, "vllm_execution_mode", "in_process") or "in_process").strip().lower() == "subprocess"
 
-    def _actor_client(self) -> VLLMActorClient:
-        if self._actor is None:
-            self._actor = VLLMActorClient(
+    def _actor_client(self, name: Optional[str] = None) -> VLLMActorClient:
+        if not self._actor_specs:
+            raise RuntimeError("No subprocess vLLM actor topology is configured")
+        actor_name = str(name or self._actor_specs[0]["name"])
+        spec = next((item for item in self._actor_specs if item["name"] == actor_name), None)
+        if spec is None:
+            raise KeyError(f"Unknown vLLM rollout actor {actor_name!r}")
+        if actor_name not in self._actors:
+            self._actors[actor_name] = VLLMActorClient(
                 start_method=str(getattr(self.fit_cfg.rl, "vllm_actor_start_method", "spawn") or "spawn"),
                 request_timeout_sec=float(getattr(self.fit_cfg.rl, "vllm_actor_request_timeout_sec", 600.0)),
                 shutdown_timeout_sec=float(getattr(self.fit_cfg.rl, "vllm_actor_shutdown_timeout_sec", 30.0)),
+                cuda_visible_devices=list(spec["cuda_visible_devices"]),
             )
-        return self._actor
+        return self._actors[actor_name]
 
     def _import_vllm(self):
         if self._vllm is not None:
@@ -88,7 +100,7 @@ class VLLMRolloutBackend:
         self._sampling_params_cls = SamplingParams
         return LLM, SamplingParams
 
-    def _llm_kwargs(self, export_dir: str) -> Dict[str, Any]:
+    def _llm_kwargs(self, export_dir: str, actor_spec: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         rl_cfg = self.fit_cfg.rl
         kwargs: Dict[str, Any] = {
             "model": str(export_dir),
@@ -97,20 +109,26 @@ class VLLMRolloutBackend:
             "model_impl": str(getattr(rl_cfg, "vllm_model_impl", "transformers") or "transformers"),
             "enforce_eager": bool(getattr(rl_cfg, "vllm_enforce_eager", True)),
             "dtype": str(getattr(rl_cfg, "vllm_dtype", "auto") or "auto"),
-            "tensor_parallel_size": int(getattr(rl_cfg, "vllm_tensor_parallel_size", 1)),
-            "gpu_memory_utilization": float(getattr(rl_cfg, "vllm_gpu_memory_utilization", 0.85)),
+            "tensor_parallel_size": int(
+                actor_spec["tensor_parallel_size"] if actor_spec else getattr(rl_cfg, "vllm_tensor_parallel_size", 1)
+            ),
+            "gpu_memory_utilization": float(
+                actor_spec["gpu_memory_utilization"] if actor_spec else getattr(rl_cfg, "vllm_gpu_memory_utilization", 0.85)
+            ),
         }
         optional_values = [
-            ("max_model_len", int(getattr(rl_cfg, "vllm_max_model_len", 0))),
-            ("max_num_seqs", int(getattr(rl_cfg, "vllm_max_num_seqs", 0))),
-            ("seed", getattr(rl_cfg, "seed", None)),
+            ("max_model_len", int(actor_spec["max_model_len"] if actor_spec else getattr(rl_cfg, "vllm_max_model_len", 0))),
+            ("max_num_seqs", int(actor_spec["max_num_seqs"] if actor_spec else getattr(rl_cfg, "vllm_max_num_seqs", 0))),
+            ("seed", actor_spec["engine_seed"] if actor_spec else getattr(rl_cfg, "seed", None)),
         ]
         for key, value in optional_values:
-            if value is not None and int(value) > 0:
+            if key == "seed" and value is not None:
+                kwargs[key] = int(value)
+            elif value is not None and int(value) > 0:
                 kwargs[key] = value
         if bool(getattr(rl_cfg, "vllm_disable_log_stats", True)):
             kwargs["disable_log_stats"] = True
-        device = getattr(rl_cfg, "vllm_device", None)
+        device = "cuda:0" if actor_spec else getattr(rl_cfg, "vllm_device", None)
         if device is not None and str(device).strip():
             kwargs["device"] = str(device).strip()
         if bool(getattr(rl_cfg, "vllm_enable_sleep_mode", False)):
@@ -133,19 +151,55 @@ class VLLMRolloutBackend:
     def _build_engine(self, export_dir: str, *, policy_descriptor: Optional[Dict[str, Any]] = None) -> float:
         descriptor = dict(policy_descriptor or {})
         if self.uses_subprocess_actor:
-            load_sec = self._actor_client().load_engine(
-                self._llm_kwargs(export_dir),
-                policy_descriptor=descriptor,
-            )
-            if bool(getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)):
-                loaded = dict(self._actor_client().ping().get("policy_descriptor") or {})
-                if loaded != descriptor:
+            wall_start = time.perf_counter()
+            failures = []
+            snapshots: Dict[str, Dict[str, Any]] = {}
+
+            def load_actor(spec: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
+                name = str(spec["name"])
+                client = self._actor_client(name)
+                load_sec = client.load_engine(
+                    self._llm_kwargs(export_dir, actor_spec=spec),
+                    policy_descriptor=descriptor,
+                )
+                ping = client.ping()
+                loaded = dict(ping.get("policy_descriptor") or {})
+                if bool(getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)) and loaded != descriptor:
                     raise RuntimeError(
-                        "vLLM actor loaded an unexpected policy descriptor: "
-                        f"expected={descriptor}, loaded={loaded}"
+                        f"actor {name!r} loaded unexpected policy descriptor: expected={descriptor}, loaded={loaded}"
                     )
+                actor_info = dict(client.last_engine_info or {})
+                engine_topology = dict(actor_info.get("engine_topology") or {})
+                observed = engine_topology.get("observed_tensor_parallel_size")
+                if observed is not None and int(observed) != int(spec["tensor_parallel_size"]):
+                    raise RuntimeError(
+                        f"actor {name!r} TP mismatch: expected={spec['tensor_parallel_size']}, observed={observed}"
+                    )
+                return name, {
+                    "configured_topology": dict(spec),
+                    "startup": dict(client.startup_info or {}),
+                    "engine": actor_info,
+                    "latest": ping,
+                    "load_sec": float(load_sec),
+                    "policy_verified": loaded == descriptor,
+                }
+
+            for spec in self._actor_specs:
+                self._actor_client(str(spec["name"]))
+            with ThreadPoolExecutor(max_workers=len(self._actor_specs), thread_name_prefix="fitmotn-vllm-load") as executor:
+                future_map = {executor.submit(load_actor, spec): spec["name"] for spec in self._actor_specs}
+                for future in as_completed(future_map):
+                    try:
+                        name, snapshot = future.result()
+                        snapshots[name] = snapshot
+                    except Exception as exc:
+                        failures.append(f"{future_map[future]!r}: {exc}")
+            if failures:
+                self.close()
+                raise RuntimeError(f"Failed to build all vLLM rollout actors: {failures}")
+            self._actor_resource_snapshot = snapshots
             self._engine_policy_descriptor = descriptor
-            return load_sec
+            return max(0.0, time.perf_counter() - wall_start)
         LLM, _ = self._import_vllm()
         if bool(getattr(self.fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)) and torch.cuda.is_available():
             torch.cuda.empty_cache()
@@ -178,8 +232,15 @@ class VLLMRolloutBackend:
                 and self.sync_manager.sync_due(update_step, force=force)
             ):
                 sleep_level = max(1, int(getattr(self.fit_cfg.rl, "vllm_sleep_level_before_sync", 1)))
-                if self.uses_subprocess_actor and self._actor is not None and self._actor.is_alive:
-                    self._actor.sleep(level=sleep_level)
+                if self.uses_subprocess_actor and self._actors:
+                    with ThreadPoolExecutor(max_workers=len(self._actors)) as executor:
+                        futures = [
+                            executor.submit(client.sleep, level=sleep_level)
+                            for client in self._actors.values()
+                            if client.is_alive
+                        ]
+                        for future in futures:
+                            future.result()
                 elif self.llm is not None and callable(getattr(self.llm, "sleep", None)):
                     self.llm.sleep(level=sleep_level)
             sync_result = self.sync_manager.sync(
@@ -208,6 +269,13 @@ class VLLMRolloutBackend:
                     getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)
                 )
                 sync_result.metadata["vllm_engine_policy_descriptor"] = descriptor
+                if self.uses_subprocess_actor:
+                    sync_result.metadata["vllm_actor_resources"] = dict(self._actor_resource_snapshot)
+                    sync_result.metadata["vllm_rollout_actor_count"] = len(self._actor_specs)
+                    sync_result.metadata["vllm_all_actors_policy_verified"] = all(
+                        bool(snapshot.get("policy_verified"))
+                        for snapshot in self._actor_resource_snapshot.values()
+                    )
             elif sync_result.synced and native_sync:
                 self._engine_policy_descriptor = {
                     "policy_version": int(sync_result.policy_version),
@@ -295,7 +363,7 @@ class VLLMRolloutBackend:
         if self.uses_subprocess_actor:
             if not isinstance(sampling_params, dict):
                 raise TypeError("subprocess vLLM actor requires serializable sampling parameter kwargs")
-            return self._actor_client().generate(
+            return self._generate_subprocess_actors(
                 prompt_token_ids=prompt_token_ids,
                 sampling_kwargs=sampling_params,
                 expected_policy_descriptor=expected_policy_descriptor,
@@ -326,6 +394,97 @@ class VLLMRolloutBackend:
                         f"Errors: {first_exc}; {second_exc}"
                     ) from second_exc
                 return self.llm.generate(prompts, sampling_params)
+
+    def _generate_subprocess_actors(
+        self,
+        *,
+        prompt_token_ids: list[list[int]],
+        sampling_kwargs: Dict[str, Any],
+        expected_policy_descriptor: Optional[Dict[str, Any]],
+    ):
+        actor_names = [str(spec["name"]) for spec in self._actor_specs]
+        if not actor_names:
+            raise RuntimeError("No vLLM rollout actors are configured")
+        group_size = max(1, int(getattr(self.fit_cfg.rl, "group_size", 1)))
+        if len(prompt_token_ids) % group_size != 0:
+            raise RuntimeError(
+                "expanded rollout row count must be divisible by rl.group_size for group-aware sharding: "
+                f"rows={len(prompt_token_ids)}, group_size={group_size}"
+            )
+        assignments: Dict[str, list[int]] = {name: [] for name in actor_names}
+        for row_index in range(len(prompt_token_ids)):
+            group_index = row_index // group_size
+            sample_index = row_index % group_size
+            actor_index = (group_index + sample_index) % len(actor_names)
+            assignments[actor_names[actor_index]].append(row_index)
+        assigned_rows = sorted(index for indices in assignments.values() for index in indices)
+        if assigned_rows != list(range(len(prompt_token_ids))):
+            raise RuntimeError(f"multi-actor rollout sharding lost or duplicated rows: {assignments}")
+
+        merged: list[Any] = [None] * len(prompt_token_ids)
+        dispatch: Dict[str, Any] = {}
+        resource_every = int(getattr(self.fit_cfg.rl, "vllm_actor_resource_log_every", 1))
+
+        def generate_actor(name: str, row_indices: list[int]):
+            if not row_indices:
+                return name, [], [], 0.0, None
+            client = self._actor_client(name)
+            start = time.perf_counter()
+            outputs = client.generate(
+                prompt_token_ids=[prompt_token_ids[index] for index in row_indices],
+                sampling_kwargs=sampling_kwargs,
+                expected_policy_descriptor=expected_policy_descriptor,
+            )
+            elapsed = max(0.0, time.perf_counter() - start)
+            resources = None
+            if resource_every > 0 and self._rollout_request_sequence % resource_every == 0:
+                resources = client.ping()
+            return name, row_indices, outputs, elapsed, resources
+
+        failures = []
+        with ThreadPoolExecutor(max_workers=len(actor_names), thread_name_prefix="fitmotn-vllm-generate") as executor:
+            future_map = {
+                executor.submit(generate_actor, name, indices): name
+                for name, indices in assignments.items()
+                if indices
+            }
+            for future in as_completed(future_map):
+                name = future_map[future]
+                try:
+                    _, row_indices, outputs, elapsed, resources = future.result()
+                    if len(outputs) != len(row_indices):
+                        raise RuntimeError(
+                            f"actor {name!r} returned {len(outputs)} rows for {len(row_indices)} assigned rows"
+                        )
+                    for row_index, output in zip(row_indices, outputs):
+                        merged[row_index] = output
+                    if resources is not None:
+                        self._actor_resource_snapshot[name]["latest"] = resources
+                    dispatch[name] = {
+                        "row_indices": list(row_indices),
+                        "row_count": len(row_indices),
+                        "group_indices": sorted({index // group_size for index in row_indices}),
+                        "sample_indices": [index % group_size for index in row_indices],
+                        "generate_sec": float(elapsed),
+                        "engine_seed": int(
+                            next(spec["engine_seed"] for spec in self._actor_specs if spec["name"] == name)
+                        ),
+                        "policy_descriptor": dict(expected_policy_descriptor or {}),
+                    }
+                except Exception as exc:
+                    failures.append(f"{name!r}: {exc}")
+        if failures:
+            raise RuntimeError(f"Multi-actor vLLM rollout failed; the entire rollout batch is invalid: {failures}")
+        if any(output is None for output in merged):
+            raise RuntimeError("Multi-actor vLLM rollout merge contains missing rows")
+        self._last_actor_dispatch_metadata = {
+            "actor_count": len(actor_names),
+            "active_actor_count": sum(1 for value in dispatch.values() if value["row_count"] > 0),
+            "group_size": group_size,
+            "row_count": len(prompt_token_ids),
+            "actors": dispatch,
+        }
+        return merged
 
     @staticmethod
     def _extract_generated_ids(output: Any) -> List[int]:
@@ -384,6 +543,7 @@ class VLLMRolloutBackend:
             "vllm_fallback_used": False,
             "vllm_error": None,
             "vllm_execution_mode": "subprocess" if self.uses_subprocess_actor else "in_process",
+            "vllm_actor_resources": dict(self._actor_resource_snapshot) if self.uses_subprocess_actor else None,
         }
         try:
             lag = self.sync_manager.assert_fresh_or_allowed(update_step)
@@ -411,6 +571,9 @@ class VLLMRolloutBackend:
                 sampling_params=sampling_params,
                 expected_policy_descriptor=policy_descriptor,
             )
+            if self.uses_subprocess_actor:
+                metadata["vllm_actor_resources"] = dict(self._actor_resource_snapshot)
+                metadata["vllm_actor_dispatch"] = dict(self._last_actor_dispatch_metadata)
             if len(outputs) != int(input_ids.shape[0]):
                 raise RuntimeError(
                     "vLLM returned an unexpected number of rollout rows: "
@@ -440,6 +603,18 @@ class VLLMRolloutBackend:
                     "rollout_output_row_count": int(len(outputs)),
                     "vllm_engine_policy_verified": bool(
                         getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)
+                    ) and (
+                        not self.uses_subprocess_actor
+                        or all(
+                            bool(snapshot.get("policy_verified"))
+                            for snapshot in self._actor_resource_snapshot.values()
+                        )
+                    ),
+                    "vllm_rollout_actor_count": len(self._actor_specs) if self.uses_subprocess_actor else 0,
+                    "vllm_active_rollout_actor_count": (
+                        int(self._last_actor_dispatch_metadata.get("active_actor_count", 0))
+                        if self.uses_subprocess_actor
+                        else 0
                     ),
                     "vllm_export_dir": None if self.sync_manager.export_dir is None else str(self.sync_manager.export_dir),
                     "rollout_policy_sync_sec": float(self._last_sync.sync_sec),
@@ -490,8 +665,20 @@ class VLLMRolloutBackend:
 
     def _unload_engine(self) -> None:
         if self.uses_subprocess_actor:
-            if self._actor is not None:
-                self._actor.unload_engine()
+            failures = []
+            with ThreadPoolExecutor(max_workers=max(1, len(self._actors))) as executor:
+                future_map = {
+                    executor.submit(client.unload_engine): name
+                    for name, client in self._actors.items()
+                    if client.is_alive
+                }
+                for future in as_completed(future_map):
+                    try:
+                        future.result()
+                    except Exception as exc:
+                        failures.append(f"{future_map[future]!r}: {exc}")
+            if failures:
+                raise RuntimeError(f"Failed to unload all vLLM rollout actors: {failures}")
             return
         llm = self.llm
         self.llm = None
@@ -517,7 +704,17 @@ class VLLMRolloutBackend:
                     pass
 
     def close(self) -> None:
-        if self._actor is not None:
-            self._actor.close()
-            self._actor = None
+        if self.uses_subprocess_actor:
+            clients = dict(self._actors)
+            with ThreadPoolExecutor(max_workers=max(1, len(clients))) as executor:
+                futures = [executor.submit(client.close) for client in clients.values()]
+                for future in futures:
+                    try:
+                        future.result()
+                    except Exception:
+                        pass
+            self._actors = {}
+            self._actor_resource_snapshot = {}
+            self._engine_policy_descriptor = {}
+            return
         self._unload_engine()

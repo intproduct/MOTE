@@ -188,6 +188,143 @@ def test_mock_vllm_outputs_preserve_expanded_prompt_order_and_masks(tmp_path):
     assert response_mask[3, 3:4].sum().item() == 1.0
 
 
+def test_stage5c_multi_actor_sharding_uses_all_actors_and_restores_order(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.group_size = 4
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "r1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    descriptor = {"policy_version": 3, "policy_fingerprint": "abc", "export_dir": "x"}
+
+    class FakeClient:
+        is_alive = True
+
+        def __init__(self, name):
+            self.name = name
+
+        def generate(self, *, prompt_token_ids, sampling_kwargs, expected_policy_descriptor):
+            assert expected_policy_descriptor == descriptor
+            return [FakeRequestOutput([ids[-1] + 100]) for ids in prompt_token_ids]
+
+        def ping(self):
+            return {"policy_descriptor": descriptor, "actor_resources": {"cuda_device_count": 1}}
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {"r0": FakeClient("r0"), "r1": FakeClient("r1")}
+    backend._actor_resource_snapshot = {"r0": {}, "r1": {}}
+    backend._rollout_request_sequence = 1
+    prompt_ids = [[index] for index in range(8)]
+
+    outputs = backend._generate_subprocess_actors(
+        prompt_token_ids=prompt_ids,
+        sampling_kwargs={"max_tokens": 4},
+        expected_policy_descriptor=descriptor,
+    )
+
+    assert [output.outputs[0].token_ids[0] for output in outputs] == list(range(100, 108))
+    dispatch = backend._last_actor_dispatch_metadata
+    assert dispatch["active_actor_count"] == 2
+    assert sorted(
+        index
+        for actor in dispatch["actors"].values()
+        for index in actor["row_indices"]
+    ) == list(range(8))
+
+
+def test_stage5c_multi_actor_failure_invalidates_entire_batch(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.group_size = 2
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "ok", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "bad", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+
+    class FakeClient:
+        is_alive = True
+
+        def __init__(self, fail=False):
+            self.fail = fail
+
+        def generate(self, **kwargs):
+            if self.fail:
+                raise RuntimeError("injected failure")
+            return [FakeRequestOutput([9]) for _ in kwargs["prompt_token_ids"]]
+
+        def ping(self):
+            return {}
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {"ok": FakeClient(), "bad": FakeClient(fail=True)}
+    backend._actor_resource_snapshot = {"ok": {}, "bad": {}}
+    with pytest.raises(RuntimeError, match="entire rollout batch is invalid"):
+        backend._generate_subprocess_actors(
+            prompt_token_ids=[[1], [2]],
+            sampling_kwargs={},
+            expected_policy_descriptor={},
+        )
+
+
+def test_stage5c_parallel_engine_build_enforces_policy_barrier(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "r1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    descriptor = {"policy_version": 4, "policy_fingerprint": "fp", "export_dir": "export"}
+
+    class FakeClient:
+        is_alive = True
+
+        def __init__(self):
+            self.startup_info = {"kind": "ready"}
+            self.last_engine_info = {}
+            self.loaded_descriptor = None
+            self.loaded_kwargs = None
+
+        def load_engine(self, kwargs, *, policy_descriptor):
+            self.loaded_kwargs = dict(kwargs)
+            self.loaded_descriptor = dict(policy_descriptor)
+            tp = int(kwargs["tensor_parallel_size"])
+            self.last_engine_info = {
+                "engine_topology": {
+                    "observed_tensor_parallel_size": tp,
+                    "tensor_parallel_verified": True,
+                },
+                "actor_resources": {"cuda_device_count": tp},
+            }
+            return 0.01
+
+        def ping(self):
+            return {"policy_descriptor": self.loaded_descriptor}
+
+        def close(self):
+            return None
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {"r0": FakeClient(), "r1": FakeClient()}
+    elapsed = backend._build_engine("export", policy_descriptor=descriptor)
+    assert elapsed >= 0.0
+    assert set(backend._actor_resource_snapshot) == {"r0", "r1"}
+    assert all(item["policy_verified"] for item in backend._actor_resource_snapshot.values())
+    assert backend._actors["r0"].loaded_kwargs["seed"] != backend._actors["r1"].loaded_kwargs["seed"]
+
+
 def test_stale_vllm_policy_raises_unless_allowed(tmp_path):
     cfg = _cfg(tmp_path)
     manager = VLLMPolicySyncManager(
