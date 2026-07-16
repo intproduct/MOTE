@@ -131,9 +131,18 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
 
         start = time.perf_counter()
         llm_kwargs = dict(request["llm_kwargs"])
+        # Actor placement is already enforced by the actor-private
+        # CUDA_VISIBLE_DEVICES.  vLLM 0.19 removed ``device`` from EngineArgs,
+        # so forwarding even ``cuda:0`` now fails before engine startup.  Pop
+        # it here as a compatibility guard for older callers as well as at the
+        # kwargs construction site.
+        requested_device = llm_kwargs.pop("device", None)
         state["llm"] = LLM(**llm_kwargs)
         state["policy_descriptor"] = dict(request.get("policy_descriptor") or {})
-        state["engine_topology"] = _engine_topology_snapshot(state["llm"], llm_kwargs)
+        topology_kwargs = dict(llm_kwargs)
+        if requested_device is not None:
+            topology_kwargs["device"] = requested_device
+        state["engine_topology"] = _engine_topology_snapshot(state["llm"], topology_kwargs)
         return {
             "load_sec": max(0.0, time.perf_counter() - start),
             "policy_descriptor": state["policy_descriptor"],

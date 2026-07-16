@@ -103,6 +103,30 @@ def test_actor_protocol_load_generate_unload(monkeypatch):
     assert calls["shutdown"] == 1
 
 
+def test_actor_strips_legacy_device_kwarg_for_vllm_019(monkeypatch):
+    calls = {}
+
+    class StrictV019LLM:
+        def __init__(self, *, model):
+            calls["model"] = model
+
+    fake_vllm = types.ModuleType("vllm")
+    fake_vllm.LLM = StrictV019LLM
+    monkeypatch.setitem(sys.modules, "vllm", fake_vllm)
+    state = {"llm": None, "closed": False, "policy_descriptor": None, "engine_topology": None}
+
+    _handle_actor_request(
+        state,
+        {
+            "command": "load_engine",
+            "llm_kwargs": {"model": "export", "device": "cuda:0"},
+        },
+    )
+
+    assert calls["model"] == "export"
+    assert state["engine_topology"]["device"] == "cuda:0"
+
+
 def test_actor_protocol_rejects_generate_before_load():
     state = {"llm": None, "closed": False}
     try:

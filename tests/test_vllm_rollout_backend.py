@@ -331,6 +331,34 @@ def test_stage5c_parallel_engine_build_enforces_policy_barrier(tmp_path):
     assert set(backend._actor_resource_snapshot) == {"r0", "r1"}
     assert all(item["policy_verified"] for item in backend._actor_resource_snapshot.values())
     assert backend._actors["r0"].loaded_kwargs["seed"] != backend._actors["r1"].loaded_kwargs["seed"]
+    assert "device" not in backend._actors["r0"].loaded_kwargs
+    assert "device" not in backend._actors["r1"].loaded_kwargs
+
+
+def test_in_process_vllm_019_retries_without_legacy_device(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_device = "cuda:0"
+    calls = []
+
+    class StrictV019LLM:
+        def __init__(self, **kwargs):
+            calls.append(dict(kwargs))
+            if "device" in kwargs:
+                raise TypeError("EngineArgs.__init__() got an unexpected keyword argument 'device'")
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._vllm = StrictV019LLM
+    backend._sampling_params_cls = object
+
+    backend._build_engine("export")
+
+    assert len(calls) == 2
+    assert calls[0]["device"] == "cuda:0"
+    assert "device" not in calls[1]
 
 
 def test_stale_vllm_policy_raises_unless_allowed(tmp_path):

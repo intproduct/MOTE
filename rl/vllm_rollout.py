@@ -128,7 +128,12 @@ class VLLMRolloutBackend:
                 kwargs[key] = value
         if bool(getattr(rl_cfg, "vllm_disable_log_stats", True)):
             kwargs["disable_log_stats"] = True
-        device = "cuda:0" if actor_spec else getattr(rl_cfg, "vllm_device", None)
+        # Subprocess actors select their device through an isolated
+        # CUDA_VISIBLE_DEVICES and see the first assigned GPU as cuda:0.
+        # Do not pass ``device`` to LLM: vLLM 0.19 no longer accepts it in
+        # EngineArgs.  Keep the legacy option only for in-process runtimes
+        # that still expose that argument.
+        device = None if actor_spec else getattr(rl_cfg, "vllm_device", None)
         if device is not None and str(device).strip():
             kwargs["device"] = str(device).strip()
         if bool(getattr(rl_cfg, "vllm_enable_sleep_mode", False)):
@@ -204,8 +209,24 @@ class VLLMRolloutBackend:
         if bool(getattr(self.fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)) and torch.cuda.is_available():
             torch.cuda.empty_cache()
         start = time.perf_counter()
+        llm_kwargs = self._llm_kwargs(export_dir)
         try:
-            self.llm = LLM(**self._llm_kwargs(export_dir))
+            self.llm = LLM(**llm_kwargs)
+        except TypeError as exc:
+            # vLLM 0.19 removed the legacy EngineArgs.device keyword.  An
+            # in-process caller may still have vllm_device configured; retry
+            # only for this exact compatibility failure and otherwise retain
+            # the original exception.
+            if "device" in llm_kwargs and "unexpected keyword argument 'device'" in str(exc):
+                llm_kwargs = dict(llm_kwargs)
+                llm_kwargs.pop("device", None)
+                if self.logger is not None:
+                    self.logger.warning(
+                        "[VLLMCompat] runtime rejected EngineArgs.device; retrying with CUDA_VISIBLE_DEVICES placement"
+                    )
+                self.llm = LLM(**llm_kwargs)
+            else:
+                raise
         except Exception as exc:
             if _is_cuda_oom(exc) and bool(getattr(self.fit_cfg.rl, "vllm_fail_on_cuda_oom", True)):
                 raise RuntimeError(_format_oom_message(exc)) from exc
