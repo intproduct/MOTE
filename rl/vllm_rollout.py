@@ -151,6 +151,10 @@ class VLLMRolloutBackend:
                 ) from exc
             backend = str(getattr(rl_cfg, "vllm_weight_transfer_backend", "nccl") or "nccl").strip().lower()
             kwargs["weight_transfer_config"] = WeightTransferConfig(backend=backend)
+            # A policy update must not reuse prefix-cache entries computed by
+            # the previous policy.  Keep prefix caching disabled on the native
+            # sync path in addition to the explicit post-update reset call.
+            kwargs["enable_prefix_caching"] = False
         return kwargs
 
     def _build_engine(self, export_dir: str, *, policy_descriptor: Optional[Dict[str, Any]] = None) -> float:
@@ -271,6 +275,15 @@ class VLLMRolloutBackend:
                 force=force,
                 llm=self.llm,
                 runtime_params=self._runtime_params(),
+                actors=(
+                    [
+                        (str(spec["name"]), self._actor_client(str(spec["name"])), dict(spec))
+                        for spec in self._actor_specs
+                        if str(spec["name"]) in self._actors and self._actors[str(spec["name"])].is_alive
+                    ]
+                    if self.uses_subprocess_actor
+                    else None
+                ),
             )
             native_sync = bool(sync_result.metadata.get("vllm_weight_transfer_native_sync", False))
             if sync_result.synced and not native_sync:
@@ -303,6 +316,23 @@ class VLLMRolloutBackend:
                     "policy_fingerprint": sync_result.metadata.get("vllm_policy_fingerprint"),
                     "export_dir": None if sync_result.export_dir is None else str(sync_result.export_dir),
                 }
+                if self.uses_subprocess_actor:
+                    for name, client in self._actors.items():
+                        latest = client.ping()
+                        loaded = dict(latest.get("policy_descriptor") or {})
+                        if loaded != self._engine_policy_descriptor or latest.get("actor_status") != "READY":
+                            raise RuntimeError(
+                                f"actor {name!r} failed post-commit policy barrier: "
+                                f"expected={self._engine_policy_descriptor}, observed={latest}"
+                            )
+                        snapshot = self._actor_resource_snapshot.setdefault(name, {})
+                        snapshot["latest"] = latest
+                        snapshot["policy_verified"] = True
+                    sync_result.metadata["vllm_engine_rebuilt"] = False
+                    sync_result.metadata["vllm_all_actors_policy_verified"] = True
+                    sync_result.metadata["vllm_engine_policy_descriptor"] = dict(
+                        self._engine_policy_descriptor
+                    )
             self._last_sync = sync_result
             return sync_result
         except Exception:
@@ -685,6 +715,7 @@ class VLLMRolloutBackend:
             return fallback
 
     def _unload_engine(self) -> None:
+        self.sync_manager.mark_engines_discarded()
         if self.uses_subprocess_actor:
             failures = []
             with ThreadPoolExecutor(max_workers=max(1, len(self._actors))) as executor:
@@ -697,7 +728,16 @@ class VLLMRolloutBackend:
                     try:
                         future.result()
                     except Exception as exc:
-                        failures.append(f"{future_map[future]!r}: {exc}")
+                        name = str(future_map[future])
+                        # An update-only receiver may still be blocked inside
+                        # update_weights after a trainer-side transfer error.
+                        # It cannot service unload_engine on the control pipe;
+                        # force-discard it so export_reload recovery can start
+                        # a clean process.
+                        try:
+                            self._actors[name].close(force=True)
+                        except Exception as close_exc:
+                            failures.append(f"{name!r}: unload={exc}; force_close={close_exc}")
             if failures:
                 raise RuntimeError(f"Failed to unload all vLLM rollout actors: {failures}")
             return
@@ -726,6 +766,7 @@ class VLLMRolloutBackend:
 
     def close(self) -> None:
         if self.uses_subprocess_actor:
+            self.sync_manager.mark_engines_discarded()
             clients = dict(self._actors)
             with ThreadPoolExecutor(max_workers=max(1, len(clients))) as executor:
                 futures = [executor.submit(client.close) for client in clients.values()]

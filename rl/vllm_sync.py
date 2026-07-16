@@ -5,7 +5,7 @@ import socket
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Sequence
 
 from .rollout_backends import RolloutSyncResult
 from .vllm_weight_mapping import (
@@ -16,7 +16,15 @@ from .vllm_weight_transfer_capabilities import (
     VLLMWeightTransferCapabilityReport,
     probe_vllm_weight_transfer_capabilities,
 )
-from .vllm_weight_transfer_adapters import NCCLTransferSettings, select_nccl_transfer_adapter
+from .vllm_weight_transfer_adapters import (
+    NCCLTransferSettings,
+    nccl_init_request_payload,
+    nccl_update_request_payload,
+    select_nccl_transfer_adapter,
+    shutdown_trainer_nccl_group,
+    trainer_initialize_nccl_group,
+    trainer_send_weights_to_actor,
+)
 from .vllm_integrity import (
     SYNC_MANIFEST_NAME,
     SYNC_STATE_NAME,
@@ -49,6 +57,10 @@ class VLLMPolicySyncManager:
         self.capability_report: Optional[VLLMWeightTransferCapabilityReport] = None
         self.weight_transfer_initialized = False
         self.weight_transfer_master_port: Optional[int] = None
+        self.actor_weight_transfer_initialized: Dict[str, bool] = {}
+        self.actor_weight_transfer_master_ports: Dict[str, int] = {}
+        self.actor_trainer_nccl_groups: Dict[str, Any] = {}
+        self.actor_capability_reports: Dict[str, Dict[str, Any]] = {}
 
     @property
     def strategy(self) -> str:
@@ -88,8 +100,8 @@ class VLLMPolicySyncManager:
         force: bool = False,
         llm=None,
         runtime_params: Optional[Dict[str, Any]] = None,
+        actors: Optional[Sequence[tuple[str, Any, Dict[str, Any]]]] = None,
     ) -> RolloutSyncResult:
-        del tokenizer
         if self.strategy == "export_reload":
             return self._sync_export_reload(model=model, update_step=update_step, force=force)
         if self.strategy in {"weight_transfer_dryrun_static", "weight_transfer_dryrun_runtime"}:
@@ -106,6 +118,8 @@ class VLLMPolicySyncManager:
                 force=force,
                 llm=llm,
                 runtime_params=runtime_params,
+                actors=actors,
+                tokenizer=tokenizer,
             )
         if self.strategy == "weight_transfer_ipc":
             return self._sync_weight_transfer_ipc(update_step=update_step, force=force)
@@ -157,7 +171,7 @@ class VLLMPolicySyncManager:
         checkpoint_sec = 0.0
         export_sec = 0.0
         commit_sec = 0.0
-        validation_start = time.perf_counter()
+        validation_sec = 0.0
         roundtrip_every = max(
             1,
             int(getattr(self.fit_cfg.rl, "vllm_export_roundtrip_validation_every", 1)),
@@ -200,6 +214,7 @@ class VLLMPolicySyncManager:
             else:
                 candidate_export = export_dir
 
+            validation_start = time.perf_counter()
             layout = validate_export_layout(candidate_export)
             if not layout.ok:
                 raise RuntimeError(f"Stage 4C export layout validation failed for vLLM sync: {layout.errors}")
@@ -268,7 +283,7 @@ class VLLMPolicySyncManager:
         # The rollout backend rebuilds its engine from this export. Any native
         # transfer engine previously attached to the old vLLM instance is no
         # longer initialized.
-        self.weight_transfer_initialized = False
+        self.mark_engines_discarded()
         prune_start = time.perf_counter()
         pruned_artifacts = self._prune_exports(root)
         prune_sec = max(0.0, time.perf_counter() - prune_start)
@@ -320,6 +335,16 @@ class VLLMPolicySyncManager:
                 sync_sec,
             )
         return self.last_result
+
+    def mark_engines_discarded(self) -> None:
+        """Forget receiver state after an engine/actor has been destroyed."""
+        self.weight_transfer_initialized = False
+        self.actor_weight_transfer_initialized.clear()
+        self.actor_weight_transfer_master_ports.clear()
+        for group in self.actor_trainer_nccl_groups.values():
+            shutdown_trainer_nccl_group(group)
+        self.actor_trainer_nccl_groups.clear()
+        self.actor_capability_reports.clear()
 
     def _capabilities(self) -> VLLMWeightTransferCapabilityReport:
         if self.capability_report is None:
@@ -437,6 +462,8 @@ class VLLMPolicySyncManager:
         force: bool,
         llm,
         runtime_params: Optional[Dict[str, Any]],
+        actors: Optional[Sequence[tuple[str, Any, Dict[str, Any]]]],
+        tokenizer,
     ) -> RolloutSyncResult:
         if self.policy_version < 0 or self.export_dir is None or int(update_step) == 0:
             result = self._sync_export_reload(model=model, update_step=update_step, force=True)
@@ -468,8 +495,6 @@ class VLLMPolicySyncManager:
         }
         try:
             self._enforce_mapping_coverage(metadata)
-            if llm is None:
-                raise RuntimeError("vLLM native weight transfer requires an initialized vLLM engine")
             required_level = str(
                 getattr(self.fit_cfg.rl, "vllm_native_transfer_required_level", "four_phase") or "four_phase"
             ).strip().lower()
@@ -477,14 +502,36 @@ class VLLMPolicySyncManager:
                 adapter = select_nccl_transfer_adapter(report, required_level=required_level)
             except Exception as exc:
                 raise self._native_unavailable_error(report) from exc
-            transfer_result = self._run_nccl_update(
-                adapter=adapter,
-                llm=llm,
-                model=model,
-                update_step=update_step,
+            fingerprint_start = time.perf_counter()
+            policy_fingerprint = model_policy_fingerprint(
+                model,
+                sample_elements_per_tensor=int(
+                    getattr(self.fit_cfg.rl, "vllm_policy_fingerprint_samples_per_tensor", 16)
+                ),
             )
-            metadata.update(transfer_result)
-            metadata.update(self._post_sync_validation_metadata(model=model, llm=llm, update_step=update_step))
+            metadata["vllm_policy_fingerprint"] = policy_fingerprint
+            metadata["vllm_fingerprint_sec"] = max(0.0, time.perf_counter() - fingerprint_start)
+            if actors:
+                transfer_result = self._run_subprocess_nccl_update(
+                    actors=actors,
+                    model=model,
+                    tokenizer=tokenizer,
+                    update_step=update_step,
+                    policy_fingerprint=policy_fingerprint,
+                    required_level=required_level,
+                )
+                metadata.update(transfer_result)
+            else:
+                if llm is None:
+                    raise RuntimeError("vLLM native weight transfer requires an initialized vLLM engine")
+                transfer_result = self._run_nccl_update(
+                    adapter=adapter,
+                    llm=llm,
+                    model=model,
+                    update_step=update_step,
+                )
+                metadata.update(transfer_result)
+                metadata.update(self._post_sync_validation_metadata(model=model, llm=llm, update_step=update_step))
         except Exception as exc:
             return self._fallback_or_raise(exc=exc, model=model, update_step=update_step, force=force)
 
@@ -522,6 +569,165 @@ class VLLMPolicySyncManager:
                 sock.bind((str(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1")), 0))
                 self.weight_transfer_master_port = int(sock.getsockname()[1])
         return int(self.weight_transfer_master_port)
+
+    def _resolve_actor_weight_transfer_master_port(self, actor_name: str, actor_index: int) -> int:
+        if actor_name in self.actor_weight_transfer_master_ports:
+            return int(self.actor_weight_transfer_master_ports[actor_name])
+        configured = int(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_port", 0))
+        if configured > 0:
+            port = configured + int(actor_index)
+        else:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind((str(getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1")), 0))
+                port = int(sock.getsockname()[1])
+        self.actor_weight_transfer_master_ports[actor_name] = int(port)
+        return int(port)
+
+    @staticmethod
+    def _validation_prompt_token_ids(tokenizer) -> Optional[list[int]]:
+        if tokenizer is None:
+            return None
+        try:
+            return [int(token) for token in tokenizer.encode("1 + 1 =", add_special_tokens=False)]
+        except Exception:
+            return None
+
+    def _run_subprocess_nccl_update(
+        self,
+        *,
+        actors: Sequence[tuple[str, Any, Dict[str, Any]]],
+        model,
+        tokenizer,
+        update_step: int,
+        policy_fingerprint: str,
+        required_level: str,
+    ) -> Dict[str, Any]:
+        """Update persistent subprocess actors and commit only after all validate.
+
+        Actor updates are deliberately sequential in the first production
+        implementation.  This avoids driving the same trainer tensors through
+        multiple NCCL process groups concurrently before that path has a GPU
+        soak test.  Rollout remains blocked by the synchronous caller for the
+        entire transaction.
+        """
+        if not actors:
+            raise RuntimeError("subprocess native transfer requires at least one rollout actor")
+        mapping = build_weight_mapping_report(model)
+        expected_checksums = selected_tensor_checksums(mapping, model)
+        descriptor = {
+            "policy_version": int(update_step),
+            "policy_fingerprint": str(policy_fingerprint),
+            "export_dir": None if self.export_dir is None else str(self.export_dir),
+        }
+        prompt_ids = self._validation_prompt_token_ids(tokenizer)
+        require_checksums = bool(
+            getattr(self.fit_cfg.rl, "vllm_weight_transfer_require_runtime_checksums", False)
+        )
+        actor_results: Dict[str, Any] = {}
+        transaction_start = time.perf_counter()
+        for actor_index, (actor_name, client, actor_spec) in enumerate(actors):
+            if int(actor_spec.get("tensor_parallel_size", 1)) != 1:
+                raise RuntimeError(
+                    "subprocess native NCCL transfer currently requires TP1 actors; "
+                    f"actor={actor_name!r}, tensor_parallel_size={actor_spec.get('tensor_parallel_size')}"
+                )
+            if actor_name not in self.actor_capability_reports:
+                self.actor_capability_reports[actor_name] = dict(client.weight_transfer_capabilities())
+            capabilities = dict(self.actor_capability_reports[actor_name])
+            actual_level = str(capabilities.get("native_transfer_level", "none"))
+            level_order = {"none": 0, "update_only": 1, "four_phase": 2}
+            if level_order.get(actual_level, 0) < level_order.get(required_level, 0):
+                raise RuntimeError(
+                    f"actor {actor_name!r} native transfer level {actual_level!r} "
+                    f"is below required {required_level!r}: {capabilities}"
+                )
+            settings = NCCLTransferSettings(
+                master_address=str(
+                    getattr(self.fit_cfg.rl, "vllm_weight_transfer_master_addr", "127.0.0.1") or "127.0.0.1"
+                ),
+                master_port=self._resolve_actor_weight_transfer_master_port(actor_name, actor_index),
+                tensor_parallel_size=1,
+                packed=bool(getattr(self.fit_cfg.rl, "vllm_weight_transfer_packed", True)),
+                timeout_sec=float(getattr(self.fit_cfg.rl, "vllm_weight_transfer_timeout_sec", 300.0)),
+            )
+            if not self.actor_weight_transfer_initialized.get(actor_name, False):
+                init_request_id = client.begin_init_weight_transfer(
+                    init_info=nccl_init_request_payload(settings)
+                )
+                # NCCL rendezvous is collective. The actor receiver and
+                # trainer rank must initialize concurrently, matching the
+                # official vLLM 0.19 RLHF NCCL lifecycle.
+                trainer_group = trainer_initialize_nccl_group(settings)
+                init_result = client.finish_init_weight_transfer(init_request_id)
+                if not bool(init_result.get("initialized")):
+                    raise RuntimeError(f"actor {actor_name!r} failed to initialize NCCL receiver: {init_result}")
+                self.actor_trainer_nccl_groups[actor_name] = trainer_group
+                self.actor_weight_transfer_initialized[actor_name] = True
+            request_id = client.begin_weight_update(
+                update_info=nccl_update_request_payload(mapping, packed=settings.packed),
+                policy_descriptor=descriptor,
+                expected_checksums=expected_checksums,
+                validation_prompt_token_ids=prompt_ids,
+                require_runtime_checksums=require_checksums,
+            )
+            send_result = trainer_send_weights_to_actor(
+                model=model,
+                mapping=mapping,
+                settings=settings,
+                group=self.actor_trainer_nccl_groups[actor_name],
+            )
+            receive_result = client.finish_weight_update(request_id)
+            if receive_result.get("actor_status") != "UPDATED_PENDING_COMMIT":
+                raise RuntimeError(
+                    f"actor {actor_name!r} did not reach the commit barrier: {receive_result}"
+                )
+            actor_results[actor_name] = {
+                "capabilities": capabilities,
+                "master_port": int(settings.master_port),
+                "send": send_result,
+                "receive": receive_result,
+                "committed": False,
+            }
+
+        # No actor is allowed to generate until every receiver has completed.
+        # A failure here is fail-closed: the rollout backend discards all
+        # actors because update_only has no rollback primitive.
+        for actor_name, client, _actor_spec in actors:
+            commit_result = client.commit_weight_update(policy_descriptor=descriptor)
+            if not bool(commit_result.get("committed")):
+                raise RuntimeError(f"actor {actor_name!r} failed policy commit: {commit_result}")
+            actor_results[actor_name]["commit"] = commit_result
+            actor_results[actor_name]["committed"] = True
+
+        return {
+            "weight_transfer_adapter": "nccl_update_only_subprocess",
+            "weight_transfer_capability_level": "update_only",
+            "weight_transfer_update_step": int(update_step),
+            "weight_transfer_packed": bool(getattr(self.fit_cfg.rl, "vllm_weight_transfer_packed", True)),
+            "weight_transfer_total_sec": max(0.0, time.perf_counter() - transaction_start),
+            "weight_transfer_actor_count": len(actors),
+            "weight_transfer_commit_barrier": True,
+            "weight_transfer_commit_atomic": False,
+            "weight_transfer_partial_failure_policy": "discard_all_actors",
+            "weight_transfer_actor_mode": "sequential",
+            "weight_transfer_actor_results": actor_results,
+            "rollout_facing_validation": {
+                "mode": "actor_greedy_token_generation" if prompt_ids else "skipped",
+                "ok": all(
+                    result["receive"].get("rollout_facing_validation", {}).get("ok") is not False
+                    for result in actor_results.values()
+                ),
+            },
+            "checksum_validation": {
+                "mode": "actor_selected_tensor_checksum",
+                "required": require_checksums,
+                "ok": all(
+                    result["receive"].get("checksum_validation", {}).get("ok") is True
+                    for result in actor_results.values()
+                ) if require_checksums else None,
+                "expected": expected_checksums,
+            },
+        }
 
     def _run_nccl_update(self, *, adapter, llm, model, update_step: int) -> Dict[str, Any]:
         mapping = build_weight_mapping_report(model)

@@ -68,6 +68,121 @@ def _wrap_update_request(update_info: Any) -> Any:
         return {"update_info": _payload(update_info)}
 
 
+def nccl_init_request_payload(settings: NCCLTransferSettings) -> Dict[str, Any]:
+    """Return a serialization-safe receiver initialization payload.
+
+    Subprocess rollout actors cannot receive vLLM request/dataclass instances
+    over the control pipe reliably across vLLM releases.  The actor recreates
+    the concrete vLLM request from this plain dictionary.
+    """
+    return {
+        "master_address": str(settings.master_address),
+        "master_port": int(settings.master_port),
+        "rank_offset": 1,
+        "world_size": int(settings.world_size),
+    }
+
+
+def nccl_update_request_payload(
+    mapping: VLLMWeightMappingReport,
+    *,
+    packed: bool,
+) -> Dict[str, Any]:
+    """Return the checkpoint-format receiver contract for one full update."""
+    return {
+        "names": [entry.transfer_name for entry in mapping.entries],
+        "dtype_names": [entry.dtype for entry in mapping.entries],
+        "shapes": [list(entry.shape) for entry in mapping.entries],
+        "packed": bool(packed),
+    }
+
+
+def trainer_send_weights_to_actor(
+    *,
+    model: torch.nn.Module,
+    mapping: VLLMWeightMappingReport,
+    settings: NCCLTransferSettings,
+    group: Any,
+) -> Dict[str, Any]:
+    """Send a full checkpoint-format policy to an already waiting actor.
+
+    The receiver must have entered ``LLM.update_weights`` before this function
+    is called.  Keeping the trainer half here avoids importing the training
+    model into the actor and is the cross-process equivalent of
+    ``_run_sender_receiver``.
+    """
+    from vllm.distributed.weight_transfer.nccl_engine import (  # type: ignore
+        NCCLTrainerSendWeightsArgs,
+        NCCLWeightTransferEngine,
+    )
+
+    start = __import__("time").perf_counter()
+    trainer_args = NCCLTrainerSendWeightsArgs(group=group, packed=bool(settings.packed))
+    executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="vllm_actor_weight_send")
+    future = executor.submit(
+        NCCLWeightTransferEngine.trainer_send_weights,
+        iter_transfer_tensors(mapping, model),
+        trainer_args,
+    )
+    done, pending = wait([future], timeout=float(settings.timeout_sec))
+    if pending:
+        future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
+        raise TimeoutError(
+            "Timed out sending full policy to subprocess vLLM actor; "
+            "the actor and trainer NCCL group must be discarded. "
+            f"timeout_sec={settings.timeout_sec}"
+        )
+    try:
+        future.result()
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+    return {
+        "trainer_send_sec": max(0.0, __import__("time").perf_counter() - start),
+        "weight_transfer_tensor_count": int(mapping.tensor_count),
+        "weight_transfer_bytes": int(mapping.num_bytes),
+    }
+
+
+def trainer_initialize_nccl_group(settings: NCCLTransferSettings) -> Any:
+    """Initialize the trainer rank once and reuse it for every actor update."""
+    from vllm.distributed.weight_transfer.nccl_engine import NCCLWeightTransferEngine  # type: ignore
+
+    executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="vllm_actor_group_init")
+    future = executor.submit(
+        NCCLWeightTransferEngine.trainer_init,
+        {
+            "master_address": settings.master_address,
+            "master_port": int(settings.master_port),
+            "world_size": settings.world_size,
+        },
+    )
+    done, pending = wait([future], timeout=float(settings.timeout_sec))
+    if pending:
+        future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
+        raise TimeoutError(
+            "Timed out initializing the trainer side of the subprocess vLLM NCCL group; "
+            f"timeout_sec={settings.timeout_sec}"
+        )
+    try:
+        return future.result()
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+
+def shutdown_trainer_nccl_group(group: Any) -> None:
+    """Best-effort teardown for vLLM StatelessProcessGroup variants."""
+    for name in ("destroy", "shutdown", "close"):
+        method = getattr(group, name, None)
+        if callable(method):
+            try:
+                method()
+            except Exception:
+                pass
+            return
+
+
 def _run_sender_receiver(
     *,
     receiver,
@@ -119,13 +234,7 @@ class UpdateOnlyNCCLTransferAdapter:
     def _make_update_info(mapping: VLLMWeightMappingReport, packed: bool) -> Any:
         from vllm.distributed.weight_transfer.nccl_engine import NCCLWeightTransferUpdateInfo  # type: ignore
 
-        return NCCLWeightTransferUpdateInfo(
-            names=[entry.transfer_name for entry in mapping.entries],
-            dtype_names=[entry.dtype for entry in mapping.entries],
-            shapes=[entry.shape for entry in mapping.entries],
-            packed=bool(packed),
-            is_checkpoint_format=True,
-        )
+        return NCCLWeightTransferUpdateInfo(**nccl_update_request_payload(mapping, packed=packed))
 
     @staticmethod
     def _send(

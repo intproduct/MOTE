@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import multiprocessing as mp
 import os
+from pathlib import Path
 import signal
 import threading
 import time
@@ -22,6 +23,7 @@ def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any
         "process_id": int(os.getpid()),
         "process_group_id": int(os.getpgrp()),
         "child_processes": [],
+        "os_child_process_ids": [],
     }
     try:
         if not probe_cuda_runtime:
@@ -56,6 +58,16 @@ def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any
         ]
     except Exception as exc:
         snapshot["child_process_probe_error"] = str(exc)
+    try:
+        children_path = Path(f"/proc/{os.getpid()}/task/{os.getpid()}/children")
+        if children_path.is_file():
+            snapshot["os_child_process_ids"] = [
+                int(value)
+                for value in children_path.read_text(encoding="utf-8").split()
+                if value.isdigit()
+            ]
+    except Exception as exc:
+        snapshot["os_child_process_probe_error"] = str(exc)
     return snapshot
 
 
@@ -115,13 +127,76 @@ def _engine_topology_snapshot(llm: Any, llm_kwargs: Dict[str, Any]) -> Dict[str,
     }
 
 
+def _actor_status(state: Dict[str, Any]) -> str:
+    return str(state.get("status") or ("READY" if state.get("llm") is not None else "LOADING"))
+
+
+def _collect_engine_named_parameters(llm: Any) -> Dict[str, Any]:
+    candidates = [
+        llm,
+        getattr(llm, "model", None),
+        getattr(getattr(llm, "llm_engine", None), "model", None),
+        getattr(getattr(getattr(llm, "llm_engine", None), "model_executor", None), "driver_worker", None),
+    ]
+    for obj in candidates:
+        named_parameters = getattr(obj, "named_parameters", None) if obj is not None else None
+        if callable(named_parameters):
+            try:
+                return {str(name): tensor for name, tensor in named_parameters()}
+            except Exception:
+                continue
+    return {}
+
+
+def _invalidate_generation_caches(llm: Any) -> Dict[str, Any]:
+    """Invalidate reusable prefix caches after an in-place policy update."""
+    for source, obj in (
+        ("llm", llm),
+        ("llm.llm_engine", getattr(llm, "llm_engine", None)),
+    ):
+        reset = getattr(obj, "reset_prefix_cache", None) if obj is not None else None
+        if callable(reset):
+            result = reset()
+            serialized_result = result if isinstance(result, (str, int, float, bool, type(None))) else repr(result)
+            return {"attempted": True, "source": source, "result": serialized_result}
+    return {"attempted": False, "source": None, "reason": "reset_prefix_cache_unavailable"}
+
+
+def _actor_rollout_validation(llm: Any, prompt_token_ids: Optional[list[int]]) -> Dict[str, Any]:
+    if not prompt_token_ids:
+        return {"mode": "skipped", "ok": None}
+    from vllm import SamplingParams  # type: ignore
+
+    params = SamplingParams(max_tokens=1, temperature=0.0, top_p=1.0)
+    try:
+        outputs = llm.generate(
+            prompts=[{"prompt_token_ids": [int(token) for token in prompt_token_ids]}],
+            sampling_params=params,
+        )
+    except TypeError:
+        outputs = llm.generate(
+            prompt_token_ids=[[int(token) for token in prompt_token_ids]],
+            sampling_params=params,
+        )
+    completions = list(getattr(outputs[0], "outputs", []) or []) if outputs else []
+    token_ids = list(getattr(completions[0], "token_ids", []) or []) if completions else []
+    return {
+        "mode": "greedy_token_generation",
+        "ok": bool(outputs and completions and token_ids),
+        "generated_token_ids": [int(token) for token in token_ids[:4]],
+    }
+
+
 def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dict[str, Any]:
     command = str(request.get("command", ""))
     if command == "ping":
         return {
-            "ready": True,
+            "ready": _actor_status(state) == "READY",
             "engine_loaded": state.get("llm") is not None,
+            "actor_status": _actor_status(state),
             "policy_descriptor": state.get("policy_descriptor"),
+            "pending_policy_descriptor": state.get("pending_policy_descriptor"),
+            "engine_process_id": int(os.getpid()),
             "actor_resources": _cuda_resource_snapshot(),
             "engine_topology": state.get("engine_topology"),
         }
@@ -139,6 +214,9 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         requested_device = llm_kwargs.pop("device", None)
         state["llm"] = LLM(**llm_kwargs)
         state["policy_descriptor"] = dict(request.get("policy_descriptor") or {})
+        state["pending_policy_descriptor"] = None
+        state["weight_transfer_initialized"] = False
+        state["status"] = "READY"
         topology_kwargs = dict(llm_kwargs)
         if requested_device is not None:
             topology_kwargs["device"] = requested_device
@@ -154,11 +232,115 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         state["llm"] = None
         state["policy_descriptor"] = None
         state["engine_topology"] = None
+        state["pending_policy_descriptor"] = None
+        state["weight_transfer_initialized"] = False
+        state["status"] = "LOADING"
         return {"unloaded": True}
+    if command == "weight_transfer_capabilities":
+        from .vllm_weight_transfer_capabilities import probe_vllm_weight_transfer_capabilities
+
+        return probe_vllm_weight_transfer_capabilities().to_dict()
+    if command == "init_weight_transfer":
+        llm = state.get("llm")
+        if llm is None:
+            raise RuntimeError("vLLM actor engine is not loaded")
+        if _actor_status(state) != "READY":
+            raise RuntimeError(f"cannot initialize weight transfer while actor status={_actor_status(state)!r}")
+        from vllm.distributed.weight_transfer.nccl_engine import NCCLWeightTransferInitInfo  # type: ignore
+        from .vllm_weight_transfer_adapters import _wrap_init_request
+
+        info = NCCLWeightTransferInitInfo(**dict(request["init_info"]))
+        llm.init_weight_transfer_engine(_wrap_init_request(info))
+        state["weight_transfer_initialized"] = True
+        return {"initialized": True, "actor_status": _actor_status(state)}
+    if command == "receive_weight_update":
+        llm = state.get("llm")
+        if llm is None:
+            raise RuntimeError("vLLM actor engine is not loaded")
+        if _actor_status(state) != "READY":
+            raise RuntimeError(f"cannot receive weights while actor status={_actor_status(state)!r}")
+        if not bool(state.get("weight_transfer_initialized")):
+            raise RuntimeError("vLLM actor weight transfer engine is not initialized")
+        state["status"] = "UPDATING"
+        state["pending_policy_descriptor"] = dict(request.get("policy_descriptor") or {})
+        start = time.perf_counter()
+        try:
+            from vllm.distributed.weight_transfer.nccl_engine import NCCLWeightTransferUpdateInfo  # type: ignore
+            from .vllm_weight_transfer_adapters import _wrap_update_request
+
+            update_info = NCCLWeightTransferUpdateInfo(**dict(request["update_info"]))
+            llm.update_weights(_wrap_update_request(update_info))
+            state["status"] = "VALIDATING"
+            cache = _invalidate_generation_caches(llm)
+            expected_checksums = dict(request.get("expected_checksums") or {})
+            runtime_params = _collect_engine_named_parameters(llm)
+            observed_checksums: Dict[str, float] = {}
+            for name in expected_checksums:
+                tensor = runtime_params.get(name)
+                if tensor is not None:
+                    observed_checksums[name] = float(tensor.detach().float().cpu().sum().item())
+            checksum_ok = None
+            if observed_checksums:
+                checksum_ok = len(observed_checksums) == len(expected_checksums) and all(
+                    abs(float(expected_checksums[name]) - value) <= 1e-3
+                    for name, value in observed_checksums.items()
+                )
+                if not checksum_ok:
+                    raise RuntimeError(
+                        "actor post-update checksum mismatch: "
+                        f"expected={expected_checksums}, observed={observed_checksums}"
+                    )
+            if bool(request.get("require_runtime_checksums", False)) and checksum_ok is not True:
+                raise RuntimeError("actor runtime parameter inspection is unavailable or incomplete")
+            rollout_validation = _actor_rollout_validation(
+                llm,
+                request.get("validation_prompt_token_ids"),
+            )
+            if rollout_validation.get("ok") is False:
+                raise RuntimeError(f"actor post-update rollout validation failed: {rollout_validation}")
+            state["status"] = "UPDATED_PENDING_COMMIT"
+            return {
+                "receive_sec": max(0.0, time.perf_counter() - start),
+                "actor_status": state["status"],
+                "cache_invalidation": cache,
+                "runtime_inspection_available": bool(runtime_params),
+                "checksum_validation": {
+                    "ok": checksum_ok,
+                    "expected": expected_checksums,
+                    "observed": observed_checksums,
+                },
+                "rollout_facing_validation": rollout_validation,
+                "engine_process_id": int(os.getpid()),
+                "engine_resources": _cuda_resource_snapshot(),
+            }
+        except Exception:
+            state["status"] = "FAILED"
+            raise
+    if command == "commit_weight_update":
+        if _actor_status(state) != "UPDATED_PENDING_COMMIT":
+            raise RuntimeError(f"cannot commit weights while actor status={_actor_status(state)!r}")
+        expected = dict(request.get("policy_descriptor") or {})
+        pending = dict(state.get("pending_policy_descriptor") or {})
+        if expected != pending:
+            state["status"] = "FAILED"
+            raise RuntimeError(f"pending policy mismatch during commit: expected={expected}, pending={pending}")
+        state["policy_descriptor"] = pending
+        state["pending_policy_descriptor"] = None
+        state["status"] = "READY"
+        return {
+            "committed": True,
+            "actor_status": state["status"],
+            "policy_descriptor": state["policy_descriptor"],
+        }
+    if command == "abort_weight_update":
+        state["status"] = "FAILED"
+        return {"aborted": True, "actor_status": state["status"]}
     if command == "generate":
         llm = state.get("llm")
         if llm is None:
             raise RuntimeError("vLLM actor engine is not loaded")
+        if _actor_status(state) != "READY":
+            raise RuntimeError(f"vLLM actor cannot generate while status={_actor_status(state)!r}")
         expected_descriptor = dict(request.get("expected_policy_descriptor") or {})
         loaded_descriptor = dict(state.get("policy_descriptor") or {})
         if expected_descriptor and expected_descriptor != loaded_descriptor:
@@ -213,6 +395,7 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         _shutdown_engine(state.get("llm"))
         state["llm"] = None
         state["closed"] = True
+        state["status"] = "CLOSED"
         return {"closed": True}
     raise ValueError(f"Unsupported vLLM actor command {command!r}")
 
@@ -229,6 +412,9 @@ def _actor_main(connection, environment: Optional[Dict[str, str]] = None) -> Non
         "closed": False,
         "policy_descriptor": None,
         "engine_topology": None,
+        "pending_policy_descriptor": None,
+        "weight_transfer_initialized": False,
+        "status": "LOADING",
     }
     # Do not initialize CUDA before vLLM chooses and starts its worker model.
     connection.send({"kind": "ready", "actor_resources": _cuda_resource_snapshot(probe_cuda_runtime=False)})
@@ -274,6 +460,7 @@ class VLLMActorClient:
         self._request_id = 0
         self.startup_info: Dict[str, Any] = {}
         self.last_engine_info: Dict[str, Any] = {}
+        self._pending_request: Optional[tuple[int, str]] = None
 
     @property
     def is_alive(self) -> bool:
@@ -325,15 +512,23 @@ class VLLMActorClient:
             raise RuntimeError(f"Unexpected vLLM actor startup response: {message}")
         self.startup_info = dict(message)
 
-    def _request(self, command: str, **payload: Any) -> Dict[str, Any]:
+    def _begin_request(self, command: str, **payload: Any) -> int:
         self.start()
         if self._connection is None or self._process is None:
             raise RuntimeError("vLLM actor process is unavailable")
         if not self._process.is_alive():
             raise RuntimeError(f"vLLM actor process exited unexpectedly with code {self._process.exitcode}")
+        if self._pending_request is not None:
+            raise RuntimeError(f"vLLM actor already has an outstanding request: {self._pending_request}")
         self._request_id += 1
         request_id = self._request_id
         self._connection.send({"request_id": request_id, "command": command, **payload})
+        self._pending_request = (request_id, command)
+        return request_id
+
+    def _finish_request(self, request_id: int, command: str) -> Dict[str, Any]:
+        if self._connection is None or self._process is None:
+            raise RuntimeError("vLLM actor process is unavailable")
         if not self._connection.poll(self.request_timeout_sec):
             self.close(force=True)
             raise TimeoutError(f"Timed out waiting for vLLM actor command={command!r}")
@@ -348,12 +543,17 @@ class VLLMActorClient:
         if response.get("request_id") != request_id:
             self.close(force=True)
             raise RuntimeError(f"Mismatched vLLM actor response id: expected={request_id}, response={response}")
+        self._pending_request = None
         if not response.get("ok"):
             raise RuntimeError(
                 f"vLLM actor command={command!r} failed: {response.get('error_type')}: {response.get('error')}\n"
                 f"{response.get('traceback', '')}"
             )
         return dict(response.get("payload") or {})
+
+    def _request(self, command: str, **payload: Any) -> Dict[str, Any]:
+        request_id = self._begin_request(command, **payload)
+        return self._finish_request(request_id, command)
 
     def load_engine(
         self,
@@ -378,6 +578,45 @@ class VLLMActorClient:
 
     def ping(self) -> Dict[str, Any]:
         return self._request("ping")
+
+    def weight_transfer_capabilities(self) -> Dict[str, Any]:
+        return self._request("weight_transfer_capabilities")
+
+    def init_weight_transfer(self, *, init_info: Dict[str, Any]) -> Dict[str, Any]:
+        return self._request("init_weight_transfer", init_info=dict(init_info))
+
+    def begin_init_weight_transfer(self, *, init_info: Dict[str, Any]) -> int:
+        return self._begin_request("init_weight_transfer", init_info=dict(init_info))
+
+    def finish_init_weight_transfer(self, request_id: int) -> Dict[str, Any]:
+        return self._finish_request(request_id, "init_weight_transfer")
+
+    def begin_weight_update(
+        self,
+        *,
+        update_info: Dict[str, Any],
+        policy_descriptor: Dict[str, Any],
+        expected_checksums: Dict[str, float],
+        validation_prompt_token_ids: Optional[list[int]],
+        require_runtime_checksums: bool = False,
+    ) -> int:
+        return self._begin_request(
+            "receive_weight_update",
+            update_info=dict(update_info),
+            policy_descriptor=dict(policy_descriptor),
+            expected_checksums=dict(expected_checksums),
+            validation_prompt_token_ids=validation_prompt_token_ids,
+            require_runtime_checksums=bool(require_runtime_checksums),
+        )
+
+    def finish_weight_update(self, request_id: int) -> Dict[str, Any]:
+        return self._finish_request(request_id, "receive_weight_update")
+
+    def commit_weight_update(self, *, policy_descriptor: Dict[str, Any]) -> Dict[str, Any]:
+        return self._request("commit_weight_update", policy_descriptor=dict(policy_descriptor))
+
+    def abort_weight_update(self) -> Dict[str, Any]:
+        return self._request("abort_weight_update")
 
     def unload_engine(self) -> None:
         if self.is_alive:
@@ -435,6 +674,7 @@ class VLLMActorClient:
         self._process = None
         self.startup_info = {}
         self.last_engine_info = {}
+        self._pending_request = None
 
     @staticmethod
     def _terminate_actor_group(process, sig: signal.Signals) -> None:

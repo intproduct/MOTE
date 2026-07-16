@@ -1160,6 +1160,19 @@ Stage 5C accepts an arbitrary `rl.vllm_rollout_actors` list. Each isolated actor
 
 Three-, four-, and eight-A800 examples plus the one-command acceptance runner are documented in [docs/stage5c_multiactor.md](./docs/stage5c_multiactor.md). This is rollout parallelism; trainer DDP/FSDP remains out of scope.
 
+### Stage 5D persistent full-weight native sync
+
+For the verified vLLM 0.19 request-style API, subprocess TP1 actors can opt into
+`vllm_sync_strategy="weight_transfer_nccl"` with
+`vllm_native_transfer_required_level="update_only"`. The initial policy still uses one
+Stage 4C export; later updates keep actor engines alive and send the complete checkpoint-format
+policy over per-actor NCCL groups. All actors must receive and validate before the new policy
+descriptor is committed. Any partial failure discards the whole actor set because update-only
+vLLM has no rollback primitive.
+
+The three-A800 configuration, safety boundaries, evidence fields, and acceptance commands are in
+[docs/stage5d_full_weight_native_sync.md](./docs/stage5d_full_weight_native_sync.md).
+
 Stage 4E adds capability-gated native weight-transfer diagnostics and an opt-in native sync strategy:
 
 ```json

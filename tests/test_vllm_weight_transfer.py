@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import sys
+import threading
 import types
 from pathlib import Path
 
@@ -30,6 +31,7 @@ from MOTE.rl.vllm_weight_transfer_adapters import (
     FourPhaseNCCLTransferAdapter,
     NCCLTransferSettings,
     UpdateOnlyNCCLTransferAdapter,
+    trainer_send_weights_to_actor,
     select_nccl_transfer_adapter,
 )
 
@@ -256,6 +258,13 @@ def test_update_only_adapter_uses_request_wrappers_and_sends_weights(monkeypatch
         def __init__(self, **kwargs):
             vars(self).update(kwargs)
 
+    class StrictUpdateInfo:
+        def __init__(self, names, dtype_names, shapes, packed=False):
+            self.names = names
+            self.dtype_names = dtype_names
+            self.shapes = shapes
+            self.packed = packed
+
     sent = []
 
     class Engine:
@@ -263,7 +272,7 @@ def test_update_only_adapter_uses_request_wrappers_and_sends_weights(monkeypatch
         trainer_send_weights = staticmethod(lambda iterator, args: sent.extend(list(iterator)))
 
     nccl.NCCLWeightTransferInitInfo = Info
-    nccl.NCCLWeightTransferUpdateInfo = Info
+    nccl.NCCLWeightTransferUpdateInfo = StrictUpdateInfo
     nccl.NCCLTrainerSendWeightsArgs = Info
     nccl.NCCLWeightTransferEngine = Engine
     monkeypatch.setitem(sys.modules, "vllm.distributed.weight_transfer.base", base)
@@ -299,6 +308,42 @@ def test_update_only_adapter_uses_request_wrappers_and_sends_weights(monkeypatch
     assert llm.update_request.update_info["names"] == [entry.transfer_name for entry in mapping.entries]
     assert [name for name, _ in sent] == [entry.transfer_name for entry in mapping.entries]
     assert metadata["weight_transfer_adapter"] == "nccl_update_only"
+
+
+def test_subprocess_trainer_send_timeout_is_fail_closed(monkeypatch):
+    nccl = types.ModuleType("vllm.distributed.weight_transfer.nccl_engine")
+
+    class Info:
+        def __init__(self, **kwargs):
+            vars(self).update(kwargs)
+
+    release = threading.Event()
+
+    class Engine:
+        @staticmethod
+        def trainer_send_weights(iterator, args):
+            release.wait(timeout=1.0)
+
+    nccl.NCCLTrainerSendWeightsArgs = Info
+    nccl.NCCLWeightTransferEngine = Engine
+    monkeypatch.setitem(sys.modules, "vllm.distributed.weight_transfer.nccl_engine", nccl)
+    model = TinyModel()
+    try:
+        with pytest.raises(TimeoutError, match="must be discarded"):
+            trainer_send_weights_to_actor(
+                model=model,
+                mapping=build_weight_mapping_report(model),
+                settings=NCCLTransferSettings(
+                    master_address="127.0.0.1",
+                    master_port=12345,
+                    tensor_parallel_size=1,
+                    packed=True,
+                    timeout_sec=0.01,
+                ),
+                group=object(),
+            )
+    finally:
+        release.set()
 
 
 def test_manager_allows_explicit_update_only_adapter(tmp_path, monkeypatch):
@@ -388,3 +433,141 @@ def test_runtime_coverage_below_full_blocks_native_transfer(tmp_path, monkeypatc
             llm=object(),
             runtime_params={"model.weight": {"shape": [2, 2], "dtype": "float32"}},
         )
+
+
+class _FakeSubprocessActor:
+    def __init__(self, name, *, fail_finish=False):
+        self.name = name
+        self.fail_finish = fail_finish
+        self.calls = []
+        self.pending_descriptor = None
+        self.descriptor = {"policy_version": 0, "policy_fingerprint": "bootstrap", "export_dir": "bootstrap"}
+
+    def weight_transfer_capabilities(self):
+        self.calls.append("capabilities")
+        return {"native_transfer_level": "update_only", "missing": []}
+
+    def begin_init_weight_transfer(self, *, init_info):
+        self.calls.append(("begin_init", dict(init_info)))
+        return 40
+
+    def finish_init_weight_transfer(self, request_id):
+        self.calls.append(("finish_init", request_id))
+        return {"initialized": True}
+
+    def begin_weight_update(self, **kwargs):
+        self.calls.append("begin")
+        self.pending_descriptor = dict(kwargs["policy_descriptor"])
+        return 41
+
+    def finish_weight_update(self, request_id):
+        self.calls.append(("finish", request_id))
+        if self.fail_finish:
+            raise RuntimeError(f"{self.name} receive failed")
+        return {
+            "actor_status": "UPDATED_PENDING_COMMIT",
+            "rollout_facing_validation": {"ok": True},
+            "checksum_validation": {"ok": None},
+        }
+
+    def commit_weight_update(self, *, policy_descriptor):
+        self.calls.append("commit")
+        assert dict(policy_descriptor) == self.pending_descriptor
+        self.descriptor = dict(policy_descriptor)
+        return {"committed": True, "actor_status": "READY", "policy_descriptor": self.descriptor}
+
+
+def test_subprocess_update_only_sync_commits_all_actors_after_receives(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_sync_strategy = "weight_transfer_nccl"
+    cfg.rl.vllm_native_transfer_required_level = "update_only"
+    cfg.rl.vllm_weight_transfer_master_port = 32000
+    manager = _manager(cfg, tmp_path)
+    manager.policy_version = 0
+    manager.export_dir = tmp_path / "hf-policy-u0"
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.probe_vllm_weight_transfer_capabilities",
+        lambda: VLLMWeightTransferCapabilityReport(True, "0.19.0", "update_only"),
+    )
+    sends = []
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.trainer_send_weights_to_actor",
+        lambda **kwargs: sends.append(kwargs["settings"].master_port) or {"trainer_send_sec": 0.1},
+    )
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.trainer_initialize_nccl_group",
+        lambda settings: f"group-{settings.master_port}",
+    )
+    actors = [_FakeSubprocessActor("actor_0"), _FakeSubprocessActor("actor_1")]
+    result = manager.sync(
+        model=TinyModel(),
+        tokenizer=None,
+        update_step=1,
+        force=True,
+        actors=[
+            ("actor_0", actors[0], {"tensor_parallel_size": 1}),
+            ("actor_1", actors[1], {"tensor_parallel_size": 1}),
+        ],
+    )
+
+    assert result.policy_version == 1
+    assert result.metadata["vllm_weight_transfer_native_sync"] is True
+    assert result.metadata["weight_transfer_commit_barrier"] is True
+    assert result.metadata["weight_transfer_commit_atomic"] is False
+    assert sends == [32000, 32001]
+    assert all(actor.calls.index("commit") > actor.calls.index(("finish", 41)) for actor in actors)
+    assert all(actor.descriptor["policy_version"] == 1 for actor in actors)
+
+    second = manager.sync(
+        model=TinyModel(),
+        tokenizer=None,
+        update_step=2,
+        force=True,
+        actors=[
+            ("actor_0", actors[0], {"tensor_parallel_size": 1}),
+            ("actor_1", actors[1], {"tensor_parallel_size": 1}),
+        ],
+    )
+    assert second.policy_version == 2
+    assert sends == [32000, 32001, 32000, 32001]
+    assert all(sum(call[0] == "begin_init" for call in actor.calls if isinstance(call, tuple)) == 1 for actor in actors)
+
+
+def test_subprocess_partial_receive_failure_never_commits_or_advances_policy(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_sync_strategy = "weight_transfer_nccl"
+    cfg.rl.vllm_native_transfer_required_level = "update_only"
+    cfg.rl.vllm_weight_transfer_master_port = 32100
+    manager = _manager(cfg, tmp_path)
+    manager.policy_version = 4
+    manager.export_dir = tmp_path / "hf-policy-u4"
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.probe_vllm_weight_transfer_capabilities",
+        lambda: VLLMWeightTransferCapabilityReport(True, "0.19.0", "update_only"),
+    )
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.trainer_send_weights_to_actor",
+        lambda **kwargs: {"trainer_send_sec": 0.1},
+    )
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.trainer_initialize_nccl_group",
+        lambda settings: f"group-{settings.master_port}",
+    )
+    actor_0 = _FakeSubprocessActor("actor_0")
+    actor_1 = _FakeSubprocessActor("actor_1", fail_finish=True)
+
+    with pytest.raises(RuntimeError, match="actor_1 receive failed"):
+        manager.sync(
+            model=TinyModel(),
+            tokenizer=None,
+            update_step=5,
+            force=True,
+            actors=[
+                ("actor_0", actor_0, {"tensor_parallel_size": 1}),
+                ("actor_1", actor_1, {"tensor_parallel_size": 1}),
+            ],
+        )
+
+    assert manager.policy_version == 4
+    assert "commit" not in actor_0.calls
+    assert "commit" not in actor_1.calls

@@ -962,6 +962,19 @@ dryrun 会生成权重名字、shape、dtype、coverage、MoTN coverage 和 chec
 
 `update_only` 仍属于实验路径，只有在目标 NVIDIA 环境完成反复 transfer、checksum、rollout 和 teardown 验证后，才可用于正式训练。
 
+### Stage 5D 常驻 Actor 全量权重同步
+
+vLLM 0.19 的 `init_weight_transfer_engine` / `update_weights` API 现在可以用于
+subprocess TP1 Actor。首次启动仍生成一次 Stage 4C HF export；后续更新保持 Actor
+与 Engine 常驻，通过每 Actor 独立 NCCL 组发送完整 checkpoint-format policy。
+所有 Actor 接收和验证完成后才提交 policy descriptor；任一失败都会丢弃全部 Actor，
+不会继续生成半更新 rollout。
+
+三卡 A800 配置、限制、20-update 验收步骤和证据校验命令见：
+
+- [docs/stage5d_full_weight_native_sync.md](./docs/stage5d_full_weight_native_sync.md)
+- [fitmotn_config.stage5d_3xa800_native_sync.example.json](./fitmotn_config.stage5d_3xa800_native_sync.example.json)
+
 ## 二十一、Stage 4 CUDA 验收
 
 完整方案：

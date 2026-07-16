@@ -340,6 +340,7 @@ class RLConfig:
     vllm_weight_transfer_fail_on_partial: bool = True
     vllm_weight_transfer_fallback_to_export_reload: bool = False
     vllm_weight_transfer_validate_after_sync: bool = True
+    vllm_weight_transfer_require_runtime_checksums: bool = False
     vllm_sync_validation_every: int = 1
     vllm_native_transfer_required_level: str = "four_phase"
     vllm_weight_transfer_dryrun_mode: str = "static"

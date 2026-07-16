@@ -12,6 +12,7 @@ from .schema import FitMoTNConfig
 from ..rl.device_topology import (
     normalize_rollout_actor_configs,
     normalize_visible_devices,
+    rollout_actor_specs,
     validate_actor_topology,
 )
 
@@ -672,6 +673,9 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         getattr(rl_cfg, "vllm_weight_transfer_fallback_to_export_reload", False)
     )
     rl_cfg.vllm_weight_transfer_validate_after_sync = bool(getattr(rl_cfg, "vllm_weight_transfer_validate_after_sync", True))
+    rl_cfg.vllm_weight_transfer_require_runtime_checksums = bool(
+        getattr(rl_cfg, "vllm_weight_transfer_require_runtime_checksums", False)
+    )
     rl_cfg.vllm_enable_sleep_mode = bool(getattr(rl_cfg, "vllm_enable_sleep_mode", False))
     rl_cfg.vllm_wake_weights_before_update = bool(getattr(rl_cfg, "vllm_wake_weights_before_update", True))
     rl_cfg.vllm_wake_kv_cache_after_update = bool(getattr(rl_cfg, "vllm_wake_kv_cache_after_update", True))
@@ -700,11 +704,23 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     if rl_cfg.vllm_actor_cuda_visible_devices and rl_cfg.vllm_device is None:
         rl_cfg.vllm_device = "cuda:0"
     validate_actor_topology(rl_cfg)
-    if execution_mode == "subprocess" and vllm_sync_strategy in {"weight_transfer_nccl", "weight_transfer_ipc", "weight_transfer_dryrun_runtime"}:
+    if execution_mode == "subprocess" and vllm_sync_strategy in {"weight_transfer_ipc", "weight_transfer_dryrun_runtime"}:
         raise ValueError(
-            "rl.vllm_execution_mode='subprocess' currently supports export_reload and "
-            "weight_transfer_dryrun_static only; native/runtime tensor inspection remains in-process"
+            "rl.vllm_execution_mode='subprocess' does not support IPC transfer or runtime dry-run inspection"
         )
+    if execution_mode == "subprocess" and vllm_sync_strategy == "weight_transfer_nccl":
+        if required_level != "update_only":
+            raise ValueError(
+                "subprocess NCCL sync currently targets the verified vLLM update-only API; set "
+                "rl.vllm_native_transfer_required_level='update_only'"
+            )
+        actor_specs = rollout_actor_specs(rl_cfg)
+        non_tp1 = [spec["name"] for spec in actor_specs if int(spec["tensor_parallel_size"]) != 1]
+        if non_tp1:
+            raise ValueError(
+                "subprocess NCCL sync currently requires TP1 rollout actors; "
+                f"non-TP1 actors={non_tp1}"
+            )
     if execution_mode == "subprocess" and bool(rl_cfg.vllm_allow_text_prompt_fallback):
         raise ValueError(
             "rl.vllm_allow_text_prompt_fallback is not supported by the subprocess actor; "
