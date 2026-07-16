@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import copy
 import json
 import logging
@@ -988,6 +989,10 @@ def run_fitmotn_rl_training(fit_cfg):
         trainable_mode_info=trainable_mode_info,
         logger=logger,
     )
+    # Ensure Ctrl+C and uncaught exceptions still enter the bounded vLLM
+    # Actor teardown path.  Normal completion unregisters this hook after the
+    # explicit close below.
+    atexit.register(rollout_backend.close)
     rollout_generation_config = build_generation_config_from_fit_cfg(fit_cfg)
     last_rollout_sync: Optional[RolloutSyncResult] = None
     restored_update_step = int(restored_training_state.get("update_step", 0)) if restored_training_state else 0
@@ -1500,6 +1505,8 @@ def run_fitmotn_rl_training(fit_cfg):
         rollout_backend.close()
     except Exception as exc:
         logger.warning("[RLRollout] backend close failed: %s", exc)
+    finally:
+        atexit.unregister(rollout_backend.close)
 
     final_model_dir = rl_dir / "final_model"
     final_training_state = _capture_rl_training_state(

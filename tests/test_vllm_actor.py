@@ -13,7 +13,7 @@ if "MOTE" not in sys.modules:
     mote_pkg.__path__ = [str(ROOT)]
     sys.modules["MOTE"] = mote_pkg
 
-from MOTE.rl.vllm_actor import _engine_topology_snapshot, _handle_actor_request
+from MOTE.rl.vllm_actor import VLLMActorClient, _engine_topology_snapshot, _handle_actor_request
 from MOTE.config.loader import load_config_from_json
 
 
@@ -103,6 +103,74 @@ def test_actor_protocol_load_generate_unload(monkeypatch):
     _handle_actor_request(state, {"command": "unload_engine"})
     assert state["llm"] is None
     assert calls["shutdown"] == 1
+
+
+def test_actor_close_acknowledges_before_engine_shutdown():
+    calls = []
+
+    class BlockingEngine:
+        def shutdown(self):
+            calls.append("shutdown")
+            raise AssertionError("close command must not synchronously shut down the engine")
+
+    engine = BlockingEngine()
+    state = {"llm": engine, "closed": False, "status": "READY"}
+
+    result = _handle_actor_request(state, {"command": "close"})
+
+    assert result == {"closed": True}
+    assert state["closed"] is True
+    assert state["status"] == "CLOSED"
+    assert state["llm"] is engine
+    assert calls == []
+
+
+def test_actor_client_close_uses_shutdown_timeout_and_kills_stuck_group(monkeypatch):
+    events = []
+
+    class FakeConnection:
+        def send(self, payload):
+            events.append(("send", payload["command"]))
+
+        def poll(self, timeout):
+            events.append(("poll", timeout))
+            return False
+
+        def close(self):
+            events.append(("connection_close", None))
+
+    class FakeProcess:
+        pid = 123
+
+        def __init__(self):
+            self.alive = True
+            self.exitcode = None
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout=None):
+            events.append(("join", timeout))
+
+    client = VLLMActorClient(request_timeout_sec=600.0, shutdown_timeout_sec=7.0)
+    client._process = FakeProcess()
+    client._connection = FakeConnection()
+    signals = []
+
+    def terminate(process, sig):
+        signals.append(sig.name)
+        events.append(("signal", sig.name))
+        process.alive = False
+
+    monkeypatch.setattr(client, "_terminate_actor_group", terminate)
+
+    client.close()
+
+    assert ("poll", 7.0) in events
+    assert ("poll", 600.0) not in events
+    assert signals == ["SIGTERM"]
+    assert client._process is None
+    assert client._connection is None
 
 
 def test_actor_strips_legacy_device_kwarg_for_vllm_019(monkeypatch):

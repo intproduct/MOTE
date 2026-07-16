@@ -392,8 +392,11 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         wake_fn(tags=None if tags is None else list(tags))
         return {"woke": True, "tags": tags}
     if command == "close":
-        _shutdown_engine(state.get("llm"))
-        state["llm"] = None
+        # Acknowledge the control-plane close before tearing down vLLM.  In
+        # vLLM 0.19 an EngineCore can block indefinitely while destroying an
+        # update-only NCCL receiver.  _actor_main sends this response first,
+        # then performs the best-effort shutdown from its finally block.  The
+        # parent can therefore enforce a bounded join/TERM/KILL sequence.
         state["closed"] = True
         state["status"] = "CLOSED"
         return {"closed": True}
@@ -526,11 +529,21 @@ class VLLMActorClient:
         self._pending_request = (request_id, command)
         return request_id
 
-    def _finish_request(self, request_id: int, command: str) -> Dict[str, Any]:
+    def _finish_request(
+        self,
+        request_id: int,
+        command: str,
+        *,
+        timeout_sec: Optional[float] = None,
+        force_close_on_timeout: bool = True,
+    ) -> Dict[str, Any]:
         if self._connection is None or self._process is None:
             raise RuntimeError("vLLM actor process is unavailable")
-        if not self._connection.poll(self.request_timeout_sec):
-            self.close(force=True)
+        effective_timeout = self.request_timeout_sec if timeout_sec is None else max(0.0, float(timeout_sec))
+        if not self._connection.poll(effective_timeout):
+            self._pending_request = None
+            if force_close_on_timeout:
+                self.close(force=True)
             raise TimeoutError(f"Timed out waiting for vLLM actor command={command!r}")
         try:
             response = self._connection.recv()
@@ -656,18 +669,30 @@ class VLLMActorClient:
         connection = self._connection
         if process is None:
             return
+        graceful_acknowledged = False
         if process.is_alive() and not force:
             try:
-                self._request("close")
+                request_id = self._begin_request("close")
+                self._finish_request(
+                    request_id,
+                    "close",
+                    timeout_sec=min(self.request_timeout_sec, self.shutdown_timeout_sec),
+                    force_close_on_timeout=False,
+                )
+                graceful_acknowledged = True
             except Exception:
                 force = True
-        process.join(timeout=self.shutdown_timeout_sec)
+        # Only grant a graceful EngineCore teardown window after the actor has
+        # acknowledged close.  If the control pipe itself timed out, move
+        # directly to terminating the actor process group.
+        if graceful_acknowledged:
+            process.join(timeout=self.shutdown_timeout_sec)
         if process.is_alive():
             self._terminate_actor_group(process, signal.SIGTERM)
             process.join(timeout=self.shutdown_timeout_sec)
         if process.is_alive():
             self._terminate_actor_group(process, signal.SIGKILL)
-            process.join(timeout=self.shutdown_timeout_sec)
+            process.join(timeout=min(5.0, self.shutdown_timeout_sec))
         if connection is not None:
             connection.close()
         self._connection = None
