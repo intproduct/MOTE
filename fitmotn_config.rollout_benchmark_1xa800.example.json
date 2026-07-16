@@ -1,0 +1,43 @@
+{
+  "model": {
+    "path": "${MODEL_ROOT}/fitmotn_stage4c_hf_export",
+    "dtype": "bfloat16",
+    "trust_remote_code": true
+  },
+  "data": {
+    "prompts_jsonl": "${DATA_ROOT}/gsm8k_boundary_prompts.jsonl",
+    "dataset_name": "openai/gsm8k",
+    "dataset_config": "main",
+    "split": "train",
+    "prompt_template": "Question:\n{question}\n\nSolve the problem step by step. Put the final numeric answer after ####.\nAnswer:\n"
+  },
+  "benchmark": {
+    "num_prompts": 128,
+    "group_size": 8,
+    "max_prompt_tokens": 768,
+    "warmup_rows": 8,
+    "repeats": 3,
+    "seed": 1234
+  },
+  "generation": {
+    "max_new_tokens": 256,
+    "temperature": 1.0,
+    "top_p": 0.95
+  },
+  "hf": {
+    "batch_size": 8
+  },
+  "vllm": {
+    "model_impl": "transformers",
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.7,
+    "max_model_len": 1024,
+    "max_num_seqs": 32,
+    "disable_log_stats": true
+  },
+  "backends": [
+    "hf",
+    "vllm"
+  ],
+  "output_dir": "${OUTPUT_ROOT}/rollout_benchmark_1xa800"
+}

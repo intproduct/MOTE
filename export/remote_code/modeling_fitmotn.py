@@ -183,18 +183,32 @@ class FitMoTNModel(PreTrainedModel):
 
     config_class = FitMoTNConfig
     base_model_prefix = "model"
+    # The full HF checkpoint is saved by FitMoTNForCausalLM with keys such as
+    # `model.embed_tokens.weight`.  vLLM's generic TransformersForCausalLM
+    # owns this AutoModel under another `model` attribute, so its actual target
+    # is `model.model.embed_tokens.weight`.  Declaring the conversion here
+    # prevents vLLM's standard base-prefix mapper from stripping `model.`.
+    _checkpoint_conversion_mapping = {r"^model\.(.+)": r"model.model.\1"}
     _supports_attention_backend = True
-    _keys_to_ignore_on_load_unexpected = [r"lm_head\..*"]
+    # Do not advertise lm_head as globally ignorable: vLLM reuses this list in
+    # its outer TransformersForCausalLM weight mapper and must receive the
+    # explicit lm_head weight.  Direct HF AutoModel loading filters it locally
+    # in load_state_dict below.
+    _keys_to_ignore_on_load_unexpected = None
     supports_gradient_checkpointing = True
 
     def __init__(self, config: FitMoTNConfig) -> None:
         super().__init__(config)
         self.model = _build_patched_decoder(config)
+        # PreTrainedModel.post_init() does more than initialize weights: recent
+        # Transformers versions aggregate the child model's TP/PP plans here.
+        # vLLM's Transformers backend requires `model.tp_plan` to be a dict
+        # even for tensor_parallel_size=1.
+        self.post_init()
 
     def load_state_dict(self, state_dict, strict: bool = True, assign: bool = False):
         state_dict = _remap_legacy_nested_keys(dict(state_dict))
-        if strict:
-            state_dict = {k: v for k, v in state_dict.items() if not k.startswith("lm_head.")}
+        state_dict = {k: v for k, v in state_dict.items() if not k.startswith("lm_head.")}
         return super().load_state_dict(state_dict, strict=strict, assign=assign)
 
     def forward(self, *args: Any, **kwargs: Any):
@@ -327,6 +341,24 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
         return resized
 
     def save_pretrained(self, *args: Any, **kwargs: Any):
+        # HF safetensors normally drops one side of tied embeddings and
+        # reconstructs the alias on load.  vLLM's generic Transformers loader
+        # performs strict weight coverage before tying and therefore requires
+        # an explicit `lm_head.weight`.  Clone only in the serialized state
+        # dict: values stay identical while both checkpoint keys are present.
+        safe_serialization = bool(kwargs.get("safe_serialization", True))
+        output_embeddings = self.get_output_embeddings()
+        input_embeddings = self.get_input_embeddings()
+        if (
+            safe_serialization
+            and output_embeddings is not None
+            and input_embeddings is not None
+            and getattr(output_embeddings, "weight", None) is getattr(input_embeddings, "weight", None)
+        ):
+            state_dict = dict(kwargs.get("state_dict") or self.state_dict())
+            if "lm_head.weight" in state_dict:
+                state_dict["lm_head.weight"] = state_dict["lm_head.weight"].clone()
+                kwargs["state_dict"] = state_dict
         _normalize_tied_weight_key_containers(self)
         with _skip_broken_deepspeed_probe():
             return super().save_pretrained(*args, **kwargs)

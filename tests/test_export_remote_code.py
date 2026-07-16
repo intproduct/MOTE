@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.resources as resources
 import builtins
+import re
 
 import pytest
 
@@ -105,6 +106,56 @@ def test_fitmotn_model_returns_hidden_states_not_logits(tmp_path, monkeypatch):
     assert out[0].shape[:2] == input_ids.shape
     assert out[0].shape[-1] == 8
     assert out[0].shape[-1] != 23
+
+
+def test_fitmotn_models_publish_transformers_parallel_plans():
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM, FitMoTNModel
+
+    config = _fitmotn_config_from_base(_tiny_gpt2_config())
+    decoder = FitMoTNModel(config)
+    causal_lm = FitMoTNForCausalLM(config)
+
+    assert isinstance(decoder.tp_plan, dict)
+    assert isinstance(decoder.pp_plan, dict)
+
+
+def test_fitmotn_decoder_publishes_vllm_nested_weight_mapping():
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNModel
+
+    mapping = FitMoTNModel._checkpoint_conversion_mapping
+    assert len(mapping) == 1
+    source, target = next(iter(mapping.items()))
+    assert re.sub(source, target, "model.embed_tokens.weight") == "model.model.embed_tokens.weight"
+    assert re.sub(source, target, "lm_head.weight") == "lm_head.weight"
+
+
+def test_tied_causal_lm_safe_serialization_succeeds(tmp_path):
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM
+
+    config = _fitmotn_config_from_base(_tiny_gpt2_config(tie_word_embeddings=True))
+    model = FitMoTNForCausalLM(config)
+
+    assert model.get_input_embeddings().weight is model.get_output_embeddings().weight
+    model.save_pretrained(tmp_path, safe_serialization=True)
+    assert (tmp_path / "model.safetensors").exists()
+    safetensors = pytest.importorskip("safetensors.torch")
+    saved = safetensors.load_file(tmp_path / "model.safetensors")
+    assert "model.wte.weight" in saved
+    assert "lm_head.weight" in saved
+    assert saved["model.wte.weight"].data_ptr() != saved["lm_head.weight"].data_ptr()
+    assert saved["model.wte.weight"].equal(saved["lm_head.weight"])
 
 
 def test_causal_lm_state_dict_uses_canonical_model_prefix():

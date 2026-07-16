@@ -481,6 +481,13 @@ def apply_block_to_sites(
     # ---------- 2) matmul ----------
     x_flat = x_perm.reshape(prefix_prod, d ** k_in)
     U_flat = U.reshape(d ** k_in, d ** k_out)
+    # Training commonly keeps ADTN routing/statistics in fp32 and relies on
+    # AMP for the tensor contraction.  Standalone HF/vLLM inference does not
+    # necessarily enter an autocast context, and exported weights may be
+    # loaded as fp16/bf16.  Match the contraction activation to the stored
+    # block parameter so inference is valid in every supported dtype.
+    if x_flat.is_floating_point() and x_flat.dtype != U_flat.dtype:
+        x_flat = x_flat.to(dtype=U_flat.dtype)
     y_flat = x_flat @ U_flat
 
     # ---------- 3) reshape back: [prefix..., new_dims(k_out)] ----------

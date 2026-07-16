@@ -127,6 +127,7 @@ class VLLMPolicySyncManager:
         from ..export.hf_export import export_fitmotn_hf_roundtrip
         from ..export.roundtrip import validate_hf_roundtrip
         from ..export.validate import validate_export_layout
+        from ..diagnostics.vllm_export_preflight import validate_vllm_export_preflight
 
         root = Path(getattr(self.fit_cfg.rl, "vllm_export_root", None) or (self.rl_dir / "vllm_sync")).expanduser()
         root.mkdir(parents=True, exist_ok=True)
@@ -202,6 +203,19 @@ class VLLMPolicySyncManager:
             layout = validate_export_layout(candidate_export)
             if not layout.ok:
                 raise RuntimeError(f"Stage 4C export layout validation failed for vLLM sync: {layout.errors}")
+            repository_remote_code = (
+                Path(__file__).resolve().parents[1] / "export" / "remote_code" / "modeling_fitmotn.py"
+            )
+            vllm_preflight = validate_vllm_export_preflight(
+                candidate_export,
+                expected_remote_code=repository_remote_code,
+                require_vllm=False,
+            )
+            if not vllm_preflight["ok"]:
+                raise RuntimeError(
+                    "vLLM static weight contract failed during policy sync: "
+                    + "; ".join(str(error) for error in vllm_preflight["errors"])
+                )
             if run_roundtrip:
                 roundtrip = validate_hf_roundtrip(
                     candidate_export,
@@ -225,6 +239,8 @@ class VLLMPolicySyncManager:
                     "export_name": export_dir.name,
                     "created_at_unix": time.time(),
                     "layout_warnings": list(layout.warnings),
+                    "vllm_preflight_validated": True,
+                    "vllm_preflight_warnings": list(vllm_preflight["warnings"]),
                     "roundtrip_validated": bool(run_roundtrip),
                     "roundtrip_warnings": roundtrip_warnings,
                 }

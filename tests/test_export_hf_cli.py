@@ -100,7 +100,15 @@ def test_full_export_is_opt_in_and_uses_tokenizer_default(tmp_path, monkeypatch)
 
     monkeypatch.setattr(export_cli, "export_fitmotn_hf_roundtrip", fake_export)
 
-    assert main(["--checkpoint_dir", str(raw), "--output_dir", str(out), "--no-metadata_only", "--no-validate_layout"]) == 0
+    assert main([
+        "--checkpoint_dir",
+        str(raw),
+        "--output_dir",
+        str(out),
+        "--no-metadata_only",
+        "--no-validate_layout",
+        "--no-validate_vllm_preflight",
+    ]) == 0
 
     assert calls["kwargs"]["copy_tokenizer"] is True
     assert calls["kwargs"]["base_trust_remote_code"] is False
@@ -130,6 +138,7 @@ def test_full_export_respects_no_copy_tokenizer(tmp_path, monkeypatch):
         "--safe_serialization",
         "false",
         "--no-validate_layout",
+        "--no-validate_vllm_preflight",
     ]) == 0
 
     assert calls["kwargs"]["copy_tokenizer"] is False

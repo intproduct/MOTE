@@ -52,6 +52,14 @@ def _cfg(tmp_path):
     return cfg
 
 
+@pytest.fixture(autouse=True)
+def _mock_sync_vllm_preflight(monkeypatch):
+    monkeypatch.setattr(
+        "MOTE.diagnostics.vllm_export_preflight.validate_vllm_export_preflight",
+        lambda *args, **kwargs: {"ok": True, "errors": [], "warnings": []},
+    )
+
+
 def test_vllm_backend_missing_import_raises_clear_error(tmp_path, monkeypatch):
     monkeypatch.setitem(sys.modules, "vllm", None)
     backend = VLLMRolloutBackend(

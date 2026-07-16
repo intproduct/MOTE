@@ -15,12 +15,12 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT.parent) not in sys.path:
-    sys.path.insert(0, str(ROOT.parent))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from MOTE.config import load_config
-from MOTE.diagnostics.config_doctor import inspect_config
-from MOTE.train.rl_controller import resolve_rl_output_dir
+from fitmotn.config import load_config
+from fitmotn.diagnostics.config_doctor import inspect_config
+from fitmotn.train.rl_controller import resolve_rl_output_dir
 
 
 def _write_json(path: Path, value: Any) -> None:

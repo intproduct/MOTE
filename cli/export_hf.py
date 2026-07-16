@@ -53,6 +53,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-validate", dest="validate_layout", action="store_false")
     parser.add_argument("--validate_roundtrip", dest="validate_roundtrip", action="store_true", default=False)
     parser.add_argument("--no-validate_roundtrip", dest="validate_roundtrip", action="store_false")
+    parser.add_argument(
+        "--validate_vllm_preflight",
+        dest="validate_vllm_preflight",
+        action="store_true",
+        default=True,
+        help="Run the CPU/static vLLM 0.19 weight-contract gate after a full export (default: true).",
+    )
+    parser.add_argument("--no-validate_vllm_preflight", dest="validate_vllm_preflight", action="store_false")
     parser.add_argument("--roundtrip_device", type=str, default="cpu", choices=["cpu", "cuda", "auto"])
     parser.add_argument("--base_trust_remote_code", action="store_true", default=False)
     return parser.parse_args(argv)
@@ -72,7 +80,11 @@ def _copy_tokenizer(tokenizer_source: str, output_dir: Path) -> None:
         from transformers import AutoTokenizer  # type: ignore
     except Exception as exc:
         raise ImportError("--copy_tokenizer requires transformers to be installed") from exc
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_source, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        tokenizer_source,
+        trust_remote_code=True,
+        fix_mistral_regex=True,
+    )
     tokenizer.save_pretrained(output_dir)
 
 
@@ -166,15 +178,36 @@ def main(argv: list[str] | None = None) -> int:
         if args.validate_layout:
             _print_layout_errors(result.output_dir)
         if args.validate_roundtrip:
-            rt = validate_hf_roundtrip(result.output_dir, device=roundtrip_device, torch_dtype=str(args.torch_dtype))
+            rt = validate_hf_roundtrip(
+                result.output_dir,
+                device=roundtrip_device,
+                torch_dtype=str(args.torch_dtype),
+                smoke_prompt="Question: What is 1 + 1?\nAnswer:",
+            )
             if not rt.ok:
                 for err in rt.errors:
                     print(f"[export_hf] roundtrip validation error: {err['message']}")
                 raise ValueError(f"HF roundtrip validation failed for {result.output_dir}")
             for warning in rt.warnings:
                 print(f"[export_hf] roundtrip validation warning: {warning['message']}")
+        if args.validate_vllm_preflight:
+            from ..diagnostics.vllm_export_preflight import validate_vllm_export_preflight
+
+            repository_remote_code = Path(__file__).resolve().parents[1] / "export" / "remote_code" / "modeling_fitmotn.py"
+            preflight = validate_vllm_export_preflight(
+                result.output_dir,
+                expected_remote_code=repository_remote_code,
+                require_vllm=False,
+            )
+            write_json(result.output_dir / "vllm_export_preflight.json", preflight)
+            if not preflight["ok"]:
+                for error in preflight["errors"]:
+                    print(f"[export_hf] vLLM preflight error: {error}")
+                raise ValueError(f"vLLM static preflight failed for {result.output_dir}")
+            for warning in preflight["warnings"]:
+                print(f"[export_hf] vLLM preflight warning: {warning}")
         print(f"[export_hf] wrote HF roundtrip FitMoTN export: {result.output_dir}")
-        print("[export_hf] export is Stage 4C vLLM-ready via the Transformers backend.")
+        print("[export_hf] export passed the Stage 4C static vLLM contract; GPU acceptance is still required.")
         return 0
 
     manifest, export_config = build_export_payloads(checkpoint_dir, base_model=args.base_model, tokenizer=args.tokenizer)

@@ -9,11 +9,11 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT.parent) not in sys.path:
-    sys.path.insert(0, str(ROOT.parent))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from MOTE.config import load_config
-from MOTE.diagnostics.config_doctor import inspect_config
+from fitmotn.config import load_config
+from fitmotn.diagnostics.config_doctor import inspect_config
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:

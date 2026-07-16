@@ -123,7 +123,11 @@ def validate_hf_roundtrip(export_dir: str | Path, device: str = "cpu", torch_dty
         try:
             from transformers import AutoTokenizer
 
-            tokenizer = AutoTokenizer.from_pretrained(target, trust_remote_code=True)
+            tokenizer = AutoTokenizer.from_pretrained(
+                target,
+                trust_remote_code=True,
+                fix_mistral_regex=True,
+            )
         except Exception as exc:
             errors.append(_err("tokenizer_failed", f"Tokenizer files are present but AutoTokenizer failed: {exc}", target))
 

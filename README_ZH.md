@@ -756,6 +756,17 @@ python -m fitmotn.cli.eval_vllm \
 
 错误路径会显式抛出 `NotImplementedError` 并输出 capability 信息，不会静默退化为基础模型。
 
+单卡 A800 上进行 HF/vLLM 纯 rollout 公平测速时，使用：
+
+```bash
+python scripts/benchmark_rollout_backends.py \
+  --config fitmotn_config.rollout_benchmark_1xa800.example.json
+```
+
+两个后端在独立进程中读取完全相同的预分词 prompts，并输出生成吞吐、加载时间、
+显存峰值和加速比。完整用法见
+[docs/rollout_benchmark_1xa800.md](./docs/rollout_benchmark_1xa800.md)。
+
 ## 十八、GRPO 强化学习
 
 入口：
@@ -1223,3 +1234,9 @@ python -m fitmotn.cli.inspect_dataset --config ./your_config.json --max-samples 
 ```
 
 在 NVIDIA 环境进行 Stage 4 实验时，还应完成 [Stage 4 vLLM 验收方案](./docs/stage4_vllm_validation.md) 中对应的 gate，并保留全部证据文件。
+
+特别注意：`vllm_ready=true` 仅表示 Transformers backend 的静态结构已经生成，
+不表示真实 GPU 已验收。正式 rollout 前应依次通过
+[vLLM readiness 审计](./docs/vllm_readiness_audit.md) 中的静态 preflight、单卡 TP1
+engine/generate、HF/vLLM 吞吐对比和 online policy sync。每次修改 remote code 后必须
+重新导出到新目录，并使用新的 `HF_MODULES_CACHE`。

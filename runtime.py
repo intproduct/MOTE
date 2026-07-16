@@ -51,7 +51,12 @@ def load_causal_lm_and_tokenizer(
     use_cache: Optional[bool] = None,
 ):
     model_path = str(Path(model_path).expanduser().resolve())
-    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True, trust_remote_code=trust_remote_code)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_path,
+        use_fast=True,
+        trust_remote_code=trust_remote_code,
+        fix_mistral_regex=True,
+    )
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
 

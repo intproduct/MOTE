@@ -132,6 +132,14 @@ class RouterLogits(nn.Module):
         return int(sum(p.numel() for p in self.parameters()))
 
     def forward(self, x: tc.Tensor) -> tc.Tensor:
+        # ADTN deliberately performs routing statistics in fp32, while an HF
+        # `from_pretrained(dtype=...)` load may cast the exported router to
+        # fp16/bf16.  Always align the activation with the actual router
+        # parameters before the Linear/LayerNorm operations; logits are
+        # promoted to fp32 by the caller before softmax/top-k.
+        ref = next(self.parameters(), None)
+        if ref is not None and x.is_floating_point() and x.dtype != ref.dtype:
+            x = x.to(dtype=ref.dtype)
         if self.gate_arch == "linear":
             return self.linear(x)
         if self.gate_arch == "mlp":

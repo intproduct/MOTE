@@ -68,6 +68,14 @@ def _manager(cfg, tmp_path):
     )
 
 
+@pytest.fixture(autouse=True)
+def _mock_sync_vllm_preflight(monkeypatch):
+    monkeypatch.setattr(
+        "MOTE.diagnostics.vllm_export_preflight.validate_vllm_export_preflight",
+        lambda *args, **kwargs: {"ok": True, "errors": [], "warnings": []},
+    )
+
+
 def _patch_export_reload(monkeypatch):
     def fake_export(checkpoint_dir, output_dir, **kwargs):
         Path(output_dir).mkdir(parents=True, exist_ok=True)
