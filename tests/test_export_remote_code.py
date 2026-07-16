@@ -212,6 +212,61 @@ def test_tied_weight_key_containers_remain_compatible_after_tie_weights():
         list(dynamic_tied.keys())
 
 
+def test_untied_config_never_aliases_lm_head_when_transformers_calls_tie_weights():
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+    torch = pytest.importorskip("torch")
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM
+
+    config = _fitmotn_config_from_base(_tiny_gpt2_config(tie_word_embeddings=False))
+    model = FitMoTNForCausalLM(config)
+    with torch.no_grad():
+        model.get_input_embeddings().weight.zero_()
+        model.get_output_embeddings().weight.fill_(0.25)
+    expected_head = model.get_output_embeddings().weight.detach().clone()
+
+    model.tie_weights()
+
+    assert model.get_input_embeddings().weight is not model.get_output_embeddings().weight
+    assert torch.equal(model.get_output_embeddings().weight, expected_head)
+    assert "lm_head.weight" not in model.all_tied_weights_keys
+
+
+def test_untied_lm_head_survives_auto_model_roundtrip(tmp_path, monkeypatch):
+    transformers = pytest.importorskip("transformers")
+    if not transformers.utils.is_torch_available():
+        pytest.skip("transformers reports torch unavailable in this environment")
+    torch = pytest.importorskip("torch")
+    from transformers import AutoModelForCausalLM
+    import transformers.dynamic_module_utils as dynamic_module_utils
+
+    from fitmotn.export.remote_code.modeling_fitmotn import FitMoTNForCausalLM
+
+    monkeypatch.setenv("HF_MODULES_CACHE", str(tmp_path / "hf_modules_cache"))
+    monkeypatch.setattr(dynamic_module_utils, "HF_MODULES_CACHE", str(tmp_path / "hf_modules_cache"))
+    config = _fitmotn_config_from_base(
+        _tiny_gpt2_config(vocab_size=16, hidden_size=8, tie_word_embeddings=False)
+    )
+    model = FitMoTNForCausalLM(config)
+    with torch.no_grad():
+        model.get_input_embeddings().weight.zero_()
+        model.get_output_embeddings().weight.fill_(0.25)
+    expected_head = model.get_output_embeddings().weight.detach().clone()
+    model.save_pretrained(tmp_path, safe_serialization=True)
+    package = "fitmotn.export.remote_code"
+    for filename in ("configuration_fitmotn.py", "modeling_fitmotn.py"):
+        source = resources.files(package).joinpath(filename)
+        (tmp_path / filename).write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+    loaded = AutoModelForCausalLM.from_pretrained(tmp_path, trust_remote_code=True)
+
+    assert loaded.get_input_embeddings().weight is not loaded.get_output_embeddings().weight
+    assert torch.equal(loaded.get_output_embeddings().weight, expected_head)
+    assert not torch.equal(loaded.get_input_embeddings().weight, expected_head)
+
+
 def test_tiny_noop_hf_roundtrip(tmp_path, monkeypatch):
     transformers = pytest.importorskip("transformers")
     if not transformers.utils.is_torch_available():

@@ -317,6 +317,15 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
         return self.model
 
     def tie_weights(self):
+        # Transformers calls tie_weights() after from_pretrained() even when
+        # the architecture declares an untied output head.  Respect the base
+        # model contract here: otherwise a correctly loaded independent
+        # lm_head is silently replaced by input embeddings and HF logits no
+        # longer match the checkpoint or vLLM.
+        if not bool(getattr(self.config, "tie_word_embeddings", False)):
+            self._sync_tied_weight_keys()
+            _normalize_tied_weight_key_containers(self)
+            return None
         output_embeddings = self.get_output_embeddings()
         input_embeddings = self.get_input_embeddings()
         if output_embeddings is not None and input_embeddings is not None:
