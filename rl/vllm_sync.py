@@ -11,6 +11,7 @@ from .rollout_backends import RolloutSyncResult
 from .vllm_weight_mapping import (
     build_weight_mapping_report,
     selected_tensor_checksums,
+    validate_trainable_patch_transfer_selection,
 )
 from .vllm_weight_transfer_capabilities import (
     VLLMWeightTransferCapabilityReport,
@@ -31,6 +32,7 @@ from .vllm_integrity import (
     atomic_write_json,
     directory_size_bytes,
     load_json_object,
+    model_named_parameter_fingerprint,
     model_policy_fingerprint,
 )
 
@@ -46,6 +48,7 @@ class VLLMPolicySyncManager:
         rl_dir: Path,
         save_policy_checkpoint: SavePolicyCheckpointFn,
         logger=None,
+        transfer_training_names: Optional[Sequence[str]] = None,
     ):
         self.fit_cfg = fit_cfg
         self.rl_dir = Path(rl_dir)
@@ -61,10 +64,74 @@ class VLLMPolicySyncManager:
         self.actor_weight_transfer_master_ports: Dict[str, int] = {}
         self.actor_trainer_nccl_groups: Dict[str, Any] = {}
         self.actor_capability_reports: Dict[str, Dict[str, Any]] = {}
+        self.transfer_training_names = tuple(str(name) for name in (transfer_training_names or ()))
+        self.patch_transfer_validation: Optional[Dict[str, Any]] = None
+        self.frozen_parameter_fingerprint: Optional[str] = None
+        self.frozen_parameter_versions: Dict[str, int] = {}
 
     @property
     def strategy(self) -> str:
         return str(getattr(self.fit_cfg.rl, "vllm_sync_strategy", "export_reload") or "export_reload").strip().lower()
+
+    @property
+    def transfer_scope(self) -> str:
+        return str(
+            getattr(self.fit_cfg.rl, "vllm_weight_transfer_scope", "full_policy") or "full_policy"
+        ).strip().lower()
+
+    def _mapping(self, model, *, runtime_params: Optional[Dict[str, Any]] = None):
+        selected_names = None
+        if self.transfer_scope == "trainable_patch":
+            if not self.transfer_training_names:
+                raise RuntimeError("trainable_patch native sync requires an explicit immutable transfer allowlist")
+            self.patch_transfer_validation = validate_trainable_patch_transfer_selection(
+                model,
+                transfer_training_names=self.transfer_training_names,
+            )
+            selected_names = self.transfer_training_names
+        return build_weight_mapping_report(
+            model,
+            runtime_params=runtime_params,
+            selected_training_names=selected_names,
+            transfer_scope=self.transfer_scope,
+        )
+
+    def _frozen_drift_metadata(self, model, *, initialize: bool = False) -> Dict[str, Any]:
+        if self.transfer_scope != "trainable_patch":
+            return {}
+        transfer_names = set(self.transfer_training_names)
+        frozen_params = {name: param for name, param in model.named_parameters() if name not in transfer_names}
+        frozen_names = list(frozen_params)
+        if initialize or self.frozen_parameter_fingerprint is None:
+            self.frozen_parameter_fingerprint = model_named_parameter_fingerprint(
+                model,
+                parameter_names=frozen_names,
+                sample_elements_per_tensor=int(
+                    getattr(self.fit_cfg.rl, "vllm_policy_fingerprint_samples_per_tensor", 16)
+                ),
+                selection_label="frozen_policy_guard",
+            )
+            self.frozen_parameter_versions = {
+                name: int(getattr(param, "_version", 0))
+                for name, param in frozen_params.items()
+            }
+        changed_versions = sorted(
+            name
+            for name, param in frozen_params.items()
+            if int(getattr(param, "_version", 0)) != self.frozen_parameter_versions.get(name)
+        )
+        if changed_versions:
+            raise RuntimeError(
+                "frozen policy parameters changed during trainable_patch native sync; "
+                "refusing a patch-only update because the Actor would become stale; "
+                f"changed={changed_versions[:20]}"
+            )
+        return {
+            "frozen_parameter_count": len(frozen_names),
+            "frozen_parameter_fingerprint": self.frozen_parameter_fingerprint,
+            "frozen_parameter_guard": "torch_parameter_version",
+            "frozen_parameter_drift": False,
+        }
 
     @property
     def sync_every_updates(self) -> int:
@@ -352,7 +419,7 @@ class VLLMPolicySyncManager:
         return self.capability_report
 
     def _mapping_metadata(self, *, model, runtime_params: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-        report = build_weight_mapping_report(model, runtime_params=runtime_params)
+        report = self._mapping(model, runtime_params=runtime_params)
         checksums = selected_tensor_checksums(report, model)
         return {
             "weight_mapping_report": report.to_dict(),
@@ -361,6 +428,13 @@ class VLLMPolicySyncManager:
             "weight_transfer_coverage_ratio": float(report.coverage),
             "weight_transfer_motn_coverage_ratio": float(report.motn_coverage),
             "weight_transfer_runtime_inspection_available": bool(report.runtime_inspection_available),
+            "vllm_weight_transfer_scope": report.transfer_scope,
+            "weight_transfer_plan_fingerprint": report.transfer_plan_fingerprint,
+            "full_policy_tensor_count": int(report.full_tensor_count),
+            "full_policy_bytes": int(report.full_num_bytes),
+            "weight_transfer_payload_ratio": float(report.payload_ratio),
+            "weight_transfer_payload_reduction_ratio": float(1.0 - report.payload_ratio),
+            "patch_transfer_validation": self.patch_transfer_validation,
             "motn_required_key_count": int(len(report.required_motn_keys)),
             "motn_transferred_key_count": int(len(report.transferred_motn_keys)),
             "motn_required_keys": list(report.required_motn_keys),
@@ -378,12 +452,19 @@ class VLLMPolicySyncManager:
         report = metadata.get("weight_mapping_report", {})
         coverage = float(metadata.get("weight_transfer_coverage_ratio", 0.0))
         motn_coverage = float(metadata.get("weight_transfer_motn_coverage_ratio", 0.0))
-        if coverage >= 1.0 and motn_coverage >= 1.0 and not report.get("shape_mismatches") and not report.get("dtype_mismatches"):
+        if (
+            coverage >= 1.0
+            and motn_coverage >= 1.0
+            and not report.get("missing_in_training_model")
+            and not report.get("shape_mismatches")
+            and not report.get("dtype_mismatches")
+        ):
             return
         message = (
             "vLLM native weight-transfer coverage is incomplete: "
             f"coverage={coverage:.6f}, motn_coverage={motn_coverage:.6f}, "
             f"missing_in_vllm={report.get('missing_in_vllm', [])}, "
+            f"missing_in_training_model={report.get('missing_in_training_model', [])}, "
             f"shape_mismatches={report.get('shape_mismatches', [])}, "
             f"dtype_mismatches={report.get('dtype_mismatches', [])}"
         )
@@ -471,6 +552,8 @@ class VLLMPolicySyncManager:
                 {
                     "vllm_sync_strategy_requested": self.strategy,
                     "vllm_weight_transfer_bootstrap": True,
+                    "vllm_weight_transfer_scope": self.transfer_scope,
+                    **self._frozen_drift_metadata(model, initialize=True),
                 }
             )
             return result
@@ -492,6 +575,7 @@ class VLLMPolicySyncManager:
             "native_transfer_level": report.native_transfer_level,
             "native_transfer_capability_report": report.to_dict(),
             **self._mapping_metadata(model=model, runtime_params=runtime_params),
+            **self._frozen_drift_metadata(model),
         }
         try:
             self._enforce_mapping_coverage(metadata)
@@ -612,12 +696,14 @@ class VLLMPolicySyncManager:
         """
         if not actors:
             raise RuntimeError("subprocess native transfer requires at least one rollout actor")
-        mapping = build_weight_mapping_report(model)
+        mapping = self._mapping(model)
         expected_checksums = selected_tensor_checksums(mapping, model)
         descriptor = {
             "policy_version": int(update_step),
             "policy_fingerprint": str(policy_fingerprint),
             "export_dir": None if self.export_dir is None else str(self.export_dir),
+            "weight_transfer_scope": self.transfer_scope,
+            "weight_transfer_plan_fingerprint": mapping.transfer_plan_fingerprint,
         }
         prompt_ids = self._validation_prompt_token_ids(tokenizer)
         require_checksums = bool(
@@ -666,6 +752,8 @@ class VLLMPolicySyncManager:
             request_id = client.begin_weight_update(
                 update_info=nccl_update_request_payload(mapping, packed=settings.packed),
                 policy_descriptor=descriptor,
+                transfer_scope=self.transfer_scope,
+                transfer_plan_fingerprint=mapping.transfer_plan_fingerprint,
                 expected_checksums=expected_checksums,
                 validation_prompt_token_ids=prompt_ids,
                 require_runtime_checksums=require_checksums,
@@ -730,7 +818,7 @@ class VLLMPolicySyncManager:
         }
 
     def _run_nccl_update(self, *, adapter, llm, model, update_step: int) -> Dict[str, Any]:
-        mapping = build_weight_mapping_report(model)
+        mapping = self._mapping(model)
         start = time.perf_counter()
         result, initialized = adapter.transfer(
             llm=llm,
@@ -764,7 +852,7 @@ class VLLMPolicySyncManager:
         runtime_params = self._collect_llm_named_parameters(llm)
         if not runtime_params:
             raise RuntimeError("Post-sync validation could not inspect vLLM tensor names/checksums")
-        mapping = build_weight_mapping_report(model, runtime_params=runtime_params)
+        mapping = self._mapping(model, runtime_params=runtime_params)
         hf_checksums = selected_tensor_checksums(mapping, model)
         vllm_checksums: Dict[str, float] = {}
         for name in hf_checksums:

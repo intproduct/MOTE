@@ -58,8 +58,35 @@ def model_policy_fingerprint(model: Any, *, sample_elements_per_tensor: int = 16
     named_parameters = getattr(model, "named_parameters", None)
     if not callable(named_parameters):
         return canonical_json_fingerprint({"type": type(model).__qualname__})
+    parameters = list(named_parameters())
+    trainable = [(name, tensor) for name, tensor in parameters if bool(tensor.requires_grad)]
+    selected = trainable or parameters
+    return model_named_parameter_fingerprint(
+        model,
+        parameter_names=[str(name) for name, _tensor in selected],
+        sample_elements_per_tensor=sample_elements_per_tensor,
+        selection_label=f"policy_selected={len(selected)};total={len(parameters)}",
+    )
+
+
+def model_named_parameter_fingerprint(
+    model: Any,
+    *,
+    parameter_names: Sequence[str],
+    sample_elements_per_tensor: int = 16,
+    selection_label: str = "explicit",
+) -> str:
+    named_parameters = getattr(model, "named_parameters", None)
+    if not callable(named_parameters):
+        return canonical_json_fingerprint({"type": type(model).__qualname__, "selection": selection_label})
+    parameters = dict(named_parameters())
+    requested = {str(name) for name in parameter_names}
+    missing = sorted(requested - set(parameters))
+    if missing:
+        raise RuntimeError(f"fingerprint selection contains unknown parameters: {missing}")
     digest = hashlib.sha256()
     digest.update(type(model).__qualname__.encode("utf-8"))
+    digest.update(str(selection_label).encode("utf-8"))
     config = getattr(model, "config", None)
     digest.update(
         canonical_json_fingerprint(
@@ -70,11 +97,9 @@ def model_policy_fingerprint(model: Any, *, sample_elements_per_tensor: int = 16
             }
         ).encode("ascii")
     )
-    parameters = list(named_parameters())
-    trainable = [(name, tensor) for name, tensor in parameters if bool(tensor.requires_grad)]
-    selected = trainable or parameters
-    digest.update(f"selected={len(selected)};total={len(parameters)}".encode("ascii"))
-    for name, tensor in sorted(selected, key=lambda item: str(item[0])):
+    digest.update(f"selected={len(requested)};total={len(parameters)}".encode("ascii"))
+    for name in sorted(requested):
+        tensor = parameters[name]
         digest.update(str(name).encode("utf-8"))
         digest.update(str(tuple(tensor.shape)).encode("ascii"))
         digest.update(str(tensor.dtype).encode("ascii"))

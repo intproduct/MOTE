@@ -263,12 +263,28 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
             raise RuntimeError("vLLM actor weight transfer engine is not initialized")
         state["status"] = "UPDATING"
         state["pending_policy_descriptor"] = dict(request.get("policy_descriptor") or {})
+        update_payload = dict(request.get("update_info") or {})
+        transfer_scope = str(request.get("transfer_scope") or "full_policy")
+        transfer_names = [str(name) for name in update_payload.get("names", [])]
+        transfer_plan_fingerprint = str(request.get("transfer_plan_fingerprint") or "")
+        descriptor_plan_fingerprint = str(
+            state["pending_policy_descriptor"].get("weight_transfer_plan_fingerprint") or ""
+        )
+        if transfer_scope == "trainable_patch" and not transfer_names:
+            state["status"] = "FAILED"
+            raise RuntimeError("trainable_patch update contains no tensors")
+        if transfer_plan_fingerprint != descriptor_plan_fingerprint:
+            state["status"] = "FAILED"
+            raise RuntimeError(
+                "weight-transfer plan fingerprint does not match pending policy descriptor: "
+                f"request={transfer_plan_fingerprint!r}, descriptor={descriptor_plan_fingerprint!r}"
+            )
         start = time.perf_counter()
         try:
             from vllm.distributed.weight_transfer.nccl_engine import NCCLWeightTransferUpdateInfo  # type: ignore
             from .vllm_weight_transfer_adapters import _wrap_update_request
 
-            update_info = NCCLWeightTransferUpdateInfo(**dict(request["update_info"]))
+            update_info = NCCLWeightTransferUpdateInfo(**update_payload)
             llm.update_weights(_wrap_update_request(update_info))
             state["status"] = "VALIDATING"
             cache = _invalidate_generation_caches(llm)
@@ -312,6 +328,12 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                 "rollout_facing_validation": rollout_validation,
                 "engine_process_id": int(os.getpid()),
                 "engine_resources": _cuda_resource_snapshot(),
+                "received_weight_update_contract": {
+                    "transfer_scope": transfer_scope,
+                    "transfer_plan_fingerprint": transfer_plan_fingerprint,
+                    "tensor_count": len(transfer_names),
+                    "first_names": transfer_names[:8],
+                },
             }
         except Exception:
             state["status"] = "FAILED"
@@ -611,12 +633,16 @@ class VLLMActorClient:
         policy_descriptor: Dict[str, Any],
         expected_checksums: Dict[str, float],
         validation_prompt_token_ids: Optional[list[int]],
+        transfer_scope: str = "full_policy",
+        transfer_plan_fingerprint: str = "",
         require_runtime_checksums: bool = False,
     ) -> int:
         return self._begin_request(
             "receive_weight_update",
             update_info=dict(update_info),
             policy_descriptor=dict(policy_descriptor),
+            transfer_scope=str(transfer_scope),
+            transfer_plan_fingerprint=str(transfer_plan_fingerprint),
             expected_checksums=dict(expected_checksums),
             validation_prompt_token_ids=validation_prompt_token_ids,
             require_runtime_checksums=bool(require_runtime_checksums),

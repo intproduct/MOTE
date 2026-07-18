@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+import hashlib
+import json
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import torch
@@ -42,6 +44,11 @@ class VLLMWeightMappingReport:
     tensor_count: int = 0
     num_bytes: int = 0
     runtime_inspection_available: bool = False
+    transfer_scope: str = "full_policy"
+    transfer_plan_fingerprint: str = ""
+    full_tensor_count: int = 0
+    full_num_bytes: int = 0
+    payload_ratio: float = 1.0
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
@@ -114,9 +121,18 @@ def build_weight_mapping_report(
     model: torch.nn.Module,
     *,
     runtime_params: Optional[Mapping[str, Any]] = None,
+    selected_training_names: Optional[Sequence[str]] = None,
+    transfer_scope: str = "full_policy",
 ) -> VLLMWeightMappingReport:
     base_prefix = str(getattr(model, "base_model_prefix", "model") or "model")
-    training_params = dict(model.named_parameters())
+    all_training_params = dict(model.named_parameters())
+    selected_set = None if selected_training_names is None else {str(name) for name in selected_training_names}
+    missing_in_training = sorted(selected_set - set(all_training_params)) if selected_set is not None else []
+    training_params = {
+        name: tensor
+        for name, tensor in all_training_params.items()
+        if selected_set is None or name in selected_set
+    }
     motn_roles = collect_module_aware_motn_keys(model)
     runtime = _runtime_param_map(runtime_params)
     entries: List[WeightMappingEntry] = []
@@ -185,9 +201,23 @@ def build_weight_mapping_report(
     transferred_motn_set = set(transferred_motn)
     motn_covered_count = sum(1 for key in required_motn_transfer if key in transferred_motn_set and key not in missing_in_vllm)
     motn_coverage = 1.0 if not required_motn_transfer else float(motn_covered_count / len(required_motn_transfer))
+    full_num_bytes = sum(_tensor_num_bytes(tensor) for tensor in all_training_params.values())
+    plan_payload = [
+        {
+            "training_name": entry.training_name,
+            "transfer_name": entry.transfer_name,
+            "shape": entry.shape,
+            "dtype": entry.dtype,
+        }
+        for entry in entries
+    ]
+    plan_fingerprint = hashlib.sha256(
+        json.dumps(plan_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    selected_num_bytes = sum(entry.num_bytes for entry in entries)
     return VLLMWeightMappingReport(
         entries=entries,
-        missing_in_training_model=[],
+        missing_in_training_model=missing_in_training,
         missing_in_vllm=sorted(set(missing_in_vllm)),
         shape_mismatches=shape_mismatches,
         dtype_mismatches=dtype_mismatches,
@@ -197,9 +227,82 @@ def build_weight_mapping_report(
         coverage=coverage,
         motn_coverage=motn_coverage,
         tensor_count=len(entries),
-        num_bytes=sum(entry.num_bytes for entry in entries),
+        num_bytes=selected_num_bytes,
         runtime_inspection_available=bool(runtime),
+        transfer_scope=str(transfer_scope),
+        transfer_plan_fingerprint=plan_fingerprint,
+        full_tensor_count=len(all_training_params),
+        full_num_bytes=full_num_bytes,
+        payload_ratio=float(selected_num_bytes / max(1, full_num_bytes)),
     )
+
+
+def validate_trainable_patch_transfer_selection(
+    model: torch.nn.Module,
+    *,
+    transfer_training_names: Sequence[str],
+    optimizer: Optional[torch.optim.Optimizer] = None,
+) -> Dict[str, Any]:
+    """Fail closed unless transfer, requires-grad, and optimizer sets match."""
+    params = dict(model.named_parameters())
+    configured = {str(name) for name in transfer_training_names}
+    live = {name for name, param in params.items() if bool(param.requires_grad)}
+    missing = sorted(configured - set(params))
+    if missing:
+        raise RuntimeError(f"patch transfer selection contains unknown model parameters: {missing}")
+    if configured != live:
+        raise RuntimeError(
+            "patch transfer selection does not match requires_grad parameters: "
+            f"missing_from_transfer={sorted(live - configured)}, "
+            f"unexpected_in_transfer={sorted(configured - live)}"
+        )
+
+    optimizer_names: Optional[set[str]] = None
+    if optimizer is not None:
+        names_by_id = {id(param): name for name, param in params.items()}
+        unnamed: List[int] = []
+        optimizer_names = set()
+        for group in optimizer.param_groups:
+            for param in group.get("params", []):
+                name = names_by_id.get(id(param))
+                if name is None:
+                    unnamed.append(id(param))
+                else:
+                    optimizer_names.add(name)
+        if unnamed:
+            raise RuntimeError(f"optimizer contains parameters absent from model.named_parameters: {unnamed}")
+        if optimizer_names != configured:
+            raise RuntimeError(
+                "patch transfer selection does not match optimizer parameters: "
+                f"missing_from_transfer={sorted(optimizer_names - configured)}, "
+                f"not_in_optimizer={sorted(configured - optimizer_names)}"
+            )
+
+    report = build_weight_mapping_report(
+        model,
+        selected_training_names=sorted(configured),
+        transfer_scope="trainable_patch",
+    )
+    if not report.entries:
+        raise RuntimeError("patch transfer selection is empty")
+    motn_training_names = set(collect_module_aware_motn_keys(model))
+    outside_patch = sorted(configured - motn_training_names)
+    if outside_patch:
+        raise RuntimeError(
+            "trainable_patch transfer contains parameters outside module-aware MoTN patch modules: "
+            f"{outside_patch}"
+        )
+    return {
+        "transfer_scope": "trainable_patch",
+        "transfer_training_name_count": len(configured),
+        "optimizer_training_name_count": None if optimizer_names is None else len(optimizer_names),
+        "transfer_plan_fingerprint": report.transfer_plan_fingerprint,
+        "weight_transfer_tensor_count": report.tensor_count,
+        "weight_transfer_bytes": report.num_bytes,
+        "full_policy_tensor_count": report.full_tensor_count,
+        "full_policy_bytes": report.full_num_bytes,
+        "weight_transfer_payload_ratio": report.payload_ratio,
+    }
 
 
 def iter_transfer_tensors(report: VLLMWeightMappingReport, model: torch.nn.Module) -> Iterable[Tuple[str, torch.Tensor]]:
@@ -215,9 +318,13 @@ def selected_tensor_checksums(
     max_tensors: int = 8,
 ) -> Dict[str, float]:
     params = dict(model.named_parameters())
-    selected = [entry for entry in report.entries if entry.is_motn][: max(1, int(max_tensors))]
-    if not selected:
-        selected = report.entries[: max(1, int(max_tensors))]
+    candidates = [entry for entry in report.entries if entry.is_motn] or list(report.entries)
+    take = min(len(candidates), max(1, int(max_tensors)))
+    if take <= 1:
+        selected = candidates[:take]
+    else:
+        indices = sorted({round(index * (len(candidates) - 1) / (take - 1)) for index in range(take)})
+        selected = [candidates[index] for index in indices]
     checksums: Dict[str, float] = {}
     with torch.no_grad():
         for entry in selected:

@@ -332,6 +332,7 @@ class RLConfig:
     vllm_export_temp_max_age_sec: float = 3600.0
     vllm_policy_fingerprint_samples_per_tensor: int = 16
     vllm_weight_transfer_backend: str = "nccl"
+    vllm_weight_transfer_scope: str = "full_policy"
     vllm_weight_transfer_packed: bool = True
     vllm_weight_transfer_timeout_sec: float = 300.0
     vllm_weight_transfer_master_addr: str = "127.0.0.1"

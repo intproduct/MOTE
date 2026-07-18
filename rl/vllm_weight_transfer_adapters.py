@@ -104,7 +104,7 @@ def trainer_send_weights_to_actor(
     settings: NCCLTransferSettings,
     group: Any,
 ) -> Dict[str, Any]:
-    """Send a full checkpoint-format policy to an already waiting actor.
+    """Send the mapping-selected checkpoint-format tensors to a waiting actor.
 
     The receiver must have entered ``LLM.update_weights`` before this function
     is called.  Keeping the trainer half here avoids importing the training
@@ -129,7 +129,7 @@ def trainer_send_weights_to_actor(
         future.cancel()
         executor.shutdown(wait=False, cancel_futures=True)
         raise TimeoutError(
-            "Timed out sending full policy to subprocess vLLM actor; "
+            "Timed out sending selected policy tensors to subprocess vLLM actor; "
             "the actor and trainer NCCL group must be discarded. "
             f"timeout_sec={settings.timeout_sec}"
         )

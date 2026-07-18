@@ -22,7 +22,10 @@ setattr(sys.modules["MOTE"], "rl", sys.modules["MOTE.rl"])
 
 from MOTE.config.defaults import make_default_config
 from MOTE.rl.vllm_sync import VLLMPolicySyncManager
-from MOTE.rl.vllm_weight_mapping import build_weight_mapping_report
+from MOTE.rl.vllm_weight_mapping import (
+    build_weight_mapping_report,
+    validate_trainable_patch_transfer_selection,
+)
 from MOTE.rl.vllm_weight_transfer_capabilities import (
     VLLMWeightTransferCapabilityReport,
     probe_vllm_weight_transfer_capabilities,
@@ -62,11 +65,12 @@ def _cfg(tmp_path):
     return cfg
 
 
-def _manager(cfg, tmp_path):
+def _manager(cfg, tmp_path, transfer_training_names=None):
     return VLLMPolicySyncManager(
         fit_cfg=cfg,
         rl_dir=tmp_path,
         save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: Path(output_dir),
+        transfer_training_names=transfer_training_names,
     )
 
 
@@ -225,6 +229,61 @@ def test_module_aware_motn_report_uses_exact_required_keys():
     assert "core.global_block.weight" in report.required_motn_keys
     assert all("not_router_string" not in key for key in report.required_motn_keys)
     assert report.motn_coverage == 1.0
+
+
+def test_trainable_patch_mapping_matches_optimizer_and_reduces_payload():
+    model = TinyMoTNModel()
+    for param in model.parameters():
+        param.requires_grad_(False)
+    transfer_names = []
+    for name, param in model.named_parameters():
+        if name.startswith("core."):
+            param.requires_grad_(True)
+            transfer_names.append(name)
+    optimizer = torch.optim.AdamW([param for param in model.parameters() if param.requires_grad], lr=1e-3)
+
+    validation = validate_trainable_patch_transfer_selection(
+        model,
+        transfer_training_names=transfer_names,
+        optimizer=optimizer,
+    )
+    report = build_weight_mapping_report(
+        model,
+        selected_training_names=transfer_names,
+        transfer_scope="trainable_patch",
+    )
+
+    assert validation["transfer_plan_fingerprint"] == report.transfer_plan_fingerprint
+    assert report.transfer_scope == "trainable_patch"
+    assert report.tensor_count == len(transfer_names)
+    assert report.tensor_count < report.full_tensor_count
+    assert 0.0 < report.payload_ratio < 1.0
+    assert all(entry.training_name.startswith("core.") for entry in report.entries)
+
+
+def test_trainable_patch_selection_fails_on_optimizer_or_live_drift():
+    model = TinyMoTNModel()
+    names = [name for name, _param in model.named_parameters()]
+    with pytest.raises(RuntimeError, match="requires_grad"):
+        validate_trainable_patch_transfer_selection(
+            model,
+            transfer_training_names=names[:-1],
+        )
+
+    for param in model.parameters():
+        param.requires_grad_(False)
+    patch_names = []
+    for name, param in model.named_parameters():
+        if name.startswith("core."):
+            param.requires_grad_(True)
+            patch_names.append(name)
+    incomplete_optimizer = torch.optim.AdamW([dict(model.named_parameters())[patch_names[0]]], lr=1e-3)
+    with pytest.raises(RuntimeError, match="optimizer parameters"):
+        validate_trainable_patch_transfer_selection(
+            model,
+            transfer_training_names=patch_names,
+            optimizer=incomplete_optimizer,
+        )
 
 
 def test_weight_transfer_nccl_refuses_update_only_without_explicit_fallback(tmp_path, monkeypatch):
@@ -531,6 +590,80 @@ def test_subprocess_update_only_sync_commits_all_actors_after_receives(tmp_path,
     assert second.policy_version == 2
     assert sends == [32000, 32001, 32000, 32001]
     assert all(sum(call[0] == "begin_init" for call in actor.calls if isinstance(call, tuple)) == 1 for actor in actors)
+
+
+def test_subprocess_trainable_patch_sync_sends_only_allowlisted_parameters(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_sync_strategy = "weight_transfer_nccl"
+    cfg.rl.vllm_native_transfer_required_level = "update_only"
+    cfg.rl.vllm_weight_transfer_scope = "trainable_patch"
+    cfg.rl.vllm_weight_transfer_master_port = 32200
+    model = TinyMoTNModel()
+    for param in model.parameters():
+        param.requires_grad_(False)
+    transfer_names = []
+    for name, param in model.named_parameters():
+        if name.startswith("core."):
+            param.requires_grad_(True)
+            transfer_names.append(name)
+    manager = _manager(cfg, tmp_path, transfer_training_names=transfer_names)
+    manager.policy_version = 0
+    manager.export_dir = tmp_path / "hf-policy-u0"
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.probe_vllm_weight_transfer_capabilities",
+        lambda: VLLMWeightTransferCapabilityReport(True, "0.19.0", "update_only"),
+    )
+    sent_mappings = []
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.trainer_send_weights_to_actor",
+        lambda **kwargs: sent_mappings.append(kwargs["mapping"]) or {"trainer_send_sec": 0.1},
+    )
+    monkeypatch.setattr(
+        "MOTE.rl.vllm_sync.trainer_initialize_nccl_group",
+        lambda settings: f"group-{settings.master_port}",
+    )
+    actors = [_FakeSubprocessActor("actor_0"), _FakeSubprocessActor("actor_1")]
+
+    result = manager.sync(
+        model=model,
+        tokenizer=None,
+        update_step=1,
+        force=True,
+        actors=[
+            ("actor_0", actors[0], {"tensor_parallel_size": 1}),
+            ("actor_1", actors[1], {"tensor_parallel_size": 1}),
+        ],
+    )
+
+    assert result.metadata["vllm_weight_transfer_scope"] == "trainable_patch"
+    assert result.metadata["weight_transfer_payload_ratio"] < 1.0
+    assert len(sent_mappings) == 2
+    assert all(
+        {entry.training_name for entry in mapping.entries} == set(transfer_names)
+        for mapping in sent_mappings
+    )
+    assert all(actor.descriptor["weight_transfer_scope"] == "trainable_patch" for actor in actors)
+
+
+def test_trainable_patch_sync_rejects_frozen_parameter_drift(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_sync_strategy = "weight_transfer_nccl"
+    cfg.rl.vllm_weight_transfer_scope = "trainable_patch"
+    model = TinyMoTNModel()
+    for param in model.parameters():
+        param.requires_grad_(False)
+    transfer_names = []
+    for name, param in model.named_parameters():
+        if name.startswith("core."):
+            param.requires_grad_(True)
+            transfer_names.append(name)
+    manager = _manager(cfg, tmp_path, transfer_training_names=transfer_names)
+    manager._frozen_drift_metadata(model, initialize=True)
+    with torch.no_grad():
+        model.not_router_string.weight.add_(1.0)
+
+    with pytest.raises(RuntimeError, match="frozen policy parameters changed"):
+        manager._frozen_drift_metadata(model)
 
 
 def test_subprocess_partial_receive_failure_never_commits_or_advances_policy(tmp_path, monkeypatch):

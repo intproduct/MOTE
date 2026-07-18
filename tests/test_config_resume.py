@@ -296,6 +296,10 @@ class ConfigResumeTests(unittest.TestCase):
             ({"rl": {"enabled": True, "max_steps": 1, "zero_advantage_retry_action": "stop"}}, "rl.zero_advantage_retry_action must be one of"),
             ({"data": {"reasoning_format": "xml"}}, "data.reasoning_format must be one of"),
             ({"rl": {"enabled": True, "max_steps": 1, "prompt_format": "xml"}}, "rl.prompt_format must be one of"),
+            (
+                {"rl": {"enabled": True, "max_steps": 1, "vllm_weight_transfer_scope": "trainable_patch"}},
+                "requires rl.rollout_backend='vllm'",
+            ),
         ]
         for payload, message in cases:
             with self.subTest(payload=payload):
@@ -304,6 +308,31 @@ class ConfigResumeTests(unittest.TestCase):
                     path.write_text(json.dumps(with_base(payload)), encoding="utf-8")
                     with self.assertRaisesRegex(ValueError, message):
                         load_config_from_json(path)
+
+    def test_trainable_patch_native_sync_config_is_explicit_and_strict(self):
+        payload = with_base({
+            "rl": {
+                "enabled": True,
+                "max_steps": 1,
+                "rollout_backend": "vllm",
+                "trainable_mode": "patch_only",
+                "vllm_sync_strategy": "weight_transfer_nccl",
+                "vllm_weight_transfer_scope": "trainable_patch",
+                "vllm_native_transfer_required_level": "update_only",
+                "vllm_execution_mode": "subprocess",
+                "vllm_rollout_actors": [
+                    {"name": "rollout_0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1}
+                ],
+            }
+        })
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "config.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            cfg = load_config_from_json(path)
+
+        self.assertEqual(cfg.rl.vllm_weight_transfer_scope, "trainable_patch")
+        self.assertFalse(cfg.rl.vllm_weight_transfer_fallback_to_export_reload)
+        self.assertFalse(cfg.rl.vllm_fallback_to_hf)
 
     def test_env_paths_and_optional_resume_paths_resolve(self):
         payload = with_base({

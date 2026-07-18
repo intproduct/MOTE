@@ -46,6 +46,7 @@ class VLLMRolloutBackend:
         rl_dir: Path,
         save_policy_checkpoint: SavePolicyCheckpointFn,
         logger=None,
+        transfer_training_names: Optional[Sequence[str]] = None,
     ):
         self.fit_cfg = fit_cfg
         self.rl_dir = Path(rl_dir)
@@ -55,6 +56,7 @@ class VLLMRolloutBackend:
             rl_dir=self.rl_dir,
             save_policy_checkpoint=save_policy_checkpoint,
             logger=logger,
+            transfer_training_names=transfer_training_names,
         )
         self.llm = None
         self._vllm = None

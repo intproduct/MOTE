@@ -57,6 +57,7 @@ from ..rl.runtime import (
     set_trainable_mode_for_rl,
 )
 from ..rl.vllm_rollout import VLLMRolloutBackend
+from ..rl.vllm_weight_mapping import validate_trainable_patch_transfer_selection
 from ..rl.device_topology import rollout_topology_config
 from ..utils.paths import assert_no_unsafe_paths
 
@@ -746,6 +747,7 @@ def _build_rollout_backend(
         rl_dir=rl_dir,
         save_policy_checkpoint=save_policy_checkpoint,
         logger=logger,
+        transfer_training_names=trainable_mode_info.get("trainable_names"),
     )
 
 
@@ -768,6 +770,9 @@ def _rollout_resource_policy_metadata(fit_cfg) -> Dict[str, Any]:
         "allow_stale_vllm_policy": bool(getattr(fit_cfg.rl, "allow_stale_vllm_policy", False)),
         "vllm_allow_text_prompt_fallback": bool(getattr(fit_cfg.rl, "vllm_allow_text_prompt_fallback", False)),
         "vllm_weight_transfer_backend": str(getattr(fit_cfg.rl, "vllm_weight_transfer_backend", "nccl") or "nccl"),
+        "vllm_weight_transfer_scope": str(
+            getattr(fit_cfg.rl, "vllm_weight_transfer_scope", "full_policy") or "full_policy"
+        ),
         "vllm_native_transfer_required_level": str(
             getattr(fit_cfg.rl, "vllm_native_transfer_required_level", "four_phase") or "four_phase"
         ),
@@ -970,6 +975,14 @@ def run_fitmotn_rl_training(fit_cfg):
     if not trainable_params:
         raise RuntimeError("No trainable parameters selected for RL")
     optimizer = torch.optim.AdamW(trainable_params, lr=float(fit_cfg.rl.lr))
+    patch_transfer_plan = None
+    if str(getattr(fit_cfg.rl, "vllm_weight_transfer_scope", "full_policy") or "full_policy") == "trainable_patch":
+        patch_transfer_plan = validate_trainable_patch_transfer_selection(
+            model,
+            transfer_training_names=trainable_mode_info["trainable_names"],
+            optimizer=optimizer,
+        )
+        logger.info("[RLPatchTransfer] %s", json.dumps(patch_transfer_plan, ensure_ascii=False))
     if restored_training_state is not None:
         optimizer.load_state_dict(restored_training_state["optimizer_state_dict"])
         logger.info(
@@ -1022,6 +1035,7 @@ def run_fitmotn_rl_training(fit_cfg):
         "rl_cfg": to_jsonable(asdict(fit_cfg.rl)),
         "trainable_summary": trainable_summary,
         "trainable_mode_info": {key: value for key, value in trainable_mode_info.items() if key != "trainable_names"},
+        "patch_transfer_plan": patch_transfer_plan,
         "load_info": _safe_load_info_summary(load_info),
         "env_snapshot": build_environment_snapshot(),
         "prompt_format": str(getattr(fit_cfg.rl, "prompt_format", "raw") or "raw"),

@@ -33,6 +33,7 @@ VALID_VLLM_SYNC_STRATEGIES = {
 }
 VALID_VLLM_NATIVE_TRANSFER_LEVELS = {"none", "update_only", "four_phase"}
 VALID_VLLM_WEIGHT_TRANSFER_BACKENDS = {"nccl", "ipc"}
+VALID_VLLM_WEIGHT_TRANSFER_SCOPES = {"full_policy", "trainable_patch"}
 VALID_VLLM_EXECUTION_MODES = {"in_process", "subprocess"}
 VALID_RL_TRAINABLE_MODES = {"all", "patch_only", "motn_only", "gate_only", "router_only", "global_only"}
 VALID_FORMAT_MODES = {"raw", "chat"}
@@ -642,6 +643,15 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             f"{sorted(VALID_VLLM_WEIGHT_TRANSFER_BACKENDS)}, got {weight_transfer_backend!r}"
         )
     rl_cfg.vllm_weight_transfer_backend = weight_transfer_backend
+    transfer_scope = str(
+        getattr(rl_cfg, "vllm_weight_transfer_scope", "full_policy") or "full_policy"
+    ).strip().lower()
+    if transfer_scope not in VALID_VLLM_WEIGHT_TRANSFER_SCOPES:
+        raise ValueError(
+            "rl.vllm_weight_transfer_scope must be one of "
+            f"{sorted(VALID_VLLM_WEIGHT_TRANSFER_SCOPES)}, got {transfer_scope!r}"
+        )
+    rl_cfg.vllm_weight_transfer_scope = transfer_scope
     required_level = str(getattr(rl_cfg, "vllm_native_transfer_required_level", "four_phase") or "four_phase").strip().lower()
     if required_level not in VALID_VLLM_NATIVE_TRANSFER_LEVELS:
         raise ValueError(
@@ -685,6 +695,31 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.vllm_fail_on_cuda_oom = bool(getattr(rl_cfg, "vllm_fail_on_cuda_oom", True))
     rl_cfg.vllm_empty_cache_before_engine_init = bool(getattr(rl_cfg, "vllm_empty_cache_before_engine_init", False))
     rl_cfg.vllm_verify_engine_policy = bool(getattr(rl_cfg, "vllm_verify_engine_policy", True))
+    if transfer_scope == "trainable_patch":
+        if rollout_backend != "vllm":
+            raise ValueError(
+                "rl.vllm_weight_transfer_scope='trainable_patch' requires rl.rollout_backend='vllm'"
+            )
+        if vllm_sync_strategy != "weight_transfer_nccl":
+            raise ValueError(
+                "rl.vllm_weight_transfer_scope='trainable_patch' requires "
+                "rl.vllm_sync_strategy='weight_transfer_nccl'"
+            )
+        if str(getattr(rl_cfg, "trainable_mode", "patch_only") or "patch_only").strip().lower() != "patch_only":
+            raise ValueError(
+                "rl.vllm_weight_transfer_scope='trainable_patch' requires rl.trainable_mode='patch_only'"
+            )
+        if not bool(rl_cfg.vllm_weight_transfer_validate_coverage) or not bool(rl_cfg.vllm_weight_transfer_fail_on_partial):
+            raise ValueError(
+                "trainable_patch native sync requires vllm_weight_transfer_validate_coverage=true "
+                "and vllm_weight_transfer_fail_on_partial=true"
+            )
+        if bool(rl_cfg.vllm_weight_transfer_fallback_to_export_reload) or bool(rl_cfg.vllm_fallback_to_hf):
+            raise ValueError(
+                "trainable_patch acceptance forbids export_reload and HF fallbacks"
+            )
+        if bool(rl_cfg.allow_stale_vllm_policy):
+            raise ValueError("trainable_patch acceptance requires allow_stale_vllm_policy=false")
     execution_mode = str(getattr(rl_cfg, "vllm_execution_mode", "in_process") or "in_process").strip().lower()
     if execution_mode not in VALID_VLLM_EXECUTION_MODES:
         raise ValueError(

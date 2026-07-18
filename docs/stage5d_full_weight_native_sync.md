@@ -128,3 +128,6 @@ python scripts/validate_stage5d_native_sync.py \
 分别运行 HF 与 Stage 5D。端到端时间以整个训练命令 wall time 为准；目标为 native
 vLLM 至少达到 HF 的 2.0 倍。若未达到，应先分析 rollout、HF logprob/reward 和
 NCCL sync 占比，再决定是否立项 patch-only 传输。
+
+Stage 5E patch-only 参数子集同步的实现与三卡手动验收见
+`docs/stage5e_patch_only_native_sync.md`。Stage 5D 默认行为仍为 `full_policy`。
