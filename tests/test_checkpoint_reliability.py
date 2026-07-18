@@ -94,6 +94,34 @@ class CheckpointReliabilityTests(unittest.TestCase):
             self.assertFalse(target.exists())
             self.assertFalse(any(Path(tmpdir).glob(".checkpoint-*.tmp-*")))
 
+    def test_validation_rejects_incomplete_sampler_state(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            target = Path(tmpdir) / "checkpoint-2"
+
+            def writer(path: Path) -> None:
+                torch.save({"patch_state_dict": {}}, path / "fitmotn_state.pt")
+                torch.save(
+                    {
+                        "format": "fitmotn_rl_training_state_v1",
+                        "optimizer_state_dict": {},
+                        "update_step": 2,
+                        "micro_step": 2,
+                        "optimizer_micro_step": 2,
+                        "data_pos": 2,
+                        "python_random_state": random.getstate(),
+                        "torch_rng_state": torch.get_rng_state(),
+                        "reference_source": "/models/reference",
+                        "sampler_state": {"format": "fitmotn_rl_sampler_state_v1"},
+                    },
+                    path / RL_TRAINING_STATE_NAME,
+                )
+
+            transactional_save_checkpoint(target, writer, checkpoint_kind="rl", update_step=2)
+            result = validate_checkpoint(target, require_exact_resume="rl")
+
+            self.assertFalse(result["ok"])
+            self.assertTrue(any("incomplete RL sampler state" in error for error in result["errors"]))
+
     def test_failed_transactional_update_preserves_previous_checkpoint(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             target = Path(tmpdir) / "final_model"
@@ -183,6 +211,7 @@ class CheckpointReliabilityTests(unittest.TestCase):
             data_pos=13,
             zero_advantage_retry_count=2,
             reference_source="/models/reference",
+            sampler_state={"format": "fitmotn_rl_sampler_state_v1", "position": 13},
         )
         expected_python = random.random()
         expected_torch = torch.rand(3)
@@ -205,6 +234,7 @@ class CheckpointReliabilityTests(unittest.TestCase):
         self.assertEqual(loaded["update_step"], 4)
         self.assertEqual(loaded["data_pos"], 13)
         self.assertEqual(loaded["reference_source"], "/models/reference")
+        self.assertEqual(loaded["sampler_state"]["position"], 13)
         self.assertTrue(restored_optimizer.state_dict()["state"])
 
     def test_cpu_tiny_rl_interruption_resume_matches_uninterrupted_training(self):

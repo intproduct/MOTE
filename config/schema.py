@@ -376,6 +376,8 @@ class RLConfig:
     debug_num_prompts: Optional[int] = None
     sample_log_count: int = 4
     seed: Optional[int] = None
+    shuffle_train_data: bool = True
+    sampler_seed: Optional[int] = None
     output_subdir: str = "rl_grpo"
     use_config_data: bool = True
     max_grad_norm: float = 1.0

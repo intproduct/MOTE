@@ -281,6 +281,25 @@ def validate_checkpoint(
                     missing = sorted(required - set(rl_state))
                     if missing:
                         errors.append(f"incomplete RL exact-resume state: missing={missing}")
+                    sampler_state = rl_state.get("sampler_state")
+                    if sampler_state is not None:
+                        sampler_required = {
+                            "shuffle",
+                            "seed",
+                            "record_count",
+                            "dataset_fingerprint",
+                            "epoch",
+                            "position",
+                            "samples_seen",
+                            "order",
+                            "rng_state",
+                        }
+                        if not isinstance(sampler_state, dict) or sampler_state.get("format") != "fitmotn_rl_sampler_state_v1":
+                            errors.append("unsupported RL sampler state format")
+                        else:
+                            sampler_missing = sorted(sampler_required - set(sampler_state))
+                            if sampler_missing:
+                                errors.append(f"incomplete RL sampler state: missing={sampler_missing}")
             except Exception as exc:
                 errors.append(f"failed to read RL exact-resume state: {exc}")
     return {

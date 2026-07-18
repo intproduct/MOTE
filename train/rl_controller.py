@@ -35,6 +35,7 @@ from ..rl.generation import (
 from ..rl.logprobs import gather_response_logprobs
 from ..rl.mgpo import compute_mgpo_weights
 from ..rl.reward_shaping import apply_long2short_reward_shift
+from ..rl.sampler import StatefulRLRecordSampler
 from ..rl.rollout_backends import (
     HFRolloutBackend,
     RolloutBackend,
@@ -657,6 +658,7 @@ def _capture_rl_training_state(
     data_pos: int,
     zero_advantage_retry_count: int,
     reference_source: str | None = None,
+    sampler_state: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     return {
         "format": "fitmotn_rl_training_state_v1",
@@ -667,6 +669,7 @@ def _capture_rl_training_state(
         "data_pos": int(data_pos),
         "zero_advantage_retry_count": int(zero_advantage_retry_count),
         "reference_source": None if reference_source is None else str(reference_source),
+        "sampler_state": sampler_state,
         "python_random_state": random.getstate(),
         "torch_rng_state": torch.get_rng_state(),
         "cuda_rng_state_all": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
@@ -1032,9 +1035,41 @@ def run_fitmotn_rl_training(fit_cfg):
         **_sync_result_metadata(last_rollout_sync),
         **initial_rollout_cache_info,
     }
+    sampler_state = restored_training_state.get("sampler_state") if restored_training_state else None
+    if sampler_state is not None:
+        record_sampler = StatefulRLRecordSampler.from_state(records, sampler_state)
+        sampler_resume_mode = "exact"
+    elif restored_training_state is not None:
+        # Checkpoints created before sampler state was introduced traversed the
+        # dataset sequentially. Preserve that sequence for exact compatibility.
+        record_sampler = StatefulRLRecordSampler(records, shuffle=False, seed=0)
+        legacy_data_pos = int(restored_training_state.get("data_pos", 0))
+        record_sampler.position = legacy_data_pos % len(records)
+        record_sampler.epoch = legacy_data_pos // len(records)
+        record_sampler.samples_seen = legacy_data_pos
+        sampler_resume_mode = "legacy_sequential"
+    else:
+        configured_sampler_seed = getattr(fit_cfg.rl, "sampler_seed", None)
+        sampler_seed = int(seed if configured_sampler_seed is None else configured_sampler_seed)
+        record_sampler = StatefulRLRecordSampler(
+            records,
+            shuffle=bool(getattr(fit_cfg.rl, "shuffle_train_data", True)),
+            seed=sampler_seed,
+        )
+        sampler_resume_mode = "new"
+    run_start_record["sampler"] = {
+        "resume_mode": sampler_resume_mode,
+        "shuffle": record_sampler.shuffle,
+        "seed": record_sampler.seed,
+        "epoch": record_sampler.epoch,
+        "position": record_sampler.position,
+        "samples_seen": record_sampler.samples_seen,
+        "dataset_fingerprint": record_sampler.dataset_fingerprint,
+    }
+    logger.info("[RLSampler] %s", json.dumps(run_start_record["sampler"], ensure_ascii=False))
     jsonl_append(train_jsonl_path, run_start_record)
 
-    data_pos = int(restored_training_state.get("data_pos", 0)) if restored_training_state else 0
+    data_pos = record_sampler.samples_seen
     micro_step = int(restored_training_state.get("micro_step", 0)) if restored_training_state else 0
     optimizer_micro_step = int(restored_training_state.get("optimizer_micro_step", 0)) if restored_training_state else 0
     update_step = restored_update_step
@@ -1055,7 +1090,8 @@ def run_fitmotn_rl_training(fit_cfg):
             "total_micro_step_sec": 0.0,
         }
         micro_step += 1
-        batch, data_pos = _cycle_batch(records, data_pos, int(fit_cfg.rl.batch_size))
+        batch = record_sampler.next_batch(int(fit_cfg.rl.batch_size))
+        data_pos = record_sampler.samples_seen
         prompts = [build_rl_prompt_text(fit_cfg, tokenizer, row["question"]) for row in batch]
         gold_answers = [row["answer"] for row in batch]
         rollout_prompts = [prompt for prompt in prompts for _ in range(int(fit_cfg.rl.group_size))]
@@ -1438,6 +1474,7 @@ def run_fitmotn_rl_training(fit_cfg):
                 data_pos=data_pos,
                 zero_advantage_retry_count=zero_advantage_retry_count,
                 reference_source=reference_source,
+                sampler_state=record_sampler.state_dict(),
             )
             def save_periodic(prepared_dir: Path) -> None:
                 _save_rl_model_artifacts(
@@ -1517,6 +1554,7 @@ def run_fitmotn_rl_training(fit_cfg):
         data_pos=data_pos,
         zero_advantage_retry_count=zero_advantage_retry_count,
         reference_source=reference_source,
+        sampler_state=record_sampler.state_dict(),
     )
     def save_final_rl(prepared_dir: Path) -> None:
         _save_rl_model_artifacts(
@@ -1542,6 +1580,19 @@ def run_fitmotn_rl_training(fit_cfg):
         temp_max_age_sec=float(getattr(fit_cfg.rl, "checkpoint_temp_max_age_sec", 3600.0)),
     )
     _maybe_log_cuda_memory(fit_cfg, logger, "after_checkpoint_save", update_step=update_step, micro_step=micro_step)
+    final_sampler_state = record_sampler.state_dict()
+    final_sampler_summary = {
+        key: final_sampler_state[key]
+        for key in (
+            "shuffle",
+            "seed",
+            "record_count",
+            "dataset_fingerprint",
+            "epoch",
+            "position",
+            "samples_seen",
+        )
+    }
     summary = {
         "kind": "rl_run_summary",
         "rl_dir": str(rl_dir),
@@ -1552,6 +1603,7 @@ def run_fitmotn_rl_training(fit_cfg):
         "micro_steps": int(micro_step),
         "optimizer_micro_steps": int(optimizer_micro_step),
         "num_prompts": int(len(records)),
+        "sampler": final_sampler_summary,
         "duration_sec": max(0.0, time.time() - run_start_time),
         "trainable_summary": trainable_summary,
         "trainable_mode_info": {key: value for key, value in trainable_mode_info.items() if key != "trainable_names"},
@@ -1579,6 +1631,7 @@ def run_fitmotn_rl_training(fit_cfg):
             "kind": "run_end",
             "update_step": int(update_step),
             "micro_step": int(micro_step),
+            "sampler": final_sampler_summary,
             **_rollout_resource_policy_metadata(fit_cfg),
             **_sync_result_metadata(last_rollout_sync),
             "time": time.time(),

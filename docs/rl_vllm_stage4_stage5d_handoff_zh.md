@@ -303,6 +303,8 @@ HF 平均输出约 249 tokens，vLLM 约 194 tokens，因此报告时应把 `gen
   "mgpo_gamma": 1.0,
   "save_every_updates": 25,
   "eval_every_updates": 0,
+  "shuffle_train_data": true,
+  "sampler_seed": 1234,
   "seed": 1234
 }
 ```
@@ -347,6 +349,11 @@ python -m fitmotn.cli.train \
 - 这不影响验证 online MGPO 工程闭环，但会削弱效果实验的统计代表性。
 
 这是下一项优先代码改动：增加可复现的 shuffle/sampler，并把 sampler 顺序、epoch 和 RNG 状态写入 exact-resume checkpoint。正式 MGPO 对照实验应在该功能完成并验收后运行。
+
+接续实现说明（2026-07-18）：已增加默认开启的 `rl.shuffle_train_data` 和可选的
+`rl.sampler_seed`（未设置时跟随 RL seed）。新 checkpoint 保存完整 sampler 顺序、
+epoch、位置、独立 RNG 状态和数据集 fingerprint；恢复时若数据内容或顺序变化会直接失败。
+旧版不含 sampler state 的 v1 RL checkpoint 仍按原有顺序遍历语义恢复。
 
 ## 10. 200 步实验应收集的证据
 

@@ -729,6 +729,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.rollout_inference_mode = bool(getattr(rl_cfg, "rollout_inference_mode", True))
     rl_cfg.rollout_log_timing = bool(getattr(rl_cfg, "rollout_log_timing", True))
     rl_cfg.skip_zero_advantage_updates = bool(getattr(rl_cfg, "skip_zero_advantage_updates", True))
+    rl_cfg.shuffle_train_data = bool(getattr(rl_cfg, "shuffle_train_data", True))
     rl_cfg.mgpo_enabled = bool(getattr(rl_cfg, "mgpo_enabled", False))
     rl_cfg.long2short_enabled = bool(getattr(rl_cfg, "long2short_enabled", False))
     zero_advantage_retry_action = str(getattr(rl_cfg, "zero_advantage_retry_action", "warn_continue") or "warn_continue").strip().lower()
@@ -814,6 +815,8 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             raise ValueError(f"rl.debug_num_prompts must be > 0 when set, got {rl_cfg.debug_num_prompts}")
     if getattr(rl_cfg, "seed", None) is not None:
         rl_cfg.seed = int(rl_cfg.seed)
+    if getattr(rl_cfg, "sampler_seed", None) is not None:
+        rl_cfg.sampler_seed = int(rl_cfg.sampler_seed)
 
     if rl_cfg.enabled:
         positive_fields = ["max_steps", "batch_size", "group_size", "grad_accum", "max_new_tokens", "log_every", "sample_log_count"]
