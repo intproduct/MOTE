@@ -34,6 +34,7 @@ from MOTE.rl.vllm_weight_transfer_adapters import (
     FourPhaseNCCLTransferAdapter,
     NCCLTransferSettings,
     UpdateOnlyNCCLTransferAdapter,
+    shutdown_trainer_nccl_group,
     trainer_send_weights_to_actor,
     select_nccl_transfer_adapter,
 )
@@ -403,6 +404,65 @@ def test_subprocess_trainer_send_timeout_is_fail_closed(monkeypatch):
             )
     finally:
         release.set()
+
+
+def test_shutdown_trainer_nccl_group_releases_tcpstore_ownership():
+    events = []
+
+    class FakeStore:
+        pass
+
+    class FakeStatelessGroup:
+        def __init__(self):
+            self.store = FakeStore()
+
+    class FakeCommunicator:
+        def __init__(self):
+            self.group = FakeStatelessGroup()
+
+        def destroy(self):
+            events.append("destroy")
+
+    communicator = FakeCommunicator()
+    metadata_group = communicator.group
+
+    report = shutdown_trainer_nccl_group(communicator)
+
+    assert events == ["destroy"]
+    assert report == {
+        "ok": True,
+        "destroy_method": "destroy",
+        "communicator_group_released": True,
+        "tcpstore_released": True,
+        "error": None,
+    }
+    assert communicator.group is None
+    assert metadata_group.store is None
+
+
+def test_manager_defers_trainer_group_release_until_receivers_are_gone(tmp_path):
+    manager = _manager(_cfg(tmp_path), tmp_path)
+    events = []
+
+    class FakeCommunicator:
+        def destroy(self):
+            events.append("trainer_destroy")
+
+    manager.actor_trainer_nccl_groups["actor_0"] = FakeCommunicator()
+
+    deferred = manager.mark_engines_discarded(shutdown_trainer_groups=False)
+
+    assert deferred["deferred"] is True
+    assert deferred["group_count"] == 1
+    assert events == []
+    assert "actor_0" in manager.actor_trainer_nccl_groups
+
+    released = manager.mark_engines_discarded()
+
+    assert released["ok"] is True
+    assert released["group_count"] == 1
+    assert events == ["trainer_destroy"]
+    assert manager.actor_trainer_nccl_groups == {}
 
 
 def test_manager_allows_explicit_update_only_adapter(tmp_path, monkeypatch):

@@ -124,7 +124,7 @@ def trainer_send_weights_to_actor(
         iter_transfer_tensors(mapping, model),
         trainer_args,
     )
-    done, pending = wait([future], timeout=float(settings.timeout_sec))
+    _done, pending = wait([future], timeout=float(settings.timeout_sec))
     if pending:
         future.cancel()
         executor.shutdown(wait=False, cancel_futures=True)
@@ -136,7 +136,10 @@ def trainer_send_weights_to_actor(
     try:
         future.result()
     finally:
-        executor.shutdown(wait=False, cancel_futures=True)
+        # A completed native transfer must also join its Python worker. Leaving
+        # it alive can retain NCCLTrainerSendWeightsArgs and, through it, the
+        # trainer communicator/TCPStore until interpreter shutdown.
+        executor.shutdown(wait=True, cancel_futures=True)
     return {
         "trainer_send_sec": max(0.0, __import__("time").perf_counter() - start),
         "weight_transfer_tensor_count": int(mapping.tensor_count),
@@ -157,7 +160,7 @@ def trainer_initialize_nccl_group(settings: NCCLTransferSettings) -> Any:
             "world_size": settings.world_size,
         },
     )
-    done, pending = wait([future], timeout=float(settings.timeout_sec))
+    _done, pending = wait([future], timeout=float(settings.timeout_sec))
     if pending:
         future.cancel()
         executor.shutdown(wait=False, cancel_futures=True)
@@ -168,19 +171,57 @@ def trainer_initialize_nccl_group(settings: NCCLTransferSettings) -> Any:
     try:
         return future.result()
     finally:
-        executor.shutdown(wait=False, cancel_futures=True)
+        executor.shutdown(wait=True, cancel_futures=True)
 
 
-def shutdown_trainer_nccl_group(group: Any) -> None:
-    """Best-effort teardown for vLLM StatelessProcessGroup variants."""
+def shutdown_trainer_nccl_group(group: Any) -> Dict[str, Any]:
+    """Destroy a trainer communicator and release its TCPStore ownership.
+
+    vLLM 0.19 ``trainer_init`` returns a ``PyNcclCommunicator`` whose
+    ``group`` field owns a ``StatelessProcessGroup`` and its server-side
+    ``TCPStore``. ``PyNcclCommunicator.destroy`` only destroys the NCCL
+    communicator. Explicitly severing the remaining ownership chain after the
+    peers have exited prevents ``pt_tcpstore`` threads from keeping the trainer
+    process alive during interpreter shutdown.
+    """
+
+    report: Dict[str, Any] = {
+        "ok": True,
+        "destroy_method": None,
+        "communicator_group_released": False,
+        "tcpstore_released": False,
+        "error": None,
+    }
+    metadata_group = getattr(group, "group", None)
     for name in ("destroy", "shutdown", "close"):
         method = getattr(group, name, None)
         if callable(method):
+            report["destroy_method"] = name
             try:
                 method()
-            except Exception:
-                pass
-            return
+            except Exception as exc:
+                report.update({"ok": False, "error": f"{type(exc).__name__}: {exc}"})
+            break
+
+    if hasattr(group, "group"):
+        try:
+            setattr(group, "group", None)
+            report["communicator_group_released"] = True
+        except Exception as exc:
+            report.update({
+                "ok": False,
+                "error": report["error"] or f"communicator group release failed: {type(exc).__name__}: {exc}",
+            })
+    if metadata_group is not None and hasattr(metadata_group, "store"):
+        try:
+            setattr(metadata_group, "store", None)
+            report["tcpstore_released"] = True
+        except Exception as exc:
+            report.update({
+                "ok": False,
+                "error": report["error"] or f"TCPStore release failed: {type(exc).__name__}: {exc}",
+            })
+    return report
 
 
 def _run_sender_receiver(
@@ -194,11 +235,13 @@ def _run_sender_receiver(
     from vllm.distributed.weight_transfer.nccl_engine import NCCLWeightTransferEngine  # type: ignore
 
     executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="vllm_weight_transfer")
+    timed_out = False
     try:
         receive_future = executor.submit(receiver, receiver_request)
         send_future = executor.submit(NCCLWeightTransferEngine.trainer_send_weights, tensor_iterator, trainer_args)
         done, pending = wait([receive_future, send_future], timeout=float(timeout_sec))
         if pending:
+            timed_out = True
             for future in pending:
                 future.cancel()
             raise TimeoutError(
@@ -208,7 +251,7 @@ def _run_sender_receiver(
         for future in done:
             future.result()
     finally:
-        executor.shutdown(wait=False, cancel_futures=True)
+        executor.shutdown(wait=not timed_out, cancel_futures=True)
 
 
 class UpdateOnlyNCCLTransferAdapter:
@@ -261,13 +304,19 @@ class UpdateOnlyNCCLTransferAdapter:
             )
         )
         trainer_args = NCCLTrainerSendWeightsArgs(group=group, packed=bool(settings.packed))
-        _run_sender_receiver(
-            receiver=llm.update_weights,
-            receiver_request=_wrap_update_request(update_info) if wrap_request else update_info,
-            tensor_iterator=iter_transfer_tensors(mapping, model),
-            trainer_args=trainer_args,
-            timeout_sec=settings.timeout_sec,
-        )
+        teardown_report = None
+        try:
+            _run_sender_receiver(
+                receiver=llm.update_weights,
+                receiver_request=_wrap_update_request(update_info) if wrap_request else update_info,
+                tensor_iterator=iter_transfer_tensors(mapping, model),
+                trainer_args=trainer_args,
+                timeout_sec=settings.timeout_sec,
+            )
+        finally:
+            teardown_report = shutdown_trainer_nccl_group(group)
+        if not bool(teardown_report.get("ok")):
+            raise RuntimeError(f"trainer NCCL group teardown failed: {teardown_report}")
 
     def transfer(
         self,

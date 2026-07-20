@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import shutil
 import socket
 import time
@@ -350,7 +351,10 @@ class VLLMPolicySyncManager:
         # The rollout backend rebuilds its engine from this export. Any native
         # transfer engine previously attached to the old vLLM instance is no
         # longer initialized.
-        self.mark_engines_discarded()
+        # The rollout backend must close/unload receiver actors before their
+        # trainer-side TCPStore owners are released. It performs the actual
+        # trainer group teardown immediately after receiver shutdown.
+        self.mark_engines_discarded(shutdown_trainer_groups=False)
         prune_start = time.perf_counter()
         pruned_artifacts = self._prune_exports(root)
         prune_sec = max(0.0, time.perf_counter() - prune_start)
@@ -403,15 +407,61 @@ class VLLMPolicySyncManager:
             )
         return self.last_result
 
-    def mark_engines_discarded(self) -> None:
-        """Forget receiver state after an engine/actor has been destroyed."""
+    def mark_engines_discarded(self, *, shutdown_trainer_groups: bool = True) -> Dict[str, Any]:
+        """Forget receiver state and optionally release trainer NCCL groups.
+
+        Subprocess callers must destroy the receiver actors first, then call
+        this method with ``shutdown_trainer_groups=True``. Releasing the rank-0
+        TCPStore while receiver ranks are still connected can block its C++
+        server thread indefinitely.
+        """
+
         self.weight_transfer_initialized = False
         self.actor_weight_transfer_initialized.clear()
-        self.actor_weight_transfer_master_ports.clear()
-        for group in self.actor_trainer_nccl_groups.values():
-            shutdown_trainer_nccl_group(group)
-        self.actor_trainer_nccl_groups.clear()
         self.actor_capability_reports.clear()
+        if not shutdown_trainer_groups:
+            return {
+                "ok": True,
+                "deferred": True,
+                "group_count": len(self.actor_trainer_nccl_groups),
+                "groups": {},
+            }
+
+        reports: Dict[str, Any] = {}
+        for actor_name, group in list(self.actor_trainer_nccl_groups.items()):
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMTeardown] phase=trainer_group_destroy_begin actor=%s",
+                    actor_name,
+                )
+            report = shutdown_trainer_nccl_group(group)
+            reports[str(actor_name)] = report
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMTeardown] phase=trainer_group_destroy_complete actor=%s report=%s",
+                    actor_name,
+                    report,
+                )
+        self.actor_trainer_nccl_groups.clear()
+        self.actor_weight_transfer_master_ports.clear()
+        # Promptly collect the now-detached StatelessProcessGroup/TCPStore
+        # objects instead of deferring their C++ thread teardown to interpreter
+        # finalization.
+        gc.collect()
+        failures = {
+            name: report
+            for name, report in reports.items()
+            if not bool(report.get("ok"))
+        }
+        result = {
+            "ok": not failures,
+            "deferred": False,
+            "group_count": len(reports),
+            "groups": reports,
+        }
+        if failures:
+            raise RuntimeError(f"Failed to release trainer NCCL groups: {failures}")
+        return result
 
     def _capabilities(self) -> VLLMWeightTransferCapabilityReport:
         if self.capability_report is None:

@@ -740,7 +740,6 @@ class VLLMRolloutBackend:
             return fallback
 
     def _unload_engine(self) -> None:
-        self.sync_manager.mark_engines_discarded()
         if self.uses_subprocess_actor:
             failures = []
             with ThreadPoolExecutor(max_workers=max(1, len(self._actors))) as executor:
@@ -763,38 +762,57 @@ class VLLMRolloutBackend:
                             self._actors[name].close(force=True)
                         except Exception as close_exc:
                             failures.append(f"{name!r}: unload={exc}; force_close={close_exc}")
+            trainer_group_error = None
+            try:
+                # Receiver engines no longer own the peer communicator, so it
+                # is now safe to release the trainer TCPStore servers.
+                self.sync_manager.mark_engines_discarded()
+            except Exception as exc:
+                trainer_group_error = str(exc)
             if failures:
-                raise RuntimeError(f"Failed to unload all vLLM rollout actors: {failures}")
+                raise RuntimeError(
+                    "Failed to unload all vLLM rollout actors: "
+                    f"actors={failures}, trainer_groups={trainer_group_error}"
+                )
+            if trainer_group_error is not None:
+                raise RuntimeError(trainer_group_error)
             return
         llm = self.llm
         self.llm = None
         self._engine_policy_descriptor = {}
-        if llm is None:
-            return
-        for attr in ("shutdown", "close"):
-            fn = getattr(llm, attr, None)
-            if callable(fn):
-                try:
-                    fn()
-                    return
-                except Exception:
-                    pass
-        engine = getattr(llm, "llm_engine", None)
-        for attr in ("shutdown", "close"):
-            fn = getattr(engine, attr, None)
-            if callable(fn):
-                try:
-                    fn()
-                    return
-                except Exception:
-                    pass
+        shutdown_complete = llm is None
+        if llm is not None:
+            for attr in ("shutdown", "close"):
+                fn = getattr(llm, attr, None)
+                if callable(fn):
+                    try:
+                        fn()
+                        shutdown_complete = True
+                        break
+                    except Exception:
+                        pass
+            if not shutdown_complete:
+                engine = getattr(llm, "llm_engine", None)
+                for attr in ("shutdown", "close"):
+                    fn = getattr(engine, attr, None)
+                    if callable(fn):
+                        try:
+                            fn()
+                            break
+                        except Exception:
+                            pass
+        self.sync_manager.mark_engines_discarded()
 
     def close(self) -> Dict[str, Any]:
         if self.uses_subprocess_actor:
-            self.sync_manager.mark_engines_discarded()
             clients = dict(self._actors)
             reports: Dict[str, Any] = {}
             failures: Dict[str, str] = {}
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMTeardown] phase=actor_close_begin actors=%s",
+                    len(clients),
+                )
             with ThreadPoolExecutor(max_workers=max(1, len(clients))) as executor:
                 future_map = {
                     executor.submit(client.close): name
@@ -806,6 +824,18 @@ class VLLMRolloutBackend:
                         reports[name] = future.result()
                     except Exception as exc:
                         failures[name] = str(exc)
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMTeardown] phase=actor_close_complete actors=%s failures=%s",
+                    len(reports),
+                    len(failures),
+                )
+            trainer_groups: Dict[str, Any] = {}
+            trainer_group_error: Optional[str] = None
+            try:
+                trainer_groups = self.sync_manager.mark_engines_discarded()
+            except Exception as exc:
+                trainer_group_error = str(exc)
             self._actors = {
                 name: client
                 for name, client in clients.items()
@@ -813,11 +843,22 @@ class VLLMRolloutBackend:
             }
             self._actor_resource_snapshot = {}
             self._engine_policy_descriptor = {}
-            if failures:
+            if failures or trainer_group_error is not None:
                 raise RuntimeError(
-                    "Failed to close all vLLM rollout actors: "
-                    f"failures={failures}, completed={reports}"
+                    "Failed to close vLLM rollout resources: "
+                    f"actor_failures={failures}, completed_actors={reports}, "
+                    f"trainer_group_error={trainer_group_error}"
                 )
-            return {"closed": True, "actors": reports}
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMTeardown] phase=complete actors=%s trainer_groups=%s",
+                    len(reports),
+                    int(trainer_groups.get("group_count", 0)),
+                )
+            return {
+                "closed": True,
+                "actors": reports,
+                "trainer_nccl_groups": trainer_groups,
+            }
         self._unload_engine()
         return {"closed": True, "actors": {}}

@@ -391,6 +391,43 @@ def test_subprocess_backend_close_returns_actor_reports(tmp_path):
     assert backend._actors == {}
 
 
+def test_subprocess_backend_closes_receivers_before_trainer_nccl_groups(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "r1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    events = []
+
+    class FakeClient:
+        def __init__(self, name):
+            self.name = name
+
+        def close(self):
+            events.append(f"actor_close:{self.name}")
+            return {"closed": True}
+
+    class FakeSyncManager:
+        def mark_engines_discarded(self):
+            events.append("trainer_groups_release")
+            return {"ok": True, "group_count": 2, "groups": {}}
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {"r0": FakeClient("r0"), "r1": FakeClient("r1")}
+    backend.sync_manager = FakeSyncManager()
+
+    report = backend.close()
+
+    assert set(events[:-1]) == {"actor_close:r0", "actor_close:r1"}
+    assert events[-1] == "trainer_groups_release"
+    assert report["trainer_nccl_groups"]["group_count"] == 2
+
+
 def test_native_sync_uses_commit_receipts_without_post_commit_ping(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.rl.vllm_execution_mode = "subprocess"
