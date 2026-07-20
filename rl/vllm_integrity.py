@@ -26,6 +26,27 @@ def sampling_fingerprint(sampling_kwargs: Mapping[str, Any]) -> str:
     return canonical_json_fingerprint(dict(sampling_kwargs))
 
 
+def _evenly_spaced_indices(count: int, take: int) -> list[int]:
+    """Return deterministic sample indices without floating-point rounding.
+
+    Large model tensors routinely contain more elements than float32 can
+    represent exactly.  Building indices with ``torch.linspace`` can therefore
+    round the final ``count - 1`` endpoint up to ``count`` and trigger a CUDA
+    device-side assertion in ``index_select``.  Python integer arithmetic keeps
+    every generated index in bounds regardless of tensor size.
+    """
+
+    count = int(count)
+    take = int(take)
+    if count <= 0:
+        raise ValueError("count must be positive")
+    if take <= 0 or take > count:
+        raise ValueError("take must be in [1, count]")
+    if take == 1:
+        return [0]
+    return [position * (count - 1) // (take - 1) for position in range(take)]
+
+
 def _sample_tensor(tensor: torch.Tensor, sample_elements: int) -> Iterable[float | int | bool]:
     flat = tensor.detach().reshape(-1)
     count = int(flat.numel())
@@ -35,7 +56,11 @@ def _sample_tensor(tensor: torch.Tensor, sample_elements: int) -> Iterable[float
     if take == count:
         sample = flat
     else:
-        indices = torch.linspace(0, count - 1, steps=take, device=flat.device).round().long()
+        indices = torch.tensor(
+            _evenly_spaced_indices(count, take),
+            dtype=torch.long,
+            device=flat.device,
+        )
         sample = flat.index_select(0, indices)
     sample = sample.to(device="cpu")
     if sample.is_floating_point() or sample.is_complex():
