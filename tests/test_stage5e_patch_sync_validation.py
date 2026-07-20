@@ -49,7 +49,7 @@ def _actor_result(pid: int, fingerprint: str, tensor_count: int) -> dict:
     }
 
 
-def _run(path: Path, *, payload_ratio: float = 0.02) -> Path:
+def _run(path: Path, *, payload_ratio: float = 0.02, teardown_ok: bool = True) -> Path:
     fingerprint = "plan-1"
     tensor_count = 42
     rows = [
@@ -86,6 +86,13 @@ def _run(path: Path, *, payload_ratio: float = 0.02) -> Path:
                 "vllm_fallback_used": False,
             }
         )
+    rows.append(
+        {
+            "kind": "run_end",
+            "update_step": 2,
+            "rollout_teardown": {"ok": teardown_ok, "backend": "vllm"},
+        }
+    )
     path.write_text("\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8")
     return path
 
@@ -118,3 +125,15 @@ def test_stage5e_validator_rejects_full_sized_payload(tmp_path):
     assert result["ok"] is False
     assert any("payload ratio" in error for error in result["errors"])
 
+
+def test_stage5e_validator_rejects_failed_rollout_teardown(tmp_path):
+    result = validate(
+        config_path=_config(tmp_path / "config.json"),
+        run_path=_run(tmp_path / "rl_train.jsonl", teardown_ok=False),
+        export_root=None,
+        min_updates=2,
+        max_payload_ratio=0.10,
+        max_sync_p95_sec=None,
+    )
+    assert result["ok"] is False
+    assert any("clean rollout teardown" in error for error in result["errors"])

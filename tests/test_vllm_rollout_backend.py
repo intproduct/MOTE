@@ -335,6 +335,62 @@ def test_stage5c_parallel_engine_build_enforces_policy_barrier(tmp_path):
     assert "device" not in backend._actors["r1"].loaded_kwargs
 
 
+def test_subprocess_backend_close_surfaces_actor_failure_and_keeps_failed_client(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "r1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+
+    class FakeClient:
+        def __init__(self, error=None):
+            self.error = error
+
+        def close(self):
+            if self.error is not None:
+                raise self.error
+            return {"closed": True}
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    failed = FakeClient(RuntimeError("engine core survived"))
+    backend._actors = {"r0": FakeClient(), "r1": failed}
+
+    with pytest.raises(RuntimeError, match="engine core survived"):
+        backend.close()
+
+    assert backend._actors == {"r1": failed}
+
+
+def test_subprocess_backend_close_returns_actor_reports(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+    ]
+
+    class FakeClient:
+        def close(self):
+            return {"closed": True, "actor_pid": 123}
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {"r0": FakeClient()}
+
+    report = backend.close()
+
+    assert report["closed"] is True
+    assert report["actors"]["r0"]["actor_pid"] == 123
+    assert backend._actors == {}
+
+
 def test_in_process_vllm_019_retries_without_legacy_device(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.rl.vllm_device = "cuda:0"

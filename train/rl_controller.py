@@ -1552,13 +1552,6 @@ def run_fitmotn_rl_training(fit_cfg):
         if did_update and int(getattr(fit_cfg.rl, "empty_cache_every", 0)) > 0 and update_step % int(fit_cfg.rl.empty_cache_every) == 0:
             torch.cuda.empty_cache()
 
-    try:
-        rollout_backend.close()
-    except Exception as exc:
-        logger.warning("[RLRollout] backend close failed: %s", exc)
-    finally:
-        atexit.unregister(rollout_backend.close)
-
     final_model_dir = rl_dir / "final_model"
     final_training_state = _capture_rl_training_state(
         optimizer=optimizer,
@@ -1594,6 +1587,23 @@ def run_fitmotn_rl_training(fit_cfg):
         temp_max_age_sec=float(getattr(fit_cfg.rl, "checkpoint_temp_max_age_sec", 3600.0)),
     )
     _maybe_log_cuda_memory(fit_cfg, logger, "after_checkpoint_save", update_step=update_step, micro_step=micro_step)
+
+    # Preserve the exact-resume checkpoint before tearing down vLLM.  EngineCore
+    # shutdown is external process lifecycle work and must not be able to erase
+    # an otherwise completed optimizer update by blocking before final save.
+    rollout_teardown: Dict[str, Any] = {"ok": True, "backend": rollout_backend.name}
+    rollout_teardown_error: Optional[str] = None
+    try:
+        close_report = rollout_backend.close()
+        if close_report is not None:
+            rollout_teardown["report"] = to_jsonable(close_report)
+    except Exception as exc:
+        rollout_teardown_error = str(exc)
+        rollout_teardown.update({"ok": False, "error": rollout_teardown_error})
+        logger.error("[RLRollout] backend close failed after final checkpoint save: %s", exc)
+    finally:
+        atexit.unregister(rollout_backend.close)
+
     final_sampler_state = record_sampler.state_dict()
     final_sampler_summary = {
         key: final_sampler_state[key]
@@ -1625,6 +1635,7 @@ def run_fitmotn_rl_training(fit_cfg):
         "rl_cfg": to_jsonable(asdict(fit_cfg.rl)),
         **_rollout_resource_policy_metadata(fit_cfg),
         **_sync_result_metadata(last_rollout_sync),
+        "rollout_teardown": rollout_teardown,
         "final_model_restore_compatible": bool(load_info.layer_idxs),
     }
     json_dump(summary_path, summary)
@@ -1648,9 +1659,15 @@ def run_fitmotn_rl_training(fit_cfg):
             "sampler": final_sampler_summary,
             **_rollout_resource_policy_metadata(fit_cfg),
             **_sync_result_metadata(last_rollout_sync),
+            "rollout_teardown": rollout_teardown,
             "time": time.time(),
         },
     )
+    if rollout_teardown_error is not None:
+        raise RuntimeError(
+            "RL updates and final checkpoint completed, but rollout teardown failed: "
+            f"{rollout_teardown_error}; final_model={final_model_dir}"
+        )
     logger.info("[RLRun] finished dir=%s final_model=%s", rl_dir, final_model_dir)
     return {
         "rl_dir": str(rl_dir),

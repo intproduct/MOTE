@@ -766,19 +766,35 @@ class VLLMRolloutBackend:
                 except Exception:
                     pass
 
-    def close(self) -> None:
+    def close(self) -> Dict[str, Any]:
         if self.uses_subprocess_actor:
             self.sync_manager.mark_engines_discarded()
             clients = dict(self._actors)
+            reports: Dict[str, Any] = {}
+            failures: Dict[str, str] = {}
             with ThreadPoolExecutor(max_workers=max(1, len(clients))) as executor:
-                futures = [executor.submit(client.close) for client in clients.values()]
-                for future in futures:
+                future_map = {
+                    executor.submit(client.close): name
+                    for name, client in clients.items()
+                }
+                for future in as_completed(future_map):
+                    name = str(future_map[future])
                     try:
-                        future.result()
-                    except Exception:
-                        pass
-            self._actors = {}
+                        reports[name] = future.result()
+                    except Exception as exc:
+                        failures[name] = str(exc)
+            self._actors = {
+                name: client
+                for name, client in clients.items()
+                if name in failures
+            }
             self._actor_resource_snapshot = {}
             self._engine_policy_descriptor = {}
-            return
+            if failures:
+                raise RuntimeError(
+                    "Failed to close all vLLM rollout actors: "
+                    f"failures={failures}, completed={reports}"
+                )
+            return {"closed": True, "actors": reports}
         self._unload_engine()
+        return {"closed": True, "actors": {}}

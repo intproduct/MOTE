@@ -77,6 +77,7 @@ def validate(
         rows = _records(run_path)
         starts = [row for row in rows if row.get("kind") == "run_start"]
         trains = [row for row in rows if row.get("kind") == "train" and int(row.get("update_step", 0)) > 0]
+        ends = [row for row in rows if row.get("kind") == "run_end"]
         if not starts:
             errors.append("run has no run_start record")
         else:
@@ -86,6 +87,13 @@ def validate(
             plan = dict(start.get("patch_transfer_plan") or {})
             if plan.get("transfer_scope") != "trainable_patch":
                 errors.append(f"run_start has invalid patch transfer plan: {plan}")
+        teardown = None
+        if not ends:
+            errors.append("run has no run_end record; final checkpoint/teardown did not complete")
+        else:
+            teardown = dict(ends[-1].get("rollout_teardown") or {})
+            if teardown.get("ok") is not True:
+                errors.append(f"run did not prove clean rollout teardown: {teardown}")
         max_update = max((int(row.get("update_step", 0)) for row in trains), default=0)
         if max_update < int(min_updates) or len(trains) < int(min_updates):
             errors.append(
@@ -179,6 +187,7 @@ def validate(
             "payload_ratio_mean": statistics.mean(payload_ratios) if payload_ratios else None,
             "sync_sec_p50": _percentile(sync_times, 0.50),
             "sync_sec_p95": p95,
+            "rollout_teardown": teardown,
         }
 
     artifact_evidence = None

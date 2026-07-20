@@ -3,6 +3,8 @@ from __future__ import annotations
 import sys
 import types
 import json
+import os
+import signal
 from pathlib import Path
 
 import pytest
@@ -118,7 +120,8 @@ def test_actor_close_acknowledges_before_engine_shutdown():
 
     result = _handle_actor_request(state, {"command": "close"})
 
-    assert result == {"closed": True}
+    assert result["closed"] is True
+    assert result["actor_resources"]["process_id"] == os.getpid()
     assert state["closed"] is True
     assert state["status"] == "CLOSED"
     assert state["llm"] is engine
@@ -166,11 +169,147 @@ def test_actor_client_close_uses_shutdown_timeout_and_kills_stuck_group(monkeypa
 
     client.close()
 
-    assert ("poll", 7.0) in events
+    poll_timeouts = [timeout for event, timeout in events if event == "poll"]
+    assert len(poll_timeouts) == 1
+    assert poll_timeouts[0] == pytest.approx(7.0, abs=0.01)
     assert ("poll", 600.0) not in events
     assert signals == ["SIGTERM"]
     assert client._process is None
     assert client._connection is None
+
+
+def test_actor_client_close_keeps_handle_and_raises_when_process_survives_kill(monkeypatch):
+    class FakeConnection:
+        def close(self):
+            return None
+
+    class StuckProcess:
+        pid = 456
+        exitcode = None
+
+        def is_alive(self):
+            return True
+
+        def join(self, timeout=None):
+            return None
+
+    process = StuckProcess()
+    client = VLLMActorClient(request_timeout_sec=1.0, shutdown_timeout_sec=1.0)
+    client._process = process
+    client._connection = FakeConnection()
+    signals = []
+    monkeypatch.setattr(
+        client,
+        "_terminate_actor_group",
+        lambda _process, sig: signals.append(sig.name),
+    )
+
+    with pytest.raises(RuntimeError, match="teardown did not finish"):
+        client.close(force=True)
+
+    assert signals == ["SIGTERM", "SIGKILL"]
+    assert client._process is process
+    assert client._connection is None
+
+
+def test_actor_client_close_releases_stopped_process_handle(monkeypatch):
+    events = []
+
+    class FakeConnection:
+        def close(self):
+            events.append("connection_close")
+
+    class FakeProcess:
+        pid = 789
+        exitcode = -9
+
+        def __init__(self):
+            self.alive = True
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout=None):
+            events.append(("join", timeout))
+
+        def close(self):
+            events.append("process_close")
+
+    process = FakeProcess()
+    client = VLLMActorClient(request_timeout_sec=1.0, shutdown_timeout_sec=1.0)
+    client._process = process
+    client._connection = FakeConnection()
+
+    def terminate(_process, sig):
+        events.append(sig.name)
+        if sig == signal.SIGKILL:
+            process.alive = False
+
+    monkeypatch.setattr(client, "_terminate_actor_group", terminate)
+
+    report = client.close(force=True)
+
+    assert report["closed"] is True
+    assert report["signals_sent"] == ["SIGTERM", "SIGKILL"]
+    assert "process_close" in events
+    assert client._process is None
+
+
+def test_actor_client_close_terminates_reported_engine_children(monkeypatch):
+    class FakeConnection:
+        def close(self):
+            return None
+
+    class FakeProcess:
+        pid = 900
+        exitcode = -15
+
+        def __init__(self):
+            self.alive = True
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout=None):
+            return None
+
+    process = FakeProcess()
+    client = VLLMActorClient(request_timeout_sec=1.0, shutdown_timeout_sec=1.0)
+    client._process = process
+    client._connection = FakeConnection()
+    client.last_engine_info = {
+        "actor_resources": {"os_child_process_ids": [901]}
+    }
+    child_alive = {901: True}
+    child_signals = []
+
+    def terminate_actor(_process, _sig):
+        process.alive = False
+
+    def signal_children(pids, sig):
+        child_signals.append((list(pids), sig.name))
+        for pid in pids:
+            child_alive[pid] = False
+
+    monkeypatch.setattr(client, "_terminate_actor_group", terminate_actor)
+    monkeypatch.setattr(client, "_pid_exists", lambda pid: child_alive.get(pid, False))
+    monkeypatch.setattr(client, "_signal_pids", signal_children)
+    monkeypatch.setattr(
+        client,
+        "_engine_child_pid_evidence",
+        lambda *_args, **_kwargs: {
+            "fresh": [901],
+            "historical": [901],
+            "verified": [901],
+        },
+    )
+
+    report = client.close(force=True)
+
+    assert report["closed"] is True
+    assert report["known_child_pids"] == [901]
+    assert report["surviving_child_pids"] == []
+    assert child_signals == [([901], "SIGTERM")]
 
 
 def test_actor_strips_legacy_device_kwarg_for_vllm_019(monkeypatch):

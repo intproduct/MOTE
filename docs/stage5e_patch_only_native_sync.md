@@ -133,6 +133,21 @@ pgrep -u "$USER" -af 'train_rl|vllm_actor|EngineCore|multiprocessing.spawn'
 
 不得残留本次 Actor 或 EngineCore。
 
+正常结束的 `rl_train.jsonl` 还必须包含 `kind=run_end`，且：
+
+```json
+{
+  "rollout_teardown": {
+    "ok": true
+  }
+}
+```
+
+训练更新完成后会先事务性保存 `final_model`，再关闭 vLLM Actor。若 EngineCore
+退出失败，CLI 必须以非零状态结束，同时保留 final checkpoint 和失败 PID/信号报告，
+不得把 teardown 失败静默记录为成功。Actor close 使用单一总超时预算，正常关闭未完成时
+依次升级为进程组 `SIGTERM`/`SIGKILL`，并单独检查 Actor 已报告的 EngineCore 子进程。
+
 ### 4. 二十个 update：soak 与性能证据
 
 运行 `max_steps=20`，然后：

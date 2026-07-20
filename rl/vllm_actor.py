@@ -421,7 +421,13 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         # parent can therefore enforce a bounded join/TERM/KILL sequence.
         state["closed"] = True
         state["status"] = "CLOSED"
-        return {"closed": True}
+        return {
+            "closed": True,
+            # Capture descendants before vLLM shutdown starts.  EngineCore can
+            # otherwise detach while the actor is blocked in shutdown, leaving
+            # the parent with no PID evidence to clean up or report.
+            "actor_resources": _cuda_resource_snapshot(probe_cuda_runtime=False),
+        }
     raise ValueError(f"Unsupported vLLM actor command {command!r}")
 
 
@@ -690,19 +696,127 @@ class VLLMActorClient:
             for completions in result.get("outputs", [])
         ]
 
-    def close(self, *, force: bool = False) -> None:
+    @staticmethod
+    def _pid_exists(pid: int) -> bool:
+        # A zombie no longer owns CUDA resources and cannot be signalled into a
+        # cleaner state; treat it as exited while its parent/init reaps it.
+        stat_path = Path(f"/proc/{int(pid)}/stat")
+        try:
+            stat_text = stat_path.read_text(encoding="utf-8")
+            _prefix, separator, suffix = stat_text.rpartition(")")
+            if separator and suffix.strip().split()[0] == "Z":
+                return False
+        except (OSError, IndexError):
+            pass
+        try:
+            os.kill(int(pid), 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        except OSError:
+            return False
+
+    @staticmethod
+    def _snapshot_child_pids(snapshot: Dict[str, Any]) -> set[int]:
+        pids: set[int] = set()
+        for value in snapshot.get("os_child_process_ids", []) or []:
+            try:
+                pids.add(int(value))
+            except (TypeError, ValueError):
+                continue
+        for child in snapshot.get("child_processes", []) or []:
+            try:
+                pids.add(int(child["pid"]))
+            except (KeyError, TypeError, ValueError):
+                continue
+        return pids
+
+    def _engine_child_pid_evidence(
+        self,
+        close_result: Optional[Dict[str, Any]],
+        *,
+        actor_pgid: Optional[int],
+    ) -> Dict[str, list[int]]:
+        # Only a snapshot returned by the close acknowledgement is fresh enough
+        # to authorize signalling by PID alone.  Startup/load snapshots can be
+        # hours old; a recycled PID must never be killed as if it were an old
+        # EngineCore.  Historical PIDs are actionable only while they still
+        # belong to the actor's process group.
+        fresh = self._snapshot_child_pids(
+            dict((close_result or {}).get("actor_resources") or {})
+        )
+        historical = set()
+        for snapshot in (
+            dict(self.last_engine_info.get("actor_resources") or {}),
+            dict(self.startup_info.get("actor_resources") or {}),
+        ):
+            historical.update(self._snapshot_child_pids(snapshot))
+        actor_pid = getattr(self._process, "pid", None)
+        if actor_pid is not None:
+            fresh.discard(int(actor_pid))
+            historical.discard(int(actor_pid))
+        fresh.discard(int(os.getpid()))
+        historical.discard(int(os.getpid()))
+        fresh = {pid for pid in fresh if pid > 1}
+        historical = {pid for pid in historical if pid > 1}
+        verified_historical: set[int] = set()
+        if actor_pgid is not None:
+            for pid in historical:
+                try:
+                    if os.getpgid(pid) == int(actor_pgid):
+                        verified_historical.add(pid)
+                except (OSError, ProcessLookupError):
+                    continue
+        actionable = fresh | verified_historical
+        return {
+            "fresh": sorted(fresh),
+            "historical": sorted(historical),
+            "verified": sorted(actionable),
+        }
+
+    @staticmethod
+    def _signal_pids(pids: list[int], sig: signal.Signals) -> None:
+        for pid in pids:
+            try:
+                os.kill(int(pid), sig)
+            except (OSError, ProcessLookupError):
+                pass
+
+    def _wait_for_pids(self, pids: list[int], timeout_sec: float) -> list[int]:
+        deadline = time.monotonic() + max(0.0, float(timeout_sec))
+        survivors = [pid for pid in pids if self._pid_exists(pid)]
+        while survivors and time.monotonic() < deadline:
+            time.sleep(min(0.05, max(0.0, deadline - time.monotonic())))
+            survivors = [pid for pid in survivors if self._pid_exists(pid)]
+        return survivors
+
+    def close(self, *, force: bool = False) -> Dict[str, Any]:
         process = self._process
         connection = self._connection
         if process is None:
-            return
+            return {"closed": True, "already_closed": True, "surviving_child_pids": []}
+        started = time.monotonic()
+        timeout_budget = max(0.1, float(self.shutdown_timeout_sec))
+        deadline = started + timeout_budget
+        close_result: Dict[str, Any] = {}
+        signals_sent: list[str] = []
+        actor_pgid = None
+        actor_pid = getattr(process, "pid", None)
+        if actor_pid is not None:
+            try:
+                actor_pgid = int(os.getpgid(int(actor_pid)))
+            except (OSError, ProcessLookupError):
+                pass
         graceful_acknowledged = False
         if process.is_alive() and not force:
             try:
                 request_id = self._begin_request("close")
-                self._finish_request(
+                close_result = self._finish_request(
                     request_id,
                     "close",
-                    timeout_sec=min(self.request_timeout_sec, self.shutdown_timeout_sec),
+                    timeout_sec=min(self.request_timeout_sec, max(0.1, deadline - time.monotonic())),
                     force_close_on_timeout=False,
                 )
                 graceful_acknowledged = True
@@ -711,21 +825,67 @@ class VLLMActorClient:
         # Only grant a graceful EngineCore teardown window after the actor has
         # acknowledged close.  If the control pipe itself timed out, move
         # directly to terminating the actor process group.
-        if graceful_acknowledged:
-            process.join(timeout=self.shutdown_timeout_sec)
+        # A close acknowledgement only proves that the actor entered its
+        # finally block.  vLLM 0.19 EngineCore shutdown can still block there,
+        # so grant a short grace period instead of spending the full timeout a
+        # second time.
+        if graceful_acknowledged and process.is_alive():
+            process.join(timeout=min(5.0, max(0.0, deadline - time.monotonic())))
         if process.is_alive():
             self._terminate_actor_group(process, signal.SIGTERM)
-            process.join(timeout=self.shutdown_timeout_sec)
+            signals_sent.append("SIGTERM")
+            process.join(timeout=min(5.0, max(0.0, deadline - time.monotonic())))
         if process.is_alive():
             self._terminate_actor_group(process, signal.SIGKILL)
-            process.join(timeout=min(5.0, self.shutdown_timeout_sec))
+            signals_sent.append("SIGKILL")
+            process.join(timeout=min(5.0, max(0.1, deadline - time.monotonic())))
+
+        actor_alive = bool(process.is_alive())
+        child_pid_evidence = self._engine_child_pid_evidence(
+            close_result,
+            actor_pgid=actor_pgid,
+        )
+        child_pids = list(child_pid_evidence["verified"])
+        surviving_children = [pid for pid in child_pids if self._pid_exists(pid)]
+        if surviving_children:
+            self._signal_pids(surviving_children, signal.SIGTERM)
+            surviving_children = self._wait_for_pids(
+                surviving_children,
+                min(2.0, max(0.0, deadline - time.monotonic())),
+            )
+        if surviving_children:
+            self._signal_pids(surviving_children, signal.SIGKILL)
+            surviving_children = self._wait_for_pids(surviving_children, 2.0)
+
         if connection is not None:
             connection.close()
         self._connection = None
+        self._pending_request = None
+
+        report = {
+            "closed": not actor_alive and not surviving_children,
+            "graceful_acknowledged": graceful_acknowledged,
+            "actor_pid": getattr(process, "pid", None),
+            "actor_exitcode": getattr(process, "exitcode", None),
+            "signals_sent": signals_sent,
+            "known_child_pids": child_pids,
+            "child_pid_evidence": child_pid_evidence,
+            "surviving_child_pids": surviving_children,
+            "elapsed_sec": max(0.0, time.monotonic() - started),
+        }
+        if actor_alive or surviving_children:
+            # Preserve the process handle so diagnostics or a retry can still
+            # identify the failed actor.  Silently dropping it is what made
+            # previous GPU residue difficult to attribute.
+            raise RuntimeError(f"vLLM actor teardown did not finish: {report}")
+
+        close_process = getattr(process, "close", None)
+        if callable(close_process):
+            close_process()
         self._process = None
         self.startup_info = {}
         self.last_engine_info = {}
-        self._pending_request = None
+        return report
 
     @staticmethod
     def _terminate_actor_group(process, sig: signal.Signals) -> None:
