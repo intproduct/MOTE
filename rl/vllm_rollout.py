@@ -635,11 +635,26 @@ class VLLMRolloutBackend:
             request_id = (
                 f"{self._rollout_session_id}-u{int(update_step)}-r{self._rollout_request_sequence}"
             )
-            policy_descriptor = {
+            manager_descriptor = {
                 "policy_version": int(self.sync_manager.policy_version),
                 "policy_fingerprint": self._last_sync.metadata.get("vllm_policy_fingerprint"),
                 "export_dir": None if self.sync_manager.export_dir is None else str(self.sync_manager.export_dir),
             }
+            # Native patch sync extends the bootstrap descriptor with transfer
+            # scope and plan provenance. Preserve that complete authoritative
+            # descriptor for the next update's generation request instead of
+            # reconstructing only the three bootstrap fields.
+            policy_descriptor = dict(self._engine_policy_descriptor or manager_descriptor)
+            inconsistent = {
+                key: {"manager": expected, "engine": policy_descriptor.get(key)}
+                for key, expected in manager_descriptor.items()
+                if policy_descriptor.get(key) != expected
+            }
+            if inconsistent:
+                raise RuntimeError(
+                    "rollout engine policy descriptor is inconsistent with current sync state: "
+                    f"{inconsistent}"
+                )
             outputs = self._generate_token_ids(
                 prompts=prompts,
                 input_ids=input_ids,

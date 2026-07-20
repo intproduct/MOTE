@@ -491,6 +491,67 @@ def test_native_sync_uses_commit_receipts_without_post_commit_ping(tmp_path):
     )
 
 
+def test_post_native_sync_generation_uses_complete_patch_descriptor(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.group_size = 2
+    cfg.rl.vllm_actor_resource_log_every = 0
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "r1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    descriptor = {
+        "policy_version": 1,
+        "policy_fingerprint": "fp-1",
+        "export_dir": "export-u0",
+        "weight_transfer_scope": "trainable_patch",
+        "weight_transfer_plan_fingerprint": "plan-fp",
+    }
+    observed = []
+
+    class FakeClient:
+        is_alive = True
+
+        def generate(self, *, prompt_token_ids, sampling_kwargs, expected_policy_descriptor):
+            observed.append(dict(expected_policy_descriptor))
+            return [FakeRequestOutput([9]) for _ in prompt_token_ids]
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {"r0": FakeClient(), "r1": FakeClient()}
+    backend._actor_resource_snapshot = {
+        "r0": {"policy_verified": True},
+        "r1": {"policy_verified": True},
+    }
+    backend._engine_policy_descriptor = dict(descriptor)
+    backend.sync_manager.policy_version = 1
+    backend.sync_manager.export_dir = Path("export-u0")
+    backend._last_sync = RolloutSyncResult(
+        synced=True,
+        policy_version=1,
+        policy_lag_updates=0,
+        export_dir="export-u0",
+        metadata={"vllm_policy_fingerprint": "fp-1"},
+    )
+
+    result = backend.generate(
+        model=None,
+        tokenizer=FakeTokenizer(),
+        prompts=["a", "b"],
+        input_ids=torch.tensor([[1, 2], [3, 4]]),
+        attention_mask=torch.ones((2, 2), dtype=torch.long),
+        generation_config=RolloutGenerationConfig(max_new_tokens=1, temperature=0.0, top_p=1.0),
+        update_step=1,
+    )
+
+    assert observed == [descriptor, descriptor]
+    assert result.metadata["vllm_policy_version"] == 1
+    assert result.metadata["vllm_policy_fingerprint"] == "fp-1"
+
+
 def test_in_process_vllm_019_retries_without_legacy_device(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.rl.vllm_device = "cuda:0"
