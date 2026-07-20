@@ -391,6 +391,69 @@ def test_subprocess_backend_close_returns_actor_reports(tmp_path):
     assert backend._actors == {}
 
 
+def test_native_sync_uses_commit_receipts_without_post_commit_ping(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "r0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "r1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+
+    class FakeClient:
+        is_alive = True
+
+        def ping(self):
+            raise AssertionError("native sync must not issue a redundant post-commit ping")
+
+    backend._actors = {"r0": FakeClient(), "r1": FakeClient()}
+    backend._actor_resource_snapshot = {"r0": {}, "r1": {}}
+    descriptor = {
+        "policy_version": 1,
+        "policy_fingerprint": "fp",
+        "export_dir": "export",
+        "weight_transfer_scope": "trainable_patch",
+        "weight_transfer_plan_fingerprint": "plan-fp",
+    }
+    actor_results = {
+        name: {
+            "committed": True,
+            "commit": {
+                "committed": True,
+                "actor_status": "READY",
+                "policy_descriptor": descriptor,
+            },
+        }
+        for name in ("r0", "r1")
+    }
+    backend.sync_manager.sync = lambda **_kwargs: RolloutSyncResult(
+        synced=True,
+        policy_version=1,
+        policy_lag_updates=0,
+        export_dir="export",
+        metadata={
+            "vllm_weight_transfer_native_sync": True,
+            "vllm_policy_fingerprint": "fp",
+            "vllm_weight_transfer_scope": "trainable_patch",
+            "weight_transfer_plan_fingerprint": "plan-fp",
+            "weight_transfer_actor_results": actor_results,
+        },
+    )
+
+    result = backend.sync_policy(model=None, tokenizer=None, update_step=1)
+
+    assert result.synced is True
+    assert result.metadata["vllm_all_actors_policy_verified"] is True
+    assert all(
+        snapshot["latest"]["source"] == "native_sync_commit_receipt"
+        for snapshot in backend._actor_resource_snapshot.values()
+    )
+
+
 def test_in_process_vllm_019_retries_without_legacy_device(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.rl.vllm_device = "cuda:0"

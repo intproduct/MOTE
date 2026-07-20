@@ -317,19 +317,42 @@ class VLLMRolloutBackend:
                     "policy_version": int(sync_result.policy_version),
                     "policy_fingerprint": sync_result.metadata.get("vllm_policy_fingerprint"),
                     "export_dir": None if sync_result.export_dir is None else str(sync_result.export_dir),
+                    "weight_transfer_scope": sync_result.metadata.get("vllm_weight_transfer_scope"),
+                    "weight_transfer_plan_fingerprint": sync_result.metadata.get(
+                        "weight_transfer_plan_fingerprint"
+                    ),
                 }
                 if self.uses_subprocess_actor:
-                    for name, client in self._actors.items():
-                        latest = client.ping()
-                        loaded = dict(latest.get("policy_descriptor") or {})
-                        if loaded != self._engine_policy_descriptor or latest.get("actor_status") != "READY":
+                    actor_results = dict(
+                        sync_result.metadata.get("weight_transfer_actor_results") or {}
+                    )
+                    for name in self._actors:
+                        actor_result = dict(actor_results.get(name) or {})
+                        commit = dict(actor_result.get("commit") or {})
+                        loaded = dict(commit.get("policy_descriptor") or {})
+                        if (
+                            actor_result.get("committed") is not True
+                            or commit.get("committed") is not True
+                            or loaded != self._engine_policy_descriptor
+                            or commit.get("actor_status") != "READY"
+                        ):
                             raise RuntimeError(
                                 f"actor {name!r} failed post-commit policy barrier: "
-                                f"expected={self._engine_policy_descriptor}, observed={latest}"
+                                f"expected={self._engine_policy_descriptor}, commit={commit}"
                             )
                         snapshot = self._actor_resource_snapshot.setdefault(name, {})
-                        snapshot["latest"] = latest
+                        snapshot["latest"] = {
+                            "policy_descriptor": loaded,
+                            "actor_status": commit.get("actor_status"),
+                            "source": "native_sync_commit_receipt",
+                        }
                         snapshot["policy_verified"] = True
+                    if self.logger is not None:
+                        self.logger.info(
+                            "[VLLMSync] update=%s phase=post_commit_barrier_complete actors=%s",
+                            int(update_step),
+                            len(self._actors),
+                        )
                     sync_result.metadata["vllm_engine_rebuilt"] = False
                     sync_result.metadata["vllm_all_actors_policy_verified"] = True
                     sync_result.metadata["vllm_engine_policy_descriptor"] = dict(
