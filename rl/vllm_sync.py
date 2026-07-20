@@ -758,13 +758,30 @@ class VLLMPolicySyncManager:
                 validation_prompt_token_ids=prompt_ids,
                 require_runtime_checksums=require_checksums,
             )
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMSync] actor=%s update=%s phase=receive_begin tensors=%s",
+                    actor_name,
+                    int(update_step),
+                    int(mapping.tensor_count),
+                )
             send_result = trainer_send_weights_to_actor(
                 model=model,
                 mapping=mapping,
                 settings=settings,
                 group=self.actor_trainer_nccl_groups[actor_name],
             )
-            receive_result = client.finish_weight_update(request_id)
+            receive_result = client.finish_weight_update(
+                request_id,
+                timeout_sec=float(settings.timeout_sec),
+            )
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMSync] actor=%s update=%s phase=receive_complete status=%s",
+                    actor_name,
+                    int(update_step),
+                    receive_result.get("actor_status"),
+                )
             if receive_result.get("actor_status") != "UPDATED_PENDING_COMMIT":
                 raise RuntimeError(
                     f"actor {actor_name!r} did not reach the commit barrier: {receive_result}"
@@ -786,6 +803,12 @@ class VLLMPolicySyncManager:
                 raise RuntimeError(f"actor {actor_name!r} failed policy commit: {commit_result}")
             actor_results[actor_name]["commit"] = commit_result
             actor_results[actor_name]["committed"] = True
+            if self.logger is not None:
+                self.logger.info(
+                    "[VLLMSync] actor=%s update=%s phase=commit_complete",
+                    actor_name,
+                    int(update_step),
+                )
 
         return {
             "weight_transfer_adapter": "nccl_update_only_subprocess",

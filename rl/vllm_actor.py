@@ -197,7 +197,13 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
             "policy_descriptor": state.get("policy_descriptor"),
             "pending_policy_descriptor": state.get("pending_policy_descriptor"),
             "engine_process_id": int(os.getpid()),
-            "actor_resources": _cuda_resource_snapshot(),
+            # Do not enter the CUDA runtime from the actor control process
+            # after vLLM has created EngineCore/NCCL workers.  A post-update
+            # torch.cuda query can block even though generation completed,
+            # preventing the response and commit barrier from reaching the
+            # trainer.  The full CUDA placement snapshot is captured once at
+            # engine load; later pings only need process-lifecycle evidence.
+            "actor_resources": _cuda_resource_snapshot(probe_cuda_runtime=False),
             "engine_topology": state.get("engine_topology"),
         }
     if command == "load_engine":
@@ -327,7 +333,10 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                 },
                 "rollout_facing_validation": rollout_validation,
                 "engine_process_id": int(os.getpid()),
-                "engine_resources": _cuda_resource_snapshot(),
+                # update_weights and greedy validation have already exercised
+                # the EngineCore.  Keep the control-plane response CUDA-free so
+                # observability cannot stall the native-sync transaction.
+                "engine_resources": _cuda_resource_snapshot(probe_cuda_runtime=False),
                 "received_weight_update_contract": {
                     "transfer_scope": transfer_scope,
                     "transfer_plan_fingerprint": transfer_plan_fingerprint,
@@ -654,8 +663,17 @@ class VLLMActorClient:
             require_runtime_checksums=bool(require_runtime_checksums),
         )
 
-    def finish_weight_update(self, request_id: int) -> Dict[str, Any]:
-        return self._finish_request(request_id, "receive_weight_update")
+    def finish_weight_update(
+        self,
+        request_id: int,
+        *,
+        timeout_sec: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        return self._finish_request(
+            request_id,
+            "receive_weight_update",
+            timeout_sec=timeout_sec,
+        )
 
     def commit_weight_update(self, *, policy_descriptor: Dict[str, Any]) -> Dict[str, Any]:
         return self._request("commit_weight_update", policy_descriptor=dict(policy_descriptor))

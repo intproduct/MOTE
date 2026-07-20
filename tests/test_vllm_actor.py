@@ -16,6 +16,7 @@ if "MOTE" not in sys.modules:
     sys.modules["MOTE"] = mote_pkg
 
 from MOTE.rl.vllm_actor import VLLMActorClient, _engine_topology_snapshot, _handle_actor_request
+import MOTE.rl.vllm_actor as vllm_actor_module
 from MOTE.config.loader import load_config_from_json
 
 
@@ -349,6 +350,23 @@ def test_actor_protocol_rejects_generate_before_load():
         raise AssertionError("actor must reject generation before an engine is loaded")
 
 
+def test_actor_ping_does_not_probe_cuda_runtime(monkeypatch):
+    probes = []
+
+    def snapshot(*, probe_cuda_runtime=True):
+        probes.append(probe_cuda_runtime)
+        return {"cuda_runtime_probe_deferred": not probe_cuda_runtime}
+
+    monkeypatch.setattr(vllm_actor_module, "_cuda_resource_snapshot", snapshot)
+    result = _handle_actor_request(
+        {"llm": object(), "closed": False, "status": "READY"},
+        {"command": "ping"},
+    )
+
+    assert probes == [False]
+    assert result["actor_resources"]["cuda_runtime_probe_deferred"] is True
+
+
 def test_actor_protocol_rejects_policy_provenance_mismatch(monkeypatch):
     class FakeLLM:
         def __init__(self, **kwargs):
@@ -385,6 +403,7 @@ def test_actor_protocol_rejects_policy_provenance_mismatch(monkeypatch):
 
 def test_actor_update_only_state_machine_blocks_generation_until_commit(monkeypatch):
     calls = []
+    resource_probes = []
 
     class Info:
         def __init__(self, **kwargs):
@@ -427,6 +446,11 @@ def test_actor_update_only_state_machine_blocks_generation_until_commit(monkeypa
     monkeypatch.setitem(sys.modules, "vllm", fake_vllm)
     monkeypatch.setitem(sys.modules, "vllm.distributed.weight_transfer.base", base)
     monkeypatch.setitem(sys.modules, "vllm.distributed.weight_transfer.nccl_engine", nccl)
+    monkeypatch.setattr(
+        vllm_actor_module,
+        "_cuda_resource_snapshot",
+        lambda *, probe_cuda_runtime=True: resource_probes.append(probe_cuda_runtime) or {},
+    )
 
     state = {
         "llm": FakeLLM(),
@@ -460,6 +484,7 @@ def test_actor_update_only_state_machine_blocks_generation_until_commit(monkeypa
     )
     assert result["actor_status"] == "UPDATED_PENDING_COMMIT"
     assert calls == ["init", "update", "reset_cache"]
+    assert resource_probes == [False]
     with pytest.raises(RuntimeError, match="cannot generate"):
         _handle_actor_request(
             state,

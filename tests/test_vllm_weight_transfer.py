@@ -519,7 +519,7 @@ class _FakeSubprocessActor:
         self.pending_descriptor = dict(kwargs["policy_descriptor"])
         return 41
 
-    def finish_weight_update(self, request_id):
+    def finish_weight_update(self, request_id, *, timeout_sec=None):
         self.calls.append(("finish", request_id))
         if self.fail_finish:
             raise RuntimeError(f"{self.name} receive failed")
