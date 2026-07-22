@@ -418,6 +418,79 @@ class VLLMRolloutBackend:
         _, SamplingParams = self._import_vllm()
         return SamplingParams(**kwargs)
 
+    def generate_static_samples(
+        self,
+        *,
+        prompt_token_ids: Sequence[int],
+        num_samples: int,
+        max_new_tokens: int,
+        temperature: float,
+        top_p: float,
+        seed: int,
+        prompt_index: int = 0,
+        eos_token_id: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """Generate an evaluation-only multi-sample request from the loaded engine.
+
+        This deliberately bypasses policy sync and accepts no model/optimizer.  The
+        caller must initialize the engine once with ``sync_policy(..., force=True)``.
+        """
+        if int(num_samples) <= 0:
+            raise ValueError("num_samples must be > 0")
+        ids = [int(value) for value in prompt_token_ids]
+        if not ids:
+            raise ValueError("prompt_token_ids must not be empty")
+        sampling_kwargs: Dict[str, Any] = {
+            "n": int(num_samples),
+            "max_tokens": int(max_new_tokens),
+            "temperature": float(temperature),
+            "top_p": float(top_p),
+            "seed": int(seed),
+        }
+        if eos_token_id is not None:
+            sampling_kwargs["stop_token_ids"] = [int(eos_token_id)]
+        expected = dict(self._engine_policy_descriptor)
+        if self.uses_subprocess_actor:
+            if not self._actor_specs:
+                raise RuntimeError("No subprocess vLLM actors are configured")
+            spec = self._actor_specs[int(prompt_index) % len(self._actor_specs)]
+            outputs = self._actor_client(str(spec["name"])).generate(
+                prompt_token_ids=[ids],
+                sampling_kwargs=sampling_kwargs,
+                expected_policy_descriptor=expected,
+            )
+        else:
+            if self.llm is None:
+                raise RuntimeError("vLLM engine is not initialized")
+            if bool(getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)) and not expected:
+                raise RuntimeError("vLLM static engine has no policy provenance descriptor")
+            _, SamplingParams = self._import_vllm()
+            params = SamplingParams(**sampling_kwargs)
+            try:
+                outputs = self.llm.generate(
+                    prompts=[{"prompt_token_ids": ids}],
+                    sampling_params=params,
+                )
+            except TypeError:
+                outputs = self.llm.generate(prompt_token_ids=[ids], sampling_params=params)
+        if len(outputs) != 1:
+            raise RuntimeError(f"vLLM static request returned {len(outputs)} prompt rows; expected 1")
+        completions = list(getattr(outputs[0], "outputs", []) or [])
+        if len(completions) != int(num_samples):
+            raise RuntimeError(
+                f"vLLM static request returned {len(completions)} completions; expected {int(num_samples)}"
+            )
+        return [
+            {
+                "token_ids": [int(token) for token in list(getattr(item, "token_ids", []) or [])],
+                "text": str(getattr(item, "text", "") or ""),
+                "finish_reason": (
+                    None if getattr(item, "finish_reason", None) is None else str(getattr(item, "finish_reason"))
+                ),
+            }
+            for item in completions
+        ]
+
     def _generate_token_ids(
         self,
         *,

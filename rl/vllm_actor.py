@@ -75,6 +75,7 @@ def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any
 class ActorCompletion:
     token_ids: list[int]
     text: str = ""
+    finish_reason: Optional[str] = None
 
 
 @dataclass
@@ -398,6 +399,11 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                     {
                         "token_ids": [int(token) for token in list(getattr(completion, "token_ids", []) or [])],
                         "text": str(getattr(completion, "text", "") or ""),
+                        "finish_reason": (
+                            None
+                            if getattr(completion, "finish_reason", None) is None
+                            else str(getattr(completion, "finish_reason"))
+                        ),
                     }
                     for completion in completions
                 ]
@@ -707,7 +713,11 @@ class VLLMActorClient:
         return [
             ActorRequestOutput(
                 outputs=[
-                    ActorCompletion(token_ids=list(item.get("token_ids") or []), text=str(item.get("text") or ""))
+                    ActorCompletion(
+                        token_ids=list(item.get("token_ids") or []),
+                        text=str(item.get("text") or ""),
+                        finish_reason=None if item.get("finish_reason") is None else str(item.get("finish_reason")),
+                    )
                     for item in completions
                 ]
             )
