@@ -176,10 +176,13 @@ def test_lm_eval_prompt_iteration_never_calls_rl_builder(monkeypatch):
         protocol="lm_eval", decoding="greedy", rollout_backend="vllm", prompt_batch_size=2,
         num_rollouts=1, assert_multi_actor_dispatch=False,
     )
-    cfg = types.SimpleNamespace(rl=types.SimpleNamespace(rollout_max_prompt_tokens=9))
+    cfg = types.SimpleNamespace(
+        data=types.SimpleNamespace(seq_len_run=2048),
+        rl=types.SimpleNamespace(rollout_max_prompt_tokens=9),
+    )
     values = list(boundary_cli._iter_prompt_samples(
         cfg=cfg, args=args, records=records, backend=object(), model=None, tokenizer=object(),
-        generation_config=types.SimpleNamespace(), seed=7,
+        generation_config=types.SimpleNamespace(max_new_tokens=256), seed=7,
     ))
     assert [value[2] for value in values] == [row["_lm_eval_prompt"] for row in records]
 
@@ -264,3 +267,117 @@ def test_hf_backend_true_greedy_omits_sampling_controls_and_passes_stops():
 
 def test_pass_at_k_formula_is_unchanged():
     assert pass_at_k_estimate(16, 6, 4) == pytest.approx(1 - 210 / 1820)
+
+
+class TokenLengthTokenizer:
+    eos_token_id = 2
+    truncation_side = "right"
+    padding_side = "right"
+
+    def __call__(
+        self,
+        prompts,
+        *,
+        return_tensors,
+        padding,
+        add_special_tokens,
+        truncation=False,
+        max_length=None,
+    ):
+        import torch
+
+        del return_tensors, padding, add_special_tokens
+        rows = [list(range(1, len(prompt) + 1)) for prompt in prompts]
+        if truncation:
+            assert self.truncation_side == "left"
+            rows = [row[-int(max_length):] for row in rows]
+        width = max(len(row) for row in rows)
+        input_ids = []
+        attention_mask = []
+        for row in rows:
+            pad = [0] * (width - len(row))
+            input_ids.append(pad + row)
+            attention_mask.append([0] * len(pad) + [1] * len(row))
+        return {
+            "input_ids": torch.tensor(input_ids),
+            "attention_mask": torch.tensor(attention_mask),
+        }
+
+
+def test_lm_eval_static_prompt_uses_hflm_left_truncation_budget():
+    observed = {}
+
+    class Backend:
+        last_actor_dispatch_metadata = {
+            "actor_count": 2,
+            "active_actor_count": 2,
+            "actors": {},
+        }
+
+        def generate_static_samples_batch(self, **kwargs):
+            observed.update(kwargs)
+            return [[{"token_ids": [9], "text": "x", "finish_reason": "stop"}]]
+
+    tokenizer = TokenLengthTokenizer()
+    results, dispatch = boundary_cli._vllm_samples_batch(
+        backend=Backend(), tokenizer=tokenizer, prompts=["x" * 2115],
+        num_rollouts=1,
+        generation_config=types.SimpleNamespace(
+            max_new_tokens=256, temperature=0.0, top_p=1.0,
+            stop_sequences=(), top_k=None,
+        ),
+        prompt_seeds=[7], prompt_indices=[3], max_prompt_tokens=1792,
+        decoding="greedy", hflm_compatible=True,
+    )
+    assert len(observed["prompt_token_ids"][0]) == 1792
+    assert observed["prompt_token_ids"][0][0] == 324
+    assert tokenizer.padding_side == "right"
+    assert results[0][0]["text"] == "x"
+    audit = dispatch["prompt_tokenization"]["prompts"][0]
+    assert audit["prompt_index"] == 3
+    assert audit["raw_prompt_token_count"] == 2115
+    assert audit["effective_prompt_token_count"] == 1792
+    assert audit["truncated_prompt_token_count"] == 323
+    assert audit["prompt_truncated"] is True
+
+
+def test_lm_eval_prompt_budget_matches_hflm_and_rejects_undersized_actor():
+    cfg = make_default_config()
+    cfg.data.seq_len_run = 2048
+    cfg.rl.vllm_max_model_len = 2048
+    generation = types.SimpleNamespace(max_new_tokens=256)
+    assert boundary_cli._lm_eval_max_prompt_tokens(
+        cfg, generation, rollout_backend="vllm"
+    ) == 1792
+    cfg.rl.vllm_max_model_len = 1024
+    with pytest.raises(ValueError, match="undersized_actors"):
+        boundary_cli._lm_eval_max_prompt_tokens(
+            cfg, generation, rollout_backend="vllm"
+        )
+
+
+def test_prompt_dump_observer_runs_before_vllm_generation_failure(monkeypatch):
+    protocol = make_protocol(count=1)
+    records = protocol.boundary_rows()
+    observed = []
+    monkeypatch.setattr(
+        boundary_cli,
+        "_vllm_samples_batch",
+        lambda **_kwargs: (_ for _ in ()).throw(RuntimeError("injected generate failure")),
+    )
+    cfg = types.SimpleNamespace(
+        data=types.SimpleNamespace(seq_len_run=2048),
+        rl=types.SimpleNamespace(rollout_max_prompt_tokens=0),
+    )
+    args = types.SimpleNamespace(
+        protocol="lm_eval", decoding="greedy", rollout_backend="vllm",
+        prompt_batch_size=1, num_rollouts=1, assert_multi_actor_dispatch=False,
+    )
+    with pytest.raises(RuntimeError, match="injected generate failure"):
+        list(boundary_cli._iter_prompt_samples(
+            cfg=cfg, args=args, records=records, backend=object(), model=None,
+            tokenizer=object(),
+            generation_config=types.SimpleNamespace(max_new_tokens=256), seed=7,
+            prompt_observer=lambda index, row, prompt: observed.append((index, row, prompt)),
+        ))
+    assert observed and observed[0][0] == 0

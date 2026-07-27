@@ -25,6 +25,7 @@ from ..rl.boundary import (
     reward_match_type,
 )
 from ..rl.data import load_gsm8k_rl_records
+from ..rl.device_topology import rollout_actor_specs
 from ..rl.generation import tokenize_rollout_prompts
 from ..rl.rewards_gsm8k import extract_gsm8k_answer, gsm8k_reward, normalize_number_answer
 from ..rl.rollout_backends import HFRolloutBackend, RolloutGenerationConfig
@@ -112,6 +113,112 @@ def _write_line(handle, value: Mapping[str, Any]) -> None:
 
 def _prompt_hash(prompt: str) -> str:
     return hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+
+
+def _token_ids_hash(token_ids) -> str:
+    payload = ",".join(str(int(value)) for value in token_ids)
+    return hashlib.sha256(payload.encode("ascii")).hexdigest()
+
+
+def _tokenize_static_prompts(
+    tokenizer,
+    prompts,
+    *,
+    max_prompt_tokens: int,
+    hflm_compatible: bool = False,
+):
+    prompt_values = list(prompts)
+    had_padding_side = hasattr(tokenizer, "padding_side")
+    original_padding_side = getattr(tokenizer, "padding_side", None)
+    if hflm_compatible and had_padding_side:
+        tokenizer.padding_side = "left"
+    try:
+        raw_enc = tokenize_rollout_prompts(
+            tokenizer, prompt_values, max_prompt_tokens=0
+        )
+    finally:
+        if hflm_compatible and had_padding_side:
+            tokenizer.padding_side = original_padding_side
+    raw_ids = [
+        row[mask.to(dtype=torch.bool)].tolist()
+        for row, mask in zip(raw_enc["input_ids"], raw_enc["attention_mask"])
+    ]
+    limit = int(max_prompt_tokens)
+    needs_truncation = limit > 0 and any(len(row) > limit for row in raw_ids)
+    if needs_truncation and hflm_compatible:
+        # HFLM.tok_batch_encode first left-pads the complete batch, then slices
+        # every encoded tensor from the left.  Reproduce that exact ordering
+        # instead of tokenizer truncation, which can retain/reinsert BOS tokens.
+        effective_enc = {
+            key: (
+                value[:, -limit:]
+                if hasattr(value, "shape")
+                and len(value.shape) >= 2
+                and int(value.shape[1]) > limit
+                else value
+            )
+            for key, value in raw_enc.items()
+        }
+    elif needs_truncation:
+        effective_enc = tokenize_rollout_prompts(
+            tokenizer, prompt_values, max_prompt_tokens=limit
+        )
+    else:
+        effective_enc = raw_enc
+    effective_ids = [
+        row[mask.to(dtype=torch.bool)].tolist()
+        for row, mask in zip(
+            effective_enc["input_ids"], effective_enc["attention_mask"]
+        )
+    ]
+    prompt_audits = []
+    for prompt, original, effective in zip(
+        prompt_values, raw_ids, effective_ids
+    ):
+        removed = max(0, len(original) - len(effective))
+        prompt_audits.append(
+            {
+                "prompt_hash": _prompt_hash(prompt),
+                "raw_prompt_token_count": len(original),
+                "effective_prompt_token_count": len(effective),
+                "prompt_truncated": removed > 0,
+                "truncated_prompt_token_count": removed,
+                "effective_prompt_token_hash": _token_ids_hash(effective),
+            }
+        )
+    return effective_enc, effective_ids, {
+        "max_prompt_tokens": None if limit <= 0 else limit,
+        "truncation_side": "left" if limit > 0 else None,
+        "prompt_count": len(prompt_values),
+        "truncated_prompt_count": sum(
+            int(item["prompt_truncated"]) for item in prompt_audits
+        ),
+        "prompts": prompt_audits,
+    }
+
+
+def _lm_eval_max_prompt_tokens(cfg, generation_config, *, rollout_backend: str) -> int:
+    formal_max_length = int(cfg.data.seq_len_run)
+    max_gen_toks = int(generation_config.max_new_tokens)
+    max_prompt_tokens = formal_max_length - max_gen_toks
+    if max_prompt_tokens <= 0:
+        raise ValueError(
+            "lm_eval protocol requires data.seq_len_run > max_gen_toks: "
+            f"seq_len_run={formal_max_length}, max_gen_toks={max_gen_toks}"
+        )
+    if rollout_backend == "vllm":
+        undersized = {
+            str(spec["name"]): int(spec["max_model_len"])
+            for spec in rollout_actor_specs(cfg.rl)
+            if 0 < int(spec["max_model_len"]) < formal_max_length
+        }
+        if undersized:
+            raise ValueError(
+                "lm_eval protocol requires every configured vLLM max_model_len to be at least "
+                "data.seq_len_run so HFLM-equivalent truncation is possible: "
+                f"seq_len_run={formal_max_length}, undersized_actors={undersized}"
+            )
+    return max_prompt_tokens
 
 
 def _resolved_split(args) -> str:
@@ -292,10 +399,15 @@ def _atomic_json(path: str | Path, value: Mapping[str, Any]) -> None:
             temporary.unlink()
 
 
-def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_config, prompt_seed, max_prompt_tokens):
+def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_config, prompt_seed, max_prompt_tokens, hflm_compatible=False):
     del prompt_seed
     prompts = [prompt] * int(num_rollouts)
-    enc = tokenize_rollout_prompts(tokenizer, prompts, max_prompt_tokens=max_prompt_tokens)
+    enc, _, tokenization_audit = _tokenize_static_prompts(
+        tokenizer,
+        prompts,
+        max_prompt_tokens=max_prompt_tokens,
+        hflm_compatible=hflm_compatible,
+    )
     input_ids = enc["input_ids"].to(model.device)
     attention_mask = enc["attention_mask"].to(model.device)
     batch = backend.generate(
@@ -337,7 +449,7 @@ def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_c
             "finish_reason": "length" if reached_limit else "stop",
             "truncated": reached_limit,
         })
-    return result
+    return result, tokenization_audit
 
 
 def _vllm_samples(*, backend, tokenizer, prompt, num_rollouts, generation_config, prompt_seed, prompt_index, max_prompt_tokens):
@@ -365,13 +477,23 @@ def _vllm_samples_batch(
     prompt_indices,
     max_prompt_tokens,
     decoding="sample",
+    log_prompt_tokenization=False,
+    hflm_compatible=False,
 ):
-    enc = tokenize_rollout_prompts(
-        tokenizer, list(prompts), max_prompt_tokens=max_prompt_tokens
+    _, effective_prompt_ids, tokenization_audit = _tokenize_static_prompts(
+        tokenizer,
+        list(prompts),
+        max_prompt_tokens=max_prompt_tokens,
+        hflm_compatible=hflm_compatible,
     )
-    effective_prompt_ids = []
-    for row, mask in zip(enc["input_ids"], enc["attention_mask"]):
-        effective_prompt_ids.append(row[mask.to(dtype=torch.bool)].tolist())
+    for prompt_index, item in zip(prompt_indices, tokenization_audit["prompts"]):
+        item["prompt_index"] = int(prompt_index)
+    if log_prompt_tokenization:
+        print(
+            "[PromptTokenization] "
+            + json.dumps(to_jsonable(tokenization_audit), ensure_ascii=False),
+            flush=True,
+        )
     raw_batch = backend.generate_static_samples_batch(
         prompt_token_ids=effective_prompt_ids,
         num_samples=num_rollouts,
@@ -400,7 +522,9 @@ def _vllm_samples_batch(
                 "truncated": bool(truncated),
             })
         results.append(prompt_results)
-    return results, backend.last_actor_dispatch_metadata
+    dispatch = dict(backend.last_actor_dispatch_metadata or {})
+    dispatch["prompt_tokenization"] = tokenization_audit
+    return results, dispatch
 
 
 def _copy_checkpoint_callback(source: Path):
@@ -456,11 +580,14 @@ def _iter_prompt_samples(
     tokenizer,
     generation_config,
     seed: int,
+    prompt_observer=None,
 ):
     protocol = str(getattr(args, "protocol", "rl"))
     decoding = str(getattr(args, "decoding", "sample"))
     max_prompt_tokens = (
-        0
+        _lm_eval_max_prompt_tokens(
+            cfg, generation_config, rollout_backend=args.rollout_backend
+        )
         if protocol == "lm_eval"
         else int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0))
     )
@@ -472,7 +599,9 @@ def _iter_prompt_samples(
                 else build_rl_prompt_text(cfg, tokenizer, row["question"])
             )
             prompt_seed = seed + prompt_index
-            samples = _hf_samples(
+            if prompt_observer is not None:
+                prompt_observer(prompt_index, row, prompt)
+            samples, tokenization_audit = _hf_samples(
                 backend=backend,
                 model=model,
                 tokenizer=tokenizer,
@@ -481,7 +610,9 @@ def _iter_prompt_samples(
                 generation_config=generation_config,
                 prompt_seed=prompt_seed,
                 max_prompt_tokens=max_prompt_tokens,
+                hflm_compatible=protocol == "lm_eval",
             )
+            row["_prompt_token_audit"] = dict(tokenization_audit["prompts"][0])
             yield prompt_index, row, prompt, prompt_seed, samples
         return
 
@@ -497,6 +628,11 @@ def _iter_prompt_samples(
             )
             for row in batch_rows
         ]
+        if prompt_observer is not None:
+            for prompt_index, row, prompt in zip(
+                prompt_indices, batch_rows, prompts
+            ):
+                prompt_observer(prompt_index, row, prompt)
         prompt_seeds = [seed + prompt_index for prompt_index in prompt_indices]
         samples_batch, actor_dispatch = _vllm_samples_batch(
             backend=backend,
@@ -508,6 +644,8 @@ def _iter_prompt_samples(
             prompt_indices=prompt_indices,
             max_prompt_tokens=max_prompt_tokens,
             decoding=decoding,
+            log_prompt_tokenization=protocol == "lm_eval",
+            hflm_compatible=protocol == "lm_eval",
         )
         if len(samples_batch) != len(batch_rows):
             raise RuntimeError(
@@ -520,6 +658,17 @@ def _iter_prompt_samples(
             configured_num_rollouts=int(args.num_rollouts),
             strict=bool(args.assert_multi_actor_dispatch),
         )
+        token_audits = list(
+            (actor_dispatch.get("prompt_tokenization") or {}).get("prompts") or []
+        )
+        if token_audits and len(token_audits) != len(batch_rows):
+            raise RuntimeError(
+                "static vLLM prompt tokenization audit count does not match batch: "
+                f"audits={len(token_audits)}, prompts={len(batch_rows)}"
+            )
+        if token_audits:
+            for row, audit in zip(batch_rows, token_audits):
+                row["_prompt_token_audit"] = dict(audit)
         for local_index, row in enumerate(batch_rows):
             yield (
                 prompt_indices[local_index],
@@ -569,6 +718,10 @@ def main(argv: list[str] | None = None):
     lm_eval_correct_rl_wrong_count = 0
     rl_correct_lm_eval_wrong_count = 0
     total_scored_rollouts = 0
+    prompt_truncated_count = 0
+    truncated_prompt_token_count = 0
+    maximum_raw_prompt_tokens = 0
+    maximum_effective_prompt_tokens = 0
     completed = False
     previous_sigterm_handler = None
     try:
@@ -594,6 +747,16 @@ def main(argv: list[str] | None = None):
         generation_config, effective_generation = _make_generation_config(
             cfg, args, seed, records
         )
+        if args.protocol == "lm_eval":
+            effective_generation["formal_model_max_length"] = int(
+                cfg.data.seq_len_run
+            )
+            effective_generation["max_prompt_tokens"] = _lm_eval_max_prompt_tokens(
+                cfg,
+                generation_config,
+                rollout_backend=args.rollout_backend,
+            )
+            effective_generation["prompt_truncation"] = "left"
         if args.rollout_backend == "vllm":
             print(
                 "[VLLMActorStartup] "
@@ -613,16 +776,8 @@ def main(argv: list[str] | None = None):
         all_file = _open_jsonl(args.all_rollouts_jsonl)
         prompts_file = _open_jsonl(args.dump_prompts_jsonl)
         handles = [handle for handle in (selected_file, verified_file, all_file, prompts_file) if handle is not None]
-        for prompt_index, row, prompt, prompt_seed, samples in _iter_prompt_samples(
-            cfg=cfg,
-            args=args,
-            records=records,
-            backend=backend,
-            model=model,
-            tokenizer=tokenizer,
-            generation_config=generation_config,
-            seed=seed,
-        ):
+
+        def observe_prompt(prompt_index, row, prompt):
             prompt_hash = _prompt_hash(prompt)
             _write_line(
                 prompts_file,
@@ -635,6 +790,36 @@ def main(argv: list[str] | None = None):
                     "passk_prompt_hash": prompt_hash,
                     "prompt": prompt,
                 },
+            )
+            if prompts_file is not None:
+                prompts_file.flush()
+
+        for prompt_index, row, prompt, prompt_seed, samples in _iter_prompt_samples(
+            cfg=cfg,
+            args=args,
+            records=records,
+            backend=backend,
+            model=model,
+            tokenizer=tokenizer,
+            generation_config=generation_config,
+            seed=seed,
+            prompt_observer=observe_prompt,
+        ):
+            prompt_hash = _prompt_hash(prompt)
+            prompt_token_audit = dict(row.get("_prompt_token_audit") or {})
+            prompt_truncated_count += int(
+                bool(prompt_token_audit.get("prompt_truncated", False))
+            )
+            truncated_prompt_token_count += int(
+                prompt_token_audit.get("truncated_prompt_token_count", 0)
+            )
+            maximum_raw_prompt_tokens = max(
+                maximum_raw_prompt_tokens,
+                int(prompt_token_audit.get("raw_prompt_token_count", 0)),
+            )
+            maximum_effective_prompt_tokens = max(
+                maximum_effective_prompt_tokens,
+                int(prompt_token_audit.get("effective_prompt_token_count", 0)),
             )
             rollout_rows = []
             for rollout_index, sample in enumerate(samples):
@@ -661,6 +846,7 @@ def main(argv: list[str] | None = None):
                     "prompt_hash": prompt_hash,
                     "lm_eval_prompt_hash": prompt_hash if args.protocol == "lm_eval" else None,
                     "passk_prompt_hash": prompt_hash,
+                    **prompt_token_audit,
                     "question": row["question"],
                     "gold_answer": row["answer"],
                     "gold": row["answer"],
@@ -696,6 +882,7 @@ def main(argv: list[str] | None = None):
                     "prompt_hash": prompt_hash,
                     "lm_eval_prompt_hash": prompt_hash if args.protocol == "lm_eval" else None,
                     "passk_prompt_hash": prompt_hash,
+                    **prompt_token_audit,
                     "num_fewshot": protocol_metadata.get("num_fewshot"),
                     "lm_eval_correctness": (
                         [bool(item["lm_eval_correct"]) for item in rollout_rows]
@@ -799,6 +986,27 @@ def main(argv: list[str] | None = None):
         },
         **aggregates,
         "parser_diagnostics": parser_diagnostics,
+        "prompt_token_diagnostics": {
+            "truncation_side": (
+                effective_generation.get("prompt_truncation")
+                if args.protocol == "lm_eval"
+                else (
+                    "left"
+                    if int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0)) > 0
+                    else None
+                )
+            ),
+            "max_prompt_tokens": effective_generation.get("max_prompt_tokens"),
+            "truncated_prompt_count": prompt_truncated_count,
+            "truncated_prompt_rate": (
+                float(prompt_truncated_count / len(prompt_records))
+                if prompt_records
+                else 0.0
+            ),
+            "truncated_prompt_token_count": truncated_prompt_token_count,
+            "maximum_raw_prompt_tokens": maximum_raw_prompt_tokens,
+            "maximum_effective_prompt_tokens": maximum_effective_prompt_tokens,
+        },
         "outputs": {
             "selected_prompt_count": selected_count,
             "verified_trace_count": verified_count,
