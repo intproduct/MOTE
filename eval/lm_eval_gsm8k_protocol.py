@@ -65,6 +65,31 @@ def _first_text(value: Any) -> Optional[str]:
     return None
 
 
+def _apply_filters_to_instances(task, instances: list[Any]) -> None:
+    """Run the task's filter pipeline against one isolated set of requests.
+
+    Current lm-evaluation-harness releases expose ``Task.instances`` as a
+    read-only property backed by ``Task._instances``.  Older task adapters and
+    lightweight test doubles may still expose a writable ``instances`` field.
+    Select the real storage field without bypassing the task's own
+    ``apply_filters`` implementation, and always restore the complete request
+    list afterwards.
+    """
+    storage_name = "_instances" if hasattr(task, "_instances") else "instances"
+    try:
+        original_instances = getattr(task, storage_name)
+        setattr(task, storage_name, instances)
+    except (AttributeError, TypeError) as exc:
+        raise RuntimeError(
+            "installed lm_eval task exposes no replaceable instance storage; "
+            "expected Task._instances or a writable Task.instances"
+        ) from exc
+    try:
+        task.apply_filters()
+    finally:
+        setattr(task, storage_name, original_instances)
+
+
 def _load_task(task_name: str):
     try:
         tasks_module = importlib.import_module("lm_eval.tasks")
@@ -247,12 +272,7 @@ class LMEvalGSM8KProtocol:
         # lm_eval normally filters every task instance after all generations
         # finish. Pass@K scores one completion at a time, so temporarily expose
         # only this document's requests while invoking the exact same pipelines.
-        all_instances = self.task.instances
-        try:
-            self.task.instances = record.instances
-            self.task.apply_filters()
-        finally:
-            self.task.instances = all_instances
+        _apply_filters_to_instances(self.task, record.instances)
         filtered = []
         for instance in record.instances:
             if self.filter_name not in instance.filtered_resps:

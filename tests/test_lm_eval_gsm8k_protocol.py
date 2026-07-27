@@ -17,6 +17,7 @@ from MOTE.cli import build_boundary_gsm8k as boundary_cli
 from MOTE.config.defaults import make_default_config
 from MOTE.eval.lm_eval_gsm8k_protocol import (
     LMEvalGSM8KProtocol,
+    _apply_filters_to_instances,
     resolve_lm_eval_num_fewshot,
 )
 from MOTE.rl.boundary import pass_at_k_estimate
@@ -49,7 +50,12 @@ class SyntheticGSM8KTask:
             num_fewshot=5,
             repeats=1,
         )
-        self.instances = []
+        self._instances = []
+
+    @property
+    def instances(self):
+        # Match lm-evaluation-harness Task.instances: public, but read-only.
+        return self._instances
 
     def get_config(self, key):
         return getattr(self.config, key, None)
@@ -67,7 +73,7 @@ class SyntheticGSM8KTask:
     def build_all_requests(self, limit, **kwargs):
         del kwargs
         count = len(self.docs) if limit is None else min(int(limit), len(self.docs))
-        self.instances = [
+        self._instances = [
             FakeInstance(
                 index,
                 f"EXACT-FEW-SHOT-{self.config.num_fewshot}\nQuestion: {doc['question']}\nAnswer:",
@@ -143,6 +149,48 @@ def test_lm_eval_scoring_reuses_filter_and_isolated_from_rl_reward():
     assert diagnostic["lm_eval_correct"] is True
     assert diagnostic["rl_correct"] is False
     assert diagnostic["parser_disagreement"] is True
+
+
+def test_lm_eval_scoring_restores_complete_task_instances():
+    protocol = make_protocol(count=2)
+    all_instances = protocol.task.instances
+    record = protocol.records[0]
+
+    result = protocol.score(record, "reasoning FORMAL:0")
+
+    assert result["correct"] is True
+    assert protocol.task.instances is all_instances
+    assert len(protocol.task.instances) == 2
+
+
+def test_lm_eval_scoring_restores_instances_when_filter_fails(monkeypatch):
+    protocol = make_protocol(count=2)
+    all_instances = protocol.task.instances
+    record = protocol.records[0]
+
+    def fail_filter():
+        assert protocol.task.instances is record.instances
+        raise ValueError("synthetic filter failure")
+
+    monkeypatch.setattr(protocol.task, "apply_filters", fail_filter)
+    with pytest.raises(ValueError, match="synthetic filter failure"):
+        protocol.score(record, "reasoning FORMAL:0")
+
+    assert protocol.task.instances is all_instances
+    assert len(protocol.task.instances) == 2
+
+
+def test_filter_isolation_supports_legacy_writable_instances():
+    all_instances = ["all-0", "all-1"]
+    isolated_instances = ["isolated"]
+    task = types.SimpleNamespace(instances=all_instances)
+    observed = []
+    task.apply_filters = lambda: observed.append(task.instances)
+
+    _apply_filters_to_instances(task, isolated_instances)
+
+    assert observed == [isolated_instances]
+    assert task.instances is all_instances
 
 
 def test_parser_disagreement_is_diagnostic_only():
