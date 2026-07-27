@@ -670,6 +670,9 @@ class VLLMRolloutBackend:
         seed: int,
         prompt_index: int = 0,
         eos_token_id: Optional[int] = None,
+        decoding: str = "sample",
+        stop: Optional[Sequence[str]] = None,
+        top_k: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """Backward-compatible single-prompt wrapper around static batch generation."""
         return self.generate_static_samples_batch(
@@ -681,6 +684,9 @@ class VLLMRolloutBackend:
             seeds=[seed],
             prompt_indices=[prompt_index],
             eos_token_id=eos_token_id,
+            decoding=decoding,
+            stop=stop,
+            top_k=top_k,
         )[0]
 
     def generate_static_samples_batch(
@@ -694,10 +700,18 @@ class VLLMRolloutBackend:
         seeds: Sequence[int],
         prompt_indices: Optional[Sequence[int]] = None,
         eos_token_id: Optional[int] = None,
+        decoding: str = "sample",
+        stop: Optional[Sequence[str]] = None,
+        top_k: Optional[int] = None,
     ) -> List[List[Dict[str, Any]]]:
         """Generate n samples for a batch of unique prompts without policy sync."""
         if int(num_samples) <= 0:
             raise ValueError("num_samples must be > 0")
+        decoding = str(decoding).strip().lower()
+        if decoding not in {"greedy", "sample"}:
+            raise ValueError("decoding must be 'greedy' or 'sample'")
+        if decoding == "greedy" and int(num_samples) != 1:
+            raise ValueError("greedy static generation requires num_samples=1")
         ids_batch = [[int(value) for value in row] for row in prompt_token_ids]
         if not ids_batch or any(not row for row in ids_batch):
             raise ValueError("prompt_token_ids must contain non-empty prompt rows")
@@ -720,9 +734,14 @@ class VLLMRolloutBackend:
         base_sampling_kwargs: Dict[str, Any] = {
             "n": int(num_samples),
             "max_tokens": int(max_new_tokens),
-            "temperature": float(temperature),
-            "top_p": float(top_p),
+            "temperature": 0.0 if decoding == "greedy" else float(temperature),
         }
+        if decoding == "sample":
+            base_sampling_kwargs["top_p"] = float(top_p)
+            if top_k is not None:
+                base_sampling_kwargs["top_k"] = int(top_k)
+        if stop:
+            base_sampling_kwargs["stop"] = [str(value) for value in stop]
         if eos_token_id is not None:
             base_sampling_kwargs["stop_token_ids"] = [int(eos_token_id)]
         sampling_kwargs_by_prompt = [
@@ -925,6 +944,9 @@ class VLLMRolloutBackend:
                 "prompt_indices": global_prompt_indices,
                 "num_samples": int(num_samples),
                 "num_rollouts": int(num_samples),
+                "decoding": decoding,
+                "stochastic_sampling": decoding == "sample",
+                "sampling_kwargs": dict(base_sampling_kwargs),
                 "completion_count": prompt_count * int(num_samples),
                 "completion_counts_by_prompt": completion_counts_by_prompt,
                 "row_count": prompt_count * int(num_samples),

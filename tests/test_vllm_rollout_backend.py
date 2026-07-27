@@ -504,6 +504,48 @@ def test_static_batch_16_prompts_16_samples_balances_concurrently_and_restores_o
     )
 
 
+def test_static_batch_16_prompts_true_greedy_balances_8_8_concurrently(tmp_path):
+    backend, _clients, calls = _static_batch_backend(
+        tmp_path, barrier=threading.Barrier(2)
+    )
+    results = backend.generate_static_samples_batch(
+        prompt_token_ids=[[index] for index in range(16)],
+        num_samples=1,
+        max_new_tokens=256,
+        temperature=0.7,
+        top_p=0.95,
+        seeds=[1000 + index for index in range(16)],
+        prompt_indices=list(range(16)),
+        decoding="greedy",
+        stop=["Question:"],
+    )
+    assert len(results) == 16
+    assert all(len(completions) == 1 for completions in results)
+    for call in calls.values():
+        assert len(call["prompt_token_ids"]) == 8
+        assert all(item["n"] == 1 for item in call["sampling_kwargs_by_prompt"])
+        assert all(item["temperature"] == 0.0 for item in call["sampling_kwargs_by_prompt"])
+        assert all("top_p" not in item for item in call["sampling_kwargs_by_prompt"])
+        assert all(item["stop"] == ["Question:"] for item in call["sampling_kwargs_by_prompt"])
+    dispatch = backend.last_actor_dispatch_metadata
+    assert dispatch["decoding"] == "greedy"
+    assert dispatch["stochastic_sampling"] is False
+    assert dispatch["generate_intervals_overlap"] is True
+    assert {name: item["row_count"] for name, item in dispatch["actors"].items()} == {
+        "rollout_0": 8,
+        "rollout_1": 8,
+    }
+
+
+def test_static_batch_rejects_multi_sample_greedy(tmp_path):
+    backend, _clients, _calls = _static_batch_backend(tmp_path)
+    with pytest.raises(ValueError, match="num_samples=1"):
+        backend.generate_static_samples_batch(
+            prompt_token_ids=[[0]], num_samples=2, max_new_tokens=8,
+            temperature=0.7, top_p=0.95, seeds=[1], decoding="greedy",
+        )
+
+
 def test_static_batch_17_prompts_handles_non_divisible_actor_split(tmp_path):
     backend, _clients, _calls = _static_batch_backend(tmp_path)
     results = backend.generate_static_samples_batch(

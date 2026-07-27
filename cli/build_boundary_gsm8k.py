@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import json
 import os
 import random
@@ -14,6 +15,8 @@ import torch
 
 from ..audit import to_jsonable
 from ..config import load_config
+from ..eval.config_utils import resolve_task_eval_settings
+from ..eval.lm_eval_gsm8k_protocol import LMEvalGSM8KProtocol
 from ..rl.boundary import (
     RolloutAuditAccumulator,
     aggregate_spectrum,
@@ -23,7 +26,7 @@ from ..rl.boundary import (
 )
 from ..rl.data import load_gsm8k_rl_records
 from ..rl.generation import tokenize_rollout_prompts
-from ..rl.rewards_gsm8k import gsm8k_reward
+from ..rl.rewards_gsm8k import extract_gsm8k_answer, gsm8k_reward, normalize_number_answer
 from ..rl.rollout_backends import HFRolloutBackend, RolloutGenerationConfig
 from ..rl.runtime import load_policy_for_rl
 from ..rl.vllm_rollout import VLLMRolloutBackend, assert_multi_actor_dispatch
@@ -37,6 +40,11 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--config_json", type=str, required=True)
     parser.add_argument("--resume_from", type=str, default=None)
     parser.add_argument("--rollout_backend", choices=("hf", "vllm"), default="hf")
+    parser.add_argument("--protocol", choices=("rl", "lm_eval"), default="rl")
+    parser.add_argument("--split", choices=("train", "test"), default=None)
+    parser.add_argument("--num_fewshot", type=int, default=None)
+    parser.add_argument("--decoding", choices=("greedy", "sample"), default="sample")
+    parser.add_argument("--dump_prompts_jsonl", type=str, default=None)
     parser.add_argument("--output_jsonl", type=str, required=True)
     parser.add_argument("--verified_traces_jsonl", type=str, required=True)
     parser.add_argument("--all_rollouts_jsonl", type=str, default=None)
@@ -69,6 +77,14 @@ def _validate_args(args) -> list[int]:
         raise ValueError("--prompt_batch_size must be > 0")
     if args.max_prompts is not None and int(args.max_prompts) <= 0:
         raise ValueError(f"--max_prompts must be > 0 when set, got {args.max_prompts}")
+    if args.num_fewshot is not None and int(args.num_fewshot) < 0:
+        raise ValueError("--num_fewshot must be >= 0")
+    if args.decoding == "greedy" and int(args.num_rollouts) != 1:
+        raise ValueError("--decoding greedy requires --num_rollouts 1")
+    if args.protocol == "lm_eval" and args.split not in (None, "test"):
+        raise ValueError("--protocol lm_eval uses the formal GSM8K test split")
+    if args.protocol == "rl" and args.split not in (None, "train"):
+        raise ValueError("--protocol rl preserves the existing GSM8K train split")
     for low, high, label in (
         (args.min_correct_rate, args.max_correct_rate, "selection"),
         (args.audit_boundary_min, args.audit_boundary_max, "audit boundary"),
@@ -92,6 +108,147 @@ def _open_jsonl(path: str | Path | None):
 def _write_line(handle, value: Mapping[str, Any]) -> None:
     if handle is not None:
         handle.write(json.dumps(to_jsonable(dict(value)), ensure_ascii=False) + "\n")
+
+
+def _prompt_hash(prompt: str) -> str:
+    return hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+
+
+def _resolved_split(args) -> str:
+    return str(args.split or ("test" if args.protocol == "lm_eval" else "train"))
+
+
+def _chat_template_callback(tokenizer, runtime: Mapping[str, Any]):
+    if not bool(runtime.get("apply_chat_template", False)):
+        return None
+    apply = getattr(tokenizer, "apply_chat_template", None)
+    if not callable(apply):
+        raise ValueError("lm_eval apply_chat_template=true requires tokenizer.apply_chat_template")
+    extra = dict(runtime.get("chat_template_args") or {})
+    if runtime.get("enable_thinking") is not None:
+        extra.setdefault("enable_thinking", bool(runtime["enable_thinking"]))
+
+    def render(messages):
+        kwargs = {"tokenize": False, "add_generation_prompt": True, **extra}
+        try:
+            return apply(messages, **kwargs)
+        except TypeError as exc:
+            if "enable_thinking" not in kwargs:
+                raise
+            kwargs.pop("enable_thinking")
+            try:
+                return apply(messages, **kwargs)
+            except TypeError:
+                raise exc
+
+    return render
+
+
+def _prepare_lm_eval_protocol(cfg, args, tokenizer, seed: int) -> LMEvalGSM8KProtocol:
+    settings = resolve_task_eval_settings(cfg, "gsm8k", "final", backend="lm_eval")
+    runtime = dict(settings.get("runtime") or {})
+    return LMEvalGSM8KProtocol.from_fit_config(
+        cfg,
+        num_fewshot=args.num_fewshot,
+        seed=seed,
+        max_prompts=args.max_prompts,
+        chat_template=_chat_template_callback(tokenizer, runtime),
+        tokenizer_name=str(getattr(tokenizer, "name_or_path", "") or ""),
+    )
+
+
+def _uniform_lm_eval_generation_kwargs(records) -> dict[str, Any]:
+    values = [
+        dict(row["_lm_eval_record"].generation_kwargs)
+        for row in records
+    ]
+    if not values:
+        return {}
+    first = values[0]
+    if any(value != first for value in values[1:]):
+        raise RuntimeError("lm_eval GSM8K produced non-uniform generation kwargs across requests")
+    return first
+
+
+def _make_generation_config(cfg, args, seed: int, records) -> tuple[RolloutGenerationConfig, dict[str, Any]]:
+    formal = _uniform_lm_eval_generation_kwargs(records) if args.protocol == "lm_eval" else {}
+    max_new_tokens = int(
+        args.max_new_tokens
+        if args.max_new_tokens is not None
+        else formal.get("max_gen_toks", cfg.rl.max_new_tokens)
+    )
+    decoding = str(args.decoding)
+    do_sample = decoding == "sample"
+    temperature = float(
+        args.temperature
+        if args.temperature is not None
+        else formal.get("temperature", cfg.rl.temperature)
+    )
+    top_p = float(
+        args.top_p if args.top_p is not None else formal.get("top_p", cfg.rl.top_p)
+    )
+    stop_sequences = tuple(str(value) for value in (formal.get("until") or []))
+    top_k = formal.get("top_k")
+    generation_config = RolloutGenerationConfig(
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        top_p=top_p,
+        rollout_micro_batch_size=int(getattr(cfg.rl, "rollout_micro_batch_size", 0)),
+        rollout_use_cache=bool(getattr(cfg.rl, "rollout_use_cache", True)),
+        rollout_inference_mode=True,
+        seed=seed,
+        do_sample=do_sample,
+        stop_sequences=stop_sequences,
+        top_k=None if top_k is None else int(top_k),
+    )
+    effective = {
+        "decoding": decoding,
+        "do_sample": do_sample,
+        "num_rollouts": int(args.num_rollouts),
+        "temperature": 0.0 if not do_sample else temperature,
+        "top_p": None if not do_sample else top_p,
+        "top_k": None if not do_sample else top_k,
+        "max_new_tokens": max_new_tokens,
+        "until": list(stop_sequences),
+        "task_request_generation_kwargs": formal,
+    }
+    return generation_config, effective
+
+
+def _score_rollout(protocol: str, row, completion: str, lm_eval_protocol):
+    rl_reward, rl_debug = gsm8k_reward(completion, row["answer"])
+    if protocol == "rl":
+        return float(rl_reward), rl_debug, reward_match_type(rl_debug, rl_reward), {
+            "rl_parser_answer": rl_debug.get("pred_answer"),
+            "lm_eval_parser_answer": None,
+            "parser_disagreement": False,
+            "rl_correct": bool(rl_reward == 1.0),
+            "lm_eval_correct": None,
+        }
+    formal = lm_eval_protocol.score(row["_lm_eval_record"], completion)
+    lm_answer = formal.get("extracted_answer")
+    rl_answer = extract_gsm8k_answer(completion)
+    disagreement = (None if lm_answer is None else normalize_number_answer(lm_answer)) != (
+        None if rl_answer is None else normalize_number_answer(rl_answer)
+    )
+    reward = float(bool(formal["correct"]))
+    debug = {
+        "pred_answer": lm_answer,
+        "gold_answer": formal.get("target"),
+        "strict_match": bool(formal["correct"]),
+        "fallback_match": False,
+        "match_type": "lm_eval_strict_match" if reward == 1.0 else "lm_eval_no_match",
+        "lm_eval": formal,
+        "rl_reward_debug": rl_debug,
+    }
+    diagnostic = {
+        "rl_parser_answer": rl_answer,
+        "lm_eval_parser_answer": lm_answer,
+        "parser_disagreement": bool(disagreement),
+        "rl_correct": bool(rl_reward == 1.0),
+        "lm_eval_correct": bool(formal["correct"]),
+    }
+    return reward, debug, debug["match_type"], diagnostic
 
 
 def _emit_vllm_actor_dispatch(
@@ -207,6 +364,7 @@ def _vllm_samples_batch(
     prompt_seeds,
     prompt_indices,
     max_prompt_tokens,
+    decoding="sample",
 ):
     enc = tokenize_rollout_prompts(
         tokenizer, list(prompts), max_prompt_tokens=max_prompt_tokens
@@ -223,6 +381,9 @@ def _vllm_samples_batch(
         seeds=list(prompt_seeds),
         prompt_indices=list(prompt_indices),
         eos_token_id=tokenizer.eos_token_id,
+        decoding=decoding,
+        stop=list(generation_config.stop_sequences),
+        top_k=generation_config.top_k,
     )
     results = []
     for raw in raw_batch:
@@ -296,10 +457,20 @@ def _iter_prompt_samples(
     generation_config,
     seed: int,
 ):
-    max_prompt_tokens = int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0))
+    protocol = str(getattr(args, "protocol", "rl"))
+    decoding = str(getattr(args, "decoding", "sample"))
+    max_prompt_tokens = (
+        0
+        if protocol == "lm_eval"
+        else int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0))
+    )
     if args.rollout_backend == "hf":
         for prompt_index, row in enumerate(records):
-            prompt = build_rl_prompt_text(cfg, tokenizer, row["question"])
+            prompt = (
+                str(row["_lm_eval_prompt"])
+                if protocol == "lm_eval"
+                else build_rl_prompt_text(cfg, tokenizer, row["question"])
+            )
             prompt_seed = seed + prompt_index
             samples = _hf_samples(
                 backend=backend,
@@ -319,7 +490,12 @@ def _iter_prompt_samples(
         batch_rows = records[batch_start : batch_start + batch_size]
         prompt_indices = list(range(batch_start, batch_start + len(batch_rows)))
         prompts = [
-            build_rl_prompt_text(cfg, tokenizer, row["question"]) for row in batch_rows
+            (
+                str(row["_lm_eval_prompt"])
+                if protocol == "lm_eval"
+                else build_rl_prompt_text(cfg, tokenizer, row["question"])
+            )
+            for row in batch_rows
         ]
         prompt_seeds = [seed + prompt_index for prompt_index in prompt_indices]
         samples_batch, actor_dispatch = _vllm_samples_batch(
@@ -331,6 +507,7 @@ def _iter_prompt_samples(
             prompt_seeds=prompt_seeds,
             prompt_indices=prompt_indices,
             max_prompt_tokens=max_prompt_tokens,
+            decoding=decoding,
         )
         if len(samples_batch) != len(batch_rows):
             raise RuntimeError(
@@ -372,20 +549,8 @@ def main(argv: list[str] | None = None):
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
-    max_new_tokens = int(args.max_new_tokens if args.max_new_tokens is not None else cfg.rl.max_new_tokens)
-    temperature = float(args.temperature if args.temperature is not None else cfg.rl.temperature)
-    top_p = float(args.top_p if args.top_p is not None else cfg.rl.top_p)
-    generation_config = RolloutGenerationConfig(
-        max_new_tokens=max_new_tokens,
-        temperature=temperature,
-        top_p=top_p,
-        rollout_micro_batch_size=int(getattr(cfg.rl, "rollout_micro_batch_size", 0)),
-        rollout_use_cache=bool(getattr(cfg.rl, "rollout_use_cache", True)),
-        rollout_inference_mode=True,
-        seed=seed,
-    )
-    records = load_gsm8k_rl_records(cfg)
-    if args.max_prompts is not None:
+    records = load_gsm8k_rl_records(cfg) if args.protocol == "rl" else []
+    if args.max_prompts is not None and args.protocol == "rl":
         records = records[: int(args.max_prompts)]
 
     output_root = Path(args.summary_json or args.output_jsonl).expanduser().resolve().parent
@@ -397,6 +562,13 @@ def main(argv: list[str] | None = None):
     verified_count = 0
     selected_count = 0
     init_metadata: dict[str, Any] = {}
+    protocol_metadata: dict[str, Any] = {}
+    effective_generation: dict[str, Any] = {}
+    lm_eval_protocol = None
+    parser_disagreement_count = 0
+    lm_eval_correct_rl_wrong_count = 0
+    rl_correct_lm_eval_wrong_count = 0
+    total_scored_rollouts = 0
     completed = False
     previous_sigterm_handler = None
     try:
@@ -404,6 +576,24 @@ def main(argv: list[str] | None = None):
             previous_sigterm_handler = signal.getsignal(signal.SIGTERM)
             signal.signal(signal.SIGTERM, _terminate_static_audit)
         backend, model, tokenizer, init_metadata = _prepare_backend(cfg, args, output_root)
+        if args.protocol == "lm_eval":
+            lm_eval_protocol = _prepare_lm_eval_protocol(cfg, args, tokenizer, seed)
+            records = lm_eval_protocol.boundary_rows()
+            protocol_metadata = lm_eval_protocol.metadata()
+        else:
+            protocol_metadata = {
+                "task": "gsm8k",
+                "split": "train",
+                "num_fewshot": None,
+                "prompt_source": "fitmotn.train.rl_controller.build_rl_prompt_text",
+                "scoring_source": "fitmotn.rl.rewards_gsm8k.gsm8k_reward",
+                "scorer": "gsm8k_reward",
+                "apply_chat_template": None,
+                "enable_thinking": None,
+            }
+        generation_config, effective_generation = _make_generation_config(
+            cfg, args, seed, records
+        )
         if args.rollout_backend == "vllm":
             print(
                 "[VLLMActorStartup] "
@@ -421,8 +611,9 @@ def main(argv: list[str] | None = None):
         selected_file = _open_jsonl(args.output_jsonl)
         verified_file = _open_jsonl(args.verified_traces_jsonl)
         all_file = _open_jsonl(args.all_rollouts_jsonl)
-        handles = [handle for handle in (selected_file, verified_file, all_file) if handle is not None]
-        for prompt_index, row, _prompt, prompt_seed, samples in _iter_prompt_samples(
+        prompts_file = _open_jsonl(args.dump_prompts_jsonl)
+        handles = [handle for handle in (selected_file, verified_file, all_file, prompts_file) if handle is not None]
+        for prompt_index, row, prompt, prompt_seed, samples in _iter_prompt_samples(
             cfg=cfg,
             args=args,
             records=records,
@@ -432,26 +623,63 @@ def main(argv: list[str] | None = None):
             generation_config=generation_config,
             seed=seed,
         ):
+            prompt_hash = _prompt_hash(prompt)
+            _write_line(
+                prompts_file,
+                {
+                    "index": prompt_index,
+                    "dataset_index": row.get("dataset_index", row.get("idx", prompt_index)),
+                    "question": row["question"],
+                    "protocol": args.protocol,
+                    "lm_eval_prompt_hash": prompt_hash if args.protocol == "lm_eval" else None,
+                    "passk_prompt_hash": prompt_hash,
+                    "prompt": prompt,
+                },
+            )
             rollout_rows = []
             for rollout_index, sample in enumerate(samples):
-                reward, debug = gsm8k_reward(sample["text"], row["answer"])
-                match_type = reward_match_type(debug, reward)
+                reward, debug, match_type, parser_diagnostic = _score_rollout(
+                    args.protocol, row, sample["text"], lm_eval_protocol
+                )
+                total_scored_rollouts += 1
+                parser_disagreement_count += int(parser_diagnostic["parser_disagreement"])
+                lm_eval_correct_rl_wrong_count += int(
+                    parser_diagnostic["lm_eval_correct"] is True
+                    and parser_diagnostic["rl_correct"] is False
+                )
+                rl_correct_lm_eval_wrong_count += int(
+                    parser_diagnostic["rl_correct"] is True
+                    and parser_diagnostic["lm_eval_correct"] is False
+                )
                 rollout = {
+                    "index": prompt_index,
                     "prompt_index": prompt_index,
+                    "dataset_index": row.get("dataset_index", row.get("idx", prompt_index)),
                     "idx": row.get("idx"),
                     "rollout_index": rollout_index,
+                    "protocol": args.protocol,
+                    "prompt_hash": prompt_hash,
+                    "lm_eval_prompt_hash": prompt_hash if args.protocol == "lm_eval" else None,
+                    "passk_prompt_hash": prompt_hash,
                     "question": row["question"],
                     "gold_answer": row["answer"],
+                    "gold": row["answer"],
                     "response": sample["text"],
+                    "generated_text": sample["text"],
                     "response_token_count": int(sample["response_token_count"]),
                     "finish_reason": sample.get("finish_reason"),
                     "truncated": bool(sample["truncated"]),
                     "reward": float(reward),
+                    "correct": bool(reward == 1.0),
+                    "extracted_answer": parser_diagnostic[
+                        "lm_eval_parser_answer" if args.protocol == "lm_eval" else "rl_parser_answer"
+                    ],
                     "reward_debug": debug,
                     "reward_match_type": match_type,
+                    **parser_diagnostic,
                     "seed": prompt_seed,
                     "checkpoint": str(cfg.rl.resume_from),
-                    "sampling": {"temperature": temperature, "top_p": top_p, "max_new_tokens": max_new_tokens},
+                    "sampling": dict(effective_generation),
                 }
                 rollout_rows.append(rollout)
                 rollout_accumulator.add(rollout)
@@ -460,6 +688,21 @@ def main(argv: list[str] | None = None):
                 row, rollout_rows, pass_k=pass_k,
                 boundary_min=args.audit_boundary_min, boundary_max=args.audit_boundary_max,
                 mgpo_cfg=cfg.rl,
+            )
+            prompt_record.update(
+                {
+                    "dataset_index": row.get("dataset_index", row.get("idx", prompt_index)),
+                    "protocol": args.protocol,
+                    "prompt_hash": prompt_hash,
+                    "lm_eval_prompt_hash": prompt_hash if args.protocol == "lm_eval" else None,
+                    "passk_prompt_hash": prompt_hash,
+                    "num_fewshot": protocol_metadata.get("num_fewshot"),
+                    "lm_eval_correctness": (
+                        [bool(item["lm_eval_correct"]) for item in rollout_rows]
+                        if args.protocol == "lm_eval"
+                        else None
+                    ),
+                }
             )
             prompt_records.append(prompt_record)
             if is_boundary_prompt(prompt_record["p_correct"], args.min_correct_rate, args.max_correct_rate):
@@ -518,31 +761,51 @@ def main(argv: list[str] | None = None):
     aggregates = aggregate_spectrum(
         prompt_records, rollout_accumulator, pass_k=pass_k, mgpo_enabled=bool(cfg.rl.mgpo_enabled)
     )
+    parser_diagnostics = {
+        "parser_disagreement_count": parser_disagreement_count,
+        "parser_disagreement_rate": (
+            float(parser_disagreement_count / total_scored_rollouts)
+            if total_scored_rollouts
+            else 0.0
+        ),
+        "lm_eval_correct_rl_wrong_count": lm_eval_correct_rl_wrong_count,
+        "rl_correct_lm_eval_wrong_count": rl_correct_lm_eval_wrong_count,
+        "num_scored_rollouts": total_scored_rollouts,
+    }
     summary = {
         "metadata": {
             "model_or_checkpoint": str(cfg.rl.resume_from),
             "dataset": "gsm8k",
-            "split": "train",
+            "protocol": args.protocol,
+            "base_protocol": args.protocol,
+            "stochastic_passk": bool(args.protocol == "lm_eval" and args.decoding == "sample"),
+            "split": _resolved_split(args),
             "rollout_backend": args.rollout_backend,
             "num_prompts": len(prompt_records),
             "num_rollouts_per_prompt": int(args.num_rollouts),
-            "temperature": temperature,
-            "top_p": top_p,
-            "max_new_tokens": max_new_tokens,
+            "decoding": args.decoding,
+            "temperature": effective_generation.get("temperature"),
+            "top_p": effective_generation.get("top_p"),
+            "max_new_tokens": effective_generation.get("max_new_tokens"),
+            "generation": effective_generation,
+            "prompt_protocol": protocol_metadata.get("prompt_source"),
             "seed": seed,
             "pass_k": pass_k,
             "selection_correct_rate_range": [args.min_correct_rate, args.max_correct_rate],
             "audit_boundary_range": [args.audit_boundary_min, args.audit_boundary_max],
             "prompt_batch_size": int(args.prompt_batch_size),
+            **protocol_metadata,
             **init_metadata,
         },
         **aggregates,
+        "parser_diagnostics": parser_diagnostics,
         "outputs": {
             "selected_prompt_count": selected_count,
             "verified_trace_count": verified_count,
             "output_jsonl": str(Path(args.output_jsonl).expanduser().resolve()),
             "verified_traces_jsonl": str(Path(args.verified_traces_jsonl).expanduser().resolve()),
             "all_rollouts_jsonl": None if args.all_rollouts_jsonl is None else str(Path(args.all_rollouts_jsonl).expanduser().resolve()),
+            "dump_prompts_jsonl": None if args.dump_prompts_jsonl is None else str(Path(args.dump_prompts_jsonl).expanduser().resolve()),
         },
         "complete": completed,
     }

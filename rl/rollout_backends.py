@@ -23,6 +23,9 @@ class RolloutGenerationConfig:
     rollout_inference_mode: bool = True
     rollout_log_timing: bool = True
     seed: Optional[int] = None
+    do_sample: bool = True
+    stop_sequences: tuple[str, ...] = ()
+    top_k: Optional[int] = None
 
 
 @dataclass
@@ -167,12 +170,20 @@ class HFRolloutBackend:
 
         generate_kwargs = {
             "max_new_tokens": int(generation_config.max_new_tokens),
-            "do_sample": True,
-            "temperature": float(generation_config.temperature),
-            "top_p": float(generation_config.top_p),
+            "do_sample": bool(generation_config.do_sample),
             "pad_token_id": pad_token_id,
             "eos_token_id": getattr(tokenizer, "eos_token_id", None),
         }
+        if generation_config.do_sample:
+            generate_kwargs["temperature"] = float(generation_config.temperature)
+            generate_kwargs["top_p"] = float(generation_config.top_p)
+            if generation_config.top_k is not None:
+                generate_kwargs["top_k"] = int(generation_config.top_k)
+        if generation_config.stop_sequences:
+            # Modern transformers implements the same text-stop contract used
+            # by lm_eval when both stop_strings and tokenizer are supplied.
+            generate_kwargs["stop_strings"] = list(generation_config.stop_sequences)
+            generate_kwargs["tokenizer"] = tokenizer
 
         def attempt(use_cache: bool) -> Tuple[torch.Tensor, List[int]]:
             chunks: List[torch.Tensor] = []
