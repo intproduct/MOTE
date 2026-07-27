@@ -95,6 +95,12 @@ def test_actor_protocol_load_generate_unload(monkeypatch):
     )
     assert result["outputs"][0][0]["token_ids"] == [100]
     assert result["outputs"][1][0]["token_ids"] == [101]
+    assert result["diagnostics"]["llm_generate_called"] is True
+    assert result["diagnostics"]["prompt_count"] == 2
+    assert result["diagnostics"]["output_row_count"] == 2
+    assert result["diagnostics"]["completion_count"] == 2
+    assert result["diagnostics"]["generate_end_time"] >= result["diagnostics"]["generate_start_time"]
+    assert result["diagnostics"]["engine_config"]["model"] == "export"
     assert calls["generate_kwargs"]["prompts"] == [
         {"prompt_token_ids": [1, 2]},
         {"prompt_token_ids": [3]},
@@ -106,6 +112,66 @@ def test_actor_protocol_load_generate_unload(monkeypatch):
     _handle_actor_request(state, {"command": "unload_engine"})
     assert state["llm"] is None
     assert calls["shutdown"] == 1
+
+
+def test_actor_generate_batches_multiple_prompts_with_per_prompt_sampling_params(monkeypatch):
+    calls = []
+
+    class FakeSamplingParams:
+        def __init__(self, **kwargs):
+            self.kwargs = dict(kwargs)
+
+    class Completion:
+        def __init__(self, prompt_token, sample_index):
+            self.token_ids = [prompt_token, sample_index]
+            self.text = f"{prompt_token}:{sample_index}"
+            self.finish_reason = "stop"
+
+    class Output:
+        def __init__(self, prompt_token, count):
+            self.outputs = [
+                Completion(prompt_token, sample_index)
+                for sample_index in range(count)
+            ]
+
+    class FakeLLM:
+        def generate(self, *, prompts, sampling_params):
+            calls.append((prompts, sampling_params))
+            return [
+                Output(prompt["prompt_token_ids"][-1], params.kwargs["n"])
+                for prompt, params in zip(prompts, sampling_params)
+            ]
+
+    fake_vllm = types.ModuleType("vllm")
+    fake_vllm.SamplingParams = FakeSamplingParams
+    monkeypatch.setitem(sys.modules, "vllm", fake_vllm)
+    state = {
+        "llm": FakeLLM(),
+        "status": "READY",
+        "policy_descriptor": {"policy_version": 0},
+        "engine_config": {"model": "mock"},
+        "engine_resources": {},
+    }
+    result = _handle_actor_request(
+        state,
+        {
+            "command": "generate",
+            "prompt_token_ids": [[10], [20]],
+            "sampling_kwargs_by_prompt": [
+                {"n": 3, "temperature": 1.0, "seed": 101},
+                {"n": 3, "temperature": 1.0, "seed": 102},
+            ],
+            "expected_policy_descriptor": {"policy_version": 0},
+        },
+    )
+
+    assert len(calls) == 1
+    prompts, params = calls[0]
+    assert [item["prompt_token_ids"] for item in prompts] == [[10], [20]]
+    assert [item.kwargs["seed"] for item in params] == [101, 102]
+    assert [len(completions) for completions in result["outputs"]] == [3, 3]
+    assert result["diagnostics"]["prompt_count"] == 2
+    assert result["diagnostics"]["completion_count"] == 6
 
 
 def test_actor_close_acknowledges_before_engine_shutdown():

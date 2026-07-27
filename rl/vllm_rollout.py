@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
@@ -19,6 +20,200 @@ from .vllm_sync import SavePolicyCheckpointFn, VLLMPolicySyncManager
 from .vllm_actor import VLLMActorClient
 from .vllm_integrity import prompt_batch_fingerprint, sampling_fingerprint
 from .device_topology import rollout_actor_specs, rollout_topology_config
+
+
+def _visible_device_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return [str(item) for item in list(value)]
+
+
+def _row_index_summary(indices: Sequence[int]) -> Dict[str, Any]:
+    values = [int(index) for index in indices]
+    return {
+        "count": len(values),
+        "min": min(values) if values else None,
+        "max": max(values) if values else None,
+        "first": values[:8],
+        "last": values[-8:] if len(values) > 8 else values,
+    }
+
+
+def _output_statistics(outputs: Sequence[Any]) -> Dict[str, Any]:
+    lengths: list[int] = []
+    finish_reasons: Counter[str] = Counter()
+    stop_reasons: Counter[str] = Counter()
+    completion_count = 0
+    for output in outputs:
+        completions = list(getattr(output, "outputs", []) or [])
+        completion_count += len(completions)
+        for completion in completions:
+            lengths.append(len(list(getattr(completion, "token_ids", []) or [])))
+            reason = getattr(completion, "finish_reason", None)
+            finish_reasons["unknown" if reason is None else str(reason).lower()] += 1
+            stop_reason = getattr(completion, "stop_reason", None)
+            if stop_reason is not None:
+                stop_reasons[str(stop_reason)] += 1
+    total = int(sum(lengths))
+    return {
+        "output_row_count": len(outputs),
+        "completion_count": int(completion_count),
+        "total_generated_tokens": total,
+        "mean_generated_tokens_per_response": (
+            float(total) / len(lengths) if lengths else 0.0
+        ),
+        "max_generated_tokens": max(lengths) if lengths else 0,
+        "finish_reason_counts": dict(sorted(finish_reasons.items())),
+        "stop_reason_counts": dict(sorted(stop_reasons.items())),
+    }
+
+
+def _actor_consistency_metadata(actors: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    active = [item for item in actors.values() if int(item.get("row_count", 0)) > 0]
+    sampling = []
+    for item in active:
+        per_prompt = list(item.get("sampling_kwargs_by_prompt") or [])
+        candidates = per_prompt or [dict(item.get("sampling_kwargs") or {})]
+        sampling.extend(
+            {key: value for key, value in dict(candidate).items() if key != "seed"}
+            for candidate in candidates
+        )
+    engine_keys = ("model", "tokenizer", "dtype", "max_model_len", "max_num_seqs", "model_impl")
+    engine_views = [
+        {key: dict(item.get("engine_config") or {}).get(key) for key in engine_keys}
+        for item in active
+    ]
+    observed_devices = [
+        tuple(_visible_device_list(item.get("observed_cuda_visible_devices")))
+        for item in active
+    ]
+    return {
+        "sampling_params_consistent": not sampling or all(value == sampling[0] for value in sampling[1:]),
+        "engine_config_consistent": not engine_views or all(
+            value == engine_views[0] for value in engine_views[1:]
+        ),
+        "engine_config_comparison_keys": list(engine_keys),
+        "observed_cuda_device_sets_unique": len(set(observed_devices)) == len(observed_devices),
+    }
+
+
+def assert_multi_actor_dispatch(
+    dispatch: Dict[str, Any],
+    *,
+    expected_row_count: Optional[int] = None,
+    expected_prompt_count: Optional[int] = None,
+    expected_num_samples: Optional[int] = None,
+    require_overlap: bool = True,
+) -> None:
+    """Strict audit-only validation; it never changes actor assignment."""
+    actor_count = int(dispatch.get("actor_count", 0))
+    actors = dict(dispatch.get("actors") or {})
+    active_actor_count = sum(1 for item in actors.values() if int(item.get("row_count", 0)) > 0)
+    actual_assigned_rows = sum(int(item.get("row_count", 0)) for item in actors.values())
+    reported_rows = int(dispatch.get("row_count", 0))
+    expected_rows = reported_rows if expected_row_count is None else int(expected_row_count)
+    reported_prompt_count = int(
+        dispatch.get("prompt_count", dispatch.get("prompt_batch_size", reported_rows))
+    )
+    expected_prompts = (
+        reported_prompt_count if expected_prompt_count is None else int(expected_prompt_count)
+    )
+    num_samples = int(
+        dispatch.get("num_samples", dispatch.get("num_rollouts", 1))
+        if expected_num_samples is None
+        else expected_num_samples
+    )
+    actual_assigned_prompts = sum(
+        int(item.get("prompt_count", item.get("prompt_group_count", 0)))
+        for item in actors.values()
+    )
+    expected_active_actor_count = min(actor_count, expected_prompts) if expected_prompts > 0 else 0
+    errors = []
+    if actor_count > 1 and active_actor_count < expected_active_actor_count:
+        errors.append(
+            f"active_actor_count={active_actor_count} < expected active actors={expected_active_actor_count}"
+        )
+    if len(actors) != actor_count:
+        errors.append(f"actor metadata count={len(actors)} != actor_count={actor_count}")
+    if int(dispatch.get("active_actor_count", active_actor_count)) != active_actor_count:
+        errors.append(
+            "reported active_actor_count="
+            f"{dispatch.get('active_actor_count')} != observed active_actor_count={active_actor_count}"
+        )
+    if actual_assigned_rows != reported_rows:
+        errors.append(
+            f"actor row_count sum={actual_assigned_rows} != dispatch row_count={reported_rows}"
+        )
+    if actual_assigned_rows != expected_rows:
+        errors.append(f"actor row_count sum={actual_assigned_rows} != expected rows={expected_rows}")
+    static_prompt_sharding = str(dispatch.get("dispatch_path", "")).startswith(
+        "static_multi_sample"
+    )
+    if static_prompt_sharding:
+        if actual_assigned_prompts != reported_prompt_count:
+            errors.append(
+                "actor prompt_count sum="
+                f"{actual_assigned_prompts} != dispatch prompt_count={reported_prompt_count}"
+            )
+        if actual_assigned_prompts != expected_prompts:
+            errors.append(
+                f"actor prompt_count sum={actual_assigned_prompts} != expected prompts={expected_prompts}"
+            )
+    if actor_count > 1 and expected_prompts >= actor_count:
+        empty = sorted(name for name, item in actors.items() if int(item.get("row_count", 0)) == 0)
+        if empty:
+            errors.append(f"configured actors received zero rows: {empty}")
+    for name, item in actors.items():
+        configured = _visible_device_list(item.get("configured_cuda_visible_devices"))
+        observed = _visible_device_list(item.get("observed_cuda_visible_devices"))
+        if configured and configured != observed:
+            errors.append(
+                f"actor {name!r} CUDA_VISIBLE_DEVICES mismatch: configured={configured}, observed={observed}"
+            )
+        if int(item.get("row_count", 0)) > 0:
+            completion_count = item.get("completion_count")
+            if completion_count is not None and int(completion_count) != int(item["row_count"]):
+                errors.append(
+                    f"actor {name!r} completion_count={completion_count} != row_count={item['row_count']}"
+                )
+            if item.get("llm_generate_called") is False:
+                errors.append(f"actor {name!r} did not report an LLM.generate call")
+    completion_counts_by_prompt = dispatch.get("completion_counts_by_prompt")
+    if completion_counts_by_prompt is not None:
+        counts = list(dict(completion_counts_by_prompt).values())
+        if len(counts) != expected_prompts:
+            errors.append(
+                f"per-prompt completion metadata count={len(counts)} != expected prompts={expected_prompts}"
+            )
+        bad_counts = [int(value) for value in counts if int(value) != num_samples]
+        if bad_counts:
+            errors.append(
+                f"per-prompt completion counts differ from num_samples={num_samples}: {bad_counts[:8]}"
+            )
+    if require_overlap and actor_count > 1 and expected_active_actor_count > 1:
+        intervals = [
+            (str(name), float(item["generate_start_time"]), float(item["generate_end_time"]))
+            for name, item in actors.items()
+            if int(item.get("row_count", 0)) > 0
+            and item.get("generate_start_time") is not None
+            and item.get("generate_end_time") is not None
+        ]
+        overlap = False
+        for index, (_, start, end) in enumerate(intervals):
+            for _, other_start, other_end in intervals[index + 1 :]:
+                if min(end, other_end) - max(start, other_start) > 0.0:
+                    overlap = True
+                    break
+            if overlap:
+                break
+        if len(intervals) != expected_active_actor_count:
+            errors.append("missing generate timing interval for an active actor")
+        elif not overlap:
+            errors.append("active actor generate intervals do not overlap (serial execution)")
+    if errors:
+        raise RuntimeError("multi-actor dispatch audit failed: " + "; ".join(errors))
 
 
 def _is_cuda_oom(exc: BaseException) -> bool:
@@ -74,6 +269,52 @@ class VLLMRolloutBackend:
     @property
     def uses_subprocess_actor(self) -> bool:
         return str(getattr(self.fit_cfg.rl, "vllm_execution_mode", "in_process") or "in_process").strip().lower() == "subprocess"
+
+    @property
+    def last_actor_dispatch_metadata(self) -> Dict[str, Any]:
+        return dict(self._last_actor_dispatch_metadata)
+
+    def _actor_observability(self, name: str) -> Dict[str, Any]:
+        spec = next(item for item in self._actor_specs if str(item["name"]) == str(name))
+        snapshot = dict(self._actor_resource_snapshot.get(name) or {})
+        startup = dict(snapshot.get("startup") or {})
+        engine = dict(snapshot.get("engine") or {})
+        latest = dict(snapshot.get("latest") or {})
+        startup_resources = dict(startup.get("actor_resources") or {})
+        engine_resources = dict(engine.get("actor_resources") or {})
+        latest_resources = dict(latest.get("actor_resources") or {})
+        observed_resources = latest_resources or engine_resources or startup_resources
+        client = self._actors.get(name)
+        generate_info = dict(getattr(client, "last_generate_info", {}) or {})
+        generate_resources = dict(generate_info.get("actor_resources") or {})
+        if generate_resources:
+            observed_resources = generate_resources
+        engine_resources_at_load = dict(
+            generate_info.get("engine_resources_at_load") or engine_resources
+        )
+        return {
+            "actor_name": str(name),
+            "configured_cuda_visible_devices": list(spec["cuda_visible_devices"]),
+            "configured_cuda_visible_devices_raw": list(
+                spec.get("cuda_visible_devices_configured") or spec["cuda_visible_devices"]
+            ),
+            "observed_cuda_visible_devices": observed_resources.get("cuda_visible_devices"),
+            "actor_pid": observed_resources.get("process_id") or startup_resources.get("process_id"),
+            "torch_cuda_device_count": engine_resources_at_load.get("cuda_device_count"),
+            "torch_cuda_current_device": engine_resources_at_load.get("cuda_current_device"),
+            "enginecore_pids": list(engine_resources_at_load.get("enginecore_process_ids") or []),
+            "os_child_process_ids": list(engine_resources_at_load.get("os_child_process_ids") or []),
+            "engine_config": dict(generate_info.get("engine_config") or engine.get("engine_config") or {}),
+            "engine_topology": dict(engine.get("engine_topology") or latest.get("engine_topology") or {}),
+            "sampling_kwargs": dict(generate_info.get("sampling_kwargs") or {}),
+            "sampling_kwargs_by_prompt": [
+                dict(item) for item in list(generate_info.get("sampling_kwargs_by_prompt") or [])
+            ],
+            "actor_generate_start_time": generate_info.get("generate_start_time"),
+            "actor_generate_end_time": generate_info.get("generate_end_time"),
+            "actor_generate_sec": generate_info.get("generate_sec"),
+            "llm_generate_called": bool(generate_info.get("llm_generate_called", False)),
+        }
 
     def _actor_client(self, name: Optional[str] = None) -> VLLMActorClient:
         if not self._actor_specs:
@@ -430,66 +671,308 @@ class VLLMRolloutBackend:
         prompt_index: int = 0,
         eos_token_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """Generate an evaluation-only multi-sample request from the loaded engine.
+        """Backward-compatible single-prompt wrapper around static batch generation."""
+        return self.generate_static_samples_batch(
+            prompt_token_ids=[prompt_token_ids],
+            num_samples=num_samples,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            seeds=[seed],
+            prompt_indices=[prompt_index],
+            eos_token_id=eos_token_id,
+        )[0]
 
-        This deliberately bypasses policy sync and accepts no model/optimizer.  The
-        caller must initialize the engine once with ``sync_policy(..., force=True)``.
-        """
+    def generate_static_samples_batch(
+        self,
+        *,
+        prompt_token_ids: Sequence[Sequence[int]],
+        num_samples: int,
+        max_new_tokens: int,
+        temperature: float,
+        top_p: float,
+        seeds: Sequence[int],
+        prompt_indices: Optional[Sequence[int]] = None,
+        eos_token_id: Optional[int] = None,
+    ) -> List[List[Dict[str, Any]]]:
+        """Generate n samples for a batch of unique prompts without policy sync."""
         if int(num_samples) <= 0:
             raise ValueError("num_samples must be > 0")
-        ids = [int(value) for value in prompt_token_ids]
-        if not ids:
-            raise ValueError("prompt_token_ids must not be empty")
-        sampling_kwargs: Dict[str, Any] = {
+        ids_batch = [[int(value) for value in row] for row in prompt_token_ids]
+        if not ids_batch or any(not row for row in ids_batch):
+            raise ValueError("prompt_token_ids must contain non-empty prompt rows")
+        prompt_count = len(ids_batch)
+        seed_values = [int(value) for value in seeds]
+        if len(seed_values) != prompt_count:
+            raise ValueError(
+                f"seeds must match prompt count: seeds={len(seed_values)}, prompts={prompt_count}"
+            )
+        global_prompt_indices = (
+            list(range(prompt_count))
+            if prompt_indices is None
+            else [int(value) for value in prompt_indices]
+        )
+        if len(global_prompt_indices) != prompt_count:
+            raise ValueError(
+                "prompt_indices must match prompt count: "
+                f"indices={len(global_prompt_indices)}, prompts={prompt_count}"
+            )
+        base_sampling_kwargs: Dict[str, Any] = {
             "n": int(num_samples),
             "max_tokens": int(max_new_tokens),
             "temperature": float(temperature),
             "top_p": float(top_p),
-            "seed": int(seed),
         }
         if eos_token_id is not None:
-            sampling_kwargs["stop_token_ids"] = [int(eos_token_id)]
+            base_sampling_kwargs["stop_token_ids"] = [int(eos_token_id)]
+        sampling_kwargs_by_prompt = [
+            {**base_sampling_kwargs, "seed": seed_value} for seed_value in seed_values
+        ]
         expected = dict(self._engine_policy_descriptor)
-        if self.uses_subprocess_actor:
-            if not self._actor_specs:
-                raise RuntimeError("No subprocess vLLM actors are configured")
-            spec = self._actor_specs[int(prompt_index) % len(self._actor_specs)]
-            outputs = self._actor_client(str(spec["name"])).generate(
-                prompt_token_ids=[ids],
-                sampling_kwargs=sampling_kwargs,
-                expected_policy_descriptor=expected,
-            )
-        else:
+        wall_start = time.perf_counter()
+
+        if not self.uses_subprocess_actor:
             if self.llm is None:
                 raise RuntimeError("vLLM engine is not initialized")
             if bool(getattr(self.fit_cfg.rl, "vllm_verify_engine_policy", True)) and not expected:
                 raise RuntimeError("vLLM static engine has no policy provenance descriptor")
             _, SamplingParams = self._import_vllm()
-            params = SamplingParams(**sampling_kwargs)
+            params = [SamplingParams(**kwargs) for kwargs in sampling_kwargs_by_prompt]
             try:
                 outputs = self.llm.generate(
-                    prompts=[{"prompt_token_ids": ids}],
+                    prompts=[{"prompt_token_ids": ids} for ids in ids_batch],
                     sampling_params=params,
                 )
             except TypeError:
-                outputs = self.llm.generate(prompt_token_ids=[ids], sampling_params=params)
-        if len(outputs) != 1:
-            raise RuntimeError(f"vLLM static request returned {len(outputs)} prompt rows; expected 1")
-        completions = list(getattr(outputs[0], "outputs", []) or [])
-        if len(completions) != int(num_samples):
-            raise RuntimeError(
-                f"vLLM static request returned {len(completions)} completions; expected {int(num_samples)}"
+                outputs = self.llm.generate(
+                    prompt_token_ids=ids_batch,
+                    sampling_params=params,
+                )
+            merged_outputs = list(outputs)
+        else:
+            actor_names = [str(spec["name"]) for spec in self._actor_specs]
+            if not actor_names:
+                raise RuntimeError("No subprocess vLLM actors are configured")
+            assignments: Dict[str, list[int]] = {name: [] for name in actor_names}
+            for local_index, global_index in enumerate(global_prompt_indices):
+                assignments[actor_names[global_index % len(actor_names)]].append(local_index)
+            merged_outputs: list[Any] = [None] * prompt_count
+            actors: Dict[str, Dict[str, Any]] = {}
+            for spec in self._actor_specs:
+                name = str(spec["name"])
+                local_indices = assignments[name]
+                assigned_prompt_indices = [global_prompt_indices[index] for index in local_indices]
+                conceptual_rows = [
+                    prompt_index * int(num_samples) + sample_index
+                    for prompt_index in assigned_prompt_indices
+                    for sample_index in range(int(num_samples))
+                ]
+                actors[name] = {
+                    **self._actor_observability(name),
+                    "prompt_indices": assigned_prompt_indices,
+                    "prompt_indices_summary": _row_index_summary(assigned_prompt_indices),
+                    "prompt_count": len(local_indices),
+                    "prompt_group_count": len(local_indices),
+                    "group_indices": assigned_prompt_indices,
+                    "row_indices": conceptual_rows,
+                    "row_indices_summary": _row_index_summary(conceptual_rows),
+                    "row_count": len(local_indices) * int(num_samples),
+                    "dispatch_start_time": None,
+                    "generate_start_time": None,
+                    "generate_end_time": None,
+                    "generate_sec": 0.0,
+                    "output_row_count": 0,
+                    "completion_count": 0,
+                    "prompt_completion_counts": {},
+                    "total_generated_tokens": 0,
+                    "mean_generated_tokens_per_response": 0.0,
+                    "max_generated_tokens": 0,
+                    "generated_tokens_per_sec": None,
+                    "finish_reason_counts": {},
+                    "stop_reason_counts": {},
+                    "prompt_seeds": [seed_values[index] for index in local_indices],
+                    "engine_seed": int(spec["engine_seed"]),
+                    "policy_descriptor": expected,
+                }
+
+            def generate_actor(name: str, local_indices: list[int], dispatch_start_time: float):
+                client = self._actor_client(name)
+                generate_start_time = time.perf_counter()
+                outputs = client.generate(
+                    prompt_token_ids=[ids_batch[index] for index in local_indices],
+                    sampling_kwargs_by_prompt=[
+                        sampling_kwargs_by_prompt[index] for index in local_indices
+                    ],
+                    expected_policy_descriptor=expected,
+                )
+                generate_end_time = time.perf_counter()
+                return (
+                    name,
+                    local_indices,
+                    outputs,
+                    dispatch_start_time,
+                    generate_start_time,
+                    generate_end_time,
+                )
+
+            failures = []
+            with ThreadPoolExecutor(
+                max_workers=len(actor_names), thread_name_prefix="fitmotn-vllm-static"
+            ) as executor:
+                future_map = {}
+                for name, local_indices in assignments.items():
+                    if not local_indices:
+                        continue
+                    dispatch_start_time = time.perf_counter()
+                    actors[name]["dispatch_start_time"] = float(dispatch_start_time)
+                    future_map[
+                        executor.submit(
+                            generate_actor, name, local_indices, dispatch_start_time
+                        )
+                    ] = name
+                for future in as_completed(future_map):
+                    name = future_map[future]
+                    try:
+                        (
+                            _,
+                            local_indices,
+                            outputs,
+                            dispatch_start_time,
+                            generate_start_time,
+                            generate_end_time,
+                        ) = future.result()
+                        if len(outputs) != len(local_indices):
+                            raise RuntimeError(
+                                f"actor {name!r} returned {len(outputs)} prompt rows for "
+                                f"{len(local_indices)} assigned prompts"
+                            )
+                        completion_counts = {}
+                        for local_index, output in zip(local_indices, outputs):
+                            completion_count = len(list(getattr(output, "outputs", []) or []))
+                            if completion_count != int(num_samples):
+                                raise RuntimeError(
+                                    f"actor {name!r} prompt_index={global_prompt_indices[local_index]} "
+                                    f"returned {completion_count} completions; expected {int(num_samples)}"
+                                )
+                            completion_counts[str(global_prompt_indices[local_index])] = completion_count
+                            merged_outputs[local_index] = output
+                        elapsed = max(0.0, generate_end_time - generate_start_time)
+                        statistics = _output_statistics(outputs)
+                        actors[name].update(self._actor_observability(name))
+                        actors[name].update(statistics)
+                        actors[name].update(
+                            {
+                                "prompt_completion_counts": completion_counts,
+                                "dispatch_start_time": float(dispatch_start_time),
+                                "generate_start_time": float(generate_start_time),
+                                "generate_end_time": float(generate_end_time),
+                                "generate_sec": float(elapsed),
+                                "generated_tokens_per_sec": (
+                                    float(statistics["total_generated_tokens"]) / elapsed
+                                    if elapsed > 0.0
+                                    else None
+                                ),
+                            }
+                        )
+                    except Exception as exc:
+                        failures.append(f"{name!r}: {exc}")
+            if failures or any(output is None for output in merged_outputs):
+                if not failures:
+                    failures.append("merged static batch contains missing prompt outputs")
+                cleanup_error = None
+                try:
+                    self.close()
+                except Exception as exc:
+                    cleanup_error = str(exc)
+                raise RuntimeError(
+                    "Multi-actor vLLM static batch failed; all actors were closed: "
+                    f"failures={failures}, cleanup_error={cleanup_error}"
+                )
+
+            active_intervals = [
+                (float(item["generate_start_time"]), float(item["generate_end_time"]))
+                for item in actors.values()
+                if item.get("generate_start_time") is not None
+                and item.get("generate_end_time") is not None
+            ]
+            overlap_sec = (
+                max(
+                    0.0,
+                    min(end for _, end in active_intervals)
+                    - max(start for start, _ in active_intervals),
+                )
+                if len(active_intervals) > 1
+                else 0.0
             )
-        return [
-            {
-                "token_ids": [int(token) for token in list(getattr(item, "token_ids", []) or [])],
-                "text": str(getattr(item, "text", "") or ""),
-                "finish_reason": (
-                    None if getattr(item, "finish_reason", None) is None else str(getattr(item, "finish_reason"))
-                ),
+            completion_counts_by_prompt = {
+                str(global_prompt_indices[index]): len(
+                    list(getattr(output, "outputs", []) or [])
+                )
+                for index, output in enumerate(merged_outputs)
             }
-            for item in completions
-        ]
+            total_generated_tokens = sum(
+                int(item["total_generated_tokens"]) for item in actors.values()
+            )
+            wall_sec = max(0.0, time.perf_counter() - wall_start)
+            self._last_actor_dispatch_metadata = {
+                "dispatch_path": "static_multi_sample_batch",
+                "actor_count": len(actor_names),
+                "active_actor_count": sum(
+                    1 for item in actors.values() if int(item["prompt_count"]) > 0
+                ),
+                "prompt_count": prompt_count,
+                "prompt_batch_size": prompt_count,
+                "prompt_indices": global_prompt_indices,
+                "num_samples": int(num_samples),
+                "num_rollouts": int(num_samples),
+                "completion_count": prompt_count * int(num_samples),
+                "completion_counts_by_prompt": completion_counts_by_prompt,
+                "row_count": prompt_count * int(num_samples),
+                "assigned_row_count": sum(int(item["row_count"]) for item in actors.values()),
+                "backend_generate_wall_sec": wall_sec,
+                "total_generated_tokens": total_generated_tokens,
+                "generated_tokens_per_sec": (
+                    float(total_generated_tokens) / wall_sec if wall_sec > 0.0 else None
+                ),
+                "generate_intervals_overlap": overlap_sec > 0.0,
+                "generate_overlap_sec": float(overlap_sec),
+                "seed_strategy": "global_seed_plus_dataset_prompt_index",
+                "time_source": "time.perf_counter",
+                "actors": actors,
+                **_actor_consistency_metadata(actors),
+            }
+
+        if len(merged_outputs) != prompt_count:
+            raise RuntimeError(
+                f"vLLM static batch returned {len(merged_outputs)} prompts; expected {prompt_count}"
+            )
+        serialized_batch: List[List[Dict[str, Any]]] = []
+        for global_index, output in zip(global_prompt_indices, merged_outputs):
+            completions = list(getattr(output, "outputs", []) or [])
+            if len(completions) != int(num_samples):
+                raise RuntimeError(
+                    f"vLLM static prompt_index={global_index} returned {len(completions)} "
+                    f"completions; expected {int(num_samples)}"
+                )
+            serialized_batch.append(
+                [
+                    {
+                        "token_ids": [
+                            int(token)
+                            for token in list(getattr(item, "token_ids", []) or [])
+                        ],
+                        "text": str(getattr(item, "text", "") or ""),
+                        "finish_reason": (
+                            None
+                            if getattr(item, "finish_reason", None) is None
+                            else str(getattr(item, "finish_reason"))
+                        ),
+                        "stop_reason": getattr(item, "stop_reason", None),
+                    }
+                    for item in completions
+                ]
+            )
+        return serialized_batch
 
     def _generate_token_ids(
         self,
@@ -571,36 +1054,86 @@ class VLLMRolloutBackend:
             raise RuntimeError(f"multi-actor rollout sharding lost or duplicated rows: {assignments}")
 
         merged: list[Any] = [None] * len(prompt_token_ids)
-        dispatch: Dict[str, Any] = {}
+        dispatch_wall_start = time.perf_counter()
+        dispatch: Dict[str, Any] = {
+            name: {
+                **self._actor_observability(name),
+                "row_indices": list(assignments[name]),
+                "row_indices_summary": _row_index_summary(assignments[name]),
+                "row_count": len(assignments[name]),
+                "prompt_group_count": len(
+                    {index // group_size for index in assignments[name]}
+                ),
+                "group_indices": sorted({index // group_size for index in assignments[name]}),
+                "sample_indices": [index % group_size for index in assignments[name]],
+                "dispatch_start_time": None,
+                "generate_start_time": None,
+                "generate_end_time": None,
+                "generate_sec": 0.0,
+                "output_row_count": 0,
+                "completion_count": 0,
+                "total_generated_tokens": 0,
+                "mean_generated_tokens_per_response": 0.0,
+                "max_generated_tokens": 0,
+                "generated_tokens_per_sec": None,
+                "finish_reason_counts": {},
+                "stop_reason_counts": {},
+                "engine_seed": int(
+                    next(spec["engine_seed"] for spec in self._actor_specs if spec["name"] == name)
+                ),
+                "policy_descriptor": dict(expected_policy_descriptor or {}),
+            }
+            for name in actor_names
+        }
         resource_every = int(getattr(self.fit_cfg.rl, "vllm_actor_resource_log_every", 1))
 
-        def generate_actor(name: str, row_indices: list[int]):
+        def generate_actor(name: str, row_indices: list[int], dispatch_start_time: float):
             if not row_indices:
-                return name, [], [], 0.0, None
+                return name, [], [], dispatch_start_time, None, None, None
             client = self._actor_client(name)
-            start = time.perf_counter()
+            generate_start_time = time.perf_counter()
             outputs = client.generate(
                 prompt_token_ids=[prompt_token_ids[index] for index in row_indices],
                 sampling_kwargs=sampling_kwargs,
                 expected_policy_descriptor=expected_policy_descriptor,
             )
-            elapsed = max(0.0, time.perf_counter() - start)
+            generate_end_time = time.perf_counter()
             resources = None
             if resource_every > 0 and self._rollout_request_sequence % resource_every == 0:
                 resources = client.ping()
-            return name, row_indices, outputs, elapsed, resources
+            return (
+                name,
+                row_indices,
+                outputs,
+                dispatch_start_time,
+                generate_start_time,
+                generate_end_time,
+                resources,
+            )
 
         failures = []
         with ThreadPoolExecutor(max_workers=len(actor_names), thread_name_prefix="fitmotn-vllm-generate") as executor:
-            future_map = {
-                executor.submit(generate_actor, name, indices): name
-                for name, indices in assignments.items()
-                if indices
-            }
+            future_map = {}
+            for name, indices in assignments.items():
+                if not indices:
+                    continue
+                dispatch_start_time = time.perf_counter()
+                dispatch[name]["dispatch_start_time"] = float(dispatch_start_time)
+                future_map[
+                    executor.submit(generate_actor, name, indices, dispatch_start_time)
+                ] = name
             for future in as_completed(future_map):
                 name = future_map[future]
                 try:
-                    _, row_indices, outputs, elapsed, resources = future.result()
+                    (
+                        _,
+                        row_indices,
+                        outputs,
+                        dispatch_start_time,
+                        generate_start_time,
+                        generate_end_time,
+                        resources,
+                    ) = future.result()
                     if len(outputs) != len(row_indices):
                         raise RuntimeError(
                             f"actor {name!r} returned {len(outputs)} rows for {len(row_indices)} assigned rows"
@@ -609,29 +1142,54 @@ class VLLMRolloutBackend:
                         merged[row_index] = output
                     if resources is not None:
                         self._actor_resource_snapshot[name]["latest"] = resources
-                    dispatch[name] = {
-                        "row_indices": list(row_indices),
-                        "row_count": len(row_indices),
-                        "group_indices": sorted({index // group_size for index in row_indices}),
-                        "sample_indices": [index % group_size for index in row_indices],
-                        "generate_sec": float(elapsed),
-                        "engine_seed": int(
-                            next(spec["engine_seed"] for spec in self._actor_specs if spec["name"] == name)
-                        ),
-                        "policy_descriptor": dict(expected_policy_descriptor or {}),
-                    }
+                    elapsed = max(0.0, float(generate_end_time - generate_start_time))
+                    statistics = _output_statistics(outputs)
+                    dispatch[name].update(self._actor_observability(name))
+                    dispatch[name].update(statistics)
+                    dispatch[name].update(
+                        {
+                            "dispatch_start_time": float(dispatch_start_time),
+                            "generate_start_time": float(generate_start_time),
+                            "generate_end_time": float(generate_end_time),
+                            "generate_sec": elapsed,
+                            "generated_tokens_per_sec": (
+                                float(statistics["total_generated_tokens"]) / elapsed
+                                if elapsed > 0.0
+                                else None
+                            ),
+                        }
+                    )
                 except Exception as exc:
                     failures.append(f"{name!r}: {exc}")
         if failures:
             raise RuntimeError(f"Multi-actor vLLM rollout failed; the entire rollout batch is invalid: {failures}")
         if any(output is None for output in merged):
             raise RuntimeError("Multi-actor vLLM rollout merge contains missing rows")
+        active_intervals = [
+            (float(item["generate_start_time"]), float(item["generate_end_time"]))
+            for item in dispatch.values()
+            if item.get("generate_start_time") is not None and item.get("generate_end_time") is not None
+        ]
+        overlap_sec = (
+            max(0.0, min(end for _, end in active_intervals) - max(start for start, _ in active_intervals))
+            if len(active_intervals) > 1
+            else 0.0
+        )
         self._last_actor_dispatch_metadata = {
+            "dispatch_path": "expanded_rows_generate",
             "actor_count": len(actor_names),
             "active_actor_count": sum(1 for value in dispatch.values() if value["row_count"] > 0),
             "group_size": group_size,
+            "prompt_batch_size": len(prompt_token_ids) // group_size,
+            "num_rollouts": group_size,
             "row_count": len(prompt_token_ids),
+            "assigned_row_count": sum(int(value["row_count"]) for value in dispatch.values()),
+            "backend_generate_wall_sec": max(0.0, time.perf_counter() - dispatch_wall_start),
+            "generate_intervals_overlap": overlap_sec > 0.0,
+            "generate_overlap_sec": float(overlap_sec),
+            "time_source": "time.perf_counter",
             "actors": dispatch,
+            **_actor_consistency_metadata(dispatch),
         }
         return merged
 
@@ -737,7 +1295,6 @@ class VLLMRolloutBackend:
             )
             if self.uses_subprocess_actor:
                 metadata["vllm_actor_resources"] = dict(self._actor_resource_snapshot)
-                metadata["vllm_actor_dispatch"] = dict(self._last_actor_dispatch_metadata)
             if len(outputs) != int(input_ids.shape[0]):
                 raise RuntimeError(
                     "vLLM returned an unexpected number of rollout rows: "
@@ -751,6 +1308,9 @@ class VLLMRolloutBackend:
             )
             generate_sec = max(0.0, time.perf_counter() - start)
             generated_tokens = int(sum(len(ids) for ids in generated_ids))
+            if self.uses_subprocess_actor:
+                self._last_actor_dispatch_metadata["backend_generate_wall_sec"] = float(generate_sec)
+                metadata["vllm_actor_dispatch"] = dict(self._last_actor_dispatch_metadata)
             metadata.update(
                 {
                     "vllm_policy_version": int(self.sync_manager.policy_version),

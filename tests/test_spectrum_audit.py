@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import types
+import signal
 from pathlib import Path
 
 import pytest
@@ -119,6 +120,88 @@ def test_original_cli_defaults_to_hf_and_preserves_required_arguments():
     ])
     assert args.rollout_backend == "hf"
     assert args.num_rollouts == 16
+    assert args.assert_multi_actor_dispatch is False
+
+
+def test_cli_accepts_strict_multi_actor_dispatch_audit_flag():
+    args = parse_args([
+        "--config_json", "c.json", "--output_jsonl", "out.jsonl",
+        "--verified_traces_jsonl", "traces.jsonl", "--rollout_backend", "vllm",
+        "--assert_multi_actor_dispatch",
+    ])
+    assert args.assert_multi_actor_dispatch is True
+
+
+def test_vllm_prompt_batch_size_controls_static_backend_batching(monkeypatch):
+    observed_batch_sizes = []
+
+    def fake_batch(**kwargs):
+        prompt_count = len(kwargs["prompts"])
+        observed_batch_sizes.append(prompt_count)
+        num_rollouts = int(kwargs["num_rollouts"])
+        samples = [
+            [
+                {
+                    "text": "",
+                    "token_ids": [],
+                    "response_token_count": 0,
+                    "finish_reason": "stop",
+                    "truncated": False,
+                }
+                for _ in range(num_rollouts)
+            ]
+            for _ in range(prompt_count)
+        ]
+        return samples, {
+            "dispatch_path": "static_multi_sample_batch",
+            "actor_count": 2,
+            "active_actor_count": min(2, prompt_count),
+            "prompt_count": prompt_count,
+            "prompt_batch_size": prompt_count,
+            "num_samples": num_rollouts,
+            "row_count": prompt_count * num_rollouts,
+            "actors": {},
+        }
+
+    monkeypatch.setattr(boundary_cli, "_vllm_samples_batch", fake_batch)
+    monkeypatch.setattr(
+        boundary_cli,
+        "build_rl_prompt_text",
+        lambda _cfg, _tokenizer, question: f"prompt:{question}",
+    )
+    cfg = types.SimpleNamespace(
+        rl=types.SimpleNamespace(rollout_max_prompt_tokens=0)
+    )
+    args = types.SimpleNamespace(
+        rollout_backend="vllm",
+        prompt_batch_size=16,
+        num_rollouts=16,
+        assert_multi_actor_dispatch=False,
+    )
+    records = [{"question": f"q{index}"} for index in range(17)]
+
+    yielded = list(
+        boundary_cli._iter_prompt_samples(
+            cfg=cfg,
+            args=args,
+            records=records,
+            backend=object(),
+            model=None,
+            tokenizer=object(),
+            generation_config=types.SimpleNamespace(),
+            seed=100,
+        )
+    )
+
+    assert observed_batch_sizes == [16, 1]
+    assert [item[0] for item in yielded] == list(range(17))
+    assert [item[3] for item in yielded] == list(range(100, 117))
+
+
+def test_static_audit_sigterm_is_converted_to_finally_unwind():
+    with pytest.raises(SystemExit) as exc_info:
+        boundary_cli._terminate_static_audit(signal.SIGTERM, None)
+    assert exc_info.value.code == 128 + int(signal.SIGTERM)
 
 
 def test_mock_vllm_true_multi_sample_parsing_and_actor_round_robin(tmp_path):
@@ -133,12 +216,18 @@ def test_mock_vllm_true_multi_sample_parsing_and_actor_round_robin(tmp_path):
     class Client:
         is_alive = True
         def __init__(self, tag): self.tag = tag
-        def generate(self, *, prompt_token_ids, sampling_kwargs, expected_policy_descriptor):
+        def generate(
+            self,
+            *,
+            prompt_token_ids,
+            sampling_kwargs_by_prompt,
+            expected_policy_descriptor,
+        ):
             assert expected_policy_descriptor == descriptor
             assert len(prompt_token_ids) == 1
             return [ActorRequestOutput([
                 ActorCompletion([self.tag, index], text=f"r{index}", finish_reason="stop")
-                for index in range(sampling_kwargs["n"])
+                for index in range(sampling_kwargs_by_prompt[0]["n"])
             ])]
 
     backend = VLLMRolloutBackend(
@@ -158,6 +247,13 @@ def test_mock_vllm_true_multi_sample_parsing_and_actor_round_robin(tmp_path):
     assert [item["token_ids"][0] for item in first] == [10, 10, 10]
     assert [item["token_ids"][0] for item in second] == [20, 20, 20]
     assert [item["text"] for item in first] == ["r0", "r1", "r2"]
+    dispatch = backend.last_actor_dispatch_metadata
+    assert dispatch["dispatch_path"] == "static_multi_sample_batch"
+    assert dispatch["prompt_batch_size"] == 1
+    assert dispatch["row_count"] == 3
+    assert dispatch["active_actor_count"] == 1
+    assert dispatch["actors"]["a0"]["row_count"] == 0
+    assert dispatch["actors"]["a1"]["row_count"] == 3
 
 
 def test_static_backend_is_closed_when_initialization_raises(tmp_path, monkeypatch):
@@ -184,6 +280,38 @@ def test_static_backend_is_closed_when_initialization_raises(tmp_path, monkeypat
     args = types.SimpleNamespace(rollout_backend="vllm")
     with pytest.raises(RuntimeError, match="injected init failure"):
         boundary_cli._prepare_backend(cfg, args, tmp_path / "out")
+    assert closed == [True]
+
+
+def test_static_backend_is_closed_when_sigterm_unwinds_initialization(tmp_path, monkeypatch):
+    closed = []
+
+    class Model:
+        def eval(self): return self
+
+    load_info = types.SimpleNamespace(
+        base_model_path=str(tmp_path / "base"), metadata={}, patch_cfg={}
+    )
+    monkeypatch.setattr(
+        boundary_cli,
+        "load_policy_for_rl",
+        lambda *args, **kwargs: (Model(), object(), load_info),
+    )
+
+    class Backend:
+        def __init__(self, **kwargs): pass
+        def sync_policy(self, **kwargs): raise SystemExit(143)
+        def close(self): closed.append(True)
+
+    monkeypatch.setattr(boundary_cli, "VLLMRolloutBackend", Backend)
+    cfg = make_default_config()
+    checkpoint = tmp_path / "checkpoint"
+    checkpoint.mkdir()
+    cfg.rl.resume_from = str(checkpoint)
+    args = types.SimpleNamespace(rollout_backend="vllm")
+    with pytest.raises(SystemExit) as exc_info:
+        boundary_cli._prepare_backend(cfg, args, tmp_path / "out")
+    assert exc_info.value.code == 143
     assert closed == [True]
 
 

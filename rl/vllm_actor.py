@@ -32,6 +32,9 @@ def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any
 
         snapshot["cuda_available"] = bool(torch.cuda.is_available())
         snapshot["cuda_device_count"] = int(torch.cuda.device_count())
+        snapshot["cuda_current_device"] = (
+            int(torch.cuda.current_device()) if snapshot["cuda_available"] else None
+        )
         devices = []
         for index in range(int(torch.cuda.device_count())):
             props = torch.cuda.get_device_properties(index)
@@ -66,6 +69,28 @@ def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any
                 for value in children_path.read_text(encoding="utf-8").split()
                 if value.isdigit()
             ]
+            process_details = []
+            enginecore_process_ids = []
+            for child_pid in snapshot["os_child_process_ids"]:
+                detail = {"pid": int(child_pid), "name": None, "cmdline": None}
+                try:
+                    detail["name"] = Path(f"/proc/{child_pid}/comm").read_text(
+                        encoding="utf-8"
+                    ).strip()
+                except OSError:
+                    pass
+                try:
+                    detail["cmdline"] = Path(f"/proc/{child_pid}/cmdline").read_bytes().replace(
+                        b"\x00", b" "
+                    ).decode("utf-8", errors="replace").strip()
+                except OSError:
+                    pass
+                process_details.append(detail)
+                identity = f"{detail.get('name') or ''} {detail.get('cmdline') or ''}".lower()
+                if "enginecore" in identity or "engine_core" in identity:
+                    enginecore_process_ids.append(int(child_pid))
+            snapshot["os_child_processes"] = process_details
+            snapshot["enginecore_process_ids"] = enginecore_process_ids
     except Exception as exc:
         snapshot["os_child_process_probe_error"] = str(exc)
     return snapshot
@@ -76,6 +101,7 @@ class ActorCompletion:
     token_ids: list[int]
     text: str = ""
     finish_reason: Optional[str] = None
+    stop_reason: Any = None
 
 
 @dataclass
@@ -205,6 +231,8 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
             # trainer.  The full CUDA placement snapshot is captured once at
             # engine load; later pings only need process-lifecycle evidence.
             "actor_resources": _cuda_resource_snapshot(probe_cuda_runtime=False),
+            "engine_resources": state.get("engine_resources"),
+            "engine_config": state.get("engine_config"),
             "engine_topology": state.get("engine_topology"),
         }
     if command == "load_engine":
@@ -228,10 +256,27 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         if requested_device is not None:
             topology_kwargs["device"] = requested_device
         state["engine_topology"] = _engine_topology_snapshot(state["llm"], topology_kwargs)
+        state["engine_config"] = {
+            key: llm_kwargs.get(key)
+            for key in (
+                "model",
+                "tokenizer",
+                "dtype",
+                "max_model_len",
+                "max_num_seqs",
+                "tensor_parallel_size",
+                "gpu_memory_utilization",
+                "model_impl",
+                "enforce_eager",
+                "seed",
+            )
+        }
+        state["engine_resources"] = _cuda_resource_snapshot()
         return {
             "load_sec": max(0.0, time.perf_counter() - start),
             "policy_descriptor": state["policy_descriptor"],
-            "actor_resources": _cuda_resource_snapshot(),
+            "actor_resources": state["engine_resources"],
+            "engine_config": state["engine_config"],
             "engine_topology": state["engine_topology"],
         }
     if command == "unload_engine":
@@ -239,6 +284,8 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         state["llm"] = None
         state["policy_descriptor"] = None
         state["engine_topology"] = None
+        state["engine_config"] = None
+        state["engine_resources"] = None
         state["pending_policy_descriptor"] = None
         state["weight_transfer_initialized"] = False
         state["status"] = "LOADING"
@@ -382,8 +429,22 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
             )
         from vllm import SamplingParams  # type: ignore
 
-        sampling_params = SamplingParams(**dict(request["sampling_kwargs"]))
         prompt_token_ids = [list(map(int, row)) for row in request["prompt_token_ids"]]
+        raw_sampling_by_prompt = request.get("sampling_kwargs_by_prompt")
+        if raw_sampling_by_prompt is not None:
+            sampling_kwargs_by_prompt = [dict(item) for item in raw_sampling_by_prompt]
+            if len(sampling_kwargs_by_prompt) != len(prompt_token_ids):
+                raise RuntimeError(
+                    "per-prompt sampling parameter count must match prompt count: "
+                    f"params={len(sampling_kwargs_by_prompt)}, prompts={len(prompt_token_ids)}"
+                )
+            sampling_params = [SamplingParams(**item) for item in sampling_kwargs_by_prompt]
+            common_sampling_kwargs = None
+        else:
+            common_sampling_kwargs = dict(request["sampling_kwargs"])
+            sampling_kwargs_by_prompt = None
+            sampling_params = SamplingParams(**common_sampling_kwargs)
+        generate_start_time = time.perf_counter()
         try:
             outputs = llm.generate(
                 prompts=[{"prompt_token_ids": ids} for ids in prompt_token_ids],
@@ -391,6 +452,7 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
             )
         except TypeError:
             outputs = llm.generate(prompt_token_ids=prompt_token_ids, sampling_params=sampling_params)
+        generate_end_time = time.perf_counter()
         serialized = []
         for output in outputs:
             completions = list(getattr(output, "outputs", []) or [])
@@ -404,11 +466,28 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                             if getattr(completion, "finish_reason", None) is None
                             else str(getattr(completion, "finish_reason"))
                         ),
+                        "stop_reason": getattr(completion, "stop_reason", None),
                     }
                     for completion in completions
                 ]
             )
-        return {"outputs": serialized}
+        return {
+            "outputs": serialized,
+            "diagnostics": {
+                "llm_generate_called": True,
+                "generate_start_time": float(generate_start_time),
+                "generate_end_time": float(generate_end_time),
+                "generate_sec": max(0.0, float(generate_end_time - generate_start_time)),
+                "prompt_count": len(prompt_token_ids),
+                "output_row_count": len(serialized),
+                "completion_count": sum(len(completions) for completions in serialized),
+                "sampling_kwargs": common_sampling_kwargs,
+                "sampling_kwargs_by_prompt": sampling_kwargs_by_prompt,
+                "engine_config": state.get("engine_config"),
+                "actor_resources": _cuda_resource_snapshot(probe_cuda_runtime=False),
+                "engine_resources_at_load": state.get("engine_resources"),
+            },
+        }
     if command == "sleep":
         llm = state.get("llm")
         if llm is None:
@@ -458,6 +537,8 @@ def _actor_main(connection, environment: Optional[Dict[str, str]] = None) -> Non
         "closed": False,
         "policy_descriptor": None,
         "engine_topology": None,
+        "engine_config": None,
+        "engine_resources": None,
         "pending_policy_descriptor": None,
         "weight_transfer_initialized": False,
         "status": "LOADING",
@@ -506,6 +587,7 @@ class VLLMActorClient:
         self._request_id = 0
         self.startup_info: Dict[str, Any] = {}
         self.last_engine_info: Dict[str, Any] = {}
+        self.last_generate_info: Dict[str, Any] = {}
         self._pending_request: Optional[tuple[int, str]] = None
 
     @property
@@ -701,15 +783,26 @@ class VLLMActorClient:
         self,
         *,
         prompt_token_ids: list[list[int]],
-        sampling_kwargs: Dict[str, Any],
+        sampling_kwargs: Optional[Dict[str, Any]] = None,
+        sampling_kwargs_by_prompt: Optional[list[Dict[str, Any]]] = None,
         expected_policy_descriptor: Optional[Dict[str, Any]] = None,
     ) -> list[ActorRequestOutput]:
+        if (sampling_kwargs is None) == (sampling_kwargs_by_prompt is None):
+            raise ValueError(
+                "exactly one of sampling_kwargs or sampling_kwargs_by_prompt must be provided"
+            )
         result = self._request(
             "generate",
             prompt_token_ids=prompt_token_ids,
-            sampling_kwargs=dict(sampling_kwargs),
+            sampling_kwargs=None if sampling_kwargs is None else dict(sampling_kwargs),
+            sampling_kwargs_by_prompt=(
+                None
+                if sampling_kwargs_by_prompt is None
+                else [dict(item) for item in sampling_kwargs_by_prompt]
+            ),
             expected_policy_descriptor=dict(expected_policy_descriptor or {}),
         )
+        self.last_generate_info = dict(result.get("diagnostics") or {})
         return [
             ActorRequestOutput(
                 outputs=[
@@ -717,6 +810,7 @@ class VLLMActorClient:
                         token_ids=list(item.get("token_ids") or []),
                         text=str(item.get("text") or ""),
                         finish_reason=None if item.get("finish_reason") is None else str(item.get("finish_reason")),
+                        stop_reason=item.get("stop_reason"),
                     )
                     for item in completions
                 ]

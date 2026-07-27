@@ -5,6 +5,7 @@ import gc
 import json
 import os
 import random
+import signal
 import shutil
 from pathlib import Path
 from typing import Any, Mapping
@@ -25,7 +26,7 @@ from ..rl.generation import tokenize_rollout_prompts
 from ..rl.rewards_gsm8k import gsm8k_reward
 from ..rl.rollout_backends import HFRolloutBackend, RolloutGenerationConfig
 from ..rl.runtime import load_policy_for_rl
-from ..rl.vllm_rollout import VLLMRolloutBackend
+from ..rl.vllm_rollout import VLLMRolloutBackend, assert_multi_actor_dispatch
 from ..train.rl_controller import build_rl_prompt_text, build_rollout_attention_and_response_mask
 
 
@@ -53,6 +54,11 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--top_p", type=float, default=None)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--progress_every", type=int, default=25)
+    parser.add_argument(
+        "--assert_multi_actor_dispatch",
+        action="store_true",
+        help="fail fast when multi-actor dispatch counts, placement, or concurrency fail audit checks",
+    )
     return parser.parse_args(argv)
 
 
@@ -88,6 +94,35 @@ def _write_line(handle, value: Mapping[str, Any]) -> None:
         handle.write(json.dumps(to_jsonable(dict(value)), ensure_ascii=False) + "\n")
 
 
+def _emit_vllm_actor_dispatch(
+    dispatch: Mapping[str, Any],
+    *,
+    configured_prompt_batch_size: int,
+    configured_num_rollouts: int,
+    strict: bool,
+) -> None:
+    payload = dict(dispatch)
+    actual_prompt_count = int(payload.get("prompt_count", payload.get("prompt_batch_size", 0)))
+    expected_rows = actual_prompt_count * int(configured_num_rollouts)
+    payload["cli_configured_prompt_batch_size"] = int(configured_prompt_batch_size)
+    payload["cli_configured_num_rollouts"] = int(configured_num_rollouts)
+    payload["cli_expected_prompt_count"] = actual_prompt_count
+    payload["cli_expected_completion_count"] = expected_rows
+    print(
+        "[VLLMActorDispatch] "
+        + json.dumps(to_jsonable({"vllm_actor_dispatch": payload}), ensure_ascii=False),
+        flush=True,
+    )
+    if strict:
+        assert_multi_actor_dispatch(
+            payload,
+            expected_row_count=expected_rows,
+            expected_prompt_count=actual_prompt_count,
+            expected_num_samples=int(configured_num_rollouts),
+            require_overlap=True,
+        )
+
+
 def _atomic_json(path: str | Path, value: Mapping[str, Any]) -> None:
     target = Path(path).expanduser().resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -98,11 +133,6 @@ def _atomic_json(path: str | Path, value: Mapping[str, Any]) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
-
-
-def _tokenize_single(tokenizer, prompt: str, max_prompt_tokens: int) -> tuple[torch.Tensor, torch.Tensor]:
-    enc = tokenize_rollout_prompts(tokenizer, [prompt], max_prompt_tokens=max_prompt_tokens)
-    return enc["input_ids"], enc["attention_mask"]
 
 
 def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_config, prompt_seed, max_prompt_tokens):
@@ -120,6 +150,17 @@ def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_c
         generation_config=generation_config,
         update_step=0,
     )
+    if batch.metadata.get("vllm_actor_dispatch"):
+        print(
+            "[VLLMActorDispatch] "
+            + json.dumps(
+                to_jsonable(
+                    {"vllm_actor_dispatch": batch.metadata["vllm_actor_dispatch"]}
+                ),
+                ensure_ascii=False,
+            ),
+            flush=True,
+        )
     _, response_mask = build_rollout_attention_and_response_mask(
         batch.sequences,
         attention_mask,
@@ -143,31 +184,62 @@ def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_c
 
 
 def _vllm_samples(*, backend, tokenizer, prompt, num_rollouts, generation_config, prompt_seed, prompt_index, max_prompt_tokens):
-    input_ids, attention_mask = _tokenize_single(tokenizer, prompt, max_prompt_tokens)
-    effective = input_ids[0][attention_mask[0].to(dtype=torch.bool)].tolist()
-    raw = backend.generate_static_samples(
-        prompt_token_ids=effective,
+    results, dispatch = _vllm_samples_batch(
+        backend=backend,
+        tokenizer=tokenizer,
+        prompts=[prompt],
+        num_rollouts=num_rollouts,
+        generation_config=generation_config,
+        prompt_seeds=[prompt_seed],
+        prompt_indices=[prompt_index],
+        max_prompt_tokens=max_prompt_tokens,
+    )
+    return results[0], dispatch
+
+
+def _vllm_samples_batch(
+    *,
+    backend,
+    tokenizer,
+    prompts,
+    num_rollouts,
+    generation_config,
+    prompt_seeds,
+    prompt_indices,
+    max_prompt_tokens,
+):
+    enc = tokenize_rollout_prompts(
+        tokenizer, list(prompts), max_prompt_tokens=max_prompt_tokens
+    )
+    effective_prompt_ids = []
+    for row, mask in zip(enc["input_ids"], enc["attention_mask"]):
+        effective_prompt_ids.append(row[mask.to(dtype=torch.bool)].tolist())
+    raw_batch = backend.generate_static_samples_batch(
+        prompt_token_ids=effective_prompt_ids,
         num_samples=num_rollouts,
         max_new_tokens=generation_config.max_new_tokens,
         temperature=generation_config.temperature,
         top_p=generation_config.top_p,
-        seed=prompt_seed,
-        prompt_index=prompt_index,
+        seeds=list(prompt_seeds),
+        prompt_indices=list(prompt_indices),
         eos_token_id=tokenizer.eos_token_id,
     )
-    result = []
-    for item in raw:
-        token_ids = list(item["token_ids"])
-        finish_reason = item.get("finish_reason")
-        truncated = str(finish_reason).lower() in {"length", "max_tokens", "max_token"} or (
-            finish_reason is None and len(token_ids) >= int(generation_config.max_new_tokens)
-        )
-        result.append({
-            **item,
-            "response_token_count": len(token_ids),
-            "truncated": bool(truncated),
-        })
-    return result
+    results = []
+    for raw in raw_batch:
+        prompt_results = []
+        for item in raw:
+            token_ids = list(item["token_ids"])
+            finish_reason = item.get("finish_reason")
+            truncated = str(finish_reason).lower() in {"length", "max_tokens", "max_token"} or (
+                finish_reason is None and len(token_ids) >= int(generation_config.max_new_tokens)
+            )
+            prompt_results.append({
+                **item,
+                "response_token_count": len(token_ids),
+                "truncated": bool(truncated),
+            })
+        results.append(prompt_results)
+    return results, backend.last_actor_dispatch_metadata
 
 
 def _copy_checkpoint_callback(source: Path):
@@ -198,7 +270,7 @@ def _prepare_backend(cfg, args, output_root: Path):
     )
     try:
         sync = backend.sync_policy(model=model, tokenizer=tokenizer, update_step=0, force=True)
-    except Exception:
+    except BaseException:
         backend.close()
         raise
     metadata = {
@@ -207,8 +279,82 @@ def _prepare_backend(cfg, args, output_root: Path):
         "policy_version": sync.policy_version,
         "checkpoint_metadata_authoritative": bool(load_info.metadata),
         "checkpoint_patch_cfg": load_info.patch_cfg,
+        "vllm_actor_resources": sync.metadata.get("vllm_actor_resources"),
+        "vllm_rollout_actor_count": sync.metadata.get("vllm_rollout_actor_count"),
     }
     return backend, model, tokenizer, metadata
+
+
+def _iter_prompt_samples(
+    *,
+    cfg,
+    args,
+    records,
+    backend,
+    model,
+    tokenizer,
+    generation_config,
+    seed: int,
+):
+    max_prompt_tokens = int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0))
+    if args.rollout_backend == "hf":
+        for prompt_index, row in enumerate(records):
+            prompt = build_rl_prompt_text(cfg, tokenizer, row["question"])
+            prompt_seed = seed + prompt_index
+            samples = _hf_samples(
+                backend=backend,
+                model=model,
+                tokenizer=tokenizer,
+                prompt=prompt,
+                num_rollouts=args.num_rollouts,
+                generation_config=generation_config,
+                prompt_seed=prompt_seed,
+                max_prompt_tokens=max_prompt_tokens,
+            )
+            yield prompt_index, row, prompt, prompt_seed, samples
+        return
+
+    batch_size = int(args.prompt_batch_size)
+    for batch_start in range(0, len(records), batch_size):
+        batch_rows = records[batch_start : batch_start + batch_size]
+        prompt_indices = list(range(batch_start, batch_start + len(batch_rows)))
+        prompts = [
+            build_rl_prompt_text(cfg, tokenizer, row["question"]) for row in batch_rows
+        ]
+        prompt_seeds = [seed + prompt_index for prompt_index in prompt_indices]
+        samples_batch, actor_dispatch = _vllm_samples_batch(
+            backend=backend,
+            tokenizer=tokenizer,
+            prompts=prompts,
+            num_rollouts=args.num_rollouts,
+            generation_config=generation_config,
+            prompt_seeds=prompt_seeds,
+            prompt_indices=prompt_indices,
+            max_prompt_tokens=max_prompt_tokens,
+        )
+        if len(samples_batch) != len(batch_rows):
+            raise RuntimeError(
+                f"static vLLM batch returned {len(samples_batch)} prompt groups; "
+                f"expected {len(batch_rows)}"
+            )
+        _emit_vllm_actor_dispatch(
+            actor_dispatch,
+            configured_prompt_batch_size=batch_size,
+            configured_num_rollouts=int(args.num_rollouts),
+            strict=bool(args.assert_multi_actor_dispatch),
+        )
+        for local_index, row in enumerate(batch_rows):
+            yield (
+                prompt_indices[local_index],
+                row,
+                prompts[local_index],
+                prompt_seeds[local_index],
+                samples_batch[local_index],
+            )
+
+
+def _terminate_static_audit(signum, _frame):
+    raise SystemExit(128 + int(signum))
 
 
 def main(argv: list[str] | None = None):
@@ -252,24 +398,40 @@ def main(argv: list[str] | None = None):
     selected_count = 0
     init_metadata: dict[str, Any] = {}
     completed = False
+    previous_sigterm_handler = None
     try:
+        if args.rollout_backend == "vllm":
+            previous_sigterm_handler = signal.getsignal(signal.SIGTERM)
+            signal.signal(signal.SIGTERM, _terminate_static_audit)
         backend, model, tokenizer, init_metadata = _prepare_backend(cfg, args, output_root)
+        if args.rollout_backend == "vllm":
+            print(
+                "[VLLMActorStartup] "
+                + json.dumps(
+                    to_jsonable(
+                        {
+                            "actor_count": init_metadata.get("vllm_rollout_actor_count"),
+                            "actors": init_metadata.get("vllm_actor_resources"),
+                        }
+                    ),
+                    ensure_ascii=False,
+                ),
+                flush=True,
+            )
         selected_file = _open_jsonl(args.output_jsonl)
         verified_file = _open_jsonl(args.verified_traces_jsonl)
         all_file = _open_jsonl(args.all_rollouts_jsonl)
         handles = [handle for handle in (selected_file, verified_file, all_file) if handle is not None]
-        for prompt_index, row in enumerate(records):
-            prompt = build_rl_prompt_text(cfg, tokenizer, row["question"])
-            prompt_seed = seed + prompt_index
-            common = dict(
-                backend=backend, tokenizer=tokenizer, prompt=prompt,
-                num_rollouts=args.num_rollouts, generation_config=generation_config,
-                prompt_seed=prompt_seed, max_prompt_tokens=int(getattr(cfg.rl, "rollout_max_prompt_tokens", 0)),
-            )
-            if args.rollout_backend == "hf":
-                samples = _hf_samples(model=model, **common)
-            else:
-                samples = _vllm_samples(prompt_index=prompt_index, **common)
+        for prompt_index, row, _prompt, prompt_seed, samples in _iter_prompt_samples(
+            cfg=cfg,
+            args=args,
+            records=records,
+            backend=backend,
+            model=model,
+            tokenizer=tokenizer,
+            generation_config=generation_config,
+            seed=seed,
+        ):
             rollout_rows = []
             for rollout_index, sample in enumerate(samples):
                 reward, debug = gsm8k_reward(sample["text"], row["answer"])
@@ -334,16 +496,24 @@ def main(argv: list[str] | None = None):
                     handle.flush()
         completed = True
     finally:
-        for handle in handles:
-            handle.flush()
-            handle.close()
-        if backend is not None:
-            backend.close()
-        if model is not None:
-            del model
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        if previous_sigterm_handler is not None:
+            signal.signal(signal.SIGTERM, previous_sigterm_handler)
+        try:
+            for handle in handles:
+                try:
+                    handle.flush()
+                finally:
+                    handle.close()
+        finally:
+            try:
+                if backend is not None:
+                    backend.close()
+            finally:
+                if model is not None:
+                    del model
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
     aggregates = aggregate_spectrum(
         prompt_records, rollout_accumulator, pass_k=pass_k, mgpo_enabled=bool(cfg.rl.mgpo_enabled)

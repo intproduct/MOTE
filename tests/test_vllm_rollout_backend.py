@@ -3,6 +3,9 @@ from __future__ import annotations
 import sys
 import types
 import json
+import copy
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -21,7 +24,7 @@ if "MOTE.rl" not in sys.modules:
 from MOTE.config.defaults import make_default_config
 from MOTE.rl.rollout_backends import RolloutGenerationConfig
 from MOTE.rl.rollout_backends import RolloutSyncResult
-from MOTE.rl.vllm_rollout import VLLMRolloutBackend
+from MOTE.rl.vllm_rollout import VLLMRolloutBackend, assert_multi_actor_dispatch
 from MOTE.rl.vllm_sync import VLLMPolicySyncManager
 from MOTE.train.rl_controller import build_rollout_attention_and_response_mask
 
@@ -40,6 +43,14 @@ class FakeCompletion:
 class FakeRequestOutput:
     def __init__(self, token_ids):
         self.outputs = [FakeCompletion(token_ids)]
+
+
+class FakeMultiRequestOutput:
+    def __init__(self, prompt_token: int, completion_count: int):
+        self.outputs = [
+            FakeCompletion([int(prompt_token), sample_index])
+            for sample_index in range(int(completion_count))
+        ]
 
 
 def _cfg(tmp_path):
@@ -243,6 +254,437 @@ def test_stage5c_multi_actor_sharding_uses_all_actors_and_restores_order(tmp_pat
         for actor in dispatch["actors"].values()
         for index in actor["row_indices"]
     ) == list(range(8))
+
+
+def test_multi_actor_audit_256_rows_is_balanced_concurrent_and_ordered(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.group_size = 16
+    cfg.rl.vllm_actor_resource_log_every = 0
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "rollout_0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "rollout_1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    descriptor = {"policy_version": 3, "policy_fingerprint": "abc", "export_dir": "x"}
+    barrier = threading.Barrier(2)
+
+    class FakeClient:
+        is_alive = True
+
+        def __init__(self, device):
+            self.device = device
+            self.last_generate_info = {}
+
+        def generate(self, *, prompt_token_ids, sampling_kwargs, expected_policy_descriptor):
+            assert expected_policy_descriptor == descriptor
+            barrier.wait(timeout=2.0)
+            actor_start = time.perf_counter()
+            time.sleep(0.05)
+            actor_end = time.perf_counter()
+            self.last_generate_info = {
+                "llm_generate_called": True,
+                "generate_start_time": actor_start,
+                "generate_end_time": actor_end,
+                "generate_sec": actor_end - actor_start,
+                "sampling_kwargs": dict(sampling_kwargs),
+                "engine_config": {"model": "mock", "tokenizer": "mock", "dtype": "bfloat16"},
+                "actor_resources": {
+                    "cuda_visible_devices": self.device,
+                    "process_id": 100 + int(self.device),
+                },
+                "engine_resources_at_load": {
+                    "cuda_device_count": 1,
+                    "cuda_current_device": 0,
+                    "enginecore_process_ids": [200 + int(self.device)],
+                },
+            }
+            return [FakeRequestOutput([ids[-1] + 1000]) for ids in prompt_token_ids]
+
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = {
+        "rollout_0": FakeClient("1"),
+        "rollout_1": FakeClient("2"),
+    }
+    backend._actor_resource_snapshot = {"rollout_0": {}, "rollout_1": {}}
+    prompt_ids = [[index] for index in range(256)]
+
+    outputs = backend._generate_subprocess_actors(
+        prompt_token_ids=prompt_ids,
+        sampling_kwargs={"max_tokens": 8, "temperature": 0.7, "top_p": 0.95},
+        expected_policy_descriptor=descriptor,
+    )
+
+    assert [output.outputs[0].token_ids[0] for output in outputs] == list(range(1000, 1256))
+    dispatch = backend.last_actor_dispatch_metadata
+    assert dispatch["row_count"] == 256
+    assert dispatch["assigned_row_count"] == 256
+    assert dispatch["prompt_batch_size"] == 16
+    assert dispatch["num_rollouts"] == 16
+    assert dispatch["generate_intervals_overlap"] is True
+    assert dispatch["generate_overlap_sec"] > 0.0
+    assert {name: item["row_count"] for name, item in dispatch["actors"].items()} == {
+        "rollout_0": 128,
+        "rollout_1": 128,
+    }
+    assert all(item["llm_generate_called"] for item in dispatch["actors"].values())
+    assert all(item["total_generated_tokens"] == 128 for item in dispatch["actors"].values())
+    assert_multi_actor_dispatch(dispatch, expected_row_count=256)
+
+
+def _static_batch_backend(tmp_path, *, barrier=None, fail_device=None, bad_completion_prompt=None):
+    cfg = _cfg(tmp_path)
+    cfg.rl.vllm_execution_mode = "subprocess"
+    cfg.rl.vllm_rollout_actors = [
+        {"name": "rollout_0", "cuda_visible_devices": ["1"], "tensor_parallel_size": 1},
+        {"name": "rollout_1", "cuda_visible_devices": ["2"], "tensor_parallel_size": 1},
+    ]
+    descriptor = {"policy_version": 0, "policy_fingerprint": "static", "export_dir": "e"}
+    calls = {}
+
+    class StaticClient:
+        is_alive = True
+
+        def __init__(self, name, device):
+            self.name = name
+            self.device = device
+            self.last_generate_info = {}
+            self.close_count = 0
+
+        def generate(
+            self,
+            *,
+            prompt_token_ids,
+            sampling_kwargs_by_prompt,
+            expected_policy_descriptor,
+        ):
+            if self.device == fail_device:
+                raise RuntimeError(f"injected actor failure on {self.device}")
+            assert expected_policy_descriptor == descriptor
+            assert len(prompt_token_ids) == len(sampling_kwargs_by_prompt)
+            if barrier is not None:
+                barrier.wait(timeout=2.0)
+            actor_start = time.perf_counter()
+            time.sleep(0.03)
+            actor_end = time.perf_counter()
+            calls[self.name] = {
+                "prompt_token_ids": [list(ids) for ids in prompt_token_ids],
+                "sampling_kwargs_by_prompt": [
+                    dict(item) for item in sampling_kwargs_by_prompt
+                ],
+            }
+            self.last_generate_info = {
+                "llm_generate_called": True,
+                "generate_start_time": actor_start,
+                "generate_end_time": actor_end,
+                "generate_sec": actor_end - actor_start,
+                "sampling_kwargs_by_prompt": [
+                    dict(item) for item in sampling_kwargs_by_prompt
+                ],
+                "engine_config": {
+                    "model": "mock",
+                    "tokenizer": "mock",
+                    "dtype": "bfloat16",
+                    "max_model_len": 1024,
+                    "max_num_seqs": 256,
+                    "model_impl": "transformers",
+                },
+                "actor_resources": {
+                    "cuda_visible_devices": self.device,
+                    "process_id": 100 + int(self.device),
+                },
+                "engine_resources_at_load": {
+                    "cuda_device_count": 1,
+                    "cuda_current_device": 0,
+                    "enginecore_process_ids": [200 + int(self.device)],
+                },
+            }
+            outputs = []
+            for ids, params in zip(prompt_token_ids, sampling_kwargs_by_prompt):
+                count = int(params["n"])
+                if bad_completion_prompt is not None and ids[-1] == bad_completion_prompt:
+                    count -= 1
+                outputs.append(FakeMultiRequestOutput(ids[-1], count))
+            return outputs
+
+        def close(self):
+            self.close_count += 1
+            return {
+                "closed": True,
+                "actor_pid": 100 + int(self.device),
+                "enginecore_pids": [200 + int(self.device)],
+            }
+
+    clients = {
+        "rollout_0": StaticClient("rollout_0", "1"),
+        "rollout_1": StaticClient("rollout_1", "2"),
+    }
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda output_dir, update_step, checkpoint_name, extra: output_dir,
+    )
+    backend._actors = clients
+    backend._engine_policy_descriptor = descriptor
+    backend._actor_resource_snapshot = {
+        name: {
+            "engine": {
+                "actor_resources": {
+                    "cuda_visible_devices": client.device,
+                    "process_id": 100 + int(client.device),
+                    "cuda_device_count": 1,
+                    "cuda_current_device": 0,
+                    "enginecore_process_ids": [200 + int(client.device)],
+                },
+                "engine_config": {
+                    "model": "mock",
+                    "tokenizer": "mock",
+                    "dtype": "bfloat16",
+                },
+            }
+        }
+        for name, client in clients.items()
+    }
+    return backend, clients, calls
+
+
+def test_static_batch_16_prompts_16_samples_balances_concurrently_and_restores_order(tmp_path):
+    backend, _clients, calls = _static_batch_backend(
+        tmp_path, barrier=threading.Barrier(2)
+    )
+
+    results = backend.generate_static_samples_batch(
+        prompt_token_ids=[[index] for index in range(16)],
+        num_samples=16,
+        max_new_tokens=8,
+        temperature=0.7,
+        top_p=0.95,
+        seeds=[1000 + index for index in range(16)],
+        prompt_indices=list(range(16)),
+        eos_token_id=2,
+    )
+
+    assert len(results) == 16
+    assert all(len(completions) == 16 for completions in results)
+    assert [
+        results[prompt_index][sample_index]["token_ids"]
+        for prompt_index in range(16)
+        for sample_index in range(16)
+    ] == [
+        [prompt_index, sample_index]
+        for prompt_index in range(16)
+        for sample_index in range(16)
+    ]
+    assert [ids[-1] for ids in calls["rollout_0"]["prompt_token_ids"]] == list(range(0, 16, 2))
+    assert [ids[-1] for ids in calls["rollout_1"]["prompt_token_ids"]] == list(range(1, 16, 2))
+    assert [
+        item["seed"] for item in calls["rollout_0"]["sampling_kwargs_by_prompt"]
+    ] == [1000 + index for index in range(0, 16, 2)]
+    assert [
+        item["seed"] for item in calls["rollout_1"]["sampling_kwargs_by_prompt"]
+    ] == [1000 + index for index in range(1, 16, 2)]
+    dispatch = backend.last_actor_dispatch_metadata
+    assert dispatch["dispatch_path"] == "static_multi_sample_batch"
+    assert dispatch["prompt_count"] == 16
+    assert dispatch["completion_count"] == 256
+    assert dispatch["generate_intervals_overlap"] is True
+    assert dispatch["generate_overlap_sec"] > 0.0
+    assert {
+        name: (item["prompt_count"], item["completion_count"])
+        for name, item in dispatch["actors"].items()
+    } == {"rollout_0": (8, 128), "rollout_1": (8, 128)}
+    assert_multi_actor_dispatch(
+        dispatch,
+        expected_row_count=256,
+        expected_prompt_count=16,
+        expected_num_samples=16,
+    )
+
+
+def test_static_batch_17_prompts_handles_non_divisible_actor_split(tmp_path):
+    backend, _clients, _calls = _static_batch_backend(tmp_path)
+    results = backend.generate_static_samples_batch(
+        prompt_token_ids=[[index] for index in range(17)],
+        num_samples=16,
+        max_new_tokens=4,
+        temperature=1.0,
+        top_p=0.9,
+        seeds=[2000 + index for index in range(17)],
+        prompt_indices=list(range(17)),
+    )
+    assert len(results) == 17
+    assert all(len(completions) == 16 for completions in results)
+    assert {
+        name: item["prompt_count"]
+        for name, item in backend.last_actor_dispatch_metadata["actors"].items()
+    } == {"rollout_0": 9, "rollout_1": 8}
+
+
+def test_static_batch_single_prompt_allows_one_active_actor_and_single_api_compatibility(tmp_path):
+    backend, _clients, _calls = _static_batch_backend(tmp_path)
+    results = backend.generate_static_samples(
+        prompt_token_ids=[77],
+        num_samples=16,
+        max_new_tokens=4,
+        temperature=1.0,
+        top_p=0.9,
+        seed=3007,
+        prompt_index=7,
+    )
+    assert len(results) == 16
+    assert all(item["token_ids"][0] == 77 for item in results)
+    dispatch = backend.last_actor_dispatch_metadata
+    assert dispatch["active_actor_count"] == 1
+    assert dispatch["actors"]["rollout_0"]["prompt_count"] == 0
+    assert dispatch["actors"]["rollout_1"]["prompt_count"] == 1
+    assert_multi_actor_dispatch(
+        dispatch,
+        expected_row_count=16,
+        expected_prompt_count=1,
+        expected_num_samples=16,
+    )
+
+
+def test_static_batch_strict_audit_rejects_one_active_actor_for_large_batch(tmp_path):
+    backend, _clients, _calls = _static_batch_backend(tmp_path)
+    backend.generate_static_samples_batch(
+        prompt_token_ids=[[index] for index in range(16)],
+        num_samples=16,
+        max_new_tokens=4,
+        temperature=1.0,
+        top_p=0.9,
+        seeds=[4000 + index for index in range(16)],
+        prompt_indices=list(range(16)),
+    )
+    dispatch = copy.deepcopy(backend.last_actor_dispatch_metadata)
+    first = dispatch["actors"]["rollout_0"]
+    second = dispatch["actors"]["rollout_1"]
+    first["prompt_count"] = 16
+    first["prompt_group_count"] = 16
+    first["row_count"] = 256
+    first["completion_count"] = 256
+    second["prompt_count"] = 0
+    second["prompt_group_count"] = 0
+    second["row_count"] = 0
+    second["completion_count"] = 0
+    dispatch["active_actor_count"] = 1
+    with pytest.raises(RuntimeError, match="expected active actors=2.*zero rows"):
+        assert_multi_actor_dispatch(
+            dispatch,
+            expected_row_count=256,
+            expected_prompt_count=16,
+            expected_num_samples=16,
+        )
+
+
+def test_static_batch_rejects_wrong_completion_count_and_closes_all_actors(tmp_path):
+    backend, clients, _calls = _static_batch_backend(
+        tmp_path, bad_completion_prompt=3
+    )
+    with pytest.raises(RuntimeError, match="returned 15 completions"):
+        backend.generate_static_samples_batch(
+            prompt_token_ids=[[index] for index in range(16)],
+            num_samples=16,
+            max_new_tokens=4,
+            temperature=1.0,
+            top_p=0.9,
+            seeds=[5000 + index for index in range(16)],
+            prompt_indices=list(range(16)),
+        )
+    assert all(client.close_count == 1 for client in clients.values())
+
+
+def test_static_batch_actor_exception_closes_other_actor_and_enginecore_path(tmp_path):
+    backend, clients, _calls = _static_batch_backend(tmp_path, fail_device="2")
+    with pytest.raises(RuntimeError, match="injected actor failure"):
+        backend.generate_static_samples_batch(
+            prompt_token_ids=[[index] for index in range(16)],
+            num_samples=16,
+            max_new_tokens=4,
+            temperature=1.0,
+            top_p=0.9,
+            seeds=[6000 + index for index in range(16)],
+            prompt_indices=list(range(16)),
+        )
+    assert clients["rollout_0"].close_count == 1
+    assert clients["rollout_1"].close_count == 1
+
+
+def test_multi_actor_audit_rejects_configured_actor_with_zero_rows():
+    dispatch = {
+        "actor_count": 2,
+        "active_actor_count": 1,
+        "row_count": 256,
+        "actors": {
+            "rollout_0": {
+                "row_count": 256,
+                "configured_cuda_visible_devices": ["1"],
+                "observed_cuda_visible_devices": "1",
+            },
+            "rollout_1": {
+                "row_count": 0,
+                "configured_cuda_visible_devices": ["2"],
+                "observed_cuda_visible_devices": "2",
+            },
+        },
+    }
+    with pytest.raises(RuntimeError, match="active_actor_count=1.*zero rows"):
+        assert_multi_actor_dispatch(dispatch, expected_row_count=256)
+
+
+def test_multi_actor_audit_rejects_row_count_sum_mismatch():
+    dispatch = {
+        "actor_count": 2,
+        "active_actor_count": 2,
+        "row_count": 256,
+        "actors": {
+            "rollout_0": {
+                "row_count": 128,
+                "configured_cuda_visible_devices": ["1"],
+                "observed_cuda_visible_devices": "1",
+                "generate_start_time": 10.0,
+                "generate_end_time": 20.0,
+            },
+            "rollout_1": {
+                "row_count": 127,
+                "configured_cuda_visible_devices": ["2"],
+                "observed_cuda_visible_devices": "2",
+                "generate_start_time": 10.1,
+                "generate_end_time": 20.1,
+            },
+        },
+    }
+    with pytest.raises(RuntimeError, match="row_count sum=255"):
+        assert_multi_actor_dispatch(dispatch, expected_row_count=256)
+
+
+def test_multi_actor_audit_rejects_serial_generate_intervals():
+    dispatch = {
+        "actor_count": 2,
+        "active_actor_count": 2,
+        "row_count": 256,
+        "actors": {
+            "rollout_0": {
+                "row_count": 128,
+                "configured_cuda_visible_devices": ["1"],
+                "observed_cuda_visible_devices": "1",
+                "generate_start_time": 100.0,
+                "generate_end_time": 180.0,
+            },
+            "rollout_1": {
+                "row_count": 128,
+                "configured_cuda_visible_devices": ["2"],
+                "observed_cuda_visible_devices": "2",
+                "generate_start_time": 180.0,
+                "generate_end_time": 260.0,
+            },
+        },
+    }
+    with pytest.raises(RuntimeError, match="serial execution"):
+        assert_multi_actor_dispatch(dispatch, expected_row_count=256)
 
 
 def test_stage5c_multi_actor_failure_invalidates_entire_batch(tmp_path):
