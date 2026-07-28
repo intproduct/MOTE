@@ -14,7 +14,7 @@ from ..chat_formatting import build_reasoning_messages, make_standard_chat_super
 from .caching import download_and_cache_dataset, load_dataset_auto_cached, resolve_split
 from .adapters import normalize_chat_like_example, normalize_text_example
 from .contracts import content_hash
-from .release import ACCEPTED_FILENAME, tokenizer_fingerprint, validate_frozen_sft_release
+from .release import ACCEPTED_FILENAME, tokenizer_fingerprint, validate_frozen_record, validate_frozen_sft_release
 from .sampling import DeterministicSequenceSampler, resolve_shard_context
 from .shard_loader import IndexedJsonlDataset, iter_jsonl, iter_jsonl_gz, iter_local_token_shards
 from .specs import FrozenSFTTask, HFChatTask, HFTextTask, TaskSpec
@@ -155,6 +155,7 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             effective_tokenizer = tokenizer_fingerprint(self.tokenizer)
             if manifest.get("tokenizer_fingerprint") != effective_tokenizer:
                 raise RuntimeError("frozen SFT tokenizer fingerprint does not match the training tokenizer")
+            task.metadata["frozen_manifest"] = dict(manifest)
         if getattr(task, "kind", "load_from_disk") == "auto":
             res = load_dataset_auto_cached(task.path, task.split, hf_name=getattr(task, "hf_name", None), hf_config=getattr(task, "hf_config", None))
             if isinstance(res, tuple) and len(res) == 6:
@@ -481,6 +482,11 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
     def _to_supervised(self, task: TaskSpec, ex: Dict[str, Any]):
         self._log_format_summary()
         if isinstance(task, FrozenSFTTask):
+            ex = validate_frozen_record(
+                ex,
+                dict(task.metadata.get("frozen_manifest") or {}),
+                location=f"task={task.name} sample={ex.get('derived_sample_id') or ex.get('source_sample_id') or 'unknown'}",
+            )
             input_ids = [int(value) for value in ex.get("input_ids", [])]
             labels = [int(value) for value in ex.get("labels", [])]
             if not input_ids or len(input_ids) != len(labels):

@@ -6,6 +6,12 @@ from typing import Any, Iterable, Mapping
 from ..data.text_normalization import normalize_text
 
 
+class AnswerValidationError(ValueError):
+    def __init__(self, reason_code: str, message: str) -> None:
+        super().__init__(message)
+        self.reason_code = str(reason_code)
+
+
 def clean_text(value: Any) -> str:
     if value is None:
         return ""
@@ -84,8 +90,11 @@ def normalize_math_answer(text: str) -> str:
     text = clean_text(text)
     if not text:
         return ""
+    text = re.sub(r"^(?:the\s+)?answer\s+is\s*[:：]?\s*", "", text, flags=re.IGNORECASE).strip()
     text = re.sub(r"^\$+|\$+$", "", text).strip()
-    text = re.sub(r"^\\boxed\{(.+)\}$", r"\1", text).strip()
+    boxed = extract_boxed_answer(text)
+    if boxed and re.fullmatch(r"\s*\\boxed\{.*\}\s*", text, flags=re.DOTALL):
+        text = boxed
     text = re.sub(r"\s+", " ", text).strip()
     if re.fullmatch(r"[-+]?\d+(?:\.0+)?", text):
         text = re.sub(r"\.0+$", "", text)
@@ -96,24 +105,79 @@ def extract_final_answer(text: str) -> str:
     text = clean_text(text)
     if not text:
         return ""
+    hash_answer = extract_hash_answer(text)
+    if hash_answer:
+        return normalize_math_answer(hash_answer)
     patterns = [
-        r"Final Answer\s*[:：]\s*(.+)$",
-        r"Answer\s*[:：]\s*(.+)$",
-        r"Therefore[, ]+the answer is\s+(.+)$",
-        r"So[, ]+the answer is\s+(.+)$",
+        r"Final\s+Answer\s*[:：]\s*(.+)$",
+        r"The\s+answer\s+is\s*[:：]?\s*(.+)$",
+        r"Therefore[, ]+the\s+answer\s+is\s*[:：]?\s*(.+)$",
+        r"So[, ]+the\s+answer\s+is\s*[:：]?\s*(.+)$",
     ]
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
         if match:
             return normalize_math_answer(match.group(1))
-    hash_answer = extract_hash_answer(text)
-    if hash_answer:
-        return normalize_math_answer(hash_answer)
     boxed_answer = extract_boxed_answer(text)
     if boxed_answer:
         return normalize_math_answer(boxed_answer)
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
-    return normalize_math_answer(lines[-1] if lines else "")
+    return ""
+
+
+def infer_answer_type(answer: str, *, task_type: str = "numeric") -> str:
+    answer = normalize_math_answer(answer)
+    task_type = str(task_type or "numeric").strip().lower()
+    if task_type == "proof":
+        return "proof"
+    if not answer:
+        return "unknown"
+    if re.search(r"\\begin\{(?:[pbBvV]?matrix|array)\}", answer):
+        return "matrix"
+    if (answer.startswith(r"\{") and answer.endswith(r"\}")) or (answer.startswith("{") and answer.endswith("}")):
+        return "set"
+    if re.fullmatch(r"[\[(]\s*[^,]+\s*,\s*[^,]+\s*[\])]", answer):
+        return "interval"
+    numeric = r"[-+]?(?:[$£€¥]\s*)?(?:\d+(?:\.\d+)?|\.\d+)(?:\s*/\s*[-+]?\d+(?:\.\d+)?)?%?"
+    if re.fullmatch(numeric, answer):
+        return "numeric"
+    if re.match(numeric + r"\s+[A-Za-z°][A-Za-z0-9°^/·* ._-]*$", answer):
+        return "unit"
+    if "\\" in answer or re.search(r"[=+*/^]|[A-Za-z]\s*[-+]\s*\d", answer):
+        return "expression"
+    if "\n" not in answer and 0 < len(answer.split()) <= 20:
+        return "text"
+    return "unknown"
+
+
+def validate_final_answer(
+    solution: str,
+    final_answer: str,
+    *,
+    task_type: str = "numeric",
+    max_answer_chars: int = 512,
+    max_solution_ratio: float = 0.8,
+) -> dict[str, str]:
+    solution = clean_text(solution)
+    answer = normalize_math_answer(final_answer)
+    if not answer:
+        raise AnswerValidationError("empty_final_answer", "final answer is empty")
+    if len(answer) > int(max_answer_chars):
+        raise AnswerValidationError("answer_too_long", f"final answer exceeds {max_answer_chars} characters")
+    normalized_solution = " ".join(solution.split()).strip()
+    normalized_answer = " ".join(answer.split()).strip()
+    is_proof = str(task_type or "").strip().lower() == "proof"
+    if not is_proof and normalized_solution.casefold() == normalized_answer.casefold():
+        raise AnswerValidationError("answer_equals_solution", "non-proof final answer equals the full solution")
+    if (
+        not is_proof
+        and len(normalized_answer) > 64
+        and len(normalized_answer) / max(1, len(normalized_solution)) > float(max_solution_ratio)
+    ):
+        raise AnswerValidationError("answer_solution_ratio_high", "final answer occupies an abnormal fraction of solution")
+    answer_type = infer_answer_type(answer, task_type=task_type)
+    if answer_type == "unknown":
+        raise AnswerValidationError("unknown_answer_type", "final answer type could not be determined")
+    return {"final_answer": answer, "answer_type": answer_type}
 
 
 def split_reasoning_and_final_answer(text: str) -> tuple[str, str]:
@@ -122,9 +186,10 @@ def split_reasoning_and_final_answer(text: str) -> tuple[str, str]:
         return "", ""
     answer = extract_final_answer(text)
     patterns = [
-        r"(?is)(.*?)(?:Final Answer|Answer)\s*[:：]\s*(.+)$",
-        r"(?is)(.*?)(?:Therefore[, ]+the answer is|So[, ]+the answer is)\s+(.+)$",
         r"(?is)(.*?)####\s*(.+)$",
+        r"(?is)(.*?)Final\s+Answer\s*[:：]\s*(.+)$",
+        r"(?is)(.*?)The\s+answer\s+is\s*[:：]?\s*(.+)$",
+        r"(?is)(.*?)(?:Therefore[, ]+the\s+answer\s+is|So[, ]+the\s+answer\s+is)\s*[:：]?\s*(.+)$",
     ]
     for pattern in patterns:
         match = re.match(pattern, text)
@@ -132,4 +197,9 @@ def split_reasoning_and_final_answer(text: str) -> tuple[str, str]:
             reasoning = clean_text(match.group(1))
             extracted_answer = normalize_math_answer(match.group(2))
             return reasoning or text, extracted_answer or answer
+    boxed_answer = extract_boxed_answer(text)
+    if boxed_answer:
+        marker = text.rfind(r"\boxed{")
+        reasoning = clean_text(text[:marker]) if marker >= 0 else text
+        return reasoning or text, normalize_math_answer(boxed_answer)
     return text, answer

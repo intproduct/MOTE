@@ -13,7 +13,7 @@ def _word_choice(rng: random.Random, values: List[str]) -> str:
     return values[rng.randrange(len(values))]
 
 
-def _render_sample(seed: int, index: int) -> Dict[str, str]:
+def _render_sample(seed: int, index: int) -> Dict[str, object]:
     rng = random.Random(int(seed) + int(index) * 7919)
     template = rng.randrange(5)
 
@@ -86,6 +86,11 @@ def _render_sample(seed: int, index: int) -> Dict[str, str]:
         "question": question,
         "solution": solution,
         "answer": answer,
+        "program_answer": answer,
+        "generation_seed": int(seed),
+        "generation_index": int(index),
+        "template_type": f"arithmetic_template_{template}",
+        "difficulty": {"template_id": int(template)},
     }
 
 
@@ -97,11 +102,11 @@ class SyntheticArithmeticDataset:
     def __len__(self) -> int:
         return max(0, int(self.num_samples))
 
-    def __iter__(self) -> Iterator[Dict[str, str]]:
+    def __iter__(self) -> Iterator[Dict[str, object]]:
         for idx in range(len(self)):
             yield self[idx]
 
-    def __getitem__(self, index: int) -> Dict[str, str]:
+    def __getitem__(self, index: int) -> Dict[str, object]:
         size = len(self)
         if size <= 0:
             raise IndexError("SyntheticArithmeticDataset is empty")

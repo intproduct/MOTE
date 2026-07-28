@@ -1,0 +1,95 @@
+{
+  "format": "fitmotn_sft_source_manifest_v1",
+  "format_version": "math_raw_v2",
+  "max_problem_group_solutions": 2,
+  "planned_consumed_sequences": 200000,
+  "pretrain_data_plane": {
+    "the_stack": {
+      "status": "disabled",
+      "reason": "single-card rc1 no_code experiment"
+    }
+  },
+  "sources": [
+    {
+      "source_name": "gsm8k_main",
+      "adapter": "gsm8k_main",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/gsm8k_main",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_GSM8K_REVISION",
+      "minimum_quality_tier": "A"
+    },
+    {
+      "source_name": "gsm8k_socratic",
+      "adapter": "gsm8k_socratic",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/gsm8k_socratic",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_GSM8K_SOCRATIC_REVISION",
+      "minimum_quality_tier": "A"
+    },
+    {
+      "source_name": "svamp",
+      "adapter": "svamp",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/svamp",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_SVAMP_REVISION",
+      "minimum_quality_tier": "A"
+    },
+    {
+      "source_name": "synthetic_arithmetic",
+      "adapter": "synthetic_arithmetic",
+      "kind": "synthetic_arithmetic",
+      "num_samples": 80000,
+      "seed": 42,
+      "revision": "generator-stage3-v1-seed42",
+      "minimum_quality_tier": "A"
+    },
+    {
+      "source_name": "hendrycks_math",
+      "adapter": "hendrycks_math",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/hendrycks_math",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_MATH_REVISION",
+      "minimum_quality_tier": "A"
+    },
+    {
+      "source_name": "metamath",
+      "adapter": "metamath",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/metamathqa",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_METAMATH_REVISION",
+      "minimum_quality_tier": "B"
+    },
+    {
+      "source_name": "openr1",
+      "adapter": "openr1",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/openr1_math_220k_default",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_OPENR1_REVISION",
+      "minimum_quality_tier": "A"
+    },
+    {
+      "source_name": "numinamath",
+      "adapter": "numinamath",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/numinamath_cot",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_NUMINA_REVISION",
+      "minimum_quality_tier": "B"
+    },
+    {
+      "source_name": "openthoughts",
+      "adapter": "openthoughts",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/openthoughts_114k_math",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_OPENTHOUGHTS_REVISION",
+      "minimum_quality_tier": "B"
+    }
+  ]
+}

@@ -99,6 +99,7 @@ def test_config_can_select_a_valid_frozen_release_exclusively(tmp_path):
                     "frozen_sft_release_dir": str(release),
                     "frozen_sft_exclusive": True,
                     "source_sampling_mode": "deterministic_strict",
+                    "source_max_epochs": 1,
                 }
             }
         ),
@@ -117,6 +118,24 @@ def test_config_rejects_unknown_sampling_mode(tmp_path):
         load_config_from_json(path)
 
 
+def test_frozen_config_requires_explicit_positive_source_epoch_bound(tmp_path):
+    path = tmp_path / "config.json"
+    path.write_text(
+        json.dumps(
+            {
+                "data": {
+                    "use_frozen_sft_release": True,
+                    "frozen_sft_release_dir": str(tmp_path / "release"),
+                    "source_max_epochs": 0,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="explicit positive exposure bound"):
+        load_config_from_json(path)
+
+
 def test_release_quarantines_duplicate_source_identity_and_reports_sources(tmp_path):
     rows = [_rows()[0], {**_rows()[0], "target": "changed"}]
     output = tmp_path / "release"
@@ -125,7 +144,7 @@ def test_release_quarantines_duplicate_source_identity_and_reports_sources(tmp_p
     )
     assert manifest["accepted_count"] == 1
     assert manifest["reason_counts"] == {"duplicate_source_identity": 1}
-    assert manifest["source_counts"] == {"demo": {"accepted": 1, "quarantine": 1}}
+    assert manifest["source_counts"] == {"demo": {"scanned": 2, "accepted": 1, "quarantine": 1}}
 
 
 def test_release_aborts_on_unexpected_tokenizer_failure(tmp_path):

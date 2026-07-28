@@ -444,6 +444,11 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
         raise ValueError("data.frozen_sft_release_dir is required when data.use_frozen_sft_release=true")
     if data_cfg.use_frozen_sft_release and data_cfg.wt_frozen_sft <= 0:
         raise ValueError("data.wt_frozen_sft must be > 0 when frozen SFT is enabled")
+    if data_cfg.use_frozen_sft_release and data_cfg.source_max_epochs <= 0:
+        raise ValueError(
+            "data.source_max_epochs must be an explicit positive exposure bound for frozen SFT; "
+            "compute it from planned consumed sequences / release accepted_count"
+        )
     _normalize_extra_datasets(cfg)
 
     legacy_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_fitmotn_from", None))
