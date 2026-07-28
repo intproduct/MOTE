@@ -31,6 +31,7 @@ from ..rl.rewards_gsm8k import extract_gsm8k_answer, gsm8k_reward, normalize_num
 from ..rl.rollout_backends import HFRolloutBackend, RolloutGenerationConfig
 from ..rl.runtime import load_policy_for_rl
 from ..rl.vllm_rollout import VLLMRolloutBackend, assert_multi_actor_dispatch
+from ..runtime import load_hf_tokenizer
 from ..train.rl_controller import build_rl_prompt_text, build_rollout_attention_and_response_mask
 
 
@@ -40,6 +41,12 @@ def parse_args(argv: list[str] | None = None):
     )
     parser.add_argument("--config_json", type=str, required=True)
     parser.add_argument("--resume_from", type=str, default=None)
+    parser.add_argument(
+        "--model_source",
+        choices=("auto", "fitmotn", "hf"),
+        default="auto",
+        help="static model format; auto detects authoritative checkpoint artifacts",
+    )
     parser.add_argument("--rollout_backend", choices=("hf", "vllm"), default="hf")
     parser.add_argument("--protocol", choices=("rl", "lm_eval"), default="rl")
     parser.add_argument("--split", choices=("train", "test"), default=None)
@@ -113,6 +120,99 @@ def _write_line(handle, value: Mapping[str, Any]) -> None:
 
 def _prompt_hash(prompt: str) -> str:
     return hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+
+
+_HF_WEIGHT_ARTIFACTS = (
+    "model.safetensors",
+    "model.safetensors.index.json",
+    "pytorch_model.bin",
+    "pytorch_model.bin.index.json",
+)
+_HF_TOKENIZER_ARTIFACTS = (
+    "tokenizer.json",
+    "tokenizer_config.json",
+    "tokenizer.model",
+    "spiece.model",
+    "vocab.json",
+)
+
+
+def detect_checkpoint_kind(path: str | Path) -> str:
+    """Classify a local static model from authoritative checkpoint artifacts."""
+    root = Path(path).expanduser().resolve()
+    if not root.is_dir():
+        raise FileNotFoundError(f"static model directory not found: {root}")
+    if (root / "fitmotn_state.pt").is_file():
+        return "fitmotn"
+    if (root / "fitmotn_state.json").is_file():
+        raise ValueError(
+            "incomplete FitMoTN checkpoint: fitmotn_state.json exists but "
+            f"fitmotn_state.pt is missing under {root}"
+        )
+
+    has_config = (root / "config.json").is_file()
+    has_weights = any((root / name).is_file() for name in _HF_WEIGHT_ARTIFACTS) or any(
+        any(root.glob(pattern))
+        for pattern in ("model-*.safetensors", "pytorch_model-*.bin")
+    )
+    has_tokenizer = any(
+        (root / name).is_file() for name in _HF_TOKENIZER_ARTIFACTS
+    )
+    if has_config and has_weights and has_tokenizer:
+        return "hf"
+    missing = [
+        label
+        for label, present in (
+            ("config.json", has_config),
+            ("HF model weights", has_weights),
+            ("tokenizer artifacts", has_tokenizer),
+        )
+        if not present
+    ]
+    raise ValueError(
+        f"unsupported static model directory {root}: missing {', '.join(missing)}"
+    )
+
+
+def _resolve_checkpoint_kind(path: str | Path, requested_kind: str) -> str:
+    detected_kind = detect_checkpoint_kind(path)
+    requested = str(requested_kind or "auto").strip().lower()
+    if requested not in {"auto", "fitmotn", "hf"}:
+        raise ValueError(f"unsupported --model_source {requested_kind!r}")
+    if requested != "auto" and requested != detected_kind:
+        raise ValueError(
+            f"--model_source={requested} conflicts with detected checkpoint kind "
+            f"{detected_kind!r} for {Path(path).expanduser().resolve()}"
+        )
+    return detected_kind
+
+
+def _resolve_static_model_selection(cfg, args) -> Dict[str, Any]:
+    cli_path = getattr(args, "resume_from", None)
+    config_resume = getattr(cfg.rl, "resume_from", None)
+    config_weights = getattr(cfg.rl, "resume_weights_from", None)
+    configured_model = getattr(cfg.model, "model_path", None)
+    requested_path = cli_path or config_resume or configured_model
+    if not requested_path:
+        raise ValueError("static evaluation requires --resume_from or model.model_path")
+    resolved_path = str(Path(str(requested_path)).expanduser().resolve())
+    ignored: Dict[str, str] = {}
+    if cli_path is not None:
+        for field, value in (
+            ("rl.resume_from", config_resume),
+            ("rl.resume_weights_from", config_weights),
+        ):
+            if value and str(Path(str(value)).expanduser().resolve()) != resolved_path:
+                ignored[field] = str(Path(str(value)).expanduser().resolve())
+    return {
+        "requested_model_path": str(requested_path),
+        "resolved_model_path": resolved_path,
+        "model_path_source": "cli.resume_from" if cli_path is not None else (
+            "rl.resume_from" if config_resume else "model.model_path"
+        ),
+        "ignored_static_resume_fields": ignored,
+        "ignored_for_static_evaluation": bool(ignored),
+    }
 
 
 def _token_ids_hash(token_ids) -> str:
@@ -535,11 +635,111 @@ def _copy_checkpoint_callback(source: Path):
     return save
 
 
-def _prepare_backend(cfg, args, output_root: Path):
-    model, tokenizer, load_info = load_policy_for_rl(cfg, resume_from=cfg.rl.resume_from)
-    model.eval()
+def _immutable_static_checkpoint_callback(*_args, **_kwargs):
+    raise RuntimeError("immutable native HF static evaluation cannot export policy checkpoints")
+
+
+def _prepare_backend(
+    cfg,
+    args,
+    output_root: Path,
+    *,
+    model_selection: Mapping[str, Any] | None = None,
+):
+    selection = dict(model_selection or _resolve_static_model_selection(cfg, args))
+    resolved_model_path = str(selection["resolved_model_path"])
+    checkpoint_kind = _resolve_checkpoint_kind(
+        resolved_model_path,
+        getattr(args, "model_source", "auto"),
+    )
+    source_metadata = {
+        **selection,
+        "checkpoint_kind": checkpoint_kind,
+        "model_source": str(getattr(args, "model_source", "auto")),
+    }
+    print(
+        "[StaticModelSource] "
+        + json.dumps(
+            to_jsonable(
+                {
+                    "path": resolved_model_path,
+                    "detected_kind": checkpoint_kind,
+                    "initialization": (
+                        "native_hf_direct"
+                        if checkpoint_kind == "hf" and args.rollout_backend == "vllm"
+                        else (
+                            "fitmotn_restore"
+                            if checkpoint_kind == "fitmotn"
+                            else "hf_policy_restore"
+                        )
+                    ),
+                    "requested_model_path": selection["requested_model_path"],
+                    "ignored_static_resume_fields": selection[
+                        "ignored_static_resume_fields"
+                    ],
+                    "ignored_for_static_evaluation": selection[
+                        "ignored_for_static_evaluation"
+                    ],
+                }
+            ),
+            ensure_ascii=False,
+        ),
+        flush=True,
+    )
+
     if args.rollout_backend == "hf":
-        return HFRolloutBackend(), model, tokenizer, {"initialization": "hf_checkpoint_restore"}
+        model, tokenizer, load_info = load_policy_for_rl(
+            cfg, resume_from=resolved_model_path
+        )
+        model.eval()
+        return HFRolloutBackend(), model, tokenizer, {
+            **source_metadata,
+            "initialization": "hf_checkpoint_restore",
+            "checkpoint_metadata_authoritative": bool(load_info.metadata),
+            "checkpoint_patch_cfg": load_info.patch_cfg,
+            "export_dir": None,
+        }
+
+    # Static immutable engines never join online weight-transfer sessions.
+    cfg.rl.vllm_sync_strategy = "export_reload"
+    cfg.rl.vllm_fallback_to_hf = False
+    if checkpoint_kind == "hf":
+        tokenizer = load_hf_tokenizer(
+            resolved_model_path,
+            trust_remote_code=bool(getattr(cfg.model, "trust_remote_code", True)),
+            padding_side="left",
+        )
+        backend = VLLMRolloutBackend(
+            fit_cfg=cfg,
+            rl_dir=output_root / ".vllm_static_runtime",
+            save_policy_checkpoint=_immutable_static_checkpoint_callback,
+        )
+        try:
+            startup = backend.initialize_static_model(
+                model_path=resolved_model_path,
+                tokenizer_path=resolved_model_path,
+                source_kind="hf",
+            )
+        except BaseException:
+            backend.close()
+            raise
+        return backend, None, tokenizer, {
+            **source_metadata,
+            "initialization": "native_hf_direct",
+            "export_dir": None,
+            "policy_version": None,
+            "checkpoint_metadata_authoritative": False,
+            "checkpoint_patch_cfg": None,
+            "vllm_actor_resources": startup.get("vllm_actor_resources"),
+            "vllm_rollout_actor_count": startup.get("vllm_rollout_actor_count"),
+            "vllm_engine_load_sec": startup.get("engine_load_sec"),
+            "vllm_static_model_descriptor": startup.get("policy_descriptor"),
+        }
+
+    model, tokenizer, load_info = load_policy_for_rl(
+        cfg, resume_from=resolved_model_path
+    )
+    model.eval()
 
     # Static evaluation always bootstraps by export/reload exactly once.  It
     # never joins the trainer's native NCCL weight-transfer session.
@@ -551,7 +751,9 @@ def _prepare_backend(cfg, args, output_root: Path):
     backend = VLLMRolloutBackend(
         fit_cfg=cfg,
         rl_dir=output_root / ".vllm_static_runtime",
-        save_policy_checkpoint=_copy_checkpoint_callback(Path(cfg.rl.resume_from).resolve()),
+        save_policy_checkpoint=_copy_checkpoint_callback(
+            Path(resolved_model_path).resolve()
+        ),
     )
     try:
         sync = backend.sync_policy(model=model, tokenizer=tokenizer, update_step=0, force=True)
@@ -559,6 +761,7 @@ def _prepare_backend(cfg, args, output_root: Path):
         backend.close()
         raise
     metadata = {
+        **source_metadata,
         "initialization": "static_export_reload_once",
         "export_dir": sync.export_dir,
         "policy_version": sync.policy_version,
@@ -687,10 +890,10 @@ def main(argv: list[str] | None = None):
     args = parse_args(argv)
     pass_k = _validate_args(args)
     cfg = load_config(config_json=args.config_json)
-    if args.resume_from:
-        cfg.rl.resume_from = str(Path(args.resume_from).expanduser().resolve())
-    if not getattr(cfg.rl, "resume_from", None):
-        cfg.rl.resume_from = str(Path(cfg.model.model_path).expanduser().resolve())
+    model_selection = _resolve_static_model_selection(cfg, args)
+    # Keep legacy output records coherent while making the separately resolved
+    # static path authoritative over both RL resume fields for initialization.
+    cfg.rl.resume_from = str(model_selection["resolved_model_path"])
     seed = int(args.seed if args.seed is not None else (getattr(cfg.rl, "seed", None) or getattr(cfg.train, "seed", 0)))
     # Preserve the original HF boundary builder's one-time global seeding.
     # vLLM additionally receives the required stable per-prompt request seed.
@@ -728,7 +931,12 @@ def main(argv: list[str] | None = None):
         if args.rollout_backend == "vllm":
             previous_sigterm_handler = signal.getsignal(signal.SIGTERM)
             signal.signal(signal.SIGTERM, _terminate_static_audit)
-        backend, model, tokenizer, init_metadata = _prepare_backend(cfg, args, output_root)
+        backend, model, tokenizer, init_metadata = _prepare_backend(
+            cfg,
+            args,
+            output_root,
+            model_selection=model_selection,
+        )
         if args.protocol == "lm_eval":
             lm_eval_protocol = _prepare_lm_eval_protocol(cfg, args, tokenizer, seed)
             records = lm_eval_protocol.boundary_rows()
@@ -864,7 +1072,7 @@ def main(argv: list[str] | None = None):
                     "reward_match_type": match_type,
                     **parser_diagnostic,
                     "seed": prompt_seed,
-                    "checkpoint": str(cfg.rl.resume_from),
+                    "checkpoint": str(init_metadata["resolved_model_path"]),
                     "sampling": dict(effective_generation),
                 }
                 rollout_rows.append(rollout)
@@ -961,7 +1169,7 @@ def main(argv: list[str] | None = None):
     }
     summary = {
         "metadata": {
-            "model_or_checkpoint": str(cfg.rl.resume_from),
+            "model_or_checkpoint": str(init_metadata["resolved_model_path"]),
             "dataset": "gsm8k",
             "protocol": args.protocol,
             "base_protocol": args.protocol,

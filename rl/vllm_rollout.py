@@ -343,11 +343,17 @@ class VLLMRolloutBackend:
         self._sampling_params_cls = SamplingParams
         return LLM, SamplingParams
 
-    def _llm_kwargs(self, export_dir: str, actor_spec: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _llm_kwargs(
+        self,
+        model_path: str,
+        actor_spec: Optional[Dict[str, Any]] = None,
+        *,
+        tokenizer_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
         rl_cfg = self.fit_cfg.rl
         kwargs: Dict[str, Any] = {
-            "model": str(export_dir),
-            "tokenizer": str(export_dir),
+            "model": str(model_path),
+            "tokenizer": str(tokenizer_path or model_path),
             "trust_remote_code": True,
             "model_impl": str(getattr(rl_cfg, "vllm_model_impl", "transformers") or "transformers"),
             "enforce_eager": bool(getattr(rl_cfg, "vllm_enforce_eager", True)),
@@ -400,7 +406,13 @@ class VLLMRolloutBackend:
             kwargs["enable_prefix_caching"] = False
         return kwargs
 
-    def _build_engine(self, export_dir: str, *, policy_descriptor: Optional[Dict[str, Any]] = None) -> float:
+    def _build_engine(
+        self,
+        model_path: str,
+        *,
+        tokenizer_path: Optional[str] = None,
+        policy_descriptor: Optional[Dict[str, Any]] = None,
+    ) -> float:
         descriptor = dict(policy_descriptor or {})
         if self.uses_subprocess_actor:
             wall_start = time.perf_counter()
@@ -411,7 +423,11 @@ class VLLMRolloutBackend:
                 name = str(spec["name"])
                 client = self._actor_client(name)
                 load_sec = client.load_engine(
-                    self._llm_kwargs(export_dir, actor_spec=spec),
+                    self._llm_kwargs(
+                        model_path,
+                        actor_spec=spec,
+                        tokenizer_path=tokenizer_path,
+                    ),
                     policy_descriptor=descriptor,
                 )
                 ping = client.ping()
@@ -456,7 +472,10 @@ class VLLMRolloutBackend:
         if bool(getattr(self.fit_cfg.rl, "vllm_empty_cache_before_engine_init", False)) and torch.cuda.is_available():
             torch.cuda.empty_cache()
         start = time.perf_counter()
-        llm_kwargs = self._llm_kwargs(export_dir)
+        llm_kwargs = self._llm_kwargs(
+            model_path,
+            tokenizer_path=tokenizer_path,
+        )
         try:
             self.llm = LLM(**llm_kwargs)
         except TypeError as exc:
@@ -480,6 +499,52 @@ class VLLMRolloutBackend:
             raise
         self._engine_policy_descriptor = descriptor
         return max(0.0, time.perf_counter() - start)
+
+    def initialize_static_model(
+        self,
+        *,
+        model_path: str | Path,
+        tokenizer_path: str | Path | None = None,
+        source_kind: str = "hf",
+    ) -> Dict[str, Any]:
+        """Load an immutable model directly without entering policy sync.
+
+        This entry point is intentionally separate from ``sync_policy`` so a
+        native HuggingFace baseline cannot trigger FitMoTN export/reload or
+        online weight-transfer behavior.
+        """
+        if self.llm is not None or any(client.is_alive for client in self._actors.values()):
+            raise RuntimeError("static vLLM model is already initialized")
+        resolved_model_path = str(Path(model_path).expanduser().resolve())
+        resolved_tokenizer_path = str(
+            Path(tokenizer_path or model_path).expanduser().resolve()
+        )
+        descriptor = {
+            "checkpoint_kind": str(source_kind),
+            "model_path": resolved_model_path,
+            "tokenizer_path": resolved_tokenizer_path,
+            "immutable_static_model": True,
+        }
+        load_sec = self._build_engine(
+            resolved_model_path,
+            tokenizer_path=resolved_tokenizer_path,
+            policy_descriptor=descriptor,
+        )
+        return {
+            "model_path": resolved_model_path,
+            "tokenizer_path": resolved_tokenizer_path,
+            "checkpoint_kind": str(source_kind),
+            "engine_load_sec": float(load_sec),
+            "policy_descriptor": descriptor,
+            "vllm_actor_resources": (
+                dict(self._actor_resource_snapshot)
+                if self.uses_subprocess_actor
+                else None
+            ),
+            "vllm_rollout_actor_count": (
+                len(self._actor_specs) if self.uses_subprocess_actor else 0
+            ),
+        }
 
     def sync_policy(
         self,

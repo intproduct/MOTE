@@ -42,6 +42,27 @@ def dtype_to_name(dtype: tc.dtype) -> str:
     return str(dtype).replace("torch.", "")
 
 
+def load_hf_tokenizer(
+    model_path: str | Path,
+    *,
+    trust_remote_code: bool = True,
+    padding_side: str | None = None,
+):
+    """Load only the tokenizer artifacts for immutable static evaluation."""
+    resolved_path = str(Path(model_path).expanduser().resolve())
+    tokenizer = AutoTokenizer.from_pretrained(
+        resolved_path,
+        use_fast=True,
+        trust_remote_code=trust_remote_code,
+        fix_mistral_regex=True,
+    )
+    if padding_side is not None:
+        tokenizer.padding_side = str(padding_side)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer
+
+
 def load_causal_lm_and_tokenizer(
     model_path: str | Path,
     *,

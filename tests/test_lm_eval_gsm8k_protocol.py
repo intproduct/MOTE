@@ -118,8 +118,32 @@ def test_protocol_cli_defaults_preserve_rl_and_resolve_lm_eval_test_split():
     rl = boundary_cli.parse_args(common)
     lm_eval = boundary_cli.parse_args(common + ["--protocol", "lm_eval"])
     assert rl.protocol == "rl"
+    assert rl.model_source == "auto"
     assert boundary_cli._resolved_split(rl) == "train"
     assert boundary_cli._resolved_split(lm_eval) == "test"
+
+
+def test_lm_eval_protocol_options_are_identical_across_static_model_sources():
+    common = [
+        "--config_json", "c.json",
+        "--output_jsonl", "o.jsonl",
+        "--verified_traces_jsonl", "v.jsonl",
+        "--protocol", "lm_eval",
+        "--num_fewshot", "8",
+        "--decoding", "sample",
+        "--num_rollouts", "16",
+        "--temperature", "0.7",
+        "--top_p", "0.95",
+        "--max_new_tokens", "256",
+    ]
+    fitmotn = boundary_cli.parse_args(common + ["--model_source", "fitmotn"])
+    native_hf = boundary_cli.parse_args(common + ["--model_source", "hf"])
+
+    for name in (
+        "protocol", "split", "num_fewshot", "decoding", "num_rollouts",
+        "temperature", "top_p", "max_new_tokens",
+    ):
+        assert getattr(fitmotn, name) == getattr(native_hf, name)
 
 
 def test_num_fewshot_uses_project_config_and_cli_override():

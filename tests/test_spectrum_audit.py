@@ -27,6 +27,20 @@ from MOTE.rl.vllm_rollout import VLLMRolloutBackend
 from MOTE.config.defaults import make_default_config
 
 
+def _make_native_hf_checkpoint(root: Path) -> Path:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "config.json").write_text("{}", encoding="utf-8")
+    (root / "model.safetensors").write_bytes(b"synthetic")
+    (root / "tokenizer.json").write_text("{}", encoding="utf-8")
+    return root
+
+
+def _make_fitmotn_checkpoint(root: Path) -> Path:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "fitmotn_state.pt").write_bytes(b"synthetic")
+    return root
+
+
 def _rollout(reward, tokens=4, truncated=False, match_type=None):
     debug = {
         "match_type": match_type or ("strict_hash" if reward else "none"),
@@ -204,6 +218,157 @@ def test_static_audit_sigterm_is_converted_to_finally_unwind():
     assert exc_info.value.code == 128 + int(signal.SIGTERM)
 
 
+def test_detect_checkpoint_kind_uses_authoritative_artifacts(tmp_path):
+    fitmotn = _make_fitmotn_checkpoint(tmp_path / "fitmotn")
+    native_hf = _make_native_hf_checkpoint(tmp_path / "hf")
+
+    assert boundary_cli.detect_checkpoint_kind(fitmotn) == "fitmotn"
+    assert boundary_cli.detect_checkpoint_kind(native_hf) == "hf"
+
+
+def test_checkpoint_kind_rejects_explicit_source_mismatch(tmp_path):
+    native_hf = _make_native_hf_checkpoint(tmp_path / "hf")
+    with pytest.raises(ValueError, match="conflicts with detected checkpoint kind"):
+        boundary_cli._resolve_checkpoint_kind(native_hf, "fitmotn")
+
+
+def test_native_hf_static_path_is_direct_and_cli_path_is_authoritative(
+    tmp_path, monkeypatch
+):
+    native_hf = _make_native_hf_checkpoint(tmp_path / "base")
+    cfg = make_default_config()
+    cfg.model.model_path = str(tmp_path / "configured-base")
+    cfg.rl.resume_from = str(tmp_path / "fitmotn-resume")
+    cfg.rl.resume_weights_from = str(tmp_path / "fitmotn-weights")
+    args = types.SimpleNamespace(
+        rollout_backend="vllm",
+        model_source="auto",
+        resume_from=str(native_hf),
+    )
+    calls = []
+    tokenizer = object()
+
+    monkeypatch.setattr(
+        boundary_cli,
+        "load_policy_for_rl",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("native HF path restored or patched a PyTorch policy")
+        ),
+    )
+    monkeypatch.setattr(
+        boundary_cli,
+        "load_hf_tokenizer",
+        lambda path, **kwargs: calls.append(("tokenizer", str(path), kwargs)) or tokenizer,
+    )
+
+    class Backend:
+        def __init__(self, **kwargs):
+            calls.append(("backend", kwargs))
+
+        def initialize_static_model(self, **kwargs):
+            calls.append(("initialize", kwargs))
+            return {
+                "engine_load_sec": 1.5,
+                "policy_descriptor": {"checkpoint_kind": "hf"},
+                "vllm_actor_resources": {"rollout_0": {}, "rollout_1": {}},
+                "vllm_rollout_actor_count": 2,
+            }
+
+        def sync_policy(self, **_kwargs):
+            raise AssertionError("native HF path called sync_policy")
+
+        def close(self):
+            calls.append(("close",))
+
+    monkeypatch.setattr(boundary_cli, "VLLMRolloutBackend", Backend)
+    selection = boundary_cli._resolve_static_model_selection(cfg, args)
+    backend, model, loaded_tokenizer, metadata = boundary_cli._prepare_backend(
+        cfg,
+        args,
+        tmp_path / "out",
+        model_selection=selection,
+    )
+
+    resolved = str(native_hf.resolve())
+    assert isinstance(backend, Backend)
+    assert model is None
+    assert loaded_tokenizer is tokenizer
+    assert selection["resolved_model_path"] == resolved
+    assert set(selection["ignored_static_resume_fields"]) == {
+        "rl.resume_from",
+        "rl.resume_weights_from",
+    }
+    initialize = next(item[1] for item in calls if item[0] == "initialize")
+    assert initialize == {
+        "model_path": resolved,
+        "tokenizer_path": resolved,
+        "source_kind": "hf",
+    }
+    assert metadata["checkpoint_kind"] == "hf"
+    assert metadata["initialization"] == "native_hf_direct"
+    assert metadata["checkpoint_metadata_authoritative"] is False
+    assert metadata["checkpoint_patch_cfg"] is None
+    assert metadata["export_dir"] is None
+    assert cfg.model.model_path == str(tmp_path / "configured-base")
+
+
+def test_fitmotn_static_export_reload_regression_is_preserved(tmp_path, monkeypatch):
+    checkpoint = _make_fitmotn_checkpoint(tmp_path / "checkpoint")
+    cfg = make_default_config()
+    cfg.rl.resume_from = str(checkpoint)
+    args = types.SimpleNamespace(
+        rollout_backend="vllm", model_source="auto", resume_from=None
+    )
+    model = types.SimpleNamespace(eval=lambda: model)
+    tokenizer = object()
+    load_info = types.SimpleNamespace(
+        base_model_path=str(tmp_path / "base"),
+        metadata={"checkpoint_format": "patch_state_only_v2"},
+        patch_cfg={"topk": 8},
+    )
+    calls = []
+    monkeypatch.setattr(
+        boundary_cli,
+        "load_policy_for_rl",
+        lambda *args, **kwargs: calls.append(("load", args, kwargs))
+        or (model, tokenizer, load_info),
+    )
+
+    class Backend:
+        def __init__(self, **kwargs):
+            calls.append(("backend", kwargs))
+
+        def sync_policy(self, **kwargs):
+            calls.append(("sync", kwargs))
+            return types.SimpleNamespace(
+                export_dir=str(tmp_path / "export"),
+                policy_version=0,
+                metadata={
+                    "vllm_actor_resources": {"rollout_0": {}, "rollout_1": {}},
+                    "vllm_rollout_actor_count": 2,
+                },
+            )
+
+        def initialize_static_model(self, **_kwargs):
+            raise AssertionError("FitMoTN path bypassed export/reload")
+
+        def close(self):
+            calls.append(("close",))
+
+    monkeypatch.setattr(boundary_cli, "VLLMRolloutBackend", Backend)
+    _backend, loaded_model, loaded_tokenizer, metadata = boundary_cli._prepare_backend(
+        cfg, args, tmp_path / "out"
+    )
+
+    assert loaded_model is model
+    assert loaded_tokenizer is tokenizer
+    assert [item[0] for item in calls].count("sync") == 1
+    assert metadata["checkpoint_kind"] == "fitmotn"
+    assert metadata["initialization"] == "static_export_reload_once"
+    assert metadata["checkpoint_metadata_authoritative"] is True
+    assert metadata["checkpoint_patch_cfg"] == {"topk": 8}
+
+
 def test_mock_vllm_true_multi_sample_parsing_and_actor_round_robin(tmp_path):
     cfg = make_default_config()
     cfg.rl.vllm_execution_mode = "subprocess"
@@ -274,10 +439,9 @@ def test_static_backend_is_closed_when_initialization_raises(tmp_path, monkeypat
 
     monkeypatch.setattr(boundary_cli, "VLLMRolloutBackend", Backend)
     cfg = make_default_config()
-    checkpoint = tmp_path / "checkpoint"
-    checkpoint.mkdir()
+    checkpoint = _make_fitmotn_checkpoint(tmp_path / "checkpoint")
     cfg.rl.resume_from = str(checkpoint)
-    args = types.SimpleNamespace(rollout_backend="vllm")
+    args = types.SimpleNamespace(rollout_backend="vllm", model_source="auto", resume_from=None)
     with pytest.raises(RuntimeError, match="injected init failure"):
         boundary_cli._prepare_backend(cfg, args, tmp_path / "out")
     assert closed == [True]
@@ -305,10 +469,9 @@ def test_static_backend_is_closed_when_sigterm_unwinds_initialization(tmp_path, 
 
     monkeypatch.setattr(boundary_cli, "VLLMRolloutBackend", Backend)
     cfg = make_default_config()
-    checkpoint = tmp_path / "checkpoint"
-    checkpoint.mkdir()
+    checkpoint = _make_fitmotn_checkpoint(tmp_path / "checkpoint")
     cfg.rl.resume_from = str(checkpoint)
-    args = types.SimpleNamespace(rollout_backend="vllm")
+    args = types.SimpleNamespace(rollout_backend="vllm", model_source="auto", resume_from=None)
     with pytest.raises(SystemExit) as exc_info:
         boundary_cli._prepare_backend(cfg, args, tmp_path / "out")
     assert exc_info.value.code == 143

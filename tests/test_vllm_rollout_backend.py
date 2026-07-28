@@ -83,6 +83,51 @@ def test_vllm_backend_missing_import_raises_clear_error(tmp_path, monkeypatch):
         backend._import_vllm()
 
 
+def test_native_hf_static_initializer_loads_original_paths_without_sync(
+    tmp_path, monkeypatch
+):
+    cfg = _cfg(tmp_path)
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path / "runtime",
+        save_policy_checkpoint=lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("static direct load attempted checkpoint export")
+        ),
+    )
+    model_path = tmp_path / "native-model"
+    tokenizer_path = tmp_path / "native-tokenizer"
+    model_path.mkdir()
+    tokenizer_path.mkdir()
+    observed = {}
+
+    def build_engine(path, **kwargs):
+        observed.update({"model_path": path, **kwargs})
+        return 1.25
+
+    monkeypatch.setattr(backend, "_build_engine", build_engine)
+    monkeypatch.setattr(
+        backend.sync_manager,
+        "sync",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            AssertionError("static direct load entered sync manager")
+        ),
+    )
+
+    metadata = backend.initialize_static_model(
+        model_path=model_path,
+        tokenizer_path=tokenizer_path,
+        source_kind="hf",
+    )
+
+    assert observed["model_path"] == str(model_path.resolve())
+    assert observed["tokenizer_path"] == str(tokenizer_path.resolve())
+    assert observed["policy_descriptor"]["checkpoint_kind"] == "hf"
+    assert observed["policy_descriptor"]["immutable_static_model"] is True
+    assert metadata["model_path"] == str(model_path.resolve())
+    assert metadata["tokenizer_path"] == str(tokenizer_path.resolve())
+    assert metadata["engine_load_sec"] == pytest.approx(1.25)
+
+
 def test_vllm_token_prompt_required_unless_text_fallback_enabled(tmp_path):
     class FakeLLM:
         def generate(self, *args, **kwargs):
