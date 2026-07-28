@@ -8,6 +8,43 @@ from typing import Any, Dict, Iterator, List
 import torch as tc
 
 
+class IndexedJsonlDataset:
+    """Read-only JSONL sequence with deterministic random access by byte offset."""
+
+    def __init__(self, path: str | Path) -> None:
+        self.path = Path(path).expanduser().resolve()
+        if not self.path.is_file():
+            raise FileNotFoundError(f"JSONL path not found: {self.path}")
+        self._offsets: list[int] = []
+        digest = __import__("hashlib").sha256()
+        with self.path.open("rb") as handle:
+            while True:
+                offset = handle.tell()
+                line = handle.readline()
+                if not line:
+                    break
+                digest.update(line)
+                if line.strip():
+                    self._offsets.append(offset)
+        self._fingerprint = digest.hexdigest()
+
+    def __len__(self) -> int:
+        return len(self._offsets)
+
+    def __getitem__(self, index: int) -> Dict[str, Any]:
+        if index < 0:
+            index += len(self._offsets)
+        if not 0 <= index < len(self._offsets):
+            raise IndexError(index)
+        with self.path.open("rb") as handle:
+            handle.seek(self._offsets[index])
+            line = handle.readline()
+        value = json.loads(line.decode("utf-8"))
+        if not isinstance(value, dict):
+            raise TypeError(f"JSONL row {index} is not an object")
+        return value
+
+
 def iter_jsonl(path: Path) -> Iterator[Dict[str, Any]]:
     with path.open("r", encoding="utf-8") as f:
         for line in f:

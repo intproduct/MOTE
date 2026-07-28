@@ -141,6 +141,11 @@ class UpdateBatchMeta:
     batch_buckets: Set[str] = field(default_factory=set)
     batch_source_families: Set[str] = field(default_factory=set)
     microbatch_count: int = 0
+    prompt_tokens: int = 0
+    target_tokens: int = 0
+    supervised_tokens: int = 0
+    total_data_tokens: int = 0
+    overflow_tokens: int = 0
 
     def clear(self) -> None:
         self.batch_task_names.clear()
@@ -148,6 +153,11 @@ class UpdateBatchMeta:
         self.batch_buckets.clear()
         self.batch_source_families.clear()
         self.microbatch_count = 0
+        self.prompt_tokens = 0
+        self.target_tokens = 0
+        self.supervised_tokens = 0
+        self.total_data_tokens = 0
+        self.overflow_tokens = 0
 
 
 def build_reasoning_config_summary(fit_cfg) -> Dict[str, Any]:
@@ -381,6 +391,14 @@ def register_microbatch(runtime: Dict[str, Any], inputs: Dict[str, Any]) -> None
         else:
             target.add(str(value))
     meta.microbatch_count += 1
+    for diagnostics in list(inputs.get("data_diagnostics") or []):
+        if not isinstance(diagnostics, dict):
+            continue
+        meta.prompt_tokens += int(diagnostics.get("prompt_tokens", 0))
+        meta.target_tokens += int(diagnostics.get("target_tokens", 0))
+        meta.supervised_tokens += int(diagnostics.get("supervised_tokens", 0))
+        meta.total_data_tokens += int(diagnostics.get("total_tokens", 0))
+        meta.overflow_tokens += int(diagnostics.get("overflow_tokens", 0))
 
 
 def finalize_update_batch_meta(runtime: Dict[str, Any]) -> Dict[str, Any]:
@@ -391,6 +409,11 @@ def finalize_update_batch_meta(runtime: Dict[str, Any]) -> Dict[str, Any]:
         "batch_buckets": sorted(meta.batch_buckets) if meta.batch_buckets else None,
         "batch_source_families": sorted(meta.batch_source_families) if meta.batch_source_families else None,
         "microbatch_count": int(meta.microbatch_count) if meta.microbatch_count else None,
+        "prompt_tokens": int(meta.prompt_tokens),
+        "target_tokens": int(meta.target_tokens),
+        "supervised_tokens": int(meta.supervised_tokens),
+        "total_data_tokens": int(meta.total_data_tokens),
+        "overflow_tokens": int(meta.overflow_tokens),
     }
     runtime["last_batch_meta"] = snapshot
     meta.clear()
@@ -483,6 +506,11 @@ def build_train_record(runtime: Dict[str, Any], logs: Dict[str, Any]) -> Dict[st
         "batch_groups": batch_meta.get("batch_groups"),
         "batch_buckets": batch_meta.get("batch_buckets"),
         "batch_source_families": batch_meta.get("batch_source_families"),
+        "batch_prompt_tokens": batch_meta.get("prompt_tokens"),
+        "batch_target_tokens": batch_meta.get("target_tokens"),
+        "batch_supervised_tokens": batch_meta.get("supervised_tokens"),
+        "batch_total_data_tokens": batch_meta.get("total_data_tokens"),
+        "batch_overflow_tokens": batch_meta.get("overflow_tokens"),
         "stage_pretrain_ratio": None,
         "stage_task_ratio": None,
         "stage_bucket_mode": None,
@@ -904,6 +932,9 @@ def build_checkpoint_metadata(
         "reasoning_datasets_enabled": runtime.get("reasoning_datasets_enabled"),
         "reasoning_dataset_weights": runtime.get("reasoning_dataset_weights"),
         "answer_format": runtime.get("answer_format"),
+        "data_sampling_state": runtime.get("data_sampling_state"),
+        "data_sampling_statistics": runtime.get("data_sampling_statistics"),
+        "data_sampling_resume": runtime.get("data_sampling_resume"),
         "runtime": {
             "tokens_per_microbatch": runtime.get("tokens_per_microbatch"),
             "tokens_per_update": runtime.get("tokens_per_update"),

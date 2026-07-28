@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 from ..runtime import normalize_hf_config
 from .shard_loader import iter_jsonl, iter_jsonl_gz
+from .release import validate_frozen_sft_release
 
 try:
     from datasets import load_dataset, load_from_disk
@@ -41,8 +42,8 @@ def check_code_dataset_accessible(data_cfg, logger=None) -> bool:
         return True
     except ImportError:
         if logger is not None:
-            logger.warning("datasets package not installed; cannot pre-check code dataset access. Continue assuming access.")
-        return True
+            logger.error("datasets package not installed; code dataset access cannot be verified")
+        return False
     except Exception as exc:
         if logger is not None:
             logger.warning("Code dataset access check failed for %s: %r", data_cfg.code_hf_name, exc)
@@ -59,6 +60,18 @@ def inspect_task_dataset(task, logger=None) -> Dict[str, Any]:
         "source": "remote_probe",
         "resolved_samples": None,
     }
+    if str(getattr(task, "kind", "")) == "frozen_sft":
+        report = validate_frozen_sft_release(path)
+        info["source"] = "frozen_release"
+        info["ok"] = bool(report.get("ok"))
+        info["reason"] = "frozen SFT release ready" if info["ok"] else f"invalid frozen SFT release: {report.get('errors')}"
+        manifest = report.get("manifest") or {}
+        info["resolved_samples"] = manifest.get("accepted_count")
+        if info["ok"] and int(manifest.get("accepted_count", 0)) > 0:
+            from .release import iter_frozen_sft_records
+
+            info["sample"] = next(iter_frozen_sft_records(path), None)
+        return info
     if str(getattr(task, "kind", "")) == "synthetic_reasoning":
         dataset = getattr(task, "metadata", {}).get("synthetic_dataset")
         info["source"] = "synthetic_local"
@@ -106,9 +119,9 @@ def inspect_task_dataset(task, logger=None) -> Dict[str, Any]:
 
     if load_dataset is None:
         if logger is not None:
-            logger.warning("[%s] datasets package not installed; cannot pre-check task dataset access. Continue assuming access.", task.name)
-        info["ok"] = True
-        info["reason"] = "datasets package unavailable; skipped access pre-check"
+            logger.error("[%s] datasets package not installed; task access cannot be verified", task.name)
+        info["ok"] = False
+        info["reason"] = "datasets package unavailable; fail-closed access check"
         return info
 
     try:

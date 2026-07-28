@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Mapping
 
 from ..config.schema import DataConfig
 from ..data.access import inspect_task_dataset
-from ..data.specs import TaskSpec
+from ..data.specs import FrozenSFTTask, TaskSpec
 from ..runtime import normalize_hf_config
 from .reasoning_normalization import normalize_reasoning_sample
 from .extra_dataset_specs import build_extra_dataset_tasks
@@ -97,9 +97,7 @@ def _resolve_effective_max_samples(value) -> int | None:
 def _register_task(tasks: List[TaskSpec], task: TaskSpec, logger=None) -> bool:
     info = inspect_task_dataset(task, logger=logger)
     if not info.get("ok"):
-        if logger is not None:
-            logger.warning("[Data] disable task=%s reason=%s", task.name, info.get("reason"))
-        return False
+        raise RuntimeError(f"[Data] required task={task.name} is unavailable: {info.get('reason')}")
     sample = info.get("sample")
     if sample is not None:
         try:
@@ -107,9 +105,7 @@ def _register_task(tasks: List[TaskSpec], task: TaskSpec, logger=None) -> bool:
             if mapped is None and not getattr(task, "supports_skip", False):
                 raise KeyError(f"[{task.name}] sample normalization returned skip")
         except Exception as exc:
-            if logger is not None:
-                logger.warning("[Data] disable task=%s reason=field validation failed: %r", task.name, exc)
-            return False
+            raise RuntimeError(f"[Data] required task={task.name} failed field validation: {exc!r}") from exc
 
     details = [f"source={info.get('source')}", f"bucket={task.bucket}"]
     if task.max_samples is not None:
@@ -150,6 +146,23 @@ def _build_reasoning_limits(
 def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
     tasks: List[TaskSpec] = []
     requested_task_flags = []
+    if bool(getattr(cfg, "use_frozen_sft_release", False)):
+        requested_task_flags.append("frozen_sft_release")
+        _register_task(
+            tasks,
+            FrozenSFTTask(
+                name="frozen_sft_release",
+                path=str(getattr(cfg, "frozen_sft_release_dir")),
+                split="train",
+                weight=float(getattr(cfg, "wt_frozen_sft", 1.0)),
+                bucket=str(getattr(cfg, "frozen_sft_bucket", "frozen_sft")),
+            ),
+            logger=logger,
+        )
+        if bool(getattr(cfg, "frozen_sft_exclusive", True)):
+            if not tasks:
+                raise ValueError("frozen SFT exclusive mode requested but the release did not validate")
+            return tasks
     if bool(getattr(cfg, "use_custom_reasoning_jsonl", False)):
         requested_task_flags.append("custom_reasoning_jsonl")
         _register_task(
@@ -416,10 +429,10 @@ def build_task_mixture_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
                 ),
                 logger=logger,
             )
-        elif logger is not None:
-            logger.warning(
-                "[Data] disable task=mmlu_auxiliary_train reason=unsupported training split %s (only auxiliary_train is allowed)",
-                train_split,
+        else:
+            raise ValueError(
+                "mmlu training is enabled but only auxiliary_train is accepted; "
+                f"got split={train_split!r}"
             )
     hardcoded_task_count = len(tasks)
     if requested_task_flags and hardcoded_task_count == 0:

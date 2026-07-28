@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 import torch as tc
 
+from .data.supervision import validate_supervision
+
 
 ASSISTANT_MASK_KEYS = (
     "assistant_masks",
@@ -124,7 +126,7 @@ def make_standard_chat_supervised_example(
     enable_thinking: bool = False,
     use_generation_prompt_for_labels: bool = True,
     **extra_kwargs,
-) -> Dict[str, tc.Tensor]:
+) -> Dict[str, Any]:
     require_chat_template(tokenizer)
     full_messages = [dict(msg) for msg in messages if msg.get("content") is not None]
     tokenized = None
@@ -145,15 +147,22 @@ def make_standard_chat_supervised_example(
     if isinstance(tokenized, Mapping) and _extract_assistant_mask(tokenized) is not None:
         input_ids = _as_list(tokenized.get("input_ids"))
         assistant_mask = _extract_assistant_mask(tokenized) or []
-        if add_eos and getattr(tokenizer, "eos_token_id", None) is not None:
-            input_ids.append(int(tokenizer.eos_token_id))
-            assistant_mask.append(1)
         labels = [tok if idx < len(assistant_mask) and int(assistant_mask[idx]) else -100 for idx, tok in enumerate(input_ids)]
     else:
         assistant_idx = next((idx for idx, msg in enumerate(full_messages) if str(msg.get("role", "")).lower() == "assistant"), None)
         if assistant_idx is None:
             prompt_messages = full_messages
         else:
+            trailing_non_assistant = [
+                str(msg.get("role", "")).lower()
+                for msg in full_messages[assistant_idx + 1 :]
+                if str(msg.get("role", "")).lower() != "assistant"
+            ]
+            if trailing_non_assistant:
+                raise ValueError(
+                    "multi-turn chat supervision requires a tokenizer that supports "
+                    "return_assistant_tokens_mask; refusing to supervise user/tool tokens"
+                )
             prompt_messages = full_messages[:assistant_idx]
         prompt_text = apply_standard_chat_template(
             tokenizer,
@@ -171,21 +180,26 @@ def make_standard_chat_supervised_example(
             enable_thinking=enable_thinking,
             **extra_kwargs,
         )
-        if add_eos and getattr(tokenizer, "eos_token", None):
-            full_text = full_text + tokenizer.eos_token
         prompt_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
         input_ids = tokenizer.encode(full_text, add_special_tokens=False)
         prefix_len = _prefix_len_or_raise(input_ids, prompt_ids)
         labels = [-100] * prefix_len + input_ids[prefix_len:]
 
-    if len(input_ids) > int(max_len):
-        input_ids = input_ids[-int(max_len) :]
-        labels = labels[-int(max_len) :]
-    if not input_ids:
-        fallback = getattr(tokenizer, "eos_token_id", None) or 0
-        input_ids = [int(fallback)]
-        labels = [int(fallback)]
+    eos_id = getattr(tokenizer, "eos_token_id", None)
+    if add_eos and eos_id is not None and (not input_ids or int(input_ids[-1]) != int(eos_id)):
+        input_ids.append(int(eos_id))
+        labels.append(int(eos_id))
+
+    supervised_tokens = sum(int(label) != -100 for label in labels)
+    diagnostics = validate_supervision(
+        input_ids,
+        labels,
+        max_length=max_len,
+        prompt_tokens=len(input_ids) - supervised_tokens,
+        target_tokens=supervised_tokens,
+    )
     return {
         "input_ids": tc.tensor(input_ids, dtype=tc.long),
         "labels": tc.tensor(labels, dtype=tc.long),
+        "data_diagnostics": diagnostics.to_dict(),
     }

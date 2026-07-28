@@ -85,3 +85,14 @@ class LocalTokenShardTask(TaskSpec):
 
     def map_example(self, ex: Dict[str, Any]) -> Tuple[str, str, str]:
         return "", "", "token_ids"
+
+
+@dataclass
+class FrozenSFTTask(TaskSpec):
+    kind: str = "frozen_sft"
+    group: str = "task"
+    bucket: str = "frozen_sft"
+    source_family: str = "frozen_sft"
+
+    def map_example(self, ex: Dict[str, Any]) -> Tuple[str, str, str]:
+        return "", "", "frozen_sft"

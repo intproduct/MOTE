@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any, Iterable, Mapping
 
+from ..data.text_normalization import normalize_text
+
 
 def clean_text(value: Any) -> str:
     if value is None:
@@ -35,37 +37,46 @@ def clean_text(value: Any) -> str:
         text = "\n".join(part for part in (clean_text(v) for v in value) if part)
     else:
         text = str(value)
-    return _strip_wrapper_tokens(" ".join(text.replace("\r", "\n").split())).strip()
+    return normalize_text(text, strip_wrapper_tokens=True)
 
 
 def _strip_wrapper_tokens(text: str) -> str:
-    patterns = [
-        r"<\|begin_of_[^>]+?\|>",
-        r"<\|end_of_[^>]+?\|>",
-        r"</?think>",
-        r"</?analysis>",
-        r"</?final>",
-    ]
-    for pattern in patterns:
-        text = re.sub(pattern, " ", text, flags=re.IGNORECASE)
-    return " ".join(text.split())
+    return normalize_text(text, strip_wrapper_tokens=True)
 
 
 def extract_boxed_answer(text: str) -> str:
     text = clean_text(text)
     if not text:
         return ""
-    boxed = re.findall(r"\\boxed\{([^{}]+)\}", text)
-    if boxed:
-        return clean_text(boxed[-1])
-    return ""
+    answers: list[str] = []
+    marker = r"\boxed{"
+    cursor = 0
+    while True:
+        start = text.find(marker, cursor)
+        if start < 0:
+            break
+        content_start = start + len(marker)
+        depth = 1
+        index = content_start
+        while index < len(text) and depth:
+            if text[index] == "{" and (index == 0 or text[index - 1] != "\\"):
+                depth += 1
+            elif text[index] == "}" and (index == 0 or text[index - 1] != "\\"):
+                depth -= 1
+            index += 1
+        if depth == 0:
+            answers.append(text[content_start : index - 1])
+            cursor = index
+        else:
+            cursor = content_start
+    return clean_text(answers[-1]) if answers else ""
 
 
 def extract_hash_answer(text: str) -> str:
     text = clean_text(text)
     if not text:
         return ""
-    match = re.search(r"####\s*(.+)$", text, flags=re.IGNORECASE)
+    match = re.search(r"####\s*(.+?)\s*$", text, flags=re.IGNORECASE | re.DOTALL)
     return clean_text(match.group(1)) if match else ""
 
 
@@ -92,7 +103,7 @@ def extract_final_answer(text: str) -> str:
         r"So[, ]+the answer is\s+(.+)$",
     ]
     for pattern in patterns:
-        match = re.search(pattern, text, flags=re.IGNORECASE)
+        match = re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
         if match:
             return normalize_math_answer(match.group(1))
     hash_answer = extract_hash_answer(text)

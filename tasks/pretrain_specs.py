@@ -13,9 +13,9 @@ def build_pretrain_tasks(cfg: DataConfig, logger=None) -> List[TaskSpec]:
     tasks: List[TaskSpec] = []
     use_code = bool(cfg.use_code)
     if use_code and not check_code_dataset_accessible(cfg, logger=logger):
-        if logger is not None:
-            logger.warning("bigcode/the-stack-v2 is not accessible; disabling code pretrain task (use_code=False)")
-        use_code = False
+        raise RuntimeError(
+            "code pretrain source is enabled but inaccessible; refusing to silently publish a no-code mixture"
+        )
     if cfg.use_wiki_local:
         tasks.append(
             LocalTokenShardTask(

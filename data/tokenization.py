@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, List, Optional
 
 import torch as tc
 
 from ..chat_formatting import make_standard_chat_supervised_example
+from .supervision import validate_supervision
+from .text_normalization import normalize_text as normalize_text_value
 
 
 def normalize_text(s: str) -> str:
-    s = "" if s is None else str(s)
-    s = s.strip()
-    s = s.replace("\r\n", "\n")
-    s = re.sub(r"[ \t]+", " ", s)
-    return s
+    return normalize_text_value(s)
 
 
 def make_supervised_example(
@@ -26,12 +23,14 @@ def make_supervised_example(
     final_answer_weight_enabled: bool = False,
     final_answer_weight: float = 1.0,
     final_answer_marker: str = "####",
-) -> Dict[str, tc.Tensor]:
+) -> Dict[str, Any]:
     prompt = normalize_text(prompt)
     answer = normalize_text(answer)
     p_ids = tokenizer.encode(prompt, add_special_tokens=False)
-    a_text = answer + (tokenizer.eos_token if (add_eos and tokenizer.eos_token) else "")
-    a_ids = tokenizer.encode(a_text, add_special_tokens=False)
+    a_ids = tokenizer.encode(answer, add_special_tokens=False)
+    eos_id = getattr(tokenizer, "eos_token_id", None)
+    if add_eos and eos_id is not None and (not a_ids or int(a_ids[-1]) != int(eos_id)):
+        a_ids.append(int(eos_id))
     answer_weights = [1.0] * len(a_ids)
     if final_answer_weight_enabled and float(final_answer_weight) > 1.0 and final_answer_marker:
         marker_idx = answer.find(str(final_answer_marker))
@@ -41,26 +40,19 @@ def make_supervised_example(
             for idx in range(min(weight_start, len(answer_weights)), len(answer_weights)):
                 answer_weights[idx] = float(final_answer_weight)
     input_ids = p_ids + a_ids
-    if len(input_ids) > max_len:
-        overflow = len(input_ids) - max_len
-        if overflow >= len(p_ids):
-            cut_from_answer = overflow - len(p_ids)
-            p_ids = []
-            a_ids = a_ids[cut_from_answer:]
-            answer_weights = answer_weights[cut_from_answer:]
-        else:
-            p_ids = p_ids[overflow:]
-        input_ids = p_ids + a_ids
     labels = [-100] * len(p_ids) + a_ids[:]
     loss_weights = [0.0] * len(p_ids) + answer_weights[:]
-    if not input_ids:
-        fallback = tokenizer.eos_token_id if tokenizer.eos_token_id is not None else 0
-        input_ids = [fallback]
-        labels = [fallback]
-        loss_weights = [1.0]
+    diagnostics = validate_supervision(
+        input_ids,
+        labels,
+        max_length=max_len,
+        prompt_tokens=len(p_ids),
+        target_tokens=len(a_ids),
+    )
     result = {
         "input_ids": tc.tensor(input_ids, dtype=tc.long),
         "labels": tc.tensor(labels, dtype=tc.long),
+        "data_diagnostics": diagnostics.to_dict(),
     }
     if final_answer_weight_enabled and float(final_answer_weight) != 1.0:
         result["loss_weights"] = tc.tensor(loss_weights, dtype=tc.float32)
@@ -80,7 +72,7 @@ def make_causal_lm_example_from_text(tokenizer, text: str, max_len: int, add_eos
     }
 
 
-def make_chat_supervised_example(tokenizer, messages: List[Dict[str, str]], max_len: int, add_eos: bool = True) -> Dict[str, tc.Tensor]:
+def make_chat_supervised_example(tokenizer, messages: List[Dict[str, str]], max_len: int, add_eos: bool = True) -> Dict[str, Any]:
     return make_standard_chat_supervised_example(tokenizer, messages=messages, max_len=max_len, add_eos=add_eos)
 
 

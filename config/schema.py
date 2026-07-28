@@ -58,6 +58,15 @@ class DataConfig:
     datas_dir: str = "/work/home/sugang2025/qxfang/Datas"
     seq_len_run: int = 1024
     dataloader_num_workers: int = 0
+    source_sampling_mode: str = "deterministic_auto"
+    source_shuffle: bool = True
+    source_max_epochs: int = 0
+    fail_on_dynamic_skip: bool = True
+    frozen_sft_release_dir: Optional[str] = None
+    use_frozen_sft_release: bool = False
+    frozen_sft_exclusive: bool = True
+    wt_frozen_sft: float = 1.0
+    frozen_sft_bucket: str = "frozen_sft"
 
     fineweb_cache_path: str = "/work/home/sugang2025/qxfang/Datas/hf_cache/fineweb_sample10bt"
     code_cache_path: str = "/work/home/sugang2025/qxfang/Datas/hf_cache/the_stack_v2"

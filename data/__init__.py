@@ -1,6 +1,6 @@
 from .builders import build_stage_aware_train_dataset
 from .collate import pad_collate
-from .specs import HFChatTask, HFTextTask, LocalTokenShardTask, TaskSpec
+from .specs import FrozenSFTTask, HFChatTask, HFTextTask, LocalTokenShardTask, TaskSpec
 
 __all__ = [
     "build_stage_aware_train_dataset",
@@ -9,4 +9,5 @@ __all__ = [
     "HFTextTask",
     "HFChatTask",
     "LocalTokenShardTask",
+    "FrozenSFTTask",
 ]

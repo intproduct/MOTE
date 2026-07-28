@@ -83,6 +83,7 @@ DATA_PATH_FIELDS = [
     "openthoughts_math_cache_path",
     "bespoke_stratos_cache_path",
     "custom_reasoning_jsonl_path",
+    "frozen_sft_release_dir",
 ]
 PATH_FIELDS = {
     "model": {"model_path"},
@@ -108,6 +109,7 @@ ACTIVE_DATA_PATHS = {
     "openthoughts_math_cache_path": "use_openthoughts_math",
     "bespoke_stratos_cache_path": "use_bespoke_stratos",
     "custom_reasoning_jsonl_path": "use_custom_reasoning_jsonl",
+    "frozen_sft_release_dir": "use_frozen_sft_release",
 }
 
 
@@ -422,6 +424,26 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
     data_cfg.custom_reasoning_bucket = str(getattr(data_cfg, "custom_reasoning_bucket", "gsm8k_core") or "gsm8k_core")
     if data_cfg.use_custom_reasoning_jsonl and not data_cfg.custom_reasoning_jsonl_path:
         raise ValueError("data.custom_reasoning_jsonl_path is required when data.use_custom_reasoning_jsonl=true")
+    sampling_mode = str(getattr(data_cfg, "source_sampling_mode", "deterministic_auto") or "deterministic_auto").strip().lower()
+    if sampling_mode not in {"deterministic_auto", "deterministic_strict", "legacy_sequential"}:
+        raise ValueError(
+            "data.source_sampling_mode must be deterministic_auto, deterministic_strict, or legacy_sequential"
+        )
+    data_cfg.source_sampling_mode = sampling_mode
+    data_cfg.source_shuffle = bool(getattr(data_cfg, "source_shuffle", True))
+    data_cfg.source_max_epochs = int(getattr(data_cfg, "source_max_epochs", 0))
+    if data_cfg.source_max_epochs < 0:
+        raise ValueError("data.source_max_epochs must be >= 0")
+    data_cfg.fail_on_dynamic_skip = bool(getattr(data_cfg, "fail_on_dynamic_skip", True))
+    data_cfg.use_frozen_sft_release = bool(getattr(data_cfg, "use_frozen_sft_release", False))
+    data_cfg.frozen_sft_exclusive = bool(getattr(data_cfg, "frozen_sft_exclusive", True))
+    data_cfg.frozen_sft_release_dir = _normalize_optional_path_value(getattr(data_cfg, "frozen_sft_release_dir", None))
+    data_cfg.wt_frozen_sft = float(getattr(data_cfg, "wt_frozen_sft", 1.0))
+    data_cfg.frozen_sft_bucket = str(getattr(data_cfg, "frozen_sft_bucket", "frozen_sft") or "frozen_sft")
+    if data_cfg.use_frozen_sft_release and not data_cfg.frozen_sft_release_dir:
+        raise ValueError("data.frozen_sft_release_dir is required when data.use_frozen_sft_release=true")
+    if data_cfg.use_frozen_sft_release and data_cfg.wt_frozen_sft <= 0:
+        raise ValueError("data.wt_frozen_sft must be > 0 when frozen SFT is enabled")
     _normalize_extra_datasets(cfg)
 
     legacy_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_fitmotn_from", None))

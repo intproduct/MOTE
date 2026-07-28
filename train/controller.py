@@ -519,6 +519,20 @@ def run_fitmotn_training(fit_cfg):
 
     dataset = build_stage_aware_train_dataset(tokenizer, pretrain_tasks, task_tasks, stage_state, fit_cfg.data, fit_cfg.train, logger=logger)
     collator = lambda batch: pad_collate(batch, pad_id=dataset.pad_id)
+    data_sampling_state_restored = False
+    if getattr(fit_cfg.train, "resume_checkpoint_from", None) and resume_metadata is not None:
+        saved_sampling_state = resume_metadata.get("data_sampling_state")
+        if isinstance(saved_sampling_state, dict) and bool(saved_sampling_state.get("initialized", False)):
+            if int(fit_cfg.data.dataloader_num_workers) != 0:
+                raise RuntimeError(
+                    "exact SFT data resume currently requires data.dataloader_num_workers=0; "
+                    "worker-local sampler state cannot be recovered from the parent process"
+                )
+            dataset.load_sampling_state_dict(saved_sampling_state)
+            data_sampling_state_restored = True
+            runtime_state["data_sampling_resume"] = "restored"
+        else:
+            runtime_state["data_sampling_resume"] = "checkpoint_has_no_initialized_state"
 
     eval_summary = {
         "run_name": run_name,
@@ -591,9 +605,12 @@ def run_fitmotn_training(fit_cfg):
         max_grad_norm=float(fit_cfg.train.max_grad_norm),
         seed=int(fit_cfg.train.seed),
         save_safetensors=False,
+        ignore_data_skip=bool(data_sampling_state_restored),
     )
 
     def metadata_builder(checkpoint_name: str | None = None):
+        runtime_state["data_sampling_state"] = dataset.sampling_state_dict()
+        runtime_state["data_sampling_statistics"] = dataset.sampling_statistics()
         runtime_state["baseline_small_summary"] = None if baseline_small is None else to_jsonable(baseline_small.get("summary"))
         runtime_state["baseline_final_summary"] = None if baseline_final is None else to_jsonable(baseline_final.get("summary"))
         runtime_state["final_full_summary"] = final_eval_info["final_full_summary"]

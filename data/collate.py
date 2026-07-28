@@ -17,6 +17,8 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
     bucket = [x.get("bucket", "unknown") for x in batch]
     source_family = [x.get("source_family", "unknown") for x in batch]
     eval_type = [x.get("eval_type", "unknown") for x in batch]
+    sample_id = [x.get("sample_id", "") for x in batch]
+    data_diagnostics = [dict(x.get("data_diagnostics") or {}) for x in batch]
 
     for i, ex in enumerate(batch):
         length = ex["input_ids"].numel()
@@ -38,6 +40,8 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
         "bucket": bucket,
         "source_family": source_family,
         "eval_type": eval_type,
+        "sample_id": sample_id,
+        "data_diagnostics": data_diagnostics,
     }
     if loss_weights is not None:
         result["loss_weights"] = loss_weights

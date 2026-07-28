@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping
 
+from .text_normalization import normalize_text
+
 
 DEFAULT_ROLE_MAP = {
     "human": "user",
@@ -15,25 +17,7 @@ DEFAULT_ROLE_MAP = {
 
 
 def clean_text(value: Any) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        text = value
-    elif isinstance(value, (int, float, bool)):
-        text = str(value)
-    elif isinstance(value, Mapping):
-        for key in ["text", "content", "value", "solution", "reasoning", "response", "answer", "final_answer", "problem", "question", "prompt"]:
-            if key in value:
-                text = clean_text(value.get(key))
-                if text:
-                    break
-        else:
-            text = "\n".join(clean_text(v) for v in value.values())
-    elif isinstance(value, list):
-        text = "\n".join(part for part in (clean_text(v) for v in value) if part)
-    else:
-        text = str(value)
-    return " ".join(text.replace("\r", "\n").split()).strip()
+    return normalize_text(value)
 
 
 def _as_text(value: Any) -> str:
