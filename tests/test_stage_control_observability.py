@@ -34,9 +34,14 @@ from MOTE.data.tokenization import make_supervised_example
 from MOTE.train.stages import build_stage_plan, resolve_stage_temperature, set_optimizer_stage_lrs
 from MOTE.train.stages import MutableStageState
 from MOTE.train.callbacks import MOTNScheduleCallback
-from MOTE.train.observability import UpdateBatchMeta
+from MOTE.train.observability import (
+    PENDING_LOSS_METRICS_KEY,
+    UpdateBatchMeta,
+    accumulate_loss_observability,
+    flush_loss_observability,
+)
 from transformers import TrainerControl, TrainerState
-from MOTE.train.trainer import compute_loss_observability
+from MOTE.train.trainer import FitMoTNTrainer, compute_loss_observability
 
 
 PORTABLE_PATHS = {
@@ -224,6 +229,98 @@ class StageControlObservabilityTests(unittest.TestCase):
         weights[1, 2:] = 2.0
         _, weighted_metrics = compute_loss_observability(logits, labels, buckets=["gsm8k_core", "aux_reasoning"], loss_weights=weights)
         self.assertGreater(weighted_metrics["final_answer_weighted_tokens"], 0)
+
+        fractional_weights = (labels != -100).to(torch.float32) * 0.1
+        fractional, _ = compute_loss_observability(logits, labels, loss_weights=fractional_weights)
+        self.assertAlmostEqual(float(fractional.item()), float(standard.item()), places=6)
+
+    def test_deferred_loss_metrics_accumulate_until_flush(self):
+        logits = torch.zeros(2, 4, 7)
+        labels = torch.tensor([[1, 2, 3, -100], [1, 4, 5, 6]])
+        weights = (labels != -100).to(torch.float32)
+        weights[1, 2:] = 2.0
+        runtime = {"loss_observability": {}, "final_answer_weighted_tokens": 0, "final_answer_loss": None}
+
+        _, first = compute_loss_observability(
+            logits,
+            labels,
+            buckets=["gsm8k_core", "aux_reasoning"],
+            tasks=["gsm8k", "math"],
+            loss_weights=weights,
+            defer_metrics=True,
+        )
+        _, second = compute_loss_observability(
+            logits,
+            labels,
+            buckets=["gsm8k_core", "aux_reasoning"],
+            tasks=["gsm8k", "math"],
+            loss_weights=weights,
+            defer_metrics=True,
+        )
+        accumulate_loss_observability(runtime, first)
+        accumulate_loss_observability(runtime, second)
+
+        self.assertIn(PENDING_LOSS_METRICS_KEY, runtime)
+        self.assertEqual(runtime["loss_observability"], {})
+        metrics = flush_loss_observability(runtime)
+
+        self.assertNotIn(PENDING_LOSS_METRICS_KEY, runtime)
+        self.assertEqual(metrics["tokens/gsm8k_core"], 4)
+        self.assertEqual(metrics["tokens/aux_reasoning"], 6)
+        self.assertEqual(metrics["final_answer_weighted_tokens"], 4)
+        self.assertAlmostEqual(metrics["loss_by_task/gsm8k"], math.log(7), places=6)
+        self.assertAlmostEqual(metrics["loss_by_task/math"], math.log(7), places=6)
+        self.assertAlmostEqual(runtime["final_answer_loss"], math.log(7), places=6)
+
+    def test_trainer_omits_model_labels_and_preserves_loss_gradients_and_update(self):
+        class TinyCausalLM(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.embed = torch.nn.Embedding(11, 5)
+                self.head = torch.nn.Linear(5, 11, bias=False)
+                self.received_labels = []
+
+            def forward(self, input_ids, attention_mask=None, labels=None, use_cache=False):
+                del attention_mask, use_cache
+                self.received_labels.append(labels)
+                logits = self.head(self.embed(input_ids))
+                builtin_loss = None
+                if labels is not None:
+                    builtin_loss, _ = compute_loss_observability(logits, labels, collect_metrics=False)
+                return types.SimpleNamespace(logits=logits, loss=builtin_loss)
+
+        torch.manual_seed(17)
+        reference_model = TinyCausalLM()
+        optimized_model = TinyCausalLM()
+        optimized_model.load_state_dict(reference_model.state_dict())
+        inputs = {
+            "input_ids": torch.tensor([[1, 2, 3, 4], [4, 3, 2, 1]]),
+            "attention_mask": torch.ones(2, 4, dtype=torch.long),
+            "labels": torch.tensor([[1, 2, 3, 4], [4, 3, -100, 1]]),
+        }
+
+        reference_outputs = reference_model(**inputs, use_cache=False)
+        reference_loss, _ = compute_loss_observability(
+            reference_outputs.logits,
+            inputs["labels"],
+            collect_metrics=False,
+        )
+        trainer = FitMoTNTrainer.__new__(FitMoTNTrainer)
+        trainer.observability_state = None
+        optimized_loss = trainer.compute_loss(optimized_model, inputs)
+
+        torch.testing.assert_close(optimized_loss, reference_loss, rtol=0, atol=0)
+        reference_loss.backward()
+        optimized_loss.backward()
+        for reference_param, optimized_param in zip(reference_model.parameters(), optimized_model.parameters()):
+            torch.testing.assert_close(optimized_param.grad, reference_param.grad, rtol=0, atol=0)
+            with torch.no_grad():
+                reference_param.add_(reference_param.grad, alpha=-0.05)
+                optimized_param.add_(optimized_param.grad, alpha=-0.05)
+            torch.testing.assert_close(optimized_param, reference_param, rtol=0, atol=0)
+
+        self.assertIsNotNone(reference_model.received_labels[0])
+        self.assertEqual(optimized_model.received_labels, [None])
 
     def test_stage_transition_forces_checkpoint_save(self):
         cfg = make_default_config()

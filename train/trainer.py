@@ -19,14 +19,29 @@ from ..checkpointing import (
     save_fitmotn_metadata,
 )
 from ..gate import SoftGate, TopKGate, _SoftGate, _TopKGate
-from .observability import register_microbatch
+from .observability import (
+    DEFERRED_LOSS_METRICS_MARKER,
+    accumulate_loss_observability,
+    flush_loss_observability,
+    materialize_loss_observability,
+    register_microbatch,
+)
 
 
 ROUTER_GATE_TYPES = (TopKGate, SoftGate, _TopKGate, _SoftGate)
 KNOWN_BUCKETS = ("pretrain_general", "gsm8k_core", "aux_reasoning", "unknown_bucket")
 
 
-def compute_loss_observability(logits, labels, *, buckets=None, tasks=None, loss_weights=None):
+def compute_loss_observability(
+    logits,
+    labels,
+    *,
+    buckets=None,
+    tasks=None,
+    loss_weights=None,
+    collect_metrics=True,
+    defer_metrics=False,
+):
     shift_logits = logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
     vocab_size = int(shift_logits.shape[-1])
@@ -40,66 +55,53 @@ def compute_loss_observability(logits, labels, *, buckets=None, tasks=None, loss
     valid_tokens = valid.sum().clamp_min(1)
     standard_loss = token_loss.sum() / valid_tokens
 
-    weighted_tokens = None
-    final_answer_loss = None
+    final_mask = torch.zeros_like(valid)
     if loss_weights is not None:
         shift_weights = loss_weights[..., 1:].to(device=token_loss.device, dtype=token_loss.dtype).contiguous()
         shift_weights = torch.where(valid, shift_weights, torch.zeros_like(shift_weights))
         denom = shift_weights.sum()
-        if float(denom.detach().cpu()) > 0.0:
-            loss = (token_loss * shift_weights).sum() / denom
-        else:
-            loss = standard_loss
+        safe_denom = torch.where(denom > 0, denom, torch.ones_like(denom))
+        weighted_loss = (token_loss * shift_weights).sum() / safe_denom
+        loss = torch.where(denom > 0, weighted_loss, standard_loss)
         final_mask = valid & shift_weights.gt(1.0)
-        weighted_tokens = int(final_mask.sum().detach().cpu().item())
-        if weighted_tokens > 0:
-            final_answer_loss = float(token_loss[final_mask].mean().detach().cpu().item())
     else:
         loss = standard_loss
-        shift_weights = None
-        weighted_tokens = 0
 
-    bucket_losses = {f"loss/{bucket}": None for bucket in KNOWN_BUCKETS}
-    bucket_tokens = {f"tokens/{bucket}": 0 for bucket in KNOWN_BUCKETS}
-    loss_by_task = {}
+    if not collect_metrics:
+        return loss, {}
+
+    token_loss_fp32 = token_loss.float()
+    zero_loss = token_loss_fp32.new_zeros(())
+    zero_count = valid.new_zeros((), dtype=torch.long)
+    bucket_loss_sums = {bucket: zero_loss for bucket in KNOWN_BUCKETS}
+    bucket_token_counts = {bucket: zero_count for bucket in KNOWN_BUCKETS}
+    task_loss_sums = {}
+    task_token_counts = {}
+    row_loss_sums = token_loss_fp32.sum(dim=-1).detach()
+    row_token_counts = valid.sum(dim=-1).detach()
     if buckets is not None:
         bucket_names = list(buckets)
         for row_idx, bucket_name in enumerate(bucket_names[: token_loss.shape[0]]):
             key_bucket = str(bucket_name or "unknown_bucket")
             if key_bucket not in KNOWN_BUCKETS:
                 key_bucket = "unknown_bucket"
-            mask = valid[row_idx]
-            count = int(mask.sum().detach().cpu().item())
-            if count <= 0:
-                continue
-            loss_sum = token_loss[row_idx][mask].sum().detach()
-            prev_tokens = int(bucket_tokens[f"tokens/{key_bucket}"])
-            prev_loss = bucket_losses[f"loss/{key_bucket}"]
-            prev_sum = 0.0 if prev_loss is None else float(prev_loss) * prev_tokens
-            bucket_tokens[f"tokens/{key_bucket}"] = prev_tokens + count
-            bucket_losses[f"loss/{key_bucket}"] = (prev_sum + float(loss_sum.cpu().item())) / (prev_tokens + count)
+            bucket_loss_sums[key_bucket] = bucket_loss_sums[key_bucket] + row_loss_sums[row_idx]
+            bucket_token_counts[key_bucket] = bucket_token_counts[key_bucket] + row_token_counts[row_idx]
     if tasks is not None:
         for row_idx, task_name in enumerate(list(tasks)[: token_loss.shape[0]]):
             key_task = str(task_name or "unknown")
-            mask = valid[row_idx]
-            count = int(mask.sum().detach().cpu().item())
-            if count <= 0:
-                continue
-            loss_sum = float(token_loss[row_idx][mask].sum().detach().cpu().item())
-            item = loss_by_task.setdefault(key_task, {"loss_sum": 0.0, "tokens": 0})
-            item["loss_sum"] += loss_sum
-            item["tokens"] += count
-    loss_by_task = {
-        f"loss_by_task/{name}": values["loss_sum"] / max(1, values["tokens"])
-        for name, values in loss_by_task.items()
+            task_loss_sums[key_task] = task_loss_sums.get(key_task, zero_loss) + row_loss_sums[row_idx]
+            task_token_counts[key_task] = task_token_counts.get(key_task, zero_count) + row_token_counts[row_idx]
+    deferred = {
+        DEFERRED_LOSS_METRICS_MARKER: True,
+        "bucket_loss_sums": bucket_loss_sums,
+        "bucket_token_counts": bucket_token_counts,
+        "task_loss_sums": task_loss_sums,
+        "task_token_counts": task_token_counts,
+        "final_answer_loss_sum": (token_loss_fp32 * final_mask).sum().detach(),
+        "final_answer_weighted_tokens": final_mask.sum().detach(),
     }
-    metrics = {}
-    metrics.update(bucket_losses)
-    metrics.update(bucket_tokens)
-    metrics.update(loss_by_task)
-    metrics["final_answer_weighted_tokens"] = int(weighted_tokens or 0)
-    metrics["final_answer_loss"] = final_answer_loss
-    return loss, metrics
+    return loss, deferred if defer_metrics else materialize_loss_observability(deferred)
 
 
 class FitMoTNTrainer(Trainer):
@@ -275,7 +277,6 @@ class FitMoTNTrainer(Trainer):
         outputs = model(
             input_ids=inputs["input_ids"],
             attention_mask=inputs.get("attention_mask"),
-            labels=inputs.get("labels"),
             use_cache=False,
         )
         labels = inputs.get("labels")
@@ -288,11 +289,11 @@ class FitMoTNTrainer(Trainer):
                 buckets=inputs.get("bucket"),
                 tasks=inputs.get("task"),
                 loss_weights=inputs.get("loss_weights"),
+                collect_metrics=self.observability_state is not None,
+                defer_metrics=True,
             )
             if self.observability_state is not None:
-                self.observability_state["loss_observability"] = loss_metrics
-                self.observability_state["final_answer_weighted_tokens"] = loss_metrics.get("final_answer_weighted_tokens")
-                self.observability_state["final_answer_loss"] = loss_metrics.get("final_answer_loss")
+                accumulate_loss_observability(self.observability_state, loss_metrics)
         return (loss, outputs) if return_outputs else loss
 
     def training_step(self, *args, **kwargs):
@@ -303,6 +304,8 @@ class FitMoTNTrainer(Trainer):
         return loss
 
     def save_model(self, output_dir: str | None = None, _internal_call: bool = False):
+        if self.observability_state is not None:
+            flush_loss_observability(self.observability_state)
         super().save_model(output_dir=output_dir, _internal_call=_internal_call)
         if self.fitmotn_metadata_builder is not None:
             target_dir = output_dir or self.args.output_dir

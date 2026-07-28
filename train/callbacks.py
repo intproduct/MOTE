@@ -13,6 +13,7 @@ from .observability import (
     capture_usage_light_snapshot,
     finalize_update_batch_meta,
     flush_pending_usage_light_records,
+    flush_loss_observability,
     snapshot_cuda,
     update_step_runtime,
 )
@@ -119,6 +120,7 @@ class MOTNScheduleCallback(TrainerCallback):
             return control
         if any(str(key).startswith("eval_") for key in logs.keys()):
             return control
+        flush_loss_observability(runtime)
         step = int(state.global_step)
         runtime["current_lr"] = logs.get("learning_rate", runtime.get("current_lr"))
         runtime["current_loss"] = logs.get("loss", runtime.get("current_loss"))
