@@ -1,0 +1,119 @@
+{
+  "format": "fitmotn_data_registry_v1",
+  "pipeline_version": "fitmotn-clean-v1",
+  "intended_use": "training",
+  "execution": {
+    "workers": 32,
+    "chunk_size": 128
+  },
+  "quality_policy": {
+    "min_chars": 8,
+    "max_chars": 10000000,
+    "max_control_ratio": 0.01,
+    "max_replacement_ratio": 0.001,
+    "min_alnum_ratio": 0.02,
+    "max_repeated_line_ratio": 0.8,
+    "reject_sensitive_flags": ["private_key", "aws_access_key", "credential_assignment"]
+  },
+  "near_duplicate": {
+    "enabled": true,
+    "threshold": 0.85,
+    "num_perm": 64,
+    "bands": 8,
+    "shingle_size": 5
+  },
+  "benchmarks": [
+    {
+      "name": "gsm8k_test",
+      "enabled": true,
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/benchmarks/gsm8k_test/dataset",
+      "split": "test",
+      "revision": "REPLACE_WITH_IMMUTABLE_BENCHMARK_REVISION",
+      "text_fields": ["question"]
+    }
+  ],
+  "sources": [
+    {
+      "source_name": "wiki24",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/wiki24/dataset",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_WIKI_REVISION",
+      "data_plane": "pretraining",
+      "adapter": "text",
+      "fields": {"text": "text"},
+      "license": "REPLACE_WITH_LICENSE",
+      "allowed_uses": ["training"],
+      "acquired_at": "REPLACE_WITH_ISO8601_TIMESTAMP",
+      "language": "REPLACE_WITH_LANGUAGE"
+    },
+    {
+      "source_name": "fineweb_sample10bt",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/fineweb_sample10bt/dataset",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_FINEWEB_REVISION",
+      "data_plane": "pretraining",
+      "adapter": "text",
+      "fields": {"text": "text"},
+      "license": "odc-by-1.0",
+      "allowed_uses": ["training"],
+      "acquired_at": "REPLACE_WITH_ISO8601_TIMESTAMP",
+      "language": "en"
+    },
+    {
+      "source_name": "general_instruction",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/general_instruction/dataset",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_INSTRUCTION_REVISION",
+      "data_plane": "general_sft",
+      "adapter": "messages",
+      "fields": {"messages": "messages"},
+      "license": "REPLACE_WITH_LICENSE",
+      "allowed_uses": ["training"],
+      "acquired_at": "REPLACE_WITH_ISO8601_TIMESTAMP"
+    },
+    {
+      "source_name": "reasoning_instruction",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/reasoning_instruction/dataset",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_REASONING_REVISION",
+      "data_plane": "reasoning_sft",
+      "adapter": "prompt_response",
+      "fields": {"prompt": "problem", "response": "solution"},
+      "license": "REPLACE_WITH_LICENSE",
+      "allowed_uses": ["training"],
+      "acquired_at": "REPLACE_WITH_ISO8601_TIMESTAMP"
+    },
+    {
+      "source_name": "code_corpus",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/code_corpus/dataset",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_CODE_REVISION",
+      "data_plane": "code_pretraining",
+      "adapter": "text",
+      "fields": {"text": "content"},
+      "license": "per-file",
+      "allowed_uses": ["training"],
+      "acquired_at": "REPLACE_WITH_ISO8601_TIMESTAMP",
+      "preserve_fields": ["repository_name", "path", "language", "license"]
+    },
+    {
+      "source_name": "code_instruction",
+      "kind": "load_from_disk",
+      "path": "${CACHE_ROOT}/code_instruction/dataset",
+      "split": "train",
+      "revision": "REPLACE_WITH_IMMUTABLE_CODE_SFT_REVISION",
+      "data_plane": "code_sft",
+      "adapter": "prompt_response",
+      "fields": {"prompt": "instruction", "response": "response"},
+      "license": "REPLACE_WITH_LICENSE",
+      "allowed_uses": ["training"],
+      "acquired_at": "REPLACE_WITH_ISO8601_TIMESTAMP"
+    }
+  ]
+}

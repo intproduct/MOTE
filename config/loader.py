@@ -40,7 +40,7 @@ VALID_FORMAT_MODES = {"raw", "chat"}
 VALID_ZERO_ADVANTAGE_RETRY_ACTIONS = {"warn_continue", "raise"}
 VALID_BLOCK_INIT_MODES = {"gamma_normal", "base_stats_normal", "base_stats_trunc_normal"}
 VALID_EXTRA_DATASET_FORMATS = {"text", "chat_messages", "prompt_response", "reasoning_qa"}
-VALID_EXTRA_DATASET_SOURCES = {"hf", "local_jsonl", "jsonl", "jsonl_gz", "load_from_disk", "auto"}
+VALID_EXTRA_DATASET_SOURCES = {"hf", "local_jsonl", "jsonl", "jsonl_gz", "load_from_disk", "auto", "frozen_release"}
 
 MODEL_ALIASES = {
     "qwen3_8b": "${MODEL_ROOT}/Qwen3-8B",
@@ -321,7 +321,7 @@ def _normalize_extra_datasets(cfg: FitMoTNConfig) -> None:
                 )
         if source == "hf" and not str(ds.get("hf_name", "")).strip():
             raise ValueError(f"data.extra_datasets[{idx}].hf_name is required when source='hf'")
-        if source in {"local_jsonl", "jsonl", "jsonl_gz", "load_from_disk"} and not str(ds.get("path", "")).strip():
+        if source in {"local_jsonl", "jsonl", "jsonl_gz", "load_from_disk", "frozen_release"} and not str(ds.get("path", "")).strip():
             raise ValueError(f"data.extra_datasets[{idx}].path is required when source={source!r}")
         if source == "auto" and not (str(ds.get("path", "")).strip() or str(ds.get("cache_path", "")).strip() or str(ds.get("hf_name", "")).strip()):
             raise ValueError(f"data.extra_datasets[{idx}] requires path, cache_path, or hf_name when source='auto'")
@@ -450,6 +450,11 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
             "compute it from planned consumed sequences / release accepted_count"
         )
     _normalize_extra_datasets(cfg)
+    if any(ds.get("enabled", True) and ds.get("source") == "frozen_release" for ds in data_cfg.extra_datasets):
+        if data_cfg.source_max_epochs <= 0:
+            raise ValueError(
+                "data.source_max_epochs must be an explicit positive exposure bound when a frozen_release extra dataset is enabled"
+            )
 
     legacy_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_fitmotn_from", None))
     weights_resume = _normalize_optional_path_value(getattr(train_cfg, "resume_weights_from", None))

@@ -96,3 +96,14 @@ class FrozenSFTTask(TaskSpec):
 
     def map_example(self, ex: Dict[str, Any]) -> Tuple[str, str, str]:
         return "", "", "frozen_sft"
+
+
+@dataclass
+class FrozenTokenTask(TaskSpec):
+    kind: str = "frozen_token_release"
+    group: str = "pretrain"
+    bucket: str = "pretrain_general"
+    source_family: str = "frozen_token_release"
+
+    def map_example(self, ex: Dict[str, Any]) -> Tuple[str, str, str]:
+        return "", "", "frozen_token_release"

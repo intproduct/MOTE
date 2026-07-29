@@ -17,7 +17,12 @@ from .contracts import content_hash
 from .release import ACCEPTED_FILENAME, tokenizer_fingerprint, validate_frozen_record, validate_frozen_sft_release
 from .sampling import DeterministicSequenceSampler, resolve_shard_context
 from .shard_loader import IndexedJsonlDataset, iter_jsonl, iter_jsonl_gz, iter_local_token_shards
-from .specs import FrozenSFTTask, HFChatTask, HFTextTask, TaskSpec
+from .specs import FrozenSFTTask, FrozenTokenTask, HFChatTask, HFTextTask, TaskSpec
+from .training_release import (
+    ACCEPTED_FILENAME as BOUND_ACCEPTED_FILENAME,
+    validate_bound_record,
+    validate_bound_training_release,
+)
 from .tokenization import (
     build_example_from_token_ids,
     make_causal_lm_example_from_text,
@@ -66,6 +71,11 @@ def load_dataset_any(
         if not report["ok"]:
             raise RuntimeError(f"invalid frozen SFT release: {report['errors']}")
         return IndexedJsonlDataset(Path(path) / ACCEPTED_FILENAME)
+    if kind == "frozen_token_release":
+        report = validate_bound_training_release(path)
+        if not report["ok"]:
+            raise RuntimeError(f"invalid bound training release: {report['errors']}")
+        return IndexedJsonlDataset(Path(path) / BOUND_ACCEPTED_FILENAME)
     if kind == "synthetic_reasoning":
         dataset = metadata.get("synthetic_dataset")
         if dataset is None:
@@ -156,6 +166,24 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             if manifest.get("tokenizer_fingerprint") != effective_tokenizer:
                 raise RuntimeError("frozen SFT tokenizer fingerprint does not match the training tokenizer")
             task.metadata["frozen_manifest"] = dict(manifest)
+        if isinstance(task, FrozenTokenTask):
+            report = validate_bound_training_release(task.path)
+            if not report["ok"]:
+                raise RuntimeError(f"invalid bound training release: {report['errors']}")
+            manifest = dict(report["manifest"] or {})
+            if int(manifest.get("max_length", -1)) != self.max_len:
+                raise RuntimeError(
+                    "bound training max_length mismatch: "
+                    f"release={manifest.get('max_length')} training={self.max_len}"
+                )
+            if manifest.get("tokenizer_fingerprint") != tokenizer_fingerprint(self.tokenizer):
+                raise RuntimeError("bound training tokenizer fingerprint does not match the training tokenizer")
+            expected_objective = "causal_lm" if task.group == "pretrain" else "sft"
+            if manifest.get("training_objective") != expected_objective:
+                raise RuntimeError(
+                    f"bound training objective={manifest.get('training_objective')!r} does not match task group={task.group!r}"
+                )
+            task.metadata["bound_manifest"] = manifest
         if getattr(task, "kind", "load_from_disk") == "auto":
             res = load_dataset_auto_cached(task.path, task.split, hf_name=getattr(task, "hf_name", None), hf_config=getattr(task, "hf_config", None))
             if isinstance(res, tuple) and len(res) == 6:
@@ -481,12 +509,12 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
 
     def _to_supervised(self, task: TaskSpec, ex: Dict[str, Any]):
         self._log_format_summary()
-        if isinstance(task, FrozenSFTTask):
-            ex = validate_frozen_record(
-                ex,
-                dict(task.metadata.get("frozen_manifest") or {}),
-                location=f"task={task.name} sample={ex.get('derived_sample_id') or ex.get('source_sample_id') or 'unknown'}",
-            )
+        if isinstance(task, (FrozenSFTTask, FrozenTokenTask)):
+            location = f"task={task.name} sample={ex.get('derived_sample_id') or ex.get('bound_record_id') or ex.get('source_sample_id') or 'unknown'}"
+            if isinstance(task, FrozenSFTTask):
+                ex = validate_frozen_record(ex, dict(task.metadata.get("frozen_manifest") or {}), location=location)
+            else:
+                ex = validate_bound_record(ex, dict(task.metadata.get("bound_manifest") or {}), location=location)
             input_ids = [int(value) for value in ex.get("input_ids", [])]
             labels = [int(value) for value in ex.get("labels", [])]
             if not input_ids or len(input_ids) != len(labels):
@@ -509,8 +537,10 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             sup["group"] = task.group
             sup["bucket"] = task.bucket
             sup["source_family"] = task.source_family
-            sup["eval_type"] = "frozen_sft"
-            sup["sample_id"] = str(ex.get("derived_sample_id") or ex.get("source_sample_id") or "")
+            sup["eval_type"] = "frozen_sft" if isinstance(task, FrozenSFTTask) else str(
+                dict(task.metadata.get("bound_manifest") or {}).get("training_objective") or "frozen_bound"
+            )
+            sup["sample_id"] = str(ex.get("derived_sample_id") or ex.get("bound_record_id") or ex.get("source_sample_id") or "")
             self._record_success(task, "frozen_release")
             return sup
         if task.kind == "local_token_shards":
