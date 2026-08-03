@@ -145,6 +145,13 @@ def resolve_path(
         return str(_fallback_root_for_env(name))
 
     expanded = _ENV_PATTERN.sub(replace_env, raw)
+    # Preserve explicitly POSIX-absolute paths when validation is executed on
+    # Windows.  Converting "/work/..." through WindowsPath would silently turn
+    # it into "C:\\work\\...", bypassing the cross-machine safety policy and
+    # mutating checkpoint/config provenance.
+    if os.name == "nt" and expanded.startswith("/"):
+        _enforce_safety(expanded, key=key, source=source, cfg=cfg)
+        return expanded
     path_obj = Path(expanded).expanduser()
     if path_obj.is_absolute():
         _enforce_safety(str(path_obj), key=key, source=source, cfg=cfg)

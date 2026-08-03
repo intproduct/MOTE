@@ -13,6 +13,18 @@ class ModelConfig:
     torch_dtype: str = "auto"
     trust_remote_code: bool = True
     patch_backend: str = "motn"
+    sparse_mixt: Dict[str, Any] = field(default_factory=lambda: {
+        "backend_version": 1,
+        "hidden_main": 0,
+        "intermediate_main": 0,
+        "router_input_policy": "main",
+        "boundary_init": "zero",
+        "svd_oversampling": 8,
+        "svd_niter": 2,
+        "gate_ranks": {"01": 8, "10": 8, "11": 8},
+        "up_ranks": {"01": 8, "10": 8, "11": 8},
+        "down_ranks": {"01": 8, "10": 8, "11": 8},
+    })
 
     E: int = 16
     d: int = 2

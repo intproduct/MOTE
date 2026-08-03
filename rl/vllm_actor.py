@@ -11,7 +11,23 @@ import traceback
 from typing import Any, Dict, Optional
 
 
+if not hasattr(signal, "SIGKILL"):
+    class _WindowsSigkill(int):
+        name = "SIGKILL"
+
+    signal.SIGKILL = _WindowsSigkill(9)  # type: ignore[attr-defined]
+
+
 _SPAWN_ENV_LOCK = threading.Lock()
+
+
+def _process_group_id(pid: Optional[int] = None) -> int:
+    """Return a POSIX process group id, or the process id on Windows."""
+    if pid is None:
+        getpgrp = getattr(os, "getpgrp", None)
+        return int(getpgrp()) if getpgrp is not None else int(os.getpid())
+    getpgid = getattr(os, "getpgid", None)
+    return int(getpgid(int(pid))) if getpgid is not None else int(pid)
 
 
 def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any]:
@@ -21,7 +37,7 @@ def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any
         "cuda_device_count": 0,
         "cuda_devices": [],
         "process_id": int(os.getpid()),
-        "process_group_id": int(os.getpgrp()),
+        "process_group_id": _process_group_id(),
         "child_processes": [],
         "os_child_process_ids": [],
     }
@@ -887,7 +903,7 @@ class VLLMActorClient:
         if actor_pgid is not None:
             for pid in historical:
                 try:
-                    if os.getpgid(pid) == int(actor_pgid):
+                    if _process_group_id(pid) == int(actor_pgid):
                         verified_historical.add(pid)
                 except (OSError, ProcessLookupError):
                     continue
@@ -928,7 +944,7 @@ class VLLMActorClient:
         actor_pid = getattr(process, "pid", None)
         if actor_pid is not None:
             try:
-                actor_pgid = int(os.getpgid(int(actor_pid)))
+                actor_pgid = _process_group_id(int(actor_pid))
             except (OSError, ProcessLookupError):
                 pass
         graceful_acknowledged = False
@@ -1012,10 +1028,11 @@ class VLLMActorClient:
     @staticmethod
     def _terminate_actor_group(process, sig: signal.Signals) -> None:
         pid = getattr(process, "pid", None)
-        if pid:
+        killpg = getattr(os, "killpg", None)
+        if pid and killpg is not None:
             try:
-                if os.getpgid(pid) == pid:
-                    os.killpg(pid, sig)
+                if _process_group_id(pid) == pid:
+                    killpg(pid, sig)
                     return
             except (OSError, ProcessLookupError):
                 pass

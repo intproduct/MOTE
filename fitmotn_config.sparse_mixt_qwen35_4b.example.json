@@ -1,0 +1,41 @@
+{
+  "model": {
+    "model_path": "${MODEL_ROOT}/Qwen3.5-4B",
+    "layers_to_patch": "last_quarter",
+    "device": "cuda:0",
+    "use_amp": true,
+    "torch_dtype": "bfloat16",
+    "trust_remote_code": true,
+    "patch_backend": "sparse_mixt",
+    "E": 16,
+    "d": 2,
+    "k_in": 8,
+    "topk": 8,
+    "gate_type": "topk",
+    "pos_strategy": "random",
+    "global_expert_enabled": true,
+    "global_expert_weight": 1.0,
+    "sparse_mixt": {
+      "backend_version": 1,
+      "hidden_main": 2048,
+      "intermediate_main": 8192,
+      "router_input_policy": "main",
+      "boundary_init": "randomized_svd",
+      "svd_oversampling": 16,
+      "svd_niter": 2,
+      "gate_ranks": {"01": 128, "10": 64, "11": 64},
+      "up_ranks": {"01": 128, "10": 64, "11": 64},
+      "down_ranks": {"01": 64, "10": 128, "11": 64}
+    }
+  },
+  "approx_init": {
+    "enabled": true,
+    "mode": "identity",
+    "subset_mode": "all",
+    "steps_per_proj": 200
+  },
+  "output": {
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
+    "run_name": "qwen35_4b_sparse_mixt_v3"
+  }
+}

@@ -7,11 +7,11 @@ from typing import Any, Dict, Iterable, List
 import torch as tc
 import torch.nn as nn
 from .baselines.adtn_fixed import ADTNBaselineFFNLayer
-from .model import MOTNFFNLayer
+from .model import MOTNFFNLayer, SparseMiXTFFNLayer
 
 
 PROJ_NAMES = ("gate_proj", "up_proj", "down_proj")
-PATCHED_FFN_TYPES = (MOTNFFNLayer, ADTNBaselineFFNLayer)
+PATCHED_FFN_TYPES = (MOTNFFNLayer, SparseMiXTFFNLayer, ADTNBaselineFFNLayer)
 
 
 def resolve_layer_idxs(n_layers: int, mode: str) -> List[int]:
@@ -79,6 +79,8 @@ def patch_qwen_ffn_layers(model: nn.Module, layer_idxs: Iterable[int], motn_cfg:
         old_mlp = layer.mlp
         if patch_backend == "motn":
             layer.mlp = MOTNFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
+        elif patch_backend == "sparse_mixt":
+            layer.mlp = SparseMiXTFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
         elif patch_backend == "adtn_fixed":
             layer.mlp = ADTNBaselineFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
         else:
@@ -129,7 +131,7 @@ def iter_patched_motn_layers(model: nn.Module):
 
 
 def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = None) -> Dict[str, Any]:
-    if str(patch_backend or "motn").lower() != "motn":
+    if str(patch_backend or "motn").lower() not in {"motn", "sparse_mixt"}:
         return {
             "gate_arch": None,
             "gate_hidden_dim": None,
@@ -149,7 +151,7 @@ def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = No
     block_params = 0
     resolved_by_proj: Dict[str, set] = {name: set() for name in PROJ_NAMES}
     for _, module in iter_patched_layers(model):
-        if not isinstance(module, MOTNFFNLayer):
+        if not isinstance(module, (MOTNFFNLayer, SparseMiXTFFNLayer)):
             continue
         for name in PROJ_NAMES:
             proj = getattr(module, name, None)
@@ -363,6 +365,8 @@ def build_patch_model_config(cfg) -> Dict[str, Any]:
         "warmup_stride": cfg.model.warmup_stride,
         "dtype": tc.float32,
     }
+    if patch_backend == "sparse_mixt":
+        patch_cfg["sparse_mixt"] = dict(getattr(cfg.model, "sparse_mixt", {}) or {})
     if patch_backend == "adtn_fixed":
         return patch_cfg
     patch_cfg.update({

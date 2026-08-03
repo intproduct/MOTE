@@ -159,6 +159,7 @@ def _metadata_structure_summary(metadata: Dict[str, Any], layer_idxs: List[int],
         "target_layers": list(layer_idxs),
         "use_global_expert": motn_cfg.get("global_expert_enabled", model_cfg.get("global_expert_enabled")),
         "global_alpha": motn_cfg.get("global_expert_weight", model_cfg.get("global_expert_weight")),
+        "sparse_mixt": motn_cfg.get("sparse_mixt", model_cfg.get("sparse_mixt")),
     }
 
 
@@ -171,6 +172,7 @@ def _current_structure_summary(fit_cfg, layer_idxs: List[int]) -> Dict[str, Any]
         "target_layers": list(layer_idxs),
         "use_global_expert": getattr(fit_cfg.model, "global_expert_enabled", None),
         "global_alpha": getattr(fit_cfg.model, "global_expert_weight", None),
+        "sparse_mixt": getattr(fit_cfg.model, "sparse_mixt", None),
     }
 
 
@@ -204,6 +206,12 @@ def _validate_resume_structure(fit_cfg, metadata: Dict[str, Any], ckpt_layer_idx
             "global_expert_pos_strategy",
             getattr(fit_cfg.model, "global_expert_pos_strategy", None),
             motn_cfg.get("global_expert_pos_strategy"),
+        ),
+        (
+            "sparse_mixt",
+            "sparse_mixt",
+            getattr(fit_cfg.model, "sparse_mixt", None),
+            motn_cfg.get("sparse_mixt"),
         ),
     ]
     conflicts = []

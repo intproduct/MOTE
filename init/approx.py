@@ -101,6 +101,16 @@ def _configure_trainable_subset(motn_operator, active_block_indices: List[int]) 
             p.requires_grad_(enabled)
             if enabled:
                 params.append(p)
+    # SparseMiXT boundary residuals are part of the projection itself.  Include
+    # them in projection calibration while retaining the existing MoTN-only
+    # behavior for operators that do not define these branches.
+    for branch_name in ("lr01", "lr10", "lr11"):
+        branch = getattr(motn_operator, branch_name, None)
+        if branch is None:
+            continue
+        for p in branch.parameters():
+            p.requires_grad_(True)
+            params.append(p)
     return params
 
 
