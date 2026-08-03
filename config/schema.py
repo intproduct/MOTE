@@ -25,6 +25,18 @@ class ModelConfig:
         "up_ranks": {"01": 8, "10": 8, "11": 8},
         "down_ranks": {"01": 8, "10": 8, "11": 8},
     })
+    mixed_mixt: Dict[str, Any] = field(default_factory=lambda: {
+        "backend_version": 1,
+        "hidden_main": 0,
+        "intermediate_main": 0,
+        "router_input_policy": "full_real",
+        "dense_init": "none",
+        # Qwen3.5-4B defaults. Every value is a quadrant-specific k_in;
+        # k_out is derived from q_out = q_in - k_in + k_out.
+        "gate_bonds": {"m00": 8, "m01": 5, "m10": 6, "m11": 5},
+        "up_bonds": {"m00": 8, "m01": 5, "m10": 6, "m11": 5},
+        "down_bonds": {"m00": 10, "m01": 6, "m10": 8, "m11": 6},
+    })
 
     E: int = 16
     d: int = 2

@@ -43,12 +43,21 @@ def restore_fitmotn_model(
     model = patch_qwen_ffn_layers(model=model, layer_idxs=layer_idxs, motn_cfg=patch_cfg, device=tc.device(device), dtype=ref_dtype)
     state_dict = normalize_legacy_gate_state_dict_for_model(model, state_dict)
     incompatible = model.load_state_dict(state_dict, strict=False)
-    if patch_backend == "sparse_mixt":
-        prefixes = tuple(f"model.layers.{int(idx)}.mlp." for idx in layer_idxs)
+    if patch_backend in {"sparse_mixt", "mixed_mixt"}:
+        prefixes = tuple(
+            prefix
+            for idx in layer_idxs
+            for prefix in (
+                f"model.layers.{int(idx)}.mlp.",
+                f"model.language_model.layers.{int(idx)}.mlp.",
+                f"language_model.layers.{int(idx)}.mlp.",
+                f"layers.{int(idx)}.mlp.",
+            )
+        )
         missing_patch = [key for key in incompatible.missing_keys if key.startswith(prefixes)]
         if missing_patch or incompatible.unexpected_keys:
             raise RuntimeError(
-                "sparse_mixt checkpoint does not match the declared backend layout: "
+                f"{patch_backend} checkpoint does not match the declared backend layout: "
                 f"missing_patch={missing_patch[:20]}, unexpected={list(incompatible.unexpected_keys)[:20]}"
             )
     model.eval()

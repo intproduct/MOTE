@@ -7,11 +7,11 @@ from typing import Any, Dict, Iterable, List
 import torch as tc
 import torch.nn as nn
 from .baselines.adtn_fixed import ADTNBaselineFFNLayer
-from .model import MOTNFFNLayer, SparseMiXTFFNLayer
+from .model import MOTNFFNLayer, MixedMiXTFFNLayer, SparseMiXTFFNLayer
 
 
 PROJ_NAMES = ("gate_proj", "up_proj", "down_proj")
-PATCHED_FFN_TYPES = (MOTNFFNLayer, SparseMiXTFFNLayer, ADTNBaselineFFNLayer)
+PATCHED_FFN_TYPES = (MOTNFFNLayer, SparseMiXTFFNLayer, MixedMiXTFFNLayer, ADTNBaselineFFNLayer)
 
 
 def resolve_layer_idxs(n_layers: int, mode: str) -> List[int]:
@@ -65,9 +65,16 @@ def resolve_layer_idxs(n_layers: int, mode: str) -> List[int]:
 def resolve_transformer_layers(model: nn.Module):
     if hasattr(model, "model") and hasattr(model.model, "layers"):
         return model.model.layers
+    if hasattr(model, "model") and hasattr(model.model, "language_model") and hasattr(model.model.language_model, "layers"):
+        return model.model.language_model.layers
+    if hasattr(model, "language_model") and hasattr(model.language_model, "layers"):
+        return model.language_model.layers
     if hasattr(model, "layers"):
         return model.layers
-    raise TypeError("model does not have transformer layers at model.model.layers or model.layers")
+    raise TypeError(
+        "model does not have transformer layers at model.model.layers, "
+        "model.model.language_model.layers, model.language_model.layers, or model.layers"
+    )
 
 
 def patch_qwen_ffn_layers(model: nn.Module, layer_idxs: Iterable[int], motn_cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None) -> nn.Module:
@@ -81,6 +88,8 @@ def patch_qwen_ffn_layers(model: nn.Module, layer_idxs: Iterable[int], motn_cfg:
             layer.mlp = MOTNFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
         elif patch_backend == "sparse_mixt":
             layer.mlp = SparseMiXTFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
+        elif patch_backend == "mixed_mixt":
+            layer.mlp = MixedMiXTFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
         elif patch_backend == "adtn_fixed":
             layer.mlp = ADTNBaselineFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
         else:
@@ -131,7 +140,7 @@ def iter_patched_motn_layers(model: nn.Module):
 
 
 def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = None) -> Dict[str, Any]:
-    if str(patch_backend or "motn").lower() not in {"motn", "sparse_mixt"}:
+    if str(patch_backend or "motn").lower() not in {"motn", "sparse_mixt", "mixed_mixt"}:
         return {
             "gate_arch": None,
             "gate_hidden_dim": None,
@@ -151,7 +160,7 @@ def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = No
     block_params = 0
     resolved_by_proj: Dict[str, set] = {name: set() for name in PROJ_NAMES}
     for _, module in iter_patched_layers(model):
-        if not isinstance(module, (MOTNFFNLayer, SparseMiXTFFNLayer)):
+        if not isinstance(module, (MOTNFFNLayer, SparseMiXTFFNLayer, MixedMiXTFFNLayer)):
             continue
         for name in PROJ_NAMES:
             proj = getattr(module, name, None)
@@ -166,6 +175,13 @@ def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = No
             blocks = getattr(core, "blocks", None)
             if blocks is not None:
                 block_params += sum(p.numel() for p in blocks.parameters())
+            quadrants = getattr(core, "quadrants", None)
+            if quadrants is not None:
+                # m00 was already counted through the compatibility `blocks`
+                # view above; add the other three quadrants exactly once.
+                for quadrant_name in ("m01", "m10", "m11"):
+                    quadrant = quadrants[quadrant_name]
+                    block_params += sum(p.numel() for p in quadrant.blocks.parameters())
 
     if not routers:
         return {
@@ -367,6 +383,8 @@ def build_patch_model_config(cfg) -> Dict[str, Any]:
     }
     if patch_backend == "sparse_mixt":
         patch_cfg["sparse_mixt"] = dict(getattr(cfg.model, "sparse_mixt", {}) or {})
+    if patch_backend == "mixed_mixt":
+        patch_cfg["mixed_mixt"] = dict(getattr(cfg.model, "mixed_mixt", {}) or {})
     if patch_backend == "adtn_fixed":
         return patch_cfg
     patch_cfg.update({

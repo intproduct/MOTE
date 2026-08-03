@@ -9,13 +9,14 @@ import torch as tc
 import torch.nn as nn
 
 from ..audit import json_dump, jsonl_append, to_jsonable
-from ..patching import PROJ_NAMES, iter_patched_layers, resolve_operator_block_layout
+from ..patching import PROJ_NAMES, iter_patched_layers, resolve_operator_block_layout, resolve_transformer_layers
 
 
 def collect_dense_ffn_targets(model, layer_idxs) -> dict:
     targets = {}
+    layers = resolve_transformer_layers(model)
     for layer_idx in sorted(set(int(i) for i in layer_idxs)):
-        mlp = model.model.layers[layer_idx].mlp
+        mlp = layers[layer_idx].mlp
         targets[layer_idx] = {
             "gate_proj": mlp.gate_proj.weight.detach().cpu().float().clone(),
             "up_proj": mlp.up_proj.weight.detach().cpu().float().clone(),
@@ -78,10 +79,13 @@ def _reset_random_subset_scale(motn_operator, inactive_block_indices: List[int],
     scale = float(scale)
     if math.isclose(scale, 1.0):
         return
-    for idx in inactive_block_indices:
-        block = motn_operator.core.blocks[int(idx)]
-        for param in block.parameters():
-            param.mul_(scale)
+    quadrants = getattr(motn_operator.core, "quadrants", None)
+    block_groups = [quadrant.blocks for quadrant in quadrants.values()] if quadrants is not None else [motn_operator.core.blocks]
+    for blocks in block_groups:
+        for idx in inactive_block_indices:
+            block = blocks[int(idx)]
+            for param in block.parameters():
+                param.mul_(scale)
 
 
 def _configure_trainable_subset(motn_operator, active_block_indices: List[int]) -> List[nn.Parameter]:
@@ -91,16 +95,23 @@ def _configure_trainable_subset(motn_operator, active_block_indices: List[int]) 
     if gate is not None:
         for p in gate.parameters():
             p.requires_grad_(False)
-    global_block = getattr(motn_operator.core, "global_block", None)
-    if global_block is not None:
+    quadrants = getattr(motn_operator.core, "quadrants", None)
+    block_groups = [quadrant.blocks for quadrant in quadrants.values()] if quadrants is not None else [motn_operator.core.blocks]
+    global_blocks = (
+        [quadrant.global_block for quadrant in quadrants.values() if quadrant.global_block is not None]
+        if quadrants is not None
+        else [block for block in [getattr(motn_operator.core, "global_block", None)] if block is not None]
+    )
+    for global_block in global_blocks:
         for p in global_block.parameters():
             p.requires_grad_(False)
-    for idx, block in enumerate(motn_operator.core.blocks):
-        enabled = idx in active_set
-        for p in block.parameters():
-            p.requires_grad_(enabled)
-            if enabled:
-                params.append(p)
+    for blocks in block_groups:
+        for idx, block in enumerate(blocks):
+            enabled = idx in active_set
+            for p in block.parameters():
+                p.requires_grad_(enabled)
+                if enabled:
+                    params.append(p)
     # SparseMiXT boundary residuals are part of the projection itself.  Include
     # them in projection calibration while retaining the existing MoTN-only
     # behavior for operators that do not define these branches.
@@ -154,7 +165,12 @@ def fit_single_patch_operator_subset(patch_operator, target_weight, active_block
     if not params:
         raise ValueError("no trainable parameters found for active_block_indices")
 
-    global_block = getattr(patch_operator.core, "global_block", None)
+    quadrants = getattr(patch_operator.core, "quadrants", None)
+    global_blocks = (
+        [quadrant.global_block for quadrant in quadrants.values() if quadrant.global_block is not None]
+        if quadrants is not None
+        else [block for block in [getattr(patch_operator.core, "global_block", None)] if block is not None]
+    )
     try:
         device = next(patch_operator.parameters()).device
         target_weight = target_weight.detach().cpu().float()
@@ -256,7 +272,7 @@ def fit_single_patch_operator_subset(patch_operator, target_weight, active_block
             )
         return result
     finally:
-        if global_block is not None:
+        for global_block in global_blocks:
             for p in global_block.parameters():
                 p.requires_grad_(True)
 

@@ -55,7 +55,7 @@ def _has_patched_module(model: Any) -> bool:
 
         return any(isinstance(module, PATCHED_FFN_TYPES) for module in model.modules())
     except Exception:
-        names = {"MOTNFFNLayer", "SparseMiXTFFNLayer", "ADTNBaselineFFNLayer"}
+        names = {"MOTNFFNLayer", "SparseMiXTFFNLayer", "MixedMiXTFFNLayer", "ADTNBaselineFFNLayer"}
         return any(type(module).__name__ in names for module in model.modules())
 
 

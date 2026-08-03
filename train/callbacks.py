@@ -76,7 +76,8 @@ class MOTNScheduleCallback(TrainerCallback):
         self.stage_state.set_global_step(global_step)
         stage = self.stage_state.current_stage()
         patch_backend = self._patch_backend()
-        if patch_backend == "motn":
+        routed_backend = patch_backend in {"motn", "sparse_mixt", "mixed_mixt"}
+        if routed_backend:
             gate_trainable = int(global_step) >= int(train_cfg.gate_freeze_steps)
             if gate_trainable != self._gate_state:
                 set_motn_gate_trainable(model, gate_trainable)
@@ -200,7 +201,7 @@ class MOTNScheduleCallback(TrainerCallback):
                 stage_name=stage.name,
                 stage_start=stage.start_update,
                 current_t=current_t,
-                gate_trainable=None if self._patch_backend() != "motn" else (step >= int(self.fit_cfg.train.gate_freeze_steps)),
+                gate_trainable=None if self._patch_backend() not in {"motn", "sparse_mixt", "mixed_mixt"} else (step >= int(self.fit_cfg.train.gate_freeze_steps)),
                 lr=runtime.get("current_lr"),
                 epoch=getattr(state, "epoch", None),
                 loss=runtime.get("current_loss"),
