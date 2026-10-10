@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, List
 
 from ..config.schema import DataConfig
-from ..data.specs import HFChatTask, HFTextTask, TaskSpec
+from ..data.specs import HFChatTask, HFTextTask, LocalTokenShardTask, TaskSpec
 from ..runtime import normalize_hf_config
 
 
@@ -47,13 +47,21 @@ def build_extra_dataset_tasks(cfg: DataConfig, group: str | None = None, logger=
             "group": task_group,
             "bucket": str(ds.get("bucket", "extra_task") or "extra_task"),
             "source_family": str(ds.get("source_family", "generic") or "generic"),
-            "metadata": {"extra_dataset": True, "dataset_format": dataset_format, "source": source},
+            "metadata": {
+                "extra_dataset": True,
+                "dataset_format": dataset_format,
+                "source": source,
+                **dict(ds.get("metadata") or {}),
+            },
         }
-        if dataset_format == "text":
+        if dataset_format == "token_ids":
+            tasks.append(LocalTokenShardTask(**common))
+        elif dataset_format == "text":
             tasks.append(HFTextTask(text_field=str(ds.get("text_field", "text") or "text"), **common))
         else:
             tasks.append(
                 HFChatTask(
+                    supports_skip=True,
                     dataset_format=dataset_format,
                     text_field=ds.get("text_field"),
                     messages_field=ds.get("messages_field"),

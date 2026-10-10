@@ -24,6 +24,35 @@ from ..runtime import dtype_to_name, load_causal_lm_and_tokenizer
 ROUTER_GATE_TYPES = (TopKGate, SoftGate, _TopKGate, _SoftGate)
 
 
+def configure_rl_capacity_drop(
+    model: torch.nn.Module,
+    *,
+    disabled: bool,
+) -> Dict[str, Any]:
+    gate_count = 0
+    changed_count = 0
+    remaining_enabled = 0
+    for module in model.modules():
+        if not isinstance(module, ROUTER_GATE_TYPES) or not hasattr(module, "drop_tokens"):
+            continue
+        gate_count += 1
+        if disabled and bool(module.drop_tokens):
+            module.drop_tokens = False
+            changed_count += 1
+        if bool(module.drop_tokens):
+            remaining_enabled += 1
+    if disabled and remaining_enabled:
+        raise RuntimeError(
+            f"failed to disable capacity drop for {remaining_enabled}/{gate_count} RL router gates"
+        )
+    return {
+        "disabled": bool(disabled),
+        "gate_count": int(gate_count),
+        "changed_count": int(changed_count),
+        "remaining_enabled": int(remaining_enabled),
+    }
+
+
 @dataclass
 class RLPolicyLoadInfo:
     is_fitmotn: bool
@@ -69,6 +98,13 @@ def load_policy_for_rl(fit_cfg, resume_from: str | Path | None = None, logger: l
         if logger is not None:
             logger.info("[RLLoad] loaded dense model and applied FitMoTN patch model=%s layers=%s", target, layer_idxs)
 
+    disable_capacity_drop = bool(getattr(fit_cfg.rl, "disable_capacity_drop", False))
+    capacity_report = configure_rl_capacity_drop(model, disabled=disable_capacity_drop)
+    if disable_capacity_drop:
+        patch_cfg["drop_tokens"] = False
+    if logger is not None:
+        logger.info("[RLCapacity] %s", capacity_report)
+
     tokenizer.padding_side = "left"
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -96,10 +132,12 @@ def load_reference_for_rl(
     *,
     resume_from: str | Path | None = None,
 ):
-    if float(getattr(fit_cfg.rl, "beta", 0.0)) <= 0.0 or bool(getattr(fit_cfg.rl, "no_ref_model", True)):
+    if bool(getattr(fit_cfg.rl, "no_ref_model", True)):
         if logger is not None:
-            logger.info("[RLLoad] reference model disabled because beta<=0 or no_ref_model=true")
+            logger.info("[RLLoad] reference model disabled because no_ref_model=true")
         return None
+    if logger is not None and float(getattr(fit_cfg.rl, "beta", 0.0)) <= 0.0:
+        logger.info("[RLLoad] loading frozen reference for diagnostic KL only because beta<=0")
     ref_source = resume_from or getattr(fit_cfg.rl, "resume_from", None)
     ref_model, _, _ = load_policy_for_rl(fit_cfg, resume_from=ref_source, logger=logger)
     ref_model.eval()

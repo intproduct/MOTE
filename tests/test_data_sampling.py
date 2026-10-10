@@ -54,6 +54,18 @@ def test_sampler_resume_matches_uninterrupted_and_rejects_changed_data():
         DeterministicSequenceSampler.from_state(records + [{"id": 99}], state)
 
 
+def test_selected_count_and_statistics_do_not_rebuild_shuffle_order():
+    records = [{"id": index} for index in range(100)]
+    sampler = DeterministicSequenceSampler(records, seed=13, namespace="stats", max_samples=17)
+
+    def fail_if_rebuilt(_epoch):
+        raise AssertionError("runtime statistics must not rebuild the global order")
+
+    sampler._build_global_order = fail_if_rebuilt
+    assert sampler.selected_count == 17
+    assert sampler.statistics()["selected_record_count"] == 17
+
+
 def test_source_epoch_limit_can_fail_closed_before_repeated_exposure():
     records = [{"id": index} for index in range(5)]
     sampler = DeterministicSequenceSampler(records, seed=1, namespace="bounded", max_epochs=1)

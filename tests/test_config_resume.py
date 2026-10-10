@@ -116,6 +116,7 @@ class ConfigResumeTests(unittest.TestCase):
         self.assertTrue(cfg.rl.skip_zero_advantage_updates)
         self.assertEqual(cfg.rl.max_zero_advantage_rollout_retries, 8)
         self.assertEqual(cfg.rl.zero_advantage_retry_action, "warn_continue")
+        self.assertEqual(cfg.rl.rollout_stop_sequences, [])
         self.assertIsNone(cfg.rl.resume_weights_from)
         self.assertIsNone(cfg.rl.resume_checkpoint_from)
         self.assertEqual(cfg.rl.checkpoint_keep_last_n, 3)

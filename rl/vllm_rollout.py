@@ -14,6 +14,7 @@ from .rollout_backends import (
     RolloutBatch,
     RolloutGenerationConfig,
     RolloutSyncResult,
+    build_compact_rollout_sequences,
     rollout_pad_token_id,
 )
 from .vllm_sync import SavePolicyCheckpointFn, VLLMPolicySyncManager
@@ -377,6 +378,14 @@ class VLLMRolloutBackend:
                 kwargs[key] = value
         if bool(getattr(rl_cfg, "vllm_disable_log_stats", True)):
             kwargs["disable_log_stats"] = True
+        enable_prefix_caching = getattr(rl_cfg, "vllm_enable_prefix_caching", None)
+        if enable_prefix_caching is not None:
+            kwargs["enable_prefix_caching"] = bool(enable_prefix_caching)
+        mamba_cache_mode = str(
+            getattr(rl_cfg, "vllm_mamba_cache_mode", None) or ""
+        ).strip()
+        if mamba_cache_mode:
+            kwargs["mamba_cache_mode"] = mamba_cache_mode
         # Subprocess actors select their device through an isolated
         # CUDA_VISIBLE_DEVICES and see the first assigned GPU as cuda:0.
         # Do not pass ``device`` to LLM: vLLM 0.19 no longer accepts it in
@@ -476,6 +485,10 @@ class VLLMRolloutBackend:
             model_path,
             tokenizer_path=tokenizer_path,
         )
+        if str(llm_kwargs.get("model_impl", "")).strip().lower() == "auto":
+            from .vllm_qwen35_native import register_qwen35_text_native
+
+            register_qwen35_text_native()
         try:
             self.llm = LLM(**llm_kwargs)
         except TypeError as exc:
@@ -712,6 +725,11 @@ class VLLMRolloutBackend:
             "temperature": float(generation_config.temperature),
             "top_p": float(generation_config.top_p),
         }
+        if generation_config.stop_sequences:
+            # Match the HF and static-vLLM rollout contracts. Without these
+            # strings a few-shot prompt can continue into another Question,
+            # causing the reward parser to score the wrong problem.
+            kwargs["stop"] = [str(value) for value in generation_config.stop_sequences]
         eos_token_id = getattr(tokenizer, "eos_token_id", None)
         if eos_token_id is not None:
             kwargs["stop_token_ids"] = [int(eos_token_id)]
@@ -1291,33 +1309,48 @@ class VLLMRolloutBackend:
         return [int(tok) for tok in list(token_ids)]
 
     @staticmethod
+    def _strip_trailing_stop_token_ids(
+        token_ids: Sequence[int],
+        *,
+        tokenizer,
+        stop_sequences: Sequence[str],
+    ) -> tuple[List[int], Optional[str]]:
+        """Remove a configured string stop marker retained by vLLM token_ids.
+
+        vLLM excludes a string stop marker from ``completion.text`` by default,
+        but its token-id output can retain the marker. RL uses token ids
+        directly, so leaving that suffix in place trains the policy to emit the
+        beginning of another problem even though generation stopped correctly.
+        """
+
+        result = [int(token) for token in token_ids]
+        candidates: List[tuple[str, List[int]]] = []
+        for value in stop_sequences:
+            stop = str(value)
+            encoded = tokenizer.encode(stop, add_special_tokens=False)
+            stop_ids = [int(token) for token in encoded]
+            if stop_ids:
+                candidates.append((stop, stop_ids))
+        candidates.sort(key=lambda item: len(item[1]), reverse=True)
+        for stop, stop_ids in candidates:
+            if len(result) >= len(stop_ids) and result[-len(stop_ids) :] == stop_ids:
+                return result[: -len(stop_ids)], stop
+        return result, None
+
+    @staticmethod
     def build_full_sequences_from_token_outputs(
         *,
         input_ids: torch.Tensor,
+        attention_mask: torch.Tensor,
         generated_token_ids: Sequence[Sequence[int]],
         pad_token_id: int,
-    ) -> tuple[torch.Tensor, List[int]]:
-        if int(input_ids.shape[0]) != len(generated_token_ids):
-            raise ValueError("input_ids and generated_token_ids must have the same batch size")
-        full_rows: List[torch.Tensor] = []
-        original_lens: List[int] = []
-        max_len = int(input_ids.shape[1]) + max((len(ids) for ids in generated_token_ids), default=0)
-        for row_idx, ids in enumerate(generated_token_ids):
-            suffix = torch.tensor(list(ids), dtype=input_ids.dtype, device=input_ids.device)
-            full = torch.cat([input_ids[row_idx], suffix], dim=0)
-            original_lens.append(int(full.numel()))
-            if int(full.numel()) < max_len:
-                pad = torch.full(
-                    (max_len - int(full.numel()),),
-                    int(pad_token_id),
-                    dtype=input_ids.dtype,
-                    device=input_ids.device,
-                )
-                full = torch.cat([full, pad], dim=0)
-            full_rows.append(full)
-        if not full_rows:
-            raise RuntimeError("No vLLM rollout rows were produced")
-        return torch.stack(full_rows, dim=0), original_lens
+    ) -> tuple[torch.Tensor, List[int], List[int], List[List[int]]]:
+        return build_compact_rollout_sequences(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            generated_token_ids=generated_token_ids,
+            pad_token_id=pad_token_id,
+        )
 
     def generate(
         self,
@@ -1387,11 +1420,27 @@ class VLLMRolloutBackend:
                     "vLLM returned an unexpected number of rollout rows: "
                     f"request_id={request_id}, expected={int(input_ids.shape[0])}, actual={len(outputs)}"
                 )
-            generated_ids = [self._extract_generated_ids(output) for output in outputs]
-            sequences, original_seq_lens = self.build_full_sequences_from_token_outputs(
-                input_ids=input_ids,
-                generated_token_ids=generated_ids,
-                pad_token_id=rollout_pad_token_id(tokenizer),
+            raw_generated_ids = [self._extract_generated_ids(output) for output in outputs]
+            stripped_rows = 0
+            stripped_reasons: Counter[str] = Counter()
+            generated_ids = []
+            for row_ids in raw_generated_ids:
+                clean_ids, stripped_reason = self._strip_trailing_stop_token_ids(
+                    row_ids,
+                    tokenizer=tokenizer,
+                    stop_sequences=generation_config.stop_sequences,
+                )
+                generated_ids.append(clean_ids)
+                if stripped_reason is not None:
+                    stripped_rows += 1
+                    stripped_reasons[stripped_reason] += 1
+            sequences, original_seq_lens, response_starts, response_token_ids = (
+                self.build_full_sequences_from_token_outputs(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    generated_token_ids=generated_ids,
+                    pad_token_id=rollout_pad_token_id(tokenizer),
+                )
             )
             generate_sec = max(0.0, time.perf_counter() - start)
             generated_tokens = int(sum(len(ids) for ids in generated_ids))
@@ -1433,6 +1482,8 @@ class VLLMRolloutBackend:
                     "vllm_generate_sec": generate_sec,
                     "vllm_num_prompts": int(len(prompts)),
                     "vllm_num_generated_tokens": generated_tokens,
+                    "vllm_stop_sequence_stripped_rows": int(stripped_rows),
+                    "vllm_stop_sequence_stripped_reasons": dict(sorted(stripped_reasons.items())),
                     "vllm_generated_tok_per_sec": (
                         float(generated_tokens) / generate_sec if generate_sec > 0.0 else None
                     ),
@@ -1441,7 +1492,8 @@ class VLLMRolloutBackend:
             return RolloutBatch(
                 sequences=sequences,
                 original_seq_lens=original_seq_lens,
-                response_start=int(input_ids.shape[1]),
+                response_starts=response_starts,
+                response_token_ids=response_token_ids,
                 metadata=metadata,
             )
         except Exception as exc:
@@ -1548,17 +1600,38 @@ class VLLMRolloutBackend:
                     "[VLLMTeardown] phase=actor_close_begin actors=%s",
                     len(clients),
                 )
-            with ThreadPoolExecutor(max_workers=max(1, len(clients))) as executor:
-                future_map = {
-                    executor.submit(client.close): name
-                    for name, client in clients.items()
-                }
-                for future in as_completed(future_map):
-                    name = str(future_map[future])
+            try:
+                with ThreadPoolExecutor(max_workers=max(1, len(clients))) as executor:
+                    future_map = {
+                        executor.submit(client.close): name
+                        for name, client in clients.items()
+                    }
+                    for future in as_completed(future_map):
+                        name = str(future_map[future])
+                        try:
+                            reports[name] = future.result()
+                        except Exception as exc:
+                            failures[name] = str(exc)
+            except RuntimeError as exc:
+                # Python shuts down the global thread-pool machinery before
+                # running late atexit callbacks. An uncaught training error
+                # can therefore reach this close path after new futures are
+                # forbidden. Fall back to per-actor force-close so EngineCore
+                # processes do not retain GPU memory.
+                if "cannot schedule new futures" not in str(exc):
+                    raise
+                if self.logger is not None:
+                    self.logger.warning(
+                        "[VLLMTeardown] thread pool unavailable during interpreter shutdown; "
+                        "falling back to sequential force-close"
+                    )
+                for name, client in clients.items():
+                    if name in reports:
+                        continue
                     try:
-                        reports[name] = future.result()
-                    except Exception as exc:
-                        failures[name] = str(exc)
+                        reports[name] = client.close(force=True)
+                    except Exception as close_exc:
+                        failures[name] = str(close_exc)
             if self.logger is not None:
                 self.logger.info(
                     "[VLLMTeardown] phase=actor_close_complete actors=%s failures=%s",

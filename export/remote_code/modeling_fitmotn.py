@@ -205,6 +205,10 @@ class FitMoTNModel(PreTrainedModel):
         # vLLM's Transformers backend requires `model.tp_plan` to be a dict
         # even for tensor_parallel_size=1.
         self.post_init()
+        # post_init may aggregate broad child ignore regexes (for example GPT2
+        # `attn.bias`) that also match real checkpoint parameters such as
+        # `c_attn.bias`.  vLLM applies this list globally, so clear it again.
+        self._keys_to_ignore_on_load_unexpected = None
 
     def load_state_dict(self, state_dict, strict: bool = True, assign: bool = False):
         state_dict = _remap_legacy_nested_keys(dict(state_dict))
@@ -257,8 +261,8 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
     def all_tied_weights_keys(self):
         tied = self._tied_weights_keys or {}
         if hasattr(tied, "keys"):
-            return list(tied.keys())
-        return list(tied)
+            return tied
+        return {str(key): True for key in tied}
 
     def forward(self, *args: Any, labels: torch.Tensor | None = None, return_dict: bool | None = None, **kwargs: Any):
         return_dict = return_dict if return_dict is not None else getattr(self.config, "use_return_dict", True)
@@ -316,7 +320,7 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
             return self.model.get_decoder()
         return self.model
 
-    def tie_weights(self):
+    def tie_weights(self, *args: Any, **kwargs: Any):
         # Transformers calls tie_weights() after from_pretrained() even when
         # the architecture declares an untied output head.  Respect the base
         # model contract here: otherwise a correctly loaded independent

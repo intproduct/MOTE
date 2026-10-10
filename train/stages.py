@@ -85,12 +85,13 @@ def build_stage_plan(cfg: TrainConfig) -> StagePlan:
         and bool(getattr(cfg, "stage2_only_on_resume", True))
         and resume_stage in {"auto", "stage_b"}
     )
-    if stage2_only_resume:
+    stage_a_ratio = float(cfg.stage_a_ratio)
+    if stage2_only_resume or stage_a_ratio <= 0.0:
         stage_a_updates = 0
         stage_b_updates = total_updates
         stages: List[StageDefinition] = []
     else:
-        stage_a_updates = max(1, int(round(total_updates * float(cfg.stage_a_ratio))))
+        stage_a_updates = max(1, int(round(total_updates * stage_a_ratio)))
         stage_b_updates = max(0, total_updates - stage_a_updates)
         stages = [
             StageDefinition(
@@ -203,16 +204,42 @@ def resolved_stage_lr_summary(cfg: TrainConfig) -> Dict[str, float | bool | None
     }
 
 
-def set_optimizer_stage_lrs(optimizer, cfg: TrainConfig, stage_name: str) -> Dict[str, float]:
+def set_optimizer_stage_lrs(
+    optimizer,
+    cfg: TrainConfig,
+    stage_name: str,
+    *,
+    lr_scheduler=None,
+    preserve_scheduler_scale: bool = False,
+) -> Dict[str, float]:
     resolved = resolve_stage_lrs(cfg, stage_name)
     if optimizer is None:
         return resolved
     for idx, group in enumerate(getattr(optimizer, "param_groups", [])):
         name = str(group.get("name") or f"group_{idx}")
         if name in resolved:
-            group["lr"] = float(resolved[name])
-            group["initial_lr"] = float(resolved[name])
-    return resolved
+            target_base_lr = float(resolved[name])
+            if preserve_scheduler_scale and lr_scheduler is not None:
+                scheduler_base_lrs = getattr(lr_scheduler, "base_lrs", None)
+                old_base_lr = (
+                    float(scheduler_base_lrs[idx])
+                    if scheduler_base_lrs is not None and idx < len(scheduler_base_lrs)
+                    else float(group.get("initial_lr", group["lr"]))
+                )
+                scale = float(group["lr"]) / old_base_lr if old_base_lr != 0.0 else 1.0
+                group["lr"] = target_base_lr * scale
+                if scheduler_base_lrs is not None and idx < len(scheduler_base_lrs):
+                    scheduler_base_lrs[idx] = target_base_lr
+            else:
+                group["lr"] = target_base_lr
+            group["initial_lr"] = target_base_lr
+    if preserve_scheduler_scale and lr_scheduler is not None and hasattr(lr_scheduler, "_last_lr"):
+        lr_scheduler._last_lr = [float(group["lr"]) for group in optimizer.param_groups]
+    return {
+        str(group.get("name") or f"group_{idx}"): float(group["lr"])
+        for idx, group in enumerate(getattr(optimizer, "param_groups", []))
+        if str(group.get("name") or f"group_{idx}") in resolved
+    }
 
 
 def resolve_stage_temperature_bounds(cfg: TrainConfig, stage_name: str) -> tuple[float, float]:

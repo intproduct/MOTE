@@ -15,7 +15,13 @@ if "MOTE" not in sys.modules:
     mote_pkg.__path__ = [str(ROOT)]
     sys.modules["MOTE"] = mote_pkg
 
-from MOTE.rl.vllm_actor import VLLMActorClient, _engine_topology_snapshot, _handle_actor_request
+from MOTE.rl.vllm_actor import (
+    VLLMActorClient,
+    _actor_process_environment,
+    _engine_topology_snapshot,
+    _handle_actor_request,
+    _runtime_checksums_match,
+)
 import MOTE.rl.vllm_actor as vllm_actor_module
 from MOTE.config.loader import load_config_from_json
 
@@ -46,6 +52,30 @@ def test_actor_reads_runtime_tensor_parallel_topology():
     assert result["observed_tensor_parallel_size"] == 2
     assert result["tensor_parallel_verified"] is True
     assert result["source"] == "llm.llm_engine.vllm_config.parallel_config"
+
+
+def test_runtime_checksum_rejects_small_but_real_stale_policy_delta():
+    expected = {"patch.weight": 10.0}
+    assert _runtime_checksums_match(expected, {"patch.weight": 10.0}) is True
+    assert _runtime_checksums_match(expected, {"patch.weight": 10.0005}) is False
+    assert _runtime_checksums_match(expected, {}) is False
+
+
+def test_actor_forces_spawn_for_nested_vllm_workers(monkeypatch, tmp_path):
+    monkeypatch.setenv("TRITON_CACHE_DIR", str(tmp_path / "triton"))
+    environment = _actor_process_environment(["2"])
+    assert environment["CUDA_VISIBLE_DEVICES"] == "2"
+    assert environment["VLLM_WORKER_MULTIPROC_METHOD"] == "spawn"
+    assert environment["TRITON_CACHE_DIR"] == str(tmp_path / "triton" / "actor-gpu-2")
+
+
+def test_actor_triton_cache_is_isolated_by_gpu_assignment(monkeypatch, tmp_path):
+    monkeypatch.setenv("TRITON_CACHE_DIR", str(tmp_path / "triton"))
+    actor_one = _actor_process_environment(["1"])
+    actor_two = _actor_process_environment(["2"])
+    actor_tp = _actor_process_environment(["GPU-a", "GPU-c"])
+    assert actor_one["TRITON_CACHE_DIR"] != actor_two["TRITON_CACHE_DIR"]
+    assert actor_tp["TRITON_CACHE_DIR"].endswith("actor-gpu-GPU-a_GPU-c")
 
 
 def test_actor_protocol_load_generate_unload(monkeypatch):
@@ -431,6 +461,29 @@ def test_actor_ping_does_not_probe_cuda_runtime(monkeypatch):
 
     assert probes == [False]
     assert result["actor_resources"]["cuda_runtime_probe_deferred"] is True
+
+
+def test_actor_reads_selected_checksums_through_safe_string_rpc():
+    calls = {}
+
+    class FakeLLM:
+        def collective_rpc(self, method, kwargs):
+            calls["method"] = method
+            calls["kwargs"] = kwargs
+            return [{"checksums": {"weight": 10.0}, "missing": []}]
+
+    result = vllm_actor_module._collect_engine_selected_checksums(
+        FakeLLM(), ["weight"]
+    )
+
+    assert result["available"] is True
+    assert result["source"] == "llm.collective_rpc"
+    assert result["checksums"] == {"weight": 10.0}
+    assert result["missing"] == []
+    assert calls == {
+        "method": "_fitmotn_selected_parameter_checksums",
+        "kwargs": {"names": ["weight"]},
+    }
 
 
 def test_actor_protocol_rejects_policy_provenance_mismatch(monkeypatch):

@@ -53,6 +53,36 @@ class StageResumeTests(unittest.TestCase):
         self.assertEqual(plan.stages[0].start_update, 0)
         self.assertEqual(plan.stages[0].end_update, 10)
 
+    def test_zero_stage_a_ratio_disables_stage_a_for_exact_continuation(self):
+        cfg = make_default_config()
+        cfg.train.epochs = 0
+        cfg.train.steps = 3000
+        cfg.train.resume_checkpoint_from = "/tmp/checkpoint-2000"
+        cfg.train.resume_stage = "stage_b"
+        cfg.train.stage2_only_on_resume = True
+        cfg.train.stage_a_ratio = 0.0
+        cfg = _finalize_train_config(
+            cfg,
+            {
+                "epochs",
+                "steps",
+                "resume_checkpoint_from",
+                "resume_stage",
+                "stage2_only_on_resume",
+                "stage_a_ratio",
+            },
+        )
+
+        plan = build_stage_plan(cfg.train)
+
+        self.assertEqual(plan.total_updates, 3000)
+        self.assertEqual(plan.stage_a_updates, 0)
+        self.assertEqual(plan.stage_b_updates, 3000)
+        self.assertEqual(len(plan.stages), 1)
+        self.assertTrue(plan.stages[0].name.startswith("stage_b_"))
+        self.assertEqual(plan.stages[0].start_update, 0)
+        self.assertEqual(plan.stages[0].end_update, 3000)
+
     def test_exact_resume_preserves_original_full_stage_plan(self):
         cfg = make_default_config()
         cfg.train.epochs = 0

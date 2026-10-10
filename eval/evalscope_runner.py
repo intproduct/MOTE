@@ -245,7 +245,7 @@ def run_evalscope_tasks(
             return _make_skipped_backend_result(eval_name, eval_mode, tasks, str(exc), warnings)
         raise
 
-    output_root = out_root if out_root is not None else "${OUTPUT_ROOT}/evalscope_outputs"
+    output_root = out_root if out_root is not None else Path(fit_cfg.output.root_dir) / "evalscope_outputs"
     output_dir = Path(resolve_path(str(output_root), key="eval.evalscope.output_root", source="config", cfg=fit_cfg, allow_none=False)) / eval_name
     output_dir.mkdir(parents=True, exist_ok=True)
     task_to_result: Dict[str, Any] = {}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Sequence
 
 import torch
 import torch.nn.functional as F
@@ -26,9 +26,10 @@ def gather_response_logprobs(
     input_ids: torch.Tensor,
     attention_mask: torch.Tensor,
     response_mask: torch.Tensor,
-    response_start: Optional[int] = None,
+    response_start: Optional[int | Sequence[int]] = None,
     use_logits_to_keep: bool = True,
-) -> torch.Tensor:
+    return_entropy: bool = False,
+) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
     """Return per-token logprobs aligned to input_ids positions.
 
     For a causal LM, logits at position j-1 predict token input_ids[j]. This
@@ -47,30 +48,50 @@ def gather_response_logprobs(
             f"got {tuple(input_ids.shape)}, {tuple(attention_mask.shape)}, {tuple(response_mask.shape)}"
         )
     seq_len = int(input_ids.shape[1])
+    uniform_response_start: Optional[int] = None
     if response_start is not None:
-        response_start = int(response_start)
-        if response_start < 1 or response_start > seq_len:
-            raise ValueError(f"response_start must be in [1, {seq_len}], got {response_start}")
-        keep_len = seq_len - response_start + 1
+        if isinstance(response_start, int):
+            starts = [int(response_start)] * int(input_ids.shape[0])
+        else:
+            starts = [int(value) for value in response_start]
+            if len(starts) != int(input_ids.shape[0]):
+                raise ValueError(
+                    f"response_start must contain {int(input_ids.shape[0])} values, got {len(starts)}"
+                )
+        for value in starts:
+            if value < 1 or value > seq_len:
+                raise ValueError(f"response_start must be in [1, {seq_len}], got {value}")
+        if len(set(starts)) == 1:
+            uniform_response_start = starts[0]
+
+    if uniform_response_start is not None:
+        keep_len = seq_len - uniform_response_start + 1
         outputs = _forward_with_optional_logits_to_keep(model, input_ids, attention_mask, keep_len, bool(use_logits_to_keep))
     else:
         outputs = model(input_ids=input_ids, attention_mask=attention_mask, use_cache=False)
     logits = outputs.logits
 
-    if response_start is None:
+    if response_start is None or uniform_response_start is None:
         if logits.shape[:2] != input_ids.shape:
             raise ValueError(f"logits shape {tuple(logits.shape)} is incompatible with input_ids {tuple(input_ids.shape)}")
         shifted_logits = logits[:, :-1, :].to(torch.float32)
         shifted_labels = input_ids[:, 1:]
         response_offset = 1
     else:
-        target_len = seq_len - int(response_start)
+        response_start = int(uniform_response_start)
+        target_len = seq_len - response_start
         if target_len <= 0:
-            aligned = torch.zeros(input_ids.shape, dtype=torch.float32, device=input_ids.device)
+            # A rollout may legitimately stop before producing a response token.
+            # Keep a zero-valued connection to the model output so a size-one
+            # log-prob microbatch remains safe to backpropagate while contributing
+            # exactly zero policy/KL gradient.
+            graph_zero = logits.to(torch.float32).sum() * 0.0
+            aligned = torch.zeros(input_ids.shape, dtype=torch.float32, device=input_ids.device) + graph_zero
             effective_mask = (response_mask.to(dtype=torch.bool) & attention_mask.to(dtype=torch.bool)).to(dtype=aligned.dtype)
             if effective_mask.shape[1] > 0:
                 effective_mask[:, 0] = 0.0
-            return aligned * effective_mask
+            masked = aligned * effective_mask
+            return (masked, masked.detach()) if return_entropy else masked
         if int(logits.shape[1]) == seq_len:
             shifted_logits = logits[:, int(response_start) - 1 : -1, :].to(torch.float32)
         elif int(logits.shape[1]) >= target_len:
@@ -96,4 +117,11 @@ def gather_response_logprobs(
     effective_mask = (response_mask.to(dtype=torch.bool) & attention_mask.to(dtype=torch.bool)).to(dtype=aligned.dtype)
     if effective_mask.shape[1] > 0:
         effective_mask[:, 0] = 0.0
-    return aligned * effective_mask
+    masked_logprobs = aligned * effective_mask
+    if not return_entropy:
+        return masked_logprobs
+    detached_logprobs = shifted_logprobs.detach()
+    gathered_entropy = -(detached_logprobs.exp() * detached_logprobs).sum(dim=-1)
+    aligned_entropy = gathered_entropy.new_zeros(input_ids.shape, dtype=torch.float32)
+    aligned_entropy[:, response_offset:] = gathered_entropy
+    return masked_logprobs, aligned_entropy * effective_mask

@@ -79,8 +79,9 @@ class FakeModel:
 
 
 def test_lm_eval_chat_runtime_kwargs_and_summary_are_recorded(tmp_path, monkeypatch):
-    monkeypatch.setenv("OUTPUT_ROOT", str(tmp_path / "outputs"))
+    monkeypatch.delenv("OUTPUT_ROOT", raising=False)
     cfg = make_default_config()
+    cfg.output.root_dir = str(tmp_path / "configured_outputs")
     cfg.eval.runtime.apply_chat_template = True
     cfg.eval.runtime.enable_thinking = False
     cfg.eval.runtime.system_instruction = "sys"
@@ -103,3 +104,4 @@ def test_lm_eval_chat_runtime_kwargs_and_summary_are_recorded(tmp_path, monkeypa
     assert FakeEvaluator.last_kwargs["system_instruction"] == "sys"
     assert result["summary"]["gsm8k"]["apply_chat_template"] is True
     assert result["summary"]["gsm8k"]["enable_thinking"] is False
+    assert result["tasks"]["gsm8k"]["output_dir"].startswith(str(tmp_path / "configured_outputs" / "lm_eval_outputs"))

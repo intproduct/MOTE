@@ -104,7 +104,7 @@ def run_lm_eval_tasks(model, tokenizer, fit_cfg, tasks: List[str], logger=None, 
     evaluator, _ = import_lm_eval()
     simple_supported = _supported_param_names(evaluator.simple_evaluate)
     model.eval()
-    output_root = out_root if out_root is not None else "${OUTPUT_ROOT}/lm_eval_outputs"
+    output_root = out_root if out_root is not None else Path(fit_cfg.output.root_dir) / "lm_eval_outputs"
     output_dir = Path(resolve_path(str(output_root), key="eval.lm_eval.output_root", source="config", cfg=fit_cfg, allow_none=False)) / eval_name
     output_dir.mkdir(parents=True, exist_ok=True)
     task_to_result: Dict[str, Any] = {}

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import torch
 
-from MOTE.checkpointing import (
+from fitmotn.checkpointing import (
     CHECKPOINT_MANIFEST_NAME,
     RL_TRAINING_STATE_NAME,
     cleanup_checkpoint_transactions,
@@ -20,13 +20,13 @@ from MOTE.checkpointing import (
     validate_checkpoint,
     write_checkpoint_manifest,
 )
-from MOTE.train.rl_controller import (
+from fitmotn.train.rl_controller import (
     _capture_rl_training_state,
     _load_rl_training_state,
     _restore_rl_rng_state,
     _save_rl_model_artifacts,
 )
-from MOTE.rl.runtime import RLPolicyLoadInfo
+from fitmotn.rl.runtime import RLPolicyLoadInfo
 
 
 def _write_sft_checkpoint(path: Path, *, step: int, boundary: bool = False) -> None:
@@ -373,7 +373,7 @@ class SFTExactResumeIntegrationTests(unittest.TestCase):
     def _train(self, output_dir: Path, model, *, resume_from=None):
         from transformers import TrainingArguments
 
-        from MOTE.train.trainer import FitMoTNTrainer
+        from fitmotn.train.trainer import FitMoTNTrainer
 
         policy = types.SimpleNamespace(
             checkpoint_fail_on_save_error=True,

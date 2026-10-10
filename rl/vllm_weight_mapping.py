@@ -13,6 +13,9 @@ MOTN_REQUIRED_CHILDREN = (
     "core.gate.router",
     "core.blocks",
     "core.global_block",
+    "lr01",
+    "lr10",
+    "lr11",
 )
 
 

@@ -7,7 +7,8 @@ import torch as tc
 import torch.nn as nn
 
 from .ADTN import MoTNLayer, block_init_stats_are_usable, dense_weight_init_stats
-from .gate import GateConfig
+from .gate import gate_config_from_mapping
+from .sparse_mixt import SparseMiXTLinear, resolve_main_dim
 
 
 def unwrap_y(out):
@@ -43,33 +44,7 @@ def _log_projection_block_init(log, *, layer_idx: int, proj_name: str, backend: 
 
 
 def build_motn_layer(*, in_dim: int, out_dim: int, cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None, init_stats=None) -> MoTNLayer:
-    gate_cfg = GateConfig(
-        gate_type=str(cfg["gate_type"]),
-        data_dim=int(in_dim),
-        num_experts=int(cfg["E"]),
-        k=int(cfg["topk"]),
-        temperature=float(cfg.get("temperature", 1.0)),
-        use_ste=bool(cfg.get("use_ste", True)),
-        jitter_eps=float(cfg.get("jitter_eps", 0.0)),
-        capacity_factor=float(cfg.get("capacity_factor", 1.0)),
-        min_capacity=int(cfg.get("min_capacity", 8)),
-        drop_tokens=bool(cfg.get("drop_tokens", True)),
-        drop_policy=str(cfg.get("drop_policy", "probs")),
-        aux_coeff=float(cfg.get("aux_coeff", 1e-2)),
-        zloss_coeff=float(cfg.get("zloss_coeff", 0.0)),
-        aux_mode=str(cfg.get("aux_mode", "ds")),
-        gate_arch=str(cfg.get("gate_arch", "linear")),
-        gate_hidden_dim=int(cfg.get("gate_hidden_dim", 0)),
-        gate_hidden_mult=float(cfg.get("gate_hidden_mult", 0.0625)),
-        gate_hidden_min=int(cfg.get("gate_hidden_min", 64)),
-        gate_hidden_max=int(cfg.get("gate_hidden_max", 256)),
-        gate_activation=str(cfg.get("gate_activation", "silu")),
-        gate_norm=str(cfg.get("gate_norm", "none")),
-        gate_dropout=float(cfg.get("gate_dropout", 0.0)),
-        gate_mlp_bias=bool(cfg.get("gate_mlp_bias", True)),
-        gate_output_init_std=float(cfg.get("gate_output_init_std", 1e-3)),
-        gate_residual_delta_scale=float(cfg.get("gate_residual_delta_scale", 1.0)),
-    )
+    gate_cfg = gate_config_from_mapping(cfg, data_dim=in_dim)
     motn = MoTNLayer(
         in_dim,
         out_dim,
@@ -221,4 +196,134 @@ class MOTNFFNLayer(nn.Module):
         u = self._forward_proj_with_scaling(self.up_proj, x, "up_proj")
         h = self.act(g) * u
         y = self._forward_proj_with_scaling(self.down_proj, h, "down_proj")
+        return y.to(dtype=in_dtype)
+
+
+def _projection_ranks(sparse_cfg: Dict[str, Any], proj_name: str) -> Dict[str, int]:
+    default_ranks = dict(sparse_cfg.get("ranks") or {"01": 8, "10": 8, "11": 8})
+    projection = dict(sparse_cfg.get(f"{proj_name}_ranks") or default_ranks)
+    missing = [key for key in ("01", "10", "11") if key not in projection]
+    if missing:
+        raise ValueError(f"sparse_mixt.{proj_name}_ranks is missing keys: {missing}")
+    return {key: int(projection[key]) for key in ("01", "10", "11")}
+
+
+class SparseMiXTFFNLayer(MOTNFFNLayer):
+    """Qwen FFN using real-dimension SparseMiXTLinear projections."""
+
+    def __init__(self, qwen_mlp: nn.Module, cfg: Dict[str, Any], device: tc.device, dtype=tc.float32, log=None, layer_idx: int = -1):
+        nn.Module.__init__(self)
+        if not (hasattr(qwen_mlp, "gate_proj") and hasattr(qwen_mlp, "up_proj") and hasattr(qwen_mlp, "down_proj")):
+            raise TypeError(f"qwen_mlp does not look like QwenMLP, got: {type(qwen_mlp)}")
+        self.hidden_size = int(qwen_mlp.gate_proj.in_features)
+        self.intermediate_size = int(qwen_mlp.gate_proj.out_features)
+        self.act = getattr(qwen_mlp, "act_fn", None) or nn.SiLU()
+        self.logger = log
+        self.layer_idx = int(layer_idx)
+        self.fitmotn_block_layout = {}
+        self.fitmotn_expert_warmup_state = {"enabled": False}
+
+        sparse_cfg = dict(cfg.get("sparse_mixt") or {})
+        d = int(cfg.get("d", 2))
+        hidden_main = resolve_main_dim(self.hidden_size, int(sparse_cfg.get("hidden_main", 0)), d)
+        intermediate_main = resolve_main_dim(
+            self.intermediate_size,
+            int(sparse_cfg.get("intermediate_main", 0)),
+            d,
+        )
+        router_input_policy = str(sparse_cfg.get("router_input_policy", "main"))
+        block_init_mode = str(cfg.get("block_init_mode", "gamma_normal") or "gamma_normal").strip().lower()
+        init_stats = None
+        if block_init_mode != "gamma_normal":
+            init_stats = {
+                "gate_proj": dense_weight_init_stats(qwen_mlp.gate_proj.weight),
+                "up_proj": dense_weight_init_stats(qwen_mlp.up_proj.weight),
+                "down_proj": dense_weight_init_stats(qwen_mlp.down_proj.weight),
+            }
+            for proj_name, stats in init_stats.items():
+                _log_projection_block_init(log, layer_idx=layer_idx, proj_name=proj_name, backend="sparse_mixt", cfg=cfg, stats=stats)
+
+        common = dict(cfg=cfg, router_input_policy=router_input_policy, dtype=dtype, device=device)
+        self.gate_proj = SparseMiXTLinear(
+            self.hidden_size,
+            self.intermediate_size,
+            ranks=_projection_ranks(sparse_cfg, "gate"),
+            main_in_features=hidden_main,
+            main_out_features=intermediate_main,
+            init_stats=None if init_stats is None else init_stats["gate_proj"],
+            **common,
+        )
+        self.up_proj = SparseMiXTLinear(
+            self.hidden_size,
+            self.intermediate_size,
+            ranks=_projection_ranks(sparse_cfg, "up"),
+            main_in_features=hidden_main,
+            main_out_features=intermediate_main,
+            init_stats=None if init_stats is None else init_stats["up_proj"],
+            **common,
+        )
+        down_cfg = dict(cfg)
+        down_cfg["k_in"] = int(self.gate_proj.core.k_out)
+        self.down_proj = SparseMiXTLinear(
+            self.intermediate_size,
+            self.hidden_size,
+            cfg=down_cfg,
+            ranks=_projection_ranks(sparse_cfg, "down"),
+            main_in_features=intermediate_main,
+            main_out_features=hidden_main,
+            router_input_policy=router_input_policy,
+            dtype=dtype,
+            device=device,
+            init_stats=None if init_stats is None else init_stats["down_proj"],
+        )
+
+        boundary_init = str(sparse_cfg.get("boundary_init", "zero")).lower()
+        if boundary_init in {"svd", "full_svd", "randomized_svd"}:
+            method = "full_svd" if boundary_init == "svd" else boundary_init
+            init_kwargs = {
+                "boundary_method": method,
+                "svd_oversampling": int(sparse_cfg.get("svd_oversampling", 8)),
+                "svd_niter": int(sparse_cfg.get("svd_niter", 2)),
+            }
+            self.gate_proj.initialize_from_dense_weight(qwen_mlp.gate_proj.weight, **init_kwargs)
+            self.up_proj.initialize_from_dense_weight(qwen_mlp.up_proj.weight, **init_kwargs)
+            self.down_proj.initialize_from_dense_weight(qwen_mlp.down_proj.weight, **init_kwargs)
+        elif boundary_init != "zero":
+            raise ValueError(f"unsupported sparse_mixt.boundary_init={boundary_init!r}")
+
+        if log is not None:
+            log.info(
+                f"[SparseMiXT] layer={layer_idx} hidden={self.hidden_size}={hidden_main}+{self.hidden_size-hidden_main} "
+                f"intermediate={self.intermediate_size}={intermediate_main}+{self.intermediate_size-intermediate_main} "
+                f"router={router_input_policy}"
+            )
+
+    def _forward_proj_with_scaling(self, proj: SparseMiXTLinear, x: tc.Tensor, proj_name: str) -> tc.Tensor:
+        warmup_state = self.fitmotn_expert_warmup_state if isinstance(self.fitmotn_expert_warmup_state, dict) else {}
+        proj_state = warmup_state.get(proj_name) if isinstance(warmup_state.get(proj_name), dict) else None
+        enabled = bool(warmup_state.get("enabled")) and self.training and proj_state is not None
+        if not enabled:
+            return unwrap_y(proj(x))
+
+        x2 = x.reshape(-1, proj.in_features)
+        x0 = x2[:, : proj.main_in_features]
+        gate_input = x0 if proj.router_input_policy == "main" else x2
+        probs, mask, aux = proj.core.gate(gate_input.to(dtype=tc.float32))
+        probs_scaled = self._apply_expert_scaling_to_routing(
+            probs=probs,
+            mask=mask,
+            proj=proj,
+            proj_name=proj_name,
+        )
+        return unwrap_y(proj(x, probs=probs_scaled, mask=mask, aux=aux))
+
+    def forward_with_trace(self, x: tc.Tensor, trace=print) -> tc.Tensor:
+        in_dtype = x.dtype
+        trace(f"[SparseMiXTFFN] input={tuple(x.shape)} dtype={x.dtype}")
+        g, _ = self.gate_proj.forward_with_trace(x, trace=trace)
+        u, _ = self.up_proj.forward_with_trace(x, trace=trace)
+        trace(f"[QwenMLP] h=act(gate) * up; activation={self.act.__class__.__name__} shape={tuple(g.shape)}")
+        h = self.act(g) * u
+        y, _ = self.down_proj.forward_with_trace(h, trace=trace)
+        trace(f"[SparseMiXTFFN] output={tuple(y.shape)} restore_dtype={in_dtype}")
         return y.to(dtype=in_dtype)

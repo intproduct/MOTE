@@ -533,18 +533,18 @@ def _hf_samples(*, backend, model, tokenizer, prompt, num_rollouts, generation_c
     _, response_mask = build_rollout_attention_and_response_mask(
         batch.sequences,
         attention_mask,
-        response_start=batch.response_start,
+        response_start=batch.response_starts,
         original_seq_lens=batch.original_seq_lens,
         eos_token_id=tokenizer.eos_token_id,
     )
-    texts = tokenizer.batch_decode(batch.sequences[:, batch.response_start:], skip_special_tokens=True)
+    texts = tokenizer.batch_decode(batch.response_token_ids, skip_special_tokens=True)
     result = []
     for index, text in enumerate(texts):
         count = int(response_mask[index].sum().item())
         reached_limit = count >= int(generation_config.max_new_tokens)
         result.append({
             "text": text,
-            "token_ids": batch.sequences[index, batch.response_start:batch.original_seq_lens[index]].detach().cpu().tolist(),
+            "token_ids": list(batch.response_token_ids[index]),
             "response_token_count": count,
             "finish_reason": "length" if reached_limit else "stop",
             "truncated": reached_limit,

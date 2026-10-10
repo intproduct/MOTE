@@ -15,7 +15,10 @@ from .caching import download_and_cache_dataset, load_dataset_auto_cached, resol
 from .adapters import normalize_chat_like_example, normalize_text_example
 from .contracts import content_hash
 from .release import ACCEPTED_FILENAME, tokenizer_fingerprint, validate_frozen_sft_release
+from .rejection_quarantine import RejectionQuarantine
+from .supervision import SupervisionError
 from .sampling import DeterministicSequenceSampler, resolve_shard_context
+from .indexed_token_shards import IndexedTokenShardDataset
 from .shard_loader import IndexedJsonlDataset, iter_jsonl, iter_jsonl_gz, iter_local_token_shards
 from .specs import FrozenSFTTask, HFChatTask, HFTextTask, TaskSpec
 from .tokenization import (
@@ -60,7 +63,7 @@ def load_dataset_any(
             raise RuntimeError("datasets not installed")
         return load_dataset(hf_name or path, hf_config, split=split)
     if kind == "local_token_shards":
-        return iter_local_token_shards(path)
+        return IndexedTokenShardDataset(path)
     if kind == "frozen_sft":
         report = validate_frozen_sft_release(path)
         if not report["ok"]:
@@ -134,6 +137,17 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
         self._active_choice_rng: random.Random | None = None
         self._sampling_context: Dict[str, int] | None = None
         self._pending_sampling_state: Dict[str, Any] | None = None
+        quarantine_dir = getattr(self.data_cfg, "rejection_quarantine_dir", None)
+        self._rejection_quarantine = (
+            RejectionQuarantine(
+                quarantine_dir,
+                self.pretrain_tasks + self.task_tasks,
+                tokenizer=self.tokenizer,
+                max_length=self.max_len,
+            )
+            if quarantine_dir
+            else None
+        )
         self._validate_stage_buckets()
         self._validate_chat_format()
 
@@ -161,7 +175,10 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
                 _, ready, path, hf_name, hf_config, split = res
                 self._log_task_load(task, source="remote", raw_total=None)
                 if wid == 0:
-                    return apply_task_sample_limit(download_and_cache_dataset(path, ready, hf_name, hf_config, split), task)
+                    loaded = download_and_cache_dataset(path, ready, hf_name, hf_config, split)
+                    if self._rejection_quarantine is not None and getattr(task, "supports_skip", False):
+                        self._rejection_quarantine.validate_source(task, loaded)
+                    return apply_task_sample_limit(loaded, task)
                 t0 = time.time()
                 while not ready.exists():
                     if time.time() - t0 > 3600:
@@ -170,11 +187,17 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
                 ds = load_from_disk(str(path))
                 loaded = resolve_split(ds, split=task.split) if hasattr(ds, "__len__") else ds
                 self._log_task_load(task, source="cached_after_download", raw_total=self._safe_len(loaded))
+                if self._rejection_quarantine is not None and getattr(task, "supports_skip", False):
+                    self._rejection_quarantine.validate_source(task, loaded)
                 return apply_task_sample_limit(loaded, task)
             self._log_task_load(task, source="cached", raw_total=self._safe_len(res))
+            if self._rejection_quarantine is not None and getattr(task, "supports_skip", False):
+                self._rejection_quarantine.validate_source(task, res)
             return apply_task_sample_limit(res, task)
         loaded = load_dataset_any(task.kind, task.path, task.split, hf_name=task.hf_name, hf_config=task.hf_config, metadata=task.metadata)
         self._log_task_load(task, source=str(task.kind), raw_total=self._safe_len(loaded))
+        if self._rejection_quarantine is not None and getattr(task, "supports_skip", False):
+            self._rejection_quarantine.validate_source(task, loaded)
         return apply_task_sample_limit(loaded, task)
 
     def _make_iter(self, raw_or_factory):
@@ -436,9 +459,21 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             trace_stats = stats["selected_trace_strategy"]
             trace_stats[trace_strategy] = int(trace_stats.get(trace_strategy, 0)) + 1
 
-    def _reject_or_skip(self, task: TaskSpec, reason: str, trace_strategy: str | None = None) -> None:
+    def _reject_or_skip(
+        self,
+        task: TaskSpec,
+        reason: str,
+        trace_strategy: str | None = None,
+        raw_example: Mapping[str, Any] | None = None,
+    ) -> None:
         self._record_skip(task, reason, trace_strategy)
         if bool(getattr(self.data_cfg, "fail_on_dynamic_skip", True)):
+            if (
+                self._rejection_quarantine is not None
+                and raw_example is not None
+                and self._rejection_quarantine.allows(task.name, reason, raw_example)
+            ):
+                return
             raise RuntimeError(
                 f"task {task.name} produced a runtime data rejection reason={reason!r}; "
                 "build a frozen release and quarantine rejected rows before training, "
@@ -509,7 +544,31 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             return sup
         if task.kind == "local_token_shards":
             if "input_ids" in ex:
-                sup = build_example_from_token_ids(ex["input_ids"], self.max_len, eos_id=self.tokenizer.eos_token_id)
+                input_ids = [int(value) for value in ex["input_ids"]][: self.max_len]
+                if not input_ids:
+                    raise RuntimeError(f"[{task.name}] local token shard record is empty")
+                if ex.get("labels") is not None:
+                    labels = [int(value) for value in ex["labels"]][: self.max_len]
+                    if len(labels) != len(input_ids):
+                        raise RuntimeError(f"[{task.name}] local token shard label length mismatch")
+                    if not any(label != -100 for label in labels):
+                        raise RuntimeError(f"[{task.name}] local token shard record has no supervised tokens")
+                    sup = {
+                        "input_ids": tc.tensor(input_ids, dtype=tc.long),
+                        "labels": tc.tensor(labels, dtype=tc.long),
+                    }
+                    if ex.get("attention_mask") is not None:
+                        attention_mask = [int(value) for value in ex["attention_mask"]][: self.max_len]
+                        if len(attention_mask) != len(input_ids):
+                            raise RuntimeError(f"[{task.name}] local token shard attention_mask length mismatch")
+                        sup["attention_mask"] = tc.tensor(attention_mask, dtype=tc.long)
+                    if ex.get("loss_weights") is not None:
+                        loss_weights = [float(value) for value in ex["loss_weights"]][: self.max_len]
+                        if len(loss_weights) != len(input_ids):
+                            raise RuntimeError(f"[{task.name}] local token shard loss_weights length mismatch")
+                        sup["loss_weights"] = tc.tensor(loss_weights, dtype=tc.float32)
+                else:
+                    sup = build_example_from_token_ids(input_ids, self.max_len, eos_id=self.tokenizer.eos_token_id)
             elif "text" in ex:
                 sup = make_causal_lm_example_from_text(self.tokenizer, ex["text"], self.max_len, add_eos=True)
             else:
@@ -518,12 +577,23 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
             sup["group"] = task.group
             sup["bucket"] = task.bucket
             sup["source_family"] = task.source_family
-            sup["eval_type"] = "causal_lm"
+            sup["eval_type"] = str(task.metadata.get("eval_type") or ("pretokenized_supervised" if ex.get("labels") is not None else "causal_lm"))
+            for key in (
+                "source_id",
+                "category_id",
+                "objective_id",
+                "document_id",
+                "segment_id",
+                "is_continuation",
+                "is_document_end",
+            ):
+                if key in ex:
+                    sup[key] = ex[key]
             return sup
         if isinstance(task, HFTextTask):
             txt = normalize_text_example(ex, text_field=getattr(task, "text_field", None) if isinstance(task, HFTextTask) else None)
             if txt is None:
-                self._reject_or_skip(task, "missing_text")
+                self._reject_or_skip(task, "missing_text", raw_example=ex)
                 return None
             sup = make_causal_lm_example_from_text(self.tokenizer, str(txt), self.max_len, add_eos=True)
             sup["task"] = task.name
@@ -535,9 +605,18 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
         if isinstance(task, HFChatTask):
             messages = normalize_chat_like_example(ex, task)
             if messages is None:
-                self._reject_or_skip(task, "missing_chat_fields")
+                self._reject_or_skip(task, "missing_chat_fields", raw_example=ex)
                 return None
-            sup = make_chat_supervised_example(self.tokenizer, messages=messages, max_len=self.max_len, add_eos=True)
+            try:
+                sup = make_chat_supervised_example(
+                    self.tokenizer,
+                    messages=messages,
+                    max_len=self.max_len,
+                    add_eos=True,
+                )
+            except SupervisionError as exc:
+                self._reject_or_skip(task, exc.reason_code, raw_example=ex)
+                return None
             sup["task"] = task.name
             sup["group"] = task.group
             sup["bucket"] = task.bucket
@@ -550,17 +629,34 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
                 task,
                 str(task.metadata.get("last_reason", "missing_fields")),
                 str(task.metadata.get("last_trace_strategy") or "unknown"),
+                raw_example=ex,
             )
             return None
         prompt, answer, eval_type = mapped
-        if (
-            str(getattr(self.data_cfg, "reasoning_format", "raw") or "raw").strip().lower() == "chat"
-            and str(getattr(task, "source_family", "")) in self.REASONING_SOURCE_FAMILIES
-        ):
-            sup = self._make_reasoning_chat_supervised(task)
-            eval_type = "chat_sft"
-        else:
-            sup = make_supervised_example(self.tokenizer, prompt, answer, self.max_len, add_eos=True, **self._loss_weight_kwargs(task))
+        try:
+            if (
+                str(getattr(self.data_cfg, "reasoning_format", "raw") or "raw").strip().lower() == "chat"
+                and str(getattr(task, "source_family", "")) in self.REASONING_SOURCE_FAMILIES
+            ):
+                sup = self._make_reasoning_chat_supervised(task)
+                eval_type = "chat_sft"
+            else:
+                sup = make_supervised_example(
+                    self.tokenizer,
+                    prompt,
+                    answer,
+                    self.max_len,
+                    add_eos=True,
+                    **self._loss_weight_kwargs(task),
+                )
+        except SupervisionError as exc:
+            self._reject_or_skip(
+                task,
+                exc.reason_code,
+                str(task.metadata.get("last_trace_strategy") or "direct_fields"),
+                raw_example=ex,
+            )
+            return None
         sup["task"] = task.name
         sup["group"] = task.group
         sup["bucket"] = task.bucket

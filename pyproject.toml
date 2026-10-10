@@ -26,6 +26,9 @@ vllm = [
     "transformers>=4.56,<5",
 ]
 
+[project.entry-points."vllm.general_plugins"]
+fitmotn_qwen35_text = "fitmotn.rl.vllm_qwen35_native:register_qwen35_text_native"
+
 [tool.setuptools]
 packages = [
     "fitmotn",

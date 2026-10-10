@@ -12,11 +12,51 @@ from typing import Any, Dict, Optional
 
 
 _SPAWN_ENV_LOCK = threading.Lock()
+_RUNTIME_CHECKSUM_ATOL = 1e-6
+
+
+def _runtime_checksums_match(
+    expected: Dict[str, float], observed: Dict[str, float]
+) -> bool:
+    """Compare identical runtime tensors, not approximate model outputs.
+
+    Native patch transfer copies live fp32 parameter tensors by name. A 1e-3
+    tolerance allowed an unchanged actor to pass its first tiny optimizer
+    update. CPU fp32 sums of byte-identical tensors are deterministic, so a
+    much tighter tolerance is necessary for stale-policy detection.
+    """
+    return set(observed) == set(expected) and all(
+        abs(float(expected[name]) - float(observed[name])) <= _RUNTIME_CHECKSUM_ATOL
+        for name in expected
+    )
+
+
+def _actor_process_environment(cuda_visible_devices: list[str]) -> Dict[str, str]:
+    environment = {"VLLM_WORKER_MULTIPROC_METHOD": "spawn"}
+    if cuda_visible_devices:
+        visible_devices = ",".join(str(item) for item in cuda_visible_devices)
+        environment["CUDA_VISIBLE_DEVICES"] = visible_devices
+        # Triton writes temporary autotuning artifacts and then removes their
+        # parent directories. Multiple vLLM actors compiling into the same
+        # cache can race in that cleanup (EBUSY/ENOENT), aborting startup.
+        # Keep the caller-selected root while isolating every actor by its
+        # private GPU assignment.
+        triton_cache_root = os.environ.get("TRITON_CACHE_DIR")
+        if triton_cache_root:
+            safe_device_key = "".join(
+                character if character.isalnum() or character in {"-", "_"} else "_"
+                for character in visible_devices
+            )
+            environment["TRITON_CACHE_DIR"] = str(
+                Path(triton_cache_root) / f"actor-gpu-{safe_device_key}"
+            )
+    return environment
 
 
 def _cuda_resource_snapshot(*, probe_cuda_runtime: bool = True) -> Dict[str, Any]:
     snapshot: Dict[str, Any] = {
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+        "vllm_worker_multiproc_method": os.environ.get("VLLM_WORKER_MULTIPROC_METHOD"),
         "cuda_available": False,
         "cuda_device_count": 0,
         "cuda_devices": [],
@@ -175,6 +215,54 @@ def _collect_engine_named_parameters(llm: Any) -> Dict[str, Any]:
     return {}
 
 
+def _collect_engine_selected_checksums(
+    llm: Any, names: list[str]
+) -> Dict[str, Any]:
+    """Use a safe string RPC to inspect EngineCore-resident parameters."""
+    collective_rpc = getattr(llm, "collective_rpc", None)
+    if not callable(collective_rpc):
+        return {
+            "available": False,
+            "source": None,
+            "checksums": {},
+            "missing": list(names),
+            "error": "llm.collective_rpc is unavailable",
+        }
+    try:
+        results = list(
+            collective_rpc(
+                "_fitmotn_selected_parameter_checksums",
+                kwargs={"names": [str(name) for name in names]},
+            )
+            or []
+        )
+    except Exception as exc:
+        return {
+            "available": False,
+            "source": "llm.collective_rpc",
+            "checksums": {},
+            "missing": list(names),
+            "error": str(exc),
+        }
+    if not results:
+        return {
+            "available": False,
+            "source": "llm.collective_rpc",
+            "checksums": {},
+            "missing": list(names),
+            "error": "worker RPC returned no results",
+        }
+    first = dict(results[0] or {})
+    return {
+        "available": True,
+        "source": "llm.collective_rpc",
+        "checksums": dict(first.get("checksums") or {}),
+        "missing": list(first.get("missing") or []),
+        "worker_count": len(results),
+        "error": None,
+    }
+
+
 def _invalidate_generation_caches(llm: Any) -> Dict[str, Any]:
     """Invalidate reusable prefix caches after an in-place policy update."""
     for source, obj in (
@@ -237,10 +325,14 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
         }
     if command == "load_engine":
         _shutdown_engine(state.get("llm"))
-        from vllm import LLM  # type: ignore
-
         start = time.perf_counter()
         llm_kwargs = dict(request["llm_kwargs"])
+        if str(llm_kwargs.get("model_impl", "")).strip().lower() == "auto":
+            from .vllm_qwen35_native import register_qwen35_text_native
+
+            register_qwen35_text_native()
+        from vllm import LLM  # type: ignore
+
         # Actor placement is already enforced by the actor-private
         # CUDA_VISIBLE_DEVICES.  vLLM 0.19 removed ``device`` from EngineArgs,
         # so forwarding even ``cuda:0`` now fails before engine startup.  Pop
@@ -267,6 +359,8 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                 "tensor_parallel_size",
                 "gpu_memory_utilization",
                 "model_impl",
+                "enable_prefix_caching",
+                "mamba_cache_mode",
                 "enforce_eager",
                 "seed",
             )
@@ -345,15 +439,26 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
             expected_checksums = dict(request.get("expected_checksums") or {})
             runtime_params = _collect_engine_named_parameters(llm)
             observed_checksums: Dict[str, float] = {}
+            runtime_inspection = {
+                "available": bool(runtime_params),
+                "source": "control_process_named_parameters" if runtime_params else None,
+                "checksums": {},
+                "missing": [],
+                "error": None,
+            }
             for name in expected_checksums:
                 tensor = runtime_params.get(name)
                 if tensor is not None:
                     observed_checksums[name] = float(tensor.detach().float().cpu().sum().item())
+            if expected_checksums and len(observed_checksums) != len(expected_checksums):
+                runtime_inspection = _collect_engine_selected_checksums(
+                    llm, list(expected_checksums)
+                )
+                observed_checksums = dict(runtime_inspection.get("checksums") or {})
             checksum_ok = None
             if observed_checksums:
-                checksum_ok = len(observed_checksums) == len(expected_checksums) and all(
-                    abs(float(expected_checksums[name]) - value) <= 1e-3
-                    for name, value in observed_checksums.items()
+                checksum_ok = _runtime_checksums_match(
+                    expected_checksums, observed_checksums
                 )
                 if not checksum_ok:
                     raise RuntimeError(
@@ -361,7 +466,10 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                         f"expected={expected_checksums}, observed={observed_checksums}"
                     )
             if bool(request.get("require_runtime_checksums", False)) and checksum_ok is not True:
-                raise RuntimeError("actor runtime parameter inspection is unavailable or incomplete")
+                raise RuntimeError(
+                    "actor runtime parameter inspection is unavailable or incomplete: "
+                    f"{runtime_inspection}"
+                )
             rollout_validation = _actor_rollout_validation(
                 llm,
                 request.get("validation_prompt_token_ids"),
@@ -373,7 +481,8 @@ def _handle_actor_request(state: Dict[str, Any], request: Dict[str, Any]) -> Dic
                 "receive_sec": max(0.0, time.perf_counter() - start),
                 "actor_status": state["status"],
                 "cache_invalidation": cache,
-                "runtime_inspection_available": bool(runtime_params),
+                "runtime_inspection_available": bool(runtime_inspection.get("available")),
+                "runtime_inspection": runtime_inspection,
                 "checksum_validation": {
                     "ok": checksum_ok,
                     "expected": expected_checksums,
@@ -601,9 +710,7 @@ class VLLMActorClient:
         parent, child = context.Pipe(duplex=True)
         # vLLM may create its own worker processes; a daemon multiprocessing
         # process is not allowed to create children.
-        environment = {}
-        if self.cuda_visible_devices:
-            environment["CUDA_VISIBLE_DEVICES"] = ",".join(self.cuda_visible_devices)
+        environment = _actor_process_environment(self.cuda_visible_devices)
         process = context.Process(
             target=_actor_main,
             args=(child, environment),

@@ -23,6 +23,7 @@ if "MOTE.rl" not in sys.modules:
 
 from MOTE.config.defaults import make_default_config
 from MOTE.rl.rollout_backends import RolloutGenerationConfig
+from MOTE.rl.rollout_backends import build_generation_config_from_fit_cfg
 from MOTE.rl.rollout_backends import RolloutSyncResult
 from MOTE.rl.vllm_rollout import VLLMRolloutBackend, assert_multi_actor_dispatch
 from MOTE.rl.vllm_sync import VLLMPolicySyncManager
@@ -32,6 +33,12 @@ from MOTE.train.rl_controller import build_rollout_attention_and_response_mask
 class FakeTokenizer:
     pad_token_id = 0
     eos_token_id = 2
+
+    @staticmethod
+    def encode(text, add_special_tokens=False):
+        assert add_special_tokens is False
+        mapping = {"\n\nQuestion:": [90, 91], "Question:": [91], "</s>": [2]}
+        return mapping[text]
 
 
 class FakeCompletion:
@@ -61,6 +68,49 @@ def _cfg(tmp_path):
     cfg.rl.temperature = 0.7
     cfg.rl.top_p = 0.95
     return cfg
+
+
+def test_generation_config_forwards_stop_sequences(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.rollout_stop_sequences = ["Question:", "</s>"]
+    generation = build_generation_config_from_fit_cfg(cfg)
+    assert generation.stop_sequences == ("Question:", "</s>")
+
+
+def test_vllm_sampling_params_forward_stop_sequences(tmp_path):
+    cfg = _cfg(tmp_path)
+    cfg.rl.rollout_stop_sequences = ["\n\nQuestion:", "<|im_end|>"]
+    backend = VLLMRolloutBackend(
+        fit_cfg=cfg,
+        rl_dir=tmp_path,
+        save_policy_checkpoint=lambda *_args, **_kwargs: tmp_path,
+    )
+
+    generation = build_generation_config_from_fit_cfg(cfg)
+    kwargs = backend._sampling_params_kwargs(FakeTokenizer(), generation)
+
+    assert kwargs["stop"] == ["\n\nQuestion:", "<|im_end|>"]
+    assert kwargs["stop_token_ids"] == [FakeTokenizer.eos_token_id]
+
+
+def test_vllm_strips_string_stop_suffix_from_policy_token_ids():
+    clean, reason = VLLMRolloutBackend._strip_trailing_stop_token_ids(
+        [7, 8, 90, 91],
+        tokenizer=FakeTokenizer(),
+        stop_sequences=["Question:", "\n\nQuestion:"],
+    )
+    assert clean == [7, 8]
+    assert reason == "\n\nQuestion:"
+
+
+def test_vllm_does_not_strip_non_suffix_stop_tokens():
+    clean, reason = VLLMRolloutBackend._strip_trailing_stop_token_ids(
+        [7, 90, 91, 8],
+        tokenizer=FakeTokenizer(),
+        stop_sequences=["\n\nQuestion:"],
+    )
+    assert clean == [7, 90, 91, 8]
+    assert reason is None
 
 
 @pytest.fixture(autouse=True)
@@ -227,29 +277,54 @@ def test_mock_vllm_outputs_preserve_expanded_prompt_order_and_masks(tmp_path):
     attention_mask = torch.tensor([[1, 1, 0], [1, 1, 0], [1, 1, 1], [1, 1, 1]], dtype=torch.long)
     generated_ids = [[31, 2], [32], [41, 42, 2], [43]]
 
-    sequences, original_lens = VLLMRolloutBackend.build_full_sequences_from_token_outputs(
-        input_ids=input_ids,
-        generated_token_ids=generated_ids,
-        pad_token_id=0,
+    sequences, original_lens, response_starts, response_token_ids = (
+        VLLMRolloutBackend.build_full_sequences_from_token_outputs(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            generated_token_ids=generated_ids,
+            pad_token_id=0,
+        )
     )
     full_attention, response_mask = build_rollout_attention_and_response_mask(
         sequences,
         attention_mask,
-        response_start=input_ids.shape[1],
+        response_start=response_starts,
         original_seq_lens=original_lens,
         eos_token_id=2,
     )
 
-    assert torch.equal(sequences[0, :5], torch.tensor([10, 11, 0, 31, 2]))
-    assert torch.equal(sequences[1, :4], torch.tensor([10, 11, 0, 32]))
+    assert torch.equal(sequences[0, :4], torch.tensor([10, 11, 31, 2]))
+    assert torch.equal(sequences[1, :3], torch.tensor([10, 11, 32]))
     assert torch.equal(sequences[2, :6], torch.tensor([20, 21, 22, 41, 42, 2]))
     assert torch.equal(sequences[3, :4], torch.tensor([20, 21, 22, 43]))
-    assert original_lens == [5, 4, 6, 4]
-    assert torch.equal(full_attention[:, : input_ids.shape[1]], attention_mask)
-    assert response_mask[0, 3:5].sum().item() == 2.0
-    assert response_mask[1, 3:4].sum().item() == 1.0
+    assert original_lens == [4, 3, 6, 4]
+    assert response_starts == [2, 2, 3, 3]
+    assert response_token_ids == generated_ids
+    assert torch.equal(full_attention.sum(dim=1), torch.tensor(original_lens))
+    assert response_mask[0, 2:4].sum().item() == 2.0
+    assert response_mask[1, 2:3].sum().item() == 1.0
     assert response_mask[2, 3:6].sum().item() == 3.0
     assert response_mask[3, 3:4].sum().item() == 1.0
+
+
+def test_compact_vllm_trajectory_is_invariant_to_prompt_padding_side():
+    generated_ids = [[31, 32], [41]]
+    left_ids = torch.tensor([[0, 0, 11, 12], [0, 21, 22, 23]])
+    left_mask = torch.tensor([[0, 0, 1, 1], [0, 1, 1, 1]])
+    right_ids = torch.tensor([[11, 12, 0, 0], [21, 22, 23, 0]])
+    right_mask = torch.tensor([[1, 1, 0, 0], [1, 1, 1, 0]])
+
+    left = VLLMRolloutBackend.build_full_sequences_from_token_outputs(
+        input_ids=left_ids, attention_mask=left_mask, generated_token_ids=generated_ids, pad_token_id=0
+    )
+    right = VLLMRolloutBackend.build_full_sequences_from_token_outputs(
+        input_ids=right_ids, attention_mask=right_mask, generated_token_ids=generated_ids, pad_token_id=0
+    )
+
+    assert torch.equal(left[0], right[0])
+    assert left[1:] == right[1:]
+    assert torch.equal(left[0][0, :4], torch.tensor([11, 12, 31, 32]))
+    assert torch.equal(left[0][1, :4], torch.tensor([21, 22, 23, 41]))
 
 
 def test_stage5c_multi_actor_sharding_uses_all_actors_and_restores_order(tmp_path):

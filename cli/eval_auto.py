@@ -13,6 +13,12 @@ from ..export.format import EXPORT_MANIFEST_FILENAME, EXPORT_STAGE_HF_ROUNDTRIP,
 from ..runtime import load_causal_lm_and_tokenizer
 
 
+def _json_default(value):
+    if isinstance(value, tc.dtype):
+        return str(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_or_ckpt", type=str, required=True)
@@ -96,7 +102,7 @@ def main():
     )
     output_json = Path(args.output_json).resolve() if args.output_json else target / "fitmotn_eval_auto.json"
     with output_json.open("w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
+        json.dump(results, f, ensure_ascii=False, indent=2, default=_json_default)
 
 
 if __name__ == "__main__":

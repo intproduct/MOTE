@@ -747,7 +747,14 @@ class VLLMPolicySyncManager:
         if not actors:
             raise RuntimeError("subprocess native transfer requires at least one rollout actor")
         mapping = self._mapping(model)
-        expected_checksums = selected_tensor_checksums(mapping, model)
+        require_checksums = bool(
+            getattr(self.fit_cfg.rl, "vllm_weight_transfer_require_runtime_checksums", False)
+        )
+        expected_checksums = selected_tensor_checksums(
+            mapping,
+            model,
+            max_tensors=mapping.tensor_count if require_checksums else 8,
+        )
         descriptor = {
             "policy_version": int(update_step),
             "policy_fingerprint": str(policy_fingerprint),
@@ -756,9 +763,6 @@ class VLLMPolicySyncManager:
             "weight_transfer_plan_fingerprint": mapping.transfer_plan_fingerprint,
         }
         prompt_ids = self._validation_prompt_token_ids(tokenizer)
-        require_checksums = bool(
-            getattr(self.fit_cfg.rl, "vllm_weight_transfer_require_runtime_checksums", False)
-        )
         actor_results: Dict[str, Any] = {}
         transaction_start = time.perf_counter()
         for actor_index, (actor_name, client, actor_spec) in enumerate(actors):
@@ -880,8 +884,13 @@ class VLLMPolicySyncManager:
                 ),
             },
             "checksum_validation": {
-                "mode": "actor_selected_tensor_checksum",
+                "mode": (
+                    "actor_all_transfer_tensor_checksums"
+                    if require_checksums
+                    else "actor_selected_tensor_checksum"
+                ),
                 "required": require_checksums,
+                "tensor_count": len(expected_checksums),
                 "ok": all(
                     result["receive"].get("checksum_validation", {}).get("ok") is True
                     for result in actor_results.values()

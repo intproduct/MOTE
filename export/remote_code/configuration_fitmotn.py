@@ -18,6 +18,7 @@ GENERATION_CRITICAL_FIELDS = (
     "use_cache",
     "max_position_embeddings",
     "hidden_size",
+    "head_dim",
     "num_hidden_layers",
     "num_attention_heads",
     "num_key_value_heads",

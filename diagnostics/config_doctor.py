@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import os
 import shutil
 from pathlib import Path
 from typing import Any
 
 from ..checkpointing import validate_checkpoint
+from ..data.rejection_quarantine import validate_rejection_quarantine
 from ..train.stages import build_stage_plan
 from ..rl.device_topology import (
     model_tp_compatibility,
@@ -55,6 +57,83 @@ def inspect_config(cfg) -> dict[str, Any]:
     peak_checkpoint_count = estimated_checkpoint_count + 1
     model_path = Path(str(cfg.model.model_path)).expanduser()
     model_bytes = _directory_bytes(model_path)
+    runtime = {
+        "model_type": None,
+        "qwen35_fastpath_required": False,
+        "flash_linear_attention_available": None,
+        "causal_conv1d_available": None,
+        "rejection_quarantine": None,
+    }
+    model_config_path = model_path / "config.json"
+    if model_config_path.is_file():
+        try:
+            model_config = json.loads(model_config_path.read_text(encoding="utf-8"))
+            runtime["model_type"] = model_config.get("model_type")
+        except (OSError, json.JSONDecodeError) as exc:
+            warnings.append(f"could not inspect model config for runtime dependencies: {exc}")
+        if str(runtime["model_type"] or "").startswith("qwen3_5"):
+            from transformers.utils.import_utils import (
+                is_causal_conv1d_available,
+                is_flash_linear_attention_available,
+            )
+
+            runtime["qwen35_fastpath_required"] = True
+            runtime["pad_to_length_buckets"] = list(getattr(cfg.data, "pad_to_length_buckets", []) or [])
+            if not runtime["pad_to_length_buckets"]:
+                errors.append(
+                    "Qwen3.5 training requires data.pad_to_length_buckets to bound FLA/Triton "
+                    "shape compilation; dynamic batch-max padding is not allowed for formal runs"
+                )
+            runtime["flash_linear_attention_available"] = bool(is_flash_linear_attention_available())
+            runtime["causal_conv1d_available"] = bool(is_causal_conv1d_available())
+            if not runtime["flash_linear_attention_available"] or not runtime["causal_conv1d_available"]:
+                errors.append(
+                    "Qwen3.5 training fast path is unavailable: "
+                    f"flash_linear_attention={runtime['flash_linear_attention_available']} "
+                    f"causal_conv1d={runtime['causal_conv1d_available']}; "
+                    "refusing the extremely slow torch GDN fallback"
+                )
+
+    quarantine_dir = getattr(cfg.data, "rejection_quarantine_dir", None)
+    if quarantine_dir:
+        quarantine_report = validate_rejection_quarantine(quarantine_dir)
+        runtime["rejection_quarantine"] = {
+            "path": str(Path(quarantine_dir).expanduser().resolve()),
+            "ok": bool(quarantine_report["ok"]),
+            "errors": list(quarantine_report["errors"]),
+            "manifest_fingerprint": (
+                (quarantine_report.get("manifest") or {}).get("manifest_fingerprint")
+            ),
+        }
+        if not quarantine_report["ok"]:
+            errors.append(f"invalid rejection quarantine: {quarantine_report['errors']}")
+        else:
+            quarantine_manifest = dict(quarantine_report.get("manifest") or {})
+            configured_max_length = int(cfg.data.seq_len_run)
+            if int(quarantine_manifest.get("max_length", -1)) != configured_max_length:
+                errors.append(
+                    "rejection quarantine max-length mismatch: "
+                    f"manifest={quarantine_manifest.get('max_length')} configured={configured_max_length}"
+                )
+            try:
+                from transformers import AutoTokenizer
+                from ..data.release import tokenizer_fingerprint
+
+                tokenizer = AutoTokenizer.from_pretrained(
+                    cfg.model.model_path,
+                    trust_remote_code=bool(cfg.model.trust_remote_code),
+                    use_fast=True,
+                    local_files_only=True,
+                )
+                if tokenizer.pad_token_id is None:
+                    tokenizer.pad_token = tokenizer.eos_token
+                observed_tokenizer_fingerprint = tokenizer_fingerprint(tokenizer)
+            except Exception as exc:
+                errors.append(f"could not validate rejection quarantine tokenizer binding: {exc}")
+            else:
+                runtime["rejection_quarantine"]["tokenizer_fingerprint"] = observed_tokenizer_fingerprint
+                if quarantine_manifest.get("tokenizer_fingerprint") != observed_tokenizer_fingerprint:
+                    errors.append("rejection quarantine tokenizer fingerprint mismatch")
     estimated_disk_bytes = model_bytes * peak_checkpoint_count if model_bytes > 0 else None
     output_root = Path(str(cfg.output.root_dir)).expanduser()
     probe = output_root
@@ -196,4 +275,5 @@ def inspect_config(cfg) -> dict[str, Any]:
             "probe_path": str(probe),
             "free_bytes": free_bytes,
         },
+        "runtime": runtime,
     }

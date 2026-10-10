@@ -144,28 +144,83 @@ def iter_response_chunks(total_n: int, micro_batch_size: int) -> List[Tuple[int,
     return [(start, min(start + mb, total_n)) for start in range(0, total_n, mb)]
 
 
+def _response_starts_chunk(
+    response_starts: Optional[int | Sequence[int]],
+    start: int,
+    end: int,
+) -> Optional[int | List[int]]:
+    if response_starts is None or isinstance(response_starts, int):
+        return response_starts
+    values = [int(value) for value in response_starts]
+    return values[int(start):int(end)]
+
+
+def _canonical_valid_width(attention_mask: torch.Tensor) -> int:
+    valid = attention_mask.to(dtype=torch.bool)
+    counts = valid.sum(dim=1)
+    if bool((counts <= 0).any()):
+        raise ValueError("canonical rollout rows must contain at least one valid token")
+    expected = torch.arange(valid.shape[1], device=valid.device).unsqueeze(0) < counts.unsqueeze(1)
+    if not torch.equal(valid, expected):
+        raise ValueError("canonical rollout attention mask contains padding inside the valid causal span")
+    return int(counts.max().item())
+
+
 def compute_old_logprobs_microbatched(
     model,
     input_ids: torch.Tensor,
     attention_mask: torch.Tensor,
     response_mask: torch.Tensor,
     micro_batch_size: int,
-    response_start: Optional[int] = None,
+    response_start: Optional[int | Sequence[int]] = None,
 ) -> torch.Tensor:
     chunks = []
     model.eval()
     with torch.no_grad():
+        full_width = int(input_ids.shape[1])
         for start, end in iter_response_chunks(int(input_ids.shape[0]), int(micro_batch_size)):
+            chunk_attention = attention_mask[start:end]
+            valid_width = _canonical_valid_width(chunk_attention)
             lp = gather_response_logprobs(
                 model,
-                input_ids[start:end],
-                attention_mask[start:end],
-                response_mask[start:end],
-                response_start=response_start,
+                input_ids[start:end, :valid_width],
+                chunk_attention[:, :valid_width],
+                response_mask[start:end, :valid_width],
+                response_start=_response_starts_chunk(response_start, start, end),
             )
+            if valid_width < full_width:
+                lp = torch.cat(
+                    [lp, lp.new_zeros((int(lp.shape[0]), full_width - valid_width))],
+                    dim=1,
+                )
             chunks.append(lp.detach())
             del lp
     return torch.cat(chunks, dim=0)
+
+
+def compute_post_update_policy_drift(
+    post_update_logprobs: torch.Tensor,
+    old_logprobs: torch.Tensor,
+    response_mask: torch.Tensor,
+    eps_clip: float,
+) -> Dict[str, float]:
+    if post_update_logprobs.shape != old_logprobs.shape or response_mask.shape != old_logprobs.shape:
+        raise ValueError("post-update, old logprobs and response mask must have identical shapes")
+    mask = response_mask.to(dtype=torch.bool, device=post_update_logprobs.device)
+    if not bool(mask.any().item()):
+        raise RuntimeError("post-update policy drift diagnostic has no response tokens")
+    raw = post_update_logprobs.float() - old_logprobs.to(post_update_logprobs.device).float()
+    ratio = torch.exp(raw.clamp(min=-20.0, max=20.0))
+    denom = mask.sum(dim=1).clamp_min(1)
+    ratio_mean = ((ratio * mask).sum(dim=1) / denom).mean()
+    clipped = ((ratio - 1.0).abs() > float(eps_clip)).float()
+    clip_frac = ((clipped * mask).sum(dim=1) / denom).mean()
+    return {
+        "post_update_ratio_mean": float(ratio_mean.detach().cpu()),
+        "post_update_ratio_max": float(torch.where(mask, ratio, torch.zeros_like(ratio)).max().detach().cpu()),
+        "post_update_raw_log_ratio_max": float(torch.where(mask, raw.abs(), torch.zeros_like(raw)).max().detach().cpu()),
+        "post_update_clip_frac": float(clip_frac.detach().cpu()),
+    }
 
 
 def resolve_amp_dtype(model) -> Optional[torch.dtype]:
@@ -192,7 +247,7 @@ def compute_new_logprobs_loss_microbatched(
     input_ids: torch.Tensor,
     attention_mask: torch.Tensor,
     response_mask: torch.Tensor,
-    old_logprobs: torch.Tensor,
+    old_logprobs: Optional[torch.Tensor],
     ref_logprobs: Optional[torch.Tensor],
     advantages: torch.Tensor,
     micro_batch_size: int,
@@ -201,7 +256,7 @@ def compute_new_logprobs_loss_microbatched(
     beta: float,
     use_amp: bool,
     amp_dtype: Optional[torch.dtype] = None,
-    response_start: Optional[int] = None,
+    response_start: Optional[int | Sequence[int]] = None,
     logger: Optional[logging.Logger] = None,
     fit_cfg=None,
     update_step: Optional[int] = None,
@@ -217,24 +272,40 @@ def compute_new_logprobs_loss_microbatched(
     for chunk_idx, (start, end) in enumerate(iter_response_chunks(total_n, int(micro_batch_size))):
         chunk_n = int(end - start)
         weight = float(chunk_n) / float(total_n)
+        chunk_attention = attention_mask[start:end]
+        valid_width = _canonical_valid_width(chunk_attention)
         with torch.autocast(device_type="cuda", dtype=amp_dtype or torch.float32, enabled=autocast_enabled):
-            new_logprobs_chunk = gather_response_logprobs(
+            new_logprobs_chunk, response_entropy_chunk = gather_response_logprobs(
                 model,
-                input_ids[start:end],
-                attention_mask[start:end],
-                response_mask[start:end],
-                response_start=response_start,
+                input_ids[start:end, :valid_width],
+                chunk_attention[:, :valid_width],
+                response_mask[start:end, :valid_width],
+                response_start=_response_starts_chunk(response_start, start, end),
+                return_entropy=True,
             )
-        ref_chunk = ref_logprobs[start:end] if ref_logprobs is not None else None
+        ref_chunk = ref_logprobs[start:end, :valid_width] if ref_logprobs is not None else None
+        old_chunk = (
+            new_logprobs_chunk.detach()
+            if old_logprobs is None
+            else old_logprobs[start:end, :valid_width]
+        )
         loss_chunk, metrics_chunk = grpo_loss(
             new_logprobs_chunk,
-            old_logprobs[start:end],
+            old_chunk,
             ref_chunk,
             flat_advantages[start:end],
-            response_mask[start:end],
+            response_mask[start:end, :valid_width],
             eps_clip=float(eps_clip),
             beta=float(beta) if ref_chunk is not None else 0.0,
         )
+        entropy_mask = response_mask[start:end, :valid_width].to(
+            dtype=response_entropy_chunk.dtype, device=response_entropy_chunk.device
+        )
+        entropy_per_response = (
+            (response_entropy_chunk * entropy_mask).sum(dim=1)
+            / entropy_mask.sum(dim=1).clamp_min(1.0)
+        )
+        metrics_chunk["entropy_mean"] = entropy_per_response.mean()
         weighted_loss = loss_chunk * weight
         scaled_loss = weighted_loss / int(grad_accum)
         if not torch.isfinite(scaled_loss):
@@ -251,7 +322,7 @@ def compute_new_logprobs_loss_microbatched(
             else:
                 weighted_metric = detached * weight
                 metric_sums[key] = weighted_metric if key not in metric_sums else metric_sums[key] + weighted_metric
-        del new_logprobs_chunk, loss_chunk, weighted_loss, scaled_loss, metrics_chunk
+        del new_logprobs_chunk, response_entropy_chunk, loss_chunk, weighted_loss, scaled_loss, metrics_chunk
         if logger is not None and fit_cfg is not None and _should_log_memory(fit_cfg, update_step):
             logger.debug("[RLMemChunk] chunk=%s start=%s end=%s", chunk_idx, start, end)
 
@@ -324,6 +395,7 @@ def build_zero_advantage_skip_record(
         "reward_std": _std(rewards),
         "strict_acc": _mean(float(debug["strict_match"]) for debug in reward_debugs),
         "fallback_acc": _mean(float(debug["fallback_match"]) for debug in reward_debugs),
+        "boundary_truncation_rate": _mean(float(bool(debug.get("boundary_truncated"))) for debug in reward_debugs),
         "avg_response_len": _mean(float(value) for value in response_lens),
         "min_response_len": float(min(response_lens)) if response_lens else 0.0,
         "max_response_len": float(max(response_lens)) if response_lens else 0.0,
@@ -433,23 +505,37 @@ def _cycle_batch(records: Sequence[Dict[str, Any]], start: int, batch_size: int)
     return batch, idx
 
 
+def _normalize_response_starts(
+    response_starts: int | Sequence[int],
+    batch_size: int,
+) -> List[int]:
+    if isinstance(response_starts, int):
+        return [int(response_starts)] * int(batch_size)
+    values = [int(value) for value in response_starts]
+    if len(values) != int(batch_size):
+        raise ValueError(
+            f"response_starts must contain {int(batch_size)} values, got {len(values)}"
+        )
+    return values
+
+
 def build_response_mask(
     sequences: torch.Tensor,
     *,
-    response_start: int,
+    response_start: int | Sequence[int],
     eos_token_id: Optional[int],
     pad_token_id: Optional[int],
 ) -> torch.Tensor:
     mask = torch.zeros_like(sequences, dtype=torch.float32)
-    response_start = int(response_start)
-    for row in range(sequences.shape[0]):
+    starts = _normalize_response_starts(response_start, int(sequences.shape[0]))
+    for row, start in enumerate(starts):
         end = sequences.shape[1]
-        if eos_token_id is not None and response_start < sequences.shape[1]:
-            eos_hits = (sequences[row, response_start:] == int(eos_token_id)).nonzero(as_tuple=False)
+        if eos_token_id is not None and start < sequences.shape[1]:
+            eos_hits = (sequences[row, start:] == int(eos_token_id)).nonzero(as_tuple=False)
             if eos_hits.numel() > 0:
-                end = response_start + int(eos_hits[0].item()) + 1
-        if end > response_start:
-            mask[row, response_start:end] = 1.0
+                end = start + int(eos_hits[0].item()) + 1
+        if end > start:
+            mask[row, start:end] = 1.0
     if pad_token_id is not None:
         mask = mask * (sequences != int(pad_token_id)).to(dtype=mask.dtype)
     if mask.shape[1] > 0:
@@ -490,24 +576,29 @@ def _rollout_pad_token_id(tokenizer) -> int:
 
 def build_rollout_attention_and_response_mask(
     generated: torch.Tensor,
-    prompt_attention_mask: torch.Tensor,
+    prompt_attention_mask: Optional[torch.Tensor],
     *,
-    response_start: int,
+    response_start: int | Sequence[int],
     original_seq_lens: Sequence[int],
     eos_token_id: Optional[int],
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    if int(generated.shape[0]) != int(prompt_attention_mask.shape[0]) or int(generated.shape[0]) != len(original_seq_lens):
-        raise ValueError("generated, prompt_attention_mask, and original_seq_lens must agree on batch size")
-    response_start = int(response_start)
-    full_attention = torch.zeros_like(generated, dtype=prompt_attention_mask.dtype, device=generated.device)
-    full_attention[:, :response_start] = prompt_attention_mask.to(device=generated.device)
-    for row, seq_len in enumerate(original_seq_lens):
+    batch_size = int(generated.shape[0])
+    if batch_size != len(original_seq_lens):
+        raise ValueError("generated and original_seq_lens must agree on batch size")
+    if prompt_attention_mask is not None and batch_size != int(prompt_attention_mask.shape[0]):
+        raise ValueError("generated and prompt_attention_mask must agree on batch size")
+    starts = _normalize_response_starts(response_start, batch_size)
+    attention_dtype = prompt_attention_mask.dtype if prompt_attention_mask is not None else torch.long
+    full_attention = torch.zeros_like(generated, dtype=attention_dtype, device=generated.device)
+    for row, (start, seq_len) in enumerate(zip(starts, original_seq_lens)):
         seq_len = min(int(seq_len), int(generated.shape[1]))
-        if seq_len > response_start:
-            full_attention[row, response_start:seq_len] = 1
+        if start < 1 or start > seq_len:
+            raise ValueError(f"invalid response span for row={row}: start={start}, seq_len={seq_len}")
+        # Canonical rollout rows contain no padding in their valid causal span.
+        full_attention[row, :seq_len] = 1
     response_mask = build_response_mask(
         generated,
-        response_start=response_start,
+        response_start=starts,
         eos_token_id=eos_token_id,
         pad_token_id=None,
     ).to(generated.device)
@@ -862,6 +953,9 @@ def _build_group_samples(
                     "match_type": debug.get("match_type"),
                     "strict_match": bool(debug.get("strict_match")),
                     "fallback_match": bool(debug.get("fallback_match")),
+                    "boundary_truncated": bool(debug.get("boundary_truncated")),
+                    "raw_text_length": int(debug.get("raw_text_length", 0)),
+                    "scored_text_length": int(debug.get("scored_text_length", 0)),
                     "response_len": float(response_lens[flat]),
                 }
             )
@@ -1101,6 +1195,7 @@ def run_fitmotn_rl_training(fit_cfg):
             "old_logprobs_sec": 0.0,
             "ref_logprobs_sec": 0.0,
             "new_logprobs_backward_sec": 0.0,
+            "post_update_logprobs_sec": 0.0,
             "total_micro_step_sec": 0.0,
         }
         micro_step += 1
@@ -1119,7 +1214,7 @@ def run_fitmotn_rl_training(fit_cfg):
         )
         input_ids = enc["input_ids"].to(model.device)
         attention_mask = enc["attention_mask"].to(model.device)
-        response_start = int(input_ids.shape[1])
+        prompt_batch_width = int(input_ids.shape[1])
         next_update_step = int(update_step) + 1
         timing_info["tokenize_sec"] = max(0.0, time.time() - tokenize_start_time)
 
@@ -1140,22 +1235,25 @@ def run_fitmotn_rl_training(fit_cfg):
             update_step=update_step,
         )
         generated = rollout_batch.sequences
-        original_seq_lens = rollout_batch.original_seq_lens
+        original_seq_lens = [int(value) for value in rollout_batch.original_seq_lens]
+        response_starts = [int(value) for value in rollout_batch.response_starts]
+        response_token_ids = [[int(token) for token in row] for row in rollout_batch.response_token_ids]
+        if len(response_starts) != int(generated.shape[0]) or len(response_token_ids) != int(generated.shape[0]):
+            raise RuntimeError("rollout batch response metadata does not match generated batch size")
         rollout_cache_info = dict(rollout_batch.metadata or {})
-        response_start = int(rollout_batch.response_start)
         _set_model_cache_if_present(model, False)
         timing_info["generate_sec"] = max(0.0, time.time() - generate_start_time)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_generate", update_step=next_update_step, micro_step=micro_step)
         full_attention, response_mask = build_rollout_attention_and_response_mask(
             generated,
             attention_mask,
-            response_start=response_start,
+            response_start=response_starts,
             original_seq_lens=original_seq_lens,
             eos_token_id=getattr(tokenizer, "eos_token_id", None),
         )
 
         reward_start_time = time.time()
-        generated_texts = tokenizer.batch_decode(generated[:, response_start:], skip_special_tokens=True)
+        generated_texts = tokenizer.batch_decode(response_token_ids, skip_special_tokens=True)
         rewards = []
         reward_debugs = []
         for text, gold in zip(generated_texts, rollout_gold):
@@ -1206,6 +1304,7 @@ def run_fitmotn_rl_training(fit_cfg):
 
         strict_acc = _mean(float(debug["strict_match"]) for debug in reward_debugs)
         fallback_acc = _mean(float(debug["fallback_match"]) for debug in reward_debugs)
+        boundary_truncation_rate = _mean(float(bool(debug.get("boundary_truncated"))) for debug in reward_debugs)
         reward_acc = _mean(rewards)
         group_nonzero_adv_frac = float((advantages.abs().sum(dim=1) > 0).float().mean().detach().cpu().item())
         zero_advantage_batch = is_zero_advantage_batch(advantages)
@@ -1290,16 +1389,21 @@ def run_fitmotn_rl_training(fit_cfg):
                 maybe_disable_and_reset_runtime_usage(fit_cfg, model)
             except Exception as exc:
                 logger.warning("[RLUsage] failed to disable/reset usage buffers before old logprobs: %s", exc)
-        old_logprobs_start_time = time.time()
-        old_logprobs = compute_old_logprobs_microbatched(
-            model,
-            generated,
-            full_attention,
-            response_mask,
-            int(getattr(fit_cfg.rl, "logprob_micro_batch_size", 1)),
-            response_start=response_start,
-        ).detach()
-        timing_info["old_logprobs_sec"] = max(0.0, time.time() - old_logprobs_start_time)
+        old_logprobs_mode = str(getattr(fit_cfg.rl, "old_logprobs_mode", "recompute") or "recompute")
+        if old_logprobs_mode == "same_forward":
+            old_logprobs = None
+            timing_info["old_logprobs_sec"] = 0.0
+        else:
+            old_logprobs_start_time = time.time()
+            old_logprobs = compute_old_logprobs_microbatched(
+                model,
+                generated,
+                full_attention,
+                response_mask,
+                int(getattr(fit_cfg.rl, "logprob_micro_batch_size", 1)),
+                response_start=response_starts,
+            ).detach()
+            timing_info["old_logprobs_sec"] = max(0.0, time.time() - old_logprobs_start_time)
         _maybe_log_cuda_memory(fit_cfg, logger, "after_old_logprobs", update_step=next_update_step, micro_step=micro_step)
 
         model.train()
@@ -1321,7 +1425,7 @@ def run_fitmotn_rl_training(fit_cfg):
                 full_attention,
                 response_mask,
                 int(getattr(fit_cfg.rl, "logprob_micro_batch_size", 1)),
-                response_start=response_start,
+                response_start=response_starts,
             ).detach()
             timing_info["ref_logprobs_sec"] = max(0.0, time.time() - ref_logprobs_start_time)
         else:
@@ -1343,7 +1447,7 @@ def run_fitmotn_rl_training(fit_cfg):
             beta=float(fit_cfg.rl.beta) if ref_logprobs is not None else 0.0,
             use_amp=bool(getattr(fit_cfg.model, "use_amp", False)),
             amp_dtype=amp_dtype,
-            response_start=response_start,
+            response_start=response_starts,
             logger=logger,
             fit_cfg=fit_cfg,
             update_step=next_update_step,
@@ -1367,6 +1471,12 @@ def run_fitmotn_rl_training(fit_cfg):
         _maybe_log_cuda_memory(fit_cfg, logger, "after_backward", update_step=next_update_step, micro_step=micro_step)
 
         grad_norm = None
+        post_update_policy_drift = {
+            "post_update_ratio_mean": None,
+            "post_update_ratio_max": None,
+            "post_update_raw_log_ratio_max": None,
+            "post_update_clip_frac": None,
+        }
         optimizer_micro_step += 1
         did_update = (optimizer_micro_step % int(fit_cfg.rl.grad_accum)) == 0
         if did_update:
@@ -1377,6 +1487,25 @@ def run_fitmotn_rl_training(fit_cfg):
             update_step += 1
             zero_advantage_retry_count = 0
             _maybe_log_cuda_memory(fit_cfg, logger, "after_optimizer_step", update_step=update_step, micro_step=micro_step)
+            diagnostic_limit = int(getattr(fit_cfg.rl, "post_update_diagnostics_updates", 0))
+            if old_logprobs is not None and diagnostic_limit > 0 and update_step <= diagnostic_limit:
+                diagnostic_start = time.time()
+                post_update_logprobs = compute_old_logprobs_microbatched(
+                    model,
+                    generated,
+                    full_attention,
+                    response_mask,
+                    int(getattr(fit_cfg.rl, "logprob_micro_batch_size", 1)),
+                    response_start=response_starts,
+                ).detach()
+                post_update_policy_drift = compute_post_update_policy_drift(
+                    post_update_logprobs,
+                    old_logprobs,
+                    response_mask,
+                    float(fit_cfg.rl.eps_clip),
+                )
+                timing_info["post_update_logprobs_sec"] = max(0.0, time.time() - diagnostic_start)
+                del post_update_logprobs
             if rollout_backend.name == "vllm":
                 last_rollout_sync = rollout_backend.sync_policy(
                     model=model,
@@ -1405,6 +1534,7 @@ def run_fitmotn_rl_training(fit_cfg):
                 "reward_std": _std(rewards),
                 "strict_acc": strict_acc,
                 "fallback_acc": fallback_acc,
+                "boundary_truncation_rate": boundary_truncation_rate,
                 "reward_acc": reward_acc,
                 "mgpo_enabled": bool(getattr(fit_cfg.rl, "mgpo_enabled", False)),
                 "prompt_acc_mean": float(prompt_acc.mean().detach().cpu().item()),
@@ -1418,10 +1548,13 @@ def run_fitmotn_rl_training(fit_cfg):
                 "group_nonzero_adv_frac": group_nonzero_adv_frac,
                 "adv_abs_mean": float(loss_metrics["adv_abs_mean"].cpu().item()),
                 "kl_mean": float(loss_metrics["kl_mean"].cpu().item()),
+                "entropy_mean": float(loss_metrics["entropy_mean"].cpu().item()),
                 "clip_frac": float(loss_metrics["clip_frac"].cpu().item()),
                 "ratio_mean": float(loss_metrics["ratio_mean"].cpu().item()),
                 "ratio_max": float(loss_metrics["ratio_max"].cpu().item()),
                 "raw_log_ratio_max": float(loss_metrics["raw_log_ratio_max"].cpu().item()),
+                **post_update_policy_drift,
+                "old_logprobs_mode": old_logprobs_mode,
                 "avg_response_len": _mean(float(value) for value in response_lens),
                 "min_response_len": float(min(response_lens)) if response_lens else 0.0,
                 "max_response_len": float(max(response_lens)) if response_lens else 0.0,
@@ -1434,7 +1567,10 @@ def run_fitmotn_rl_training(fit_cfg):
                 "amp_dtype": dtype_name_or_none(amp_dtype),
                 "prompt_format": str(getattr(fit_cfg.rl, "prompt_format", "raw") or "raw"),
                 "chat_enable_thinking": bool(getattr(fit_cfg.rl, "chat_enable_thinking", False)),
-                "response_start": int(response_start),
+                "prompt_batch_width": int(prompt_batch_width),
+                "response_start_min": min(response_starts) if response_starts else None,
+                "response_start_max": max(response_starts) if response_starts else None,
+                "response_start_unique": sorted(set(response_starts)),
                 "router_usage_warning": router_usage_warning,
                 **_sync_result_metadata(last_rollout_sync),
                 "vllm_post_update_policy_version": (
@@ -1527,7 +1663,8 @@ def run_fitmotn_rl_training(fit_cfg):
         del attention_mask
         del full_attention
         del response_mask
-        del old_logprobs
+        if old_logprobs is not None:
+            del old_logprobs
         del rewards
         del reward_debugs
         del reward_tensor

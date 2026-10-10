@@ -57,6 +57,7 @@ def test_fitmotn_config_mirrors_generation_fields():
             "tie_word_embeddings": True,
             "torch_dtype": "torch.float32",
             "use_cache": True,
+            "head_dim": 13,
             "n_embd": 8,
         },
         fitmotn_patch_config={"patch_backend": "motn", "dtype": "torch.float32"},
@@ -71,6 +72,7 @@ def test_fitmotn_config_mirrors_generation_fields():
     assert data["eos_token_id"] == 2
     assert data["pad_token_id"] == 0
     assert data["tie_word_embeddings"] is True
+    assert data["head_dim"] == 13
     assert data["torch_dtype"] == "float32"
     assert data["fitmotn_patch_config"]["dtype"] == "float32"
     assert data["auto_map"]["AutoModel"] == "modeling_fitmotn.FitMoTNModel"
@@ -402,8 +404,8 @@ def test_optional_vllm_smoke_loads_tiny_patched_export(tmp_path, monkeypatch):
 
     base = Qwen2Config(
         vocab_size=32,
-        hidden_size=8,
-        intermediate_size=16,
+        hidden_size=32,
+        intermediate_size=64,
         num_hidden_layers=1,
         num_attention_heads=2,
         num_key_value_heads=2,
@@ -458,6 +460,8 @@ def test_optional_vllm_smoke_loads_tiny_patched_export(tmp_path, monkeypatch):
             trust_remote_code=True,
             model_impl="transformers",
             enforce_eager=True,
+            gpu_memory_utilization=0.10,
+            max_num_seqs=4,
         )
     except Exception as exc:
         if "NVMLError" in type(exc).__name__ or "NVML" in str(exc) or "blocked the request" in str(exc):

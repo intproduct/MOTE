@@ -455,6 +455,57 @@ class ADTNFixedBackendTests(unittest.TestCase):
         self.assertIn("gate_proj", result["projections"])
         self.assertTrue(result["success"] or result["failed"])
 
+    def _run_motn_global_fit_mode(self, mode: str):
+        torch.manual_seed(17)
+        model = self._fake_model(n_layers=1, hidden_size=8, intermediate_size=16)
+        dense_targets = {
+            0: {
+                name: getattr(model.model.layers[0].mlp, name).weight.detach().cpu().float().clone()
+                for name in ("gate_proj", "up_proj", "down_proj")
+            }
+        }
+        cfg = self._cfg(patch_backend="motn")
+        cfg.model.global_expert_enabled = True
+        cfg.model.global_expert_init_scale = 0.0
+        cfg.approx_init.global_fit_mode = mode
+        cfg.approx_init.steps_per_proj = 40
+        cfg.approx_init.global_fit_steps = 40
+        cfg.approx_init.lr = 3e-3
+        cfg.approx_init.global_fit_lr = 3e-3
+        cfg.approx_init.early_stop_patience = 1000
+        patch_qwen_ffn_layers(
+            model,
+            [0],
+            build_patch_model_config(cfg),
+            device=torch.device("cpu"),
+            dtype=torch.float32,
+        )
+        result = fit_patched_ffn_layer(
+            model.model.layers[0].mlp, dense_targets[0], cfg.approx_init, logger=None
+        )
+        self.assertFalse(result["failed"])
+        return model, result["projections"]["gate_proj"]
+
+    def test_motn_global_fit_modes_update_only_when_requested(self):
+        excluded_model, excluded = self._run_motn_global_fit_mode("excluded")
+        excluded_u = excluded_model.model.layers[0].mlp.gate_proj.core.global_block.U
+        self.assertEqual(int(torch.count_nonzero(excluded_u).item()), 0)
+        self.assertEqual(excluded["global_fit_mode"], "excluded")
+
+        joint_model, joint = self._run_motn_global_fit_mode("joint")
+        joint_u = joint_model.model.layers[0].mlp.gate_proj.core.global_block.U
+        self.assertGreater(int(torch.count_nonzero(joint_u).item()), 0)
+        self.assertIsNotNone(joint["local_only_eval"])
+        self.assertLessEqual(joint["rel_l2"], joint["local_only_eval"]["rel_l2"] + 1e-6)
+
+        residual_model, residual = self._run_motn_global_fit_mode("residual")
+        residual_u = residual_model.model.layers[0].mlp.gate_proj.core.global_block.U
+        self.assertGreater(int(torch.count_nonzero(residual_u).item()), 0)
+        self.assertEqual(residual["global_fit"]["step_count"], 40)
+        self.assertEqual(residual["global_fit"]["global_param_l2_before"], 0.0)
+        self.assertGreater(residual["global_fit"]["global_param_l2_after"], 0.0)
+        self.assertLessEqual(residual["rel_l2"], residual["local_only_eval"]["rel_l2"] + 1e-6)
+
     def test_restore_supports_legacy_motn_and_adtn_fixed_metadata(self):
         original_loader = restore_module.load_causal_lm_and_tokenizer
 

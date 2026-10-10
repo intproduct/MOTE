@@ -5,8 +5,23 @@ from typing import Dict, List
 import torch as tc
 
 
-def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.Tensor]:
-    max_len = max(x["input_ids"].numel() for x in batch)
+def pad_collate(
+    batch: List[Dict[str, tc.Tensor]],
+    pad_id: int,
+    *,
+    pad_to_length_buckets: List[int] | None = None,
+) -> Dict[str, tc.Tensor]:
+    observed_max_len = max(x["input_ids"].numel() for x in batch)
+    buckets = sorted(set(int(value) for value in (pad_to_length_buckets or [])))
+    if buckets:
+        candidates = [value for value in buckets if value >= observed_max_len]
+        if not candidates:
+            raise ValueError(
+                f"batch length {observed_max_len} exceeds largest configured padding bucket {buckets[-1]}"
+            )
+        max_len = candidates[0]
+    else:
+        max_len = observed_max_len
     input_ids = tc.full((len(batch), max_len), pad_id, dtype=tc.long)
     labels = tc.full((len(batch), max_len), -100, dtype=tc.long)
     attn = tc.zeros((len(batch), max_len), dtype=tc.long)
@@ -24,7 +39,13 @@ def pad_collate(batch: List[Dict[str, tc.Tensor]], pad_id: int) -> Dict[str, tc.
         length = ex["input_ids"].numel()
         input_ids[i, :length] = ex["input_ids"]
         labels[i, :length] = ex["labels"]
-        attn[i, :length] = 1
+        if "attention_mask" in ex:
+            example_attention = ex["attention_mask"].to(dtype=tc.long)
+            if example_attention.numel() != length:
+                raise ValueError("attention_mask length must match input_ids length")
+            attn[i, :length] = example_attention
+        else:
+            attn[i, :length] = 1
         if loss_weights is not None:
             if "loss_weights" in ex:
                 loss_weights[i, :length] = ex["loss_weights"]

@@ -18,6 +18,24 @@ ANSWER_MARKER_RE = re.compile(
     r"(?:^|\n|\s)answer\s*(?:is|=|:|：)\s*(" + NUMBER_RE.pattern + r")",
     flags=re.IGNORECASE,
 )
+NEXT_QUESTION_RE = re.compile(r"\n\s*(?:\n\s*)?question\s*:", flags=re.IGNORECASE)
+
+
+def truncate_at_next_question(text: Any) -> Tuple[str, bool]:
+    """Return only the requested GSM8K response, excluding later problems.
+
+    Online rollout backends are required to stop before a new Question marker.
+    This scorer-side boundary is defense in depth for old checkpoints, backend
+    regressions, and model outputs containing a second problem. It deliberately
+    keeps all answer markers before that boundary, allowing self-correction
+    inside the response while preventing a later problem from overwriting it.
+    """
+
+    value = str(text)
+    boundary = NEXT_QUESTION_RE.search(value)
+    if boundary is None:
+        return value, False
+    return value[: boundary.start()], True
 
 
 def normalize_number_answer(ans: Any) -> str:
@@ -113,11 +131,13 @@ def _extract_gold_answer(gold_answer: Any) -> Optional[str]:
 
 
 def gsm8k_reward(generated_text: str, gold_answer: str) -> Tuple[float, Dict[str, Any]]:
+    raw_generated_text = str(generated_text)
+    scored_text, boundary_truncated = truncate_at_next_question(raw_generated_text)
     gold = _extract_gold_answer(gold_answer)
-    strict_pred = _extract_hash_answer(generated_text)
-    final_answer_pred = _extract_final_answer(generated_text)
-    answer_marker_pred = _extract_answer_marker(generated_text)
-    fallback_last_number_pred = _extract_last_number(generated_text)
+    strict_pred = _extract_hash_answer(scored_text)
+    final_answer_pred = _extract_final_answer(scored_text)
+    answer_marker_pred = _extract_answer_marker(scored_text)
+    fallback_last_number_pred = _extract_last_number(scored_text)
     pred_answer = strict_pred or final_answer_pred or answer_marker_pred or fallback_last_number_pred
     strict_match = _numbers_equal(strict_pred, gold)
     final_answer_match = _numbers_equal(final_answer_pred, gold)
@@ -146,4 +166,7 @@ def gsm8k_reward(generated_text: str, gold_answer: str) -> Tuple[float, Dict[str
         "answer_marker_match": bool(answer_marker_match),
         "fallback_match": bool(fallback_match),
         "match_type": match_type,
+        "boundary_truncated": bool(boundary_truncated),
+        "raw_text_length": len(raw_generated_text),
+        "scored_text_length": len(scored_text),
     }

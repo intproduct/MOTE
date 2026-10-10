@@ -104,7 +104,7 @@ def grpo_loss(
     surrogate = torch.minimum(ratio * adv, clipped_ratio * adv)
     policy_loss = -_per_response_masked_mean(surrogate, mask)
 
-    if float(beta) != 0.0 and ref_logprobs is not None:
+    if ref_logprobs is not None:
         ref_delta = (ref_logprobs.detach() - new_logprobs).clamp(min=-20.0, max=20.0)
         kl = torch.exp(ref_delta) - ref_delta - 1.0
         kl_mean = _per_response_masked_mean(kl, mask)

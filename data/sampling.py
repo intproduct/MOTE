@@ -119,7 +119,10 @@ class DeterministicSequenceSampler:
 
     @property
     def selected_count(self) -> int:
-        return len(self._build_global_order(self.epoch))
+        # Population size is independent of shuffle order. Runtime statistics
+        # call this after every sample, so rebuilding a multi-million-row order
+        # here would turn observability into the training bottleneck.
+        return self.max_samples if self.max_samples is not None else len(self.records)
 
     def next_record(self) -> Any:
         if self.position >= len(self.order):

@@ -32,7 +32,8 @@ class RolloutGenerationConfig:
 class RolloutBatch:
     sequences: torch.Tensor
     original_seq_lens: List[int]
-    response_start: int
+    response_starts: List[int]
+    response_token_ids: List[List[int]]
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -129,6 +130,59 @@ def pad_generated_to_max_len(generated_chunks: Sequence[torch.Tensor], pad_token
     return torch.cat(padded_chunks, dim=0)
 
 
+def build_compact_rollout_sequences(
+    *,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    generated_token_ids: Sequence[Sequence[int]],
+    pad_token_id: int,
+) -> Tuple[torch.Tensor, List[int], List[int], List[List[int]]]:
+    """Build canonical ``valid_prompt + response + trailing_pad`` trajectories.
+
+    Rollout engines consume prompts after removing tokenizer padding. Policy,
+    reference, and loss forwards must therefore score exactly that same token
+    history. Prompt padding must never be retained before or inside the valid
+    causal span.
+    """
+    if input_ids.shape != attention_mask.shape:
+        raise ValueError("input_ids and attention_mask must have identical shapes")
+    if int(input_ids.shape[0]) != len(generated_token_ids):
+        raise ValueError("input_ids and generated_token_ids must have the same batch size")
+
+    rows: List[torch.Tensor] = []
+    original_seq_lens: List[int] = []
+    response_starts: List[int] = []
+    normalized_responses: List[List[int]] = []
+    for row, mask, response_ids in zip(input_ids, attention_mask, generated_token_ids):
+        valid_prompt = row[mask.to(device=row.device, dtype=torch.bool)]
+        if int(valid_prompt.numel()) <= 0:
+            raise ValueError("rollout prompts must contain at least one valid token")
+        response = [int(value) for value in response_ids]
+        suffix = torch.tensor(response, dtype=row.dtype, device=row.device)
+        full = torch.cat([valid_prompt, suffix], dim=0)
+        rows.append(full)
+        response_starts.append(int(valid_prompt.numel()))
+        original_seq_lens.append(int(full.numel()))
+        normalized_responses.append(response)
+
+    max_len = max(original_seq_lens, default=0)
+    padded_rows: List[torch.Tensor] = []
+    for row in rows:
+        pad_len = int(max_len - row.numel())
+        if pad_len > 0:
+            tail = torch.full(
+                (pad_len,),
+                int(pad_token_id),
+                dtype=row.dtype,
+                device=row.device,
+            )
+            row = torch.cat([row, tail], dim=0)
+        padded_rows.append(row)
+    if not padded_rows:
+        raise RuntimeError("No rollout rows were produced")
+    return torch.stack(padded_rows, dim=0), original_seq_lens, response_starts, normalized_responses
+
+
 def build_generation_config_from_fit_cfg(fit_cfg) -> RolloutGenerationConfig:
     return RolloutGenerationConfig(
         max_new_tokens=int(fit_cfg.rl.max_new_tokens),
@@ -139,6 +193,11 @@ def build_generation_config_from_fit_cfg(fit_cfg) -> RolloutGenerationConfig:
         rollout_inference_mode=bool(getattr(fit_cfg.rl, "rollout_inference_mode", True)),
         rollout_log_timing=bool(getattr(fit_cfg.rl, "rollout_log_timing", True)),
         seed=getattr(fit_cfg.rl, "seed", None),
+        stop_sequences=tuple(
+            str(value)
+            for value in getattr(fit_cfg.rl, "rollout_stop_sequences", ())
+            if str(value)
+        ),
     )
 
 
@@ -202,7 +261,7 @@ class HFRolloutBackend:
             return pad_generated_to_max_len(chunks, pad_token_id), seq_lens
 
         try:
-            generated, original_seq_lens = attempt(requested_use_cache)
+            generated, generated_seq_lens = attempt(requested_use_cache)
         except Exception as exc:
             if requested_use_cache and is_cache_compat_generation_error(exc):
                 if self.logger is not None:
@@ -210,16 +269,27 @@ class HFRolloutBackend:
                         "[RLRollout] use_cache=true generate failed; retrying once with use_cache=false: %s",
                         exc,
                     )
-                generated, original_seq_lens = attempt(False)
+                generated, generated_seq_lens = attempt(False)
                 cache_info["effective_rollout_use_cache"] = False
                 cache_info["rollout_use_cache_reason"] = "fallback_after_error"
                 cache_info["rollout_use_cache_error"] = str(exc)
             else:
                 raise
+        response_token_ids = [
+            generated[row, response_start:int(seq_len)].detach().cpu().tolist()
+            for row, seq_len in enumerate(generated_seq_lens)
+        ]
+        sequences, original_seq_lens, response_starts, response_token_ids = build_compact_rollout_sequences(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            generated_token_ids=response_token_ids,
+            pad_token_id=pad_token_id,
+        )
         return RolloutBatch(
-            sequences=generated,
+            sequences=sequences,
             original_seq_lens=original_seq_lens,
-            response_start=response_start,
+            response_starts=response_starts,
+            response_token_ids=response_token_ids,
             metadata={"rollout_backend": self.name, **cache_info},
         )
 

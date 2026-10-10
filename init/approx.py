@@ -84,7 +84,7 @@ def _reset_random_subset_scale(motn_operator, inactive_block_indices: List[int],
             param.mul_(scale)
 
 
-def _configure_trainable_subset(motn_operator, active_block_indices: List[int]) -> List[nn.Parameter]:
+def _configure_trainable_subset(motn_operator, active_block_indices: List[int], *, include_global: bool = False) -> List[nn.Parameter]:
     active_set = {int(i) for i in active_block_indices}
     params: List[nn.Parameter] = []
     gate = getattr(motn_operator.core, "gate", None)
@@ -94,17 +94,42 @@ def _configure_trainable_subset(motn_operator, active_block_indices: List[int]) 
     global_block = getattr(motn_operator.core, "global_block", None)
     if global_block is not None:
         for p in global_block.parameters():
-            p.requires_grad_(False)
+            p.requires_grad_(include_global)
+            if include_global:
+                params.append(p)
     for idx, block in enumerate(motn_operator.core.blocks):
         enabled = idx in active_set
         for p in block.parameters():
             p.requires_grad_(enabled)
             if enabled:
                 params.append(p)
+    # SparseMiXT boundary residuals are part of the projection itself.  Include
+    # them in projection calibration while retaining the existing MoTN-only
+    # behavior for operators that do not define these branches.
+    for branch_name in ("lr01", "lr10", "lr11"):
+        branch = getattr(motn_operator, branch_name, None)
+        if branch is None:
+            continue
+        for p in branch.parameters():
+            p.requires_grad_(True)
+            params.append(p)
     return params
 
 
-def _evaluate_operator(motn_operator, target_weight: tc.Tensor, active_block_indices: List[int], batch_size: int, chunk_size: int) -> Dict[str, float]:
+def _configure_global_only(motn_operator) -> List[nn.Parameter]:
+    for param in motn_operator.parameters():
+        param.requires_grad_(False)
+    global_block = getattr(motn_operator.core, "global_block", None)
+    if global_block is None:
+        return []
+    params: List[nn.Parameter] = []
+    for param in global_block.parameters():
+        param.requires_grad_(True)
+        params.append(param)
+    return params
+
+
+def _evaluate_operator(motn_operator, target_weight: tc.Tensor, active_block_indices: List[int], batch_size: int, chunk_size: int, use_global_expert: bool = False) -> Dict[str, float]:
     device = next(motn_operator.parameters()).device
     loader = build_identity_operator_loader(target_weight.shape[1], target_weight, batch_size=batch_size, chunk_size=chunk_size)
     total_sq = 0.0
@@ -116,7 +141,7 @@ def _evaluate_operator(motn_operator, target_weight: tc.Tensor, active_block_ind
         x = x_cpu.to(device=device, dtype=tc.float32)
         y = y_cpu.to(device=device, dtype=tc.float32)
         probs = _subset_probs(x.shape[0], motn_operator.core.num_blocks, active_block_indices, device=device)
-        yhat = motn_operator(x, probs=probs, mask=None, use_global_expert=False)
+        yhat = motn_operator(x, probs=probs, mask=None, use_global_expert=bool(use_global_expert))
         if isinstance(yhat, tuple):
             yhat = yhat[0]
         err = yhat.float() - y.float()
@@ -135,16 +160,84 @@ def _evaluate_operator(motn_operator, target_weight: tc.Tensor, active_block_ind
     return {"eval_mse": mse, "rel_l2": rel_l2, "nrmse": nrmse, "cos": cos}
 
 
+def _fit_global_residual(patch_operator, target_weight, active_block_indices, cfg) -> dict:
+    params = _configure_global_only(patch_operator)
+    if not params:
+        raise ValueError("global residual fit requested but no global parameters were found")
+    device = next(patch_operator.parameters()).device
+    steps = int(getattr(cfg, "global_fit_steps", None) or cfg.steps_per_proj)
+    lr = float(getattr(cfg, "global_fit_lr", None) or cfg.lr)
+    optimizer = tc.optim.AdamW(params, lr=lr)
+    loss_fn = nn.MSELoss()
+    last_mse = None
+    best_mse = None
+    best_step = 0
+    step_count = 0
+    before_norm = math.sqrt(sum(float(p.detach().float().pow(2).sum().item()) for p in params))
+    t0 = time.time()
+    while step_count < steps:
+        loader = build_identity_operator_loader(
+            target_weight.shape[1],
+            target_weight,
+            batch_size=int(cfg.batch_size),
+            chunk_size=int(cfg.identity_chunk_size),
+        )
+        for x_cpu, y_cpu in loader:
+            if step_count >= steps:
+                break
+            step_count += 1
+            x = x_cpu.to(device=device, dtype=tc.float32)
+            y = y_cpu.to(device=device, dtype=tc.float32)
+            probs = _subset_probs(x.shape[0], patch_operator.core.num_blocks, active_block_indices, device=device)
+            optimizer.zero_grad(set_to_none=True)
+            yhat = patch_operator(x, probs=probs, mask=None, use_global_expert=True)
+            if isinstance(yhat, tuple):
+                yhat = yhat[0]
+            loss = loss_fn(yhat.float(), y.float())
+            loss.backward()
+            optimizer.step()
+            last_mse = float(loss.detach().cpu().item())
+            if best_mse is None or last_mse < best_mse:
+                best_mse = last_mse
+                best_step = step_count
+    eval_stats = _evaluate_operator(
+        patch_operator,
+        target_weight,
+        active_block_indices,
+        batch_size=int(cfg.batch_size),
+        chunk_size=int(cfg.identity_chunk_size),
+        use_global_expert=True,
+    )
+    result = {
+        "train_mse_last": last_mse,
+        "train_mse_best": best_mse,
+        "best_step": int(best_step),
+        "step_count": int(step_count),
+        "stop_reason": "max_steps",
+        "elapsed_sec": max(0.0, time.time() - t0),
+        "lr": lr,
+        "global_param_l2_before": before_norm,
+        "global_param_l2_after": math.sqrt(sum(float(p.detach().float().pow(2).sum().item()) for p in params)),
+    }
+    result.update(eval_stats)
+    return result
+
+
 def fit_single_patch_operator_subset(patch_operator, target_weight, active_block_indices, cfg, logger) -> dict:
     active_block_indices = sorted(set(int(i) for i in active_block_indices))
     subset_info = resolve_warmup_block_subsets(patch_operator)
     inactive_block_indices = [idx for idx in range(int(patch_operator.core.num_blocks)) if idx not in active_block_indices]
     _reset_random_subset_scale(patch_operator, inactive_block_indices, getattr(cfg, "init_random_std_scale", 1.0))
-    params = _configure_trainable_subset(patch_operator, active_block_indices)
+    global_fit_mode = str(getattr(cfg, "global_fit_mode", "excluded") or "excluded").strip().lower()
+    if global_fit_mode not in {"excluded", "joint", "residual"}:
+        raise ValueError(f"unsupported global_fit_mode: {global_fit_mode!r}")
+    global_block = getattr(patch_operator.core, "global_block", None)
+    if global_fit_mode != "excluded" and global_block is None:
+        raise ValueError(f"global_fit_mode={global_fit_mode!r} requires an enabled global expert")
+    use_global_during_fit = global_fit_mode == "joint"
+    params = _configure_trainable_subset(patch_operator, active_block_indices, include_global=use_global_during_fit)
     if not params:
         raise ValueError("no trainable parameters found for active_block_indices")
-
-    global_block = getattr(patch_operator.core, "global_block", None)
     try:
         device = next(patch_operator.parameters()).device
         target_weight = target_weight.detach().cpu().float()
@@ -173,7 +266,7 @@ def fit_single_patch_operator_subset(patch_operator, target_weight, active_block
                 y = y_cpu.to(device=device, dtype=tc.float32)
                 probs = _subset_probs(x.shape[0], patch_operator.core.num_blocks, active_block_indices, device=device)
                 optimizer.zero_grad(set_to_none=True)
-                yhat = patch_operator(x, probs=probs, mask=None, use_global_expert=False)
+                yhat = patch_operator(x, probs=probs, mask=None, use_global_expert=use_global_during_fit)
                 if isinstance(yhat, tuple):
                     yhat = yhat[0]
                 loss = loss_fn(yhat.float(), y.float())
@@ -197,6 +290,7 @@ def fit_single_patch_operator_subset(patch_operator, target_weight, active_block
                         active_block_indices,
                         batch_size=int(cfg.batch_size),
                         chunk_size=int(cfg.identity_chunk_size),
+                        use_global_expert=use_global_during_fit,
                     )
                     if cfg.target_rel_l2 is not None and eval_stats["rel_l2"] <= float(cfg.target_rel_l2):
                         stop_reason = "target_rel_l2"
@@ -215,9 +309,33 @@ def fit_single_patch_operator_subset(patch_operator, target_weight, active_block
             active_block_indices,
             batch_size=int(cfg.batch_size),
             chunk_size=int(cfg.identity_chunk_size),
+            use_global_expert=use_global_during_fit,
         )
+        local_only_eval = None
+        global_fit = None
+        if global_fit_mode == "joint":
+            local_only_eval = _evaluate_operator(
+                patch_operator,
+                target_weight,
+                active_block_indices,
+                batch_size=int(cfg.batch_size),
+                chunk_size=int(cfg.identity_chunk_size),
+                use_global_expert=False,
+            )
+        elif global_fit_mode == "residual":
+            local_only_eval = dict(eval_stats)
+            global_fit = _fit_global_residual(patch_operator, target_weight, active_block_indices, cfg)
+            eval_stats = {
+                key: global_fit[key]
+                for key in ("eval_mse", "rel_l2", "nrmse", "cos")
+            }
+            _configure_trainable_subset(patch_operator, active_block_indices, include_global=True)
+
         usage = getattr(patch_operator.core, "last_usage", None)
         result = {
+            "global_fit_mode": global_fit_mode,
+            "local_only_eval": local_only_eval,
+            "global_fit": global_fit,
             "train_mse_last": last_mse,
             "train_mse_best": best_mse,
             "best_step": best_step,
@@ -246,9 +364,7 @@ def fit_single_patch_operator_subset(patch_operator, target_weight, active_block
             )
         return result
     finally:
-        if global_block is not None:
-            for p in global_block.parameters():
-                p.requires_grad_(True)
+        _configure_trainable_subset(patch_operator, active_block_indices, include_global=True)
 
 
 def fit_single_motn_operator_subset(motn_operator, target_weight, active_block_indices, cfg, logger) -> dict:

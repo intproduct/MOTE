@@ -35,7 +35,7 @@ from MOTE.rl.logprobs import gather_response_logprobs
 from MOTE.rl.mgpo import compute_mgpo_weights
 from MOTE.rl.reward_shaping import apply_long2short_reward_shift
 from MOTE.rl.rewards_gsm8k import gsm8k_reward, normalize_number_answer
-from MOTE.rl.runtime import set_trainable_mode_for_rl
+from MOTE.rl.runtime import configure_rl_capacity_drop, set_trainable_mode_for_rl
 from MOTE.train.rl_controller import (
     _cuda_memory_snapshot,
     build_zero_advantage_retry_limit_record,
@@ -446,6 +446,27 @@ def test_gather_response_logprobs_alignment_masks_j0_and_prompt():
     assert logprobs[0, 3].item() > -1e-3
 
 
+def test_empty_response_logprobs_are_zero_and_backward_safe():
+    model = ShiftToyLM()
+    input_ids = torch.tensor([[1, 2, 3, 4]])
+    attention_mask = torch.ones_like(input_ids)
+    response_mask = torch.zeros_like(input_ids, dtype=torch.float32)
+
+    logprobs = gather_response_logprobs(
+        model,
+        input_ids,
+        attention_mask,
+        response_mask,
+        response_start=input_ids.shape[1],
+    )
+
+    assert logprobs.requires_grad
+    assert torch.equal(logprobs, torch.zeros_like(logprobs))
+    logprobs.sum().backward()
+    assert model.bias.grad is not None
+    assert model.bias.grad.item() == 0.0
+
+
 def test_response_only_logprobs_match_full_sequence_and_zero_prompt():
     input_ids = torch.tensor([[1, 2, 3, 4, 5], [1, 3, 4, 5, 6]])
     attention_mask = torch.ones_like(input_ids)
@@ -475,6 +496,22 @@ def test_response_only_logprobs_match_full_sequence_and_zero_prompt():
     assert torch.allclose(response_only[:, response_start:], full[:, response_start:], atol=1e-6)
     assert torch.allclose(fallback[:, response_start:], full[:, response_start:], atol=1e-6)
     assert torch.equal(response_only[:, :response_start], torch.zeros_like(response_only[:, :response_start]))
+
+
+def test_response_logprobs_support_nonuniform_response_starts():
+    input_ids = torch.tensor([[1, 2, 3, 4, 5], [1, 3, 4, 5, 6]])
+    attention_mask = torch.ones_like(input_ids)
+    response_mask = torch.tensor([[0.0, 0.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 1.0, 1.0]])
+    starts = [2, 3]
+
+    expected = gather_response_logprobs(ShiftToyLM(), input_ids, attention_mask, response_mask)
+    actual = gather_response_logprobs(
+        ShiftToyLM(), input_ids, attention_mask, response_mask, response_start=starts
+    )
+
+    assert torch.allclose(actual, expected, atol=1e-6)
+    assert torch.equal(actual[0, :2], torch.zeros_like(actual[0, :2]))
+    assert torch.equal(actual[1, :3], torch.zeros_like(actual[1, :3]))
 
 
 def test_rollout_generation_state_restores_training_and_cache_state():
@@ -550,17 +587,18 @@ def test_rollout_generate_uses_cache_eval_and_logprobs_stay_no_cache():
     for unused_key in ("output_scores", "return_dict_in_generate", "output_hidden_states", "output_attentions"):
         assert unused_key not in model.generate_calls[0]["kwargs"]
     assert info["effective_rollout_use_cache"] is True
-    assert original_seq_lens == [generated.shape[1], generated.shape[1]]
+    assert original_seq_lens == [5, 4]
+    assert generated.shape[1] == max(original_seq_lens)
 
-    response_start = enc["input_ids"].shape[1]
+    response_starts = enc["attention_mask"].sum(dim=1).tolist()
     full_attention, response_mask = build_rollout_attention_and_response_mask(
         generated,
         enc["attention_mask"],
-        response_start=response_start,
+        response_start=response_starts,
         original_seq_lens=original_seq_lens,
         eos_token_id=tokenizer.eos_token_id,
     )
-    _ = gather_response_logprobs(model, generated, full_attention, response_mask, response_start=response_start)
+    _ = gather_response_logprobs(model, generated, full_attention, response_mask, response_start=response_starts)
     assert model.forward_use_cache[-1] is False
 
 
@@ -572,7 +610,7 @@ def test_rollout_microbatch_padding_masks_manual_tail_and_pad_equals_eos():
     tokenizer = FakeRolloutTokenizer(pad_token_id=2, eos_token_id=2)
     model = FakeRolloutModel(lengths=[3, 1], pad_token_id=2, eos_token_id=2)
     enc = tokenize_rollout_prompts(tokenizer, ["abcd", "ef"], max_prompt_tokens=3)
-    response_start = enc["input_ids"].shape[1]
+    response_starts = enc["attention_mask"].sum(dim=1).tolist()
 
     generated, original_seq_lens, _ = generate_rollout_sequences(
         fit_cfg=cfg,
@@ -584,20 +622,20 @@ def test_rollout_microbatch_padding_masks_manual_tail_and_pad_equals_eos():
     full_attention, response_mask = build_rollout_attention_and_response_mask(
         generated,
         enc["attention_mask"],
-        response_start=response_start,
+        response_start=response_starts,
         original_seq_lens=original_seq_lens,
         eos_token_id=tokenizer.eos_token_id,
     )
 
     assert len(model.generate_calls) == 2
     assert len(tokenizer.calls) == 1
-    assert response_start == 3
+    assert response_starts == [3, 2]
     assert generated.shape[0] == 2
     assert response_mask.shape == generated.shape
     assert original_seq_lens[0] > original_seq_lens[1]
     assert full_attention[1, original_seq_lens[1] :].sum().item() == 0
     assert response_mask[1, original_seq_lens[1] :].sum().item() == 0
-    assert torch.equal(full_attention[:, :response_start], enc["attention_mask"])
+    assert torch.equal(full_attention.sum(dim=1), torch.tensor(original_seq_lens))
     # The valid EOS position is included even when pad_token_id == eos_token_id;
     # only the manually padded tail is masked out by original_seq_lens.
     assert response_mask[1, original_seq_lens[1] - 1].item() == 1.0
@@ -623,6 +661,25 @@ def test_gsm8k_reward_records_strict_fallback_and_reward_acc_inputs():
     assert debug["fallback_match"] is True
     assert debug["match_type"] == "final_answer"
     assert normalize_number_answer(" -1,234.50 ") == "-1234.50"
+
+
+def test_gsm8k_reward_ignores_answers_after_next_question_boundary():
+    reward, debug = gsm8k_reward(
+        "Work for the requested problem.\n#### 240\n\nQuestion: another problem\n#### 10",
+        "#### 240",
+    )
+    assert reward == 1.0
+    assert debug["strict_answer"] == "240"
+    assert debug["boundary_truncated"] is True
+    assert debug["scored_text_length"] < debug["raw_text_length"]
+
+    reward, debug = gsm8k_reward(
+        "Incorrect requested answer.\n#### 10\nQuestion: another problem\n#### 240",
+        "#### 240",
+    )
+    assert reward == 0.0
+    assert debug["strict_answer"] == "10"
+    assert debug["boundary_truncated"] is True
 
 
 def test_gsm8k_reward_supports_chat_final_answer_markers():
@@ -655,6 +712,23 @@ def test_rl_prompt_format_chat_uses_apply_chat_template_and_raw_does_not():
     raw_prompt = build_rl_prompt_text(cfg, tokenizer, "1+1?")
     assert raw_prompt == "Question:\n1+1?"
     assert len(tokenizer.calls) == 1
+
+
+def test_configure_rl_capacity_drop_disables_all_router_gates():
+    model = nn.Sequential(
+        TopKGate(data_dim=4, num_experts=2, k=1, min_capacity=1, drop_tokens=True),
+        TopKGate(data_dim=4, num_experts=2, k=1, min_capacity=1, drop_tokens=True),
+    )
+
+    report = configure_rl_capacity_drop(model, disabled=True)
+
+    assert report == {
+        "disabled": True,
+        "gate_count": 2,
+        "changed_count": 2,
+        "remaining_enabled": 0,
+    }
+    assert all(not gate.drop_tokens for gate in model)
 
 
 def test_trainable_router_mode_does_not_match_native_gate_proj_by_name():

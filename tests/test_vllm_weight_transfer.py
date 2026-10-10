@@ -34,6 +34,7 @@ from MOTE.rl.vllm_weight_transfer_adapters import (
     FourPhaseNCCLTransferAdapter,
     NCCLTransferSettings,
     UpdateOnlyNCCLTransferAdapter,
+    nccl_update_request_payload,
     shutdown_trainer_nccl_group,
     trainer_send_weights_to_actor,
     select_nccl_transfer_adapter,
@@ -319,11 +320,12 @@ def test_update_only_adapter_uses_request_wrappers_and_sends_weights(monkeypatch
             vars(self).update(kwargs)
 
     class StrictUpdateInfo:
-        def __init__(self, names, dtype_names, shapes, packed=False):
+        def __init__(self, names, dtype_names, shapes, packed=False, is_checkpoint_format=True):
             self.names = names
             self.dtype_names = dtype_names
             self.shapes = shapes
             self.packed = packed
+            self.is_checkpoint_format = is_checkpoint_format
 
     sent = []
 
@@ -366,8 +368,18 @@ def test_update_only_adapter_uses_request_wrappers_and_sends_weights(monkeypatch
     assert initialized is True
     assert llm.init_request.init_info["master_port"] == 12345
     assert llm.update_request.update_info["names"] == [entry.transfer_name for entry in mapping.entries]
+    assert llm.update_request.update_info["is_checkpoint_format"] is False
     assert [name for name, _ in sent] == [entry.transfer_name for entry in mapping.entries]
     assert metadata["weight_transfer_adapter"] == "nccl_update_only"
+
+
+def test_nccl_runtime_parameter_payload_bypasses_checkpoint_reloader():
+    mapping = build_weight_mapping_report(TinyMoTNModel())
+    payload = nccl_update_request_payload(mapping, packed=True)
+
+    assert payload["is_checkpoint_format"] is False
+    assert payload["names"] == [entry.transfer_name for entry in mapping.entries]
+    assert payload["dtype_names"] == [entry.dtype for entry in mapping.entries]
 
 
 def test_subprocess_trainer_send_timeout_is_fail_closed(monkeypatch):
@@ -559,6 +571,7 @@ class _FakeSubprocessActor:
         self.name = name
         self.fail_finish = fail_finish
         self.calls = []
+        self.update_requests = []
         self.pending_descriptor = None
         self.descriptor = {"policy_version": 0, "policy_fingerprint": "bootstrap", "export_dir": "bootstrap"}
 
@@ -576,6 +589,7 @@ class _FakeSubprocessActor:
 
     def begin_weight_update(self, **kwargs):
         self.calls.append("begin")
+        self.update_requests.append(dict(kwargs))
         self.pending_descriptor = dict(kwargs["policy_descriptor"])
         return 41
 
@@ -657,6 +671,7 @@ def test_subprocess_trainable_patch_sync_sends_only_allowlisted_parameters(tmp_p
     cfg.rl.vllm_sync_strategy = "weight_transfer_nccl"
     cfg.rl.vllm_native_transfer_required_level = "update_only"
     cfg.rl.vllm_weight_transfer_scope = "trainable_patch"
+    cfg.rl.vllm_weight_transfer_require_runtime_checksums = True
     cfg.rl.vllm_weight_transfer_master_port = 32200
     model = TinyMoTNModel()
     for param in model.parameters():
@@ -703,6 +718,11 @@ def test_subprocess_trainable_patch_sync_sends_only_allowlisted_parameters(tmp_p
         for mapping in sent_mappings
     )
     assert all(actor.descriptor["weight_transfer_scope"] == "trainable_patch" for actor in actors)
+    assert all(
+        set(actor.update_requests[0]["expected_checksums"]) == set(transfer_names)
+        for actor in actors
+    )
+    assert result.metadata["checksum_validation"]["tensor_count"] == len(transfer_names)
 
 
 def test_trainable_patch_sync_rejects_frozen_parameter_drift(tmp_path):

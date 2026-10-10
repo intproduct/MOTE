@@ -13,6 +13,18 @@ class ModelConfig:
     torch_dtype: str = "auto"
     trust_remote_code: bool = True
     patch_backend: str = "motn"
+    sparse_mixt: Dict[str, Any] = field(default_factory=lambda: {
+        "backend_version": 1,
+        "hidden_main": 0,
+        "intermediate_main": 0,
+        "router_input_policy": "main",
+        "boundary_init": "zero",
+        "svd_oversampling": 8,
+        "svd_niter": 2,
+        "gate_ranks": {"01": 8, "10": 8, "11": 8},
+        "up_ranks": {"01": 8, "10": 8, "11": 8},
+        "down_ranks": {"01": 8, "10": 8, "11": 8},
+    })
 
     E: int = 16
     d: int = 2
@@ -57,11 +69,13 @@ class DataConfig:
     tok_shard_dir: str = "/work/home/sugang2025/qxfang/wiki24_tok"
     datas_dir: str = "/work/home/sugang2025/qxfang/Datas"
     seq_len_run: int = 1024
+    pad_to_length_buckets: List[int] = field(default_factory=list)
     dataloader_num_workers: int = 0
     source_sampling_mode: str = "deterministic_auto"
     source_shuffle: bool = True
     source_max_epochs: int = 0
     fail_on_dynamic_skip: bool = True
+    rejection_quarantine_dir: Optional[str] = None
     frozen_sft_release_dir: Optional[str] = None
     use_frozen_sft_release: bool = False
     frozen_sft_exclusive: bool = True
@@ -176,6 +190,11 @@ class ApproxInitConfig:
     steps_per_proj: int = 300
     batch_size: int = 256
     lr: float = 3e-4
+    # "excluded" preserves historical behavior; "joint" fits local/global
+    # together; "residual" fits global after freezing the fitted local path.
+    global_fit_mode: str = "excluded"
+    global_fit_steps: Optional[int] = None
+    global_fit_lr: Optional[float] = None
     use_fp32: bool = True
     early_stop_patience: int = 30
     early_stop_min_delta: float = 1e-6
@@ -209,6 +228,16 @@ class TrainConfig:
     resume_fitmotn_from: Optional[str] = None
     resume_weights_from: Optional[str] = None
     resume_checkpoint_from: Optional[str] = None
+    # Weight-only progressive expansion: rebuild a strict superset of the
+    # checkpoint's patched layers, restore the old layers, and initialize only
+    # the newly added layers. Exact optimizer/data resume is intentionally not
+    # supported for this mode.
+    resume_expand_layers: bool = False
+    # Optional layer selector (same syntax as model.layers_to_patch) limiting
+    # which patched layers receive gradients in this run.
+    trainable_patch_layers: Optional[str] = None
+    resume_reset_data_sampling_state: bool = False
+    gradient_checkpointing: bool = False
     resume_stage: str = "auto"
     extra_updates: Optional[int] = None
     stage2_only_on_resume: bool = True
@@ -227,6 +256,13 @@ class TrainConfig:
     checkpoint_fail_on_save_error: bool = True
     checkpoint_temp_max_age_sec: float = 3600.0
     eval_every_updates: int = 1000
+    checkpoint_selector_enabled: bool = False
+    checkpoint_selector_candidates: List[int] = field(default_factory=list)
+    checkpoint_selector_primary_task: str = "mmlu"
+    checkpoint_selector_secondary_task: str = "gsm8k"
+    checkpoint_selector_primary_floor: Optional[float] = None
+    checkpoint_selector_verify_hashes: bool = False
+    checkpoint_selector_probe_restore: bool = True
     max_grad_norm: float = 1.0
 
     stage_a_ratio: float = 0.60
@@ -279,6 +315,17 @@ class TrainConfig:
     final_answer_weight: float = 1.0
     final_answer_marker: str = "####"
     final_answer_weight_enabled: bool = False
+    kd_enabled: bool = False
+    kd_distribution: str = "topk"
+    kd_teacher_model_path: Optional[str] = None
+    kd_teacher_device: Optional[str] = None
+    kd_temperature: float = 2.0
+    kd_divergence: str = "forward_kl"
+    kd_jsd_beta: float = 0.5
+    kd_weight: float = 1.0
+    kd_hard_ce_weight: float = 0.0
+    kd_topk: int = 64
+    kd_token_chunk_size: int = 64
 
 
 DEFAULT_GSM8K_GRPO_PROMPT_TEMPLATE = (
@@ -315,15 +362,19 @@ class RLConfig:
     chat_system_prompt: Optional[str] = None
     trainable_mode: str = "patch_only"
     log_every: int = 1
+    post_update_diagnostics_updates: int = 0
     enable_usage_tracking: bool = False
+    disable_capacity_drop: bool = False
     log_memory_every: int = 1
     logprob_micro_batch_size: int = 1
+    old_logprobs_mode: str = "recompute"
     rollout_micro_batch_size: int = 0
     rollout_backend: str = "hf"
     rollout_use_cache: bool = True
     rollout_inference_mode: bool = True
     rollout_log_timing: bool = True
     rollout_max_prompt_tokens: int = 0
+    rollout_stop_sequences: List[str] = field(default_factory=list)
     vllm_model_impl: str = "transformers"
     vllm_enforce_eager: bool = True
     vllm_dtype: str = "auto"
@@ -331,6 +382,8 @@ class RLConfig:
     vllm_gpu_memory_utilization: float = 0.85
     vllm_max_model_len: int = 0
     vllm_max_num_seqs: int = 0
+    vllm_enable_prefix_caching: Optional[bool] = None
+    vllm_mamba_cache_mode: Optional[str] = None
     vllm_disable_log_stats: bool = True
     vllm_sync_strategy: str = "export_reload"
     vllm_sync_every_updates: int = 1

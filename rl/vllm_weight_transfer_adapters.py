@@ -88,12 +88,21 @@ def nccl_update_request_payload(
     *,
     packed: bool,
 ) -> Dict[str, Any]:
-    """Return the checkpoint-format receiver contract for one full update."""
+    """Return the runtime-parameter receiver contract for one full update.
+
+    `mapping.entries` already names the live vLLM parameters and carries
+    their runtime shapes/dtypes. Marking this payload as checkpoint format
+    makes vLLM 0.19 run its layerwise checkpoint reloader. That reloader is
+    appropriate for fused checkpoint names, but it silently restores existing
+    kernels when a custom FitMoTN module receives only its patch subset.
+    Direct runtime copies are the correct and fail-fast path for this mapping.
+    """
     return {
         "names": [entry.transfer_name for entry in mapping.entries],
         "dtype_names": [entry.dtype for entry in mapping.entries],
         "shapes": [list(entry.shape) for entry in mapping.entries],
         "packed": bool(packed),
+        "is_checkpoint_format": False,
     }
 
 

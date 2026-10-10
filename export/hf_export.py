@@ -12,6 +12,26 @@ from .manifest import build_hf_roundtrip_payloads, json_safe, write_json
 
 REMOTE_CODE_FILES = ("configuration_fitmotn.py", "modeling_fitmotn.py")
 
+# vLLM classifies hybrid Qwen3.5 cache layers before the native FitMoTN
+# adapter reconstructs the inner base-model config. Keep these fields on the
+# outer export config as well as in ``base_model_config`` so bootstrap exports
+# created by online RL have the same loading contract as the validated static
+# Pass@K exports.
+HYBRID_CACHE_CONFIG_FIELDS = (
+    "layer_types",
+    "full_attention_interval",
+    "linear_conv_kernel_dim",
+    "linear_key_head_dim",
+    "linear_num_key_heads",
+    "linear_num_value_heads",
+    "linear_value_head_dim",
+    "mamba_ssm_dtype",
+    "partial_rotary_factor",
+    "rope_parameters",
+    "rope_theta",
+    "rope_scaling",
+)
+
 
 @dataclass
 class HFExportResult:
@@ -226,6 +246,9 @@ def export_fitmotn_hf_roundtrip(
         architectures=["FitMoTNForCausalLM"],
         use_cache=True,
     )
+    for field_name in HYBRID_CACHE_CONFIG_FIELDS:
+        if field_name in base_cfg:
+            setattr(config, field_name, base_cfg[field_name])
     wrapper = FitMoTNForCausalLM(config)
     missing, unexpected = _load_state_into_wrapper(wrapper, restored_model)
     wrapper.eval()

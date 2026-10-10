@@ -54,9 +54,30 @@ class MOTNScheduleCallback(TrainerCallback):
         every = int(every)
         return every > 0 and step > 0 and step % every == 0
 
-    def _apply_stage_lrs(self, model, optimizer, stage_name: str):
+    def _restore_configured_save_interval(self, state: TrainerState) -> None:
+        configured = int(getattr(self.fit_cfg.train, "save_every_updates", 0))
+        if configured <= 0:
+            return
+        restored = int(getattr(state, "save_steps", configured))
+        state.save_steps = configured
+        if restored != configured and self.logger is not None:
+            self.logger.info(
+                "[Resume] restored configured save interval old_save_steps=%s new_save_steps=%s",
+                restored,
+                configured,
+            )
+
+    def _apply_stage_lrs(self, model, optimizer, stage_name: str, *, lr_scheduler=None, force: bool = False):
         runtime = getattr(model, "fitmotn_runtime", None) if model is not None else None
-        resolved = set_optimizer_stage_lrs(optimizer, self.fit_cfg.train, stage_name)
+        if not force and self._last_lr_stage == stage_name:
+            return self._capture_param_group_lrs(runtime, optimizer)
+        resolved = set_optimizer_stage_lrs(
+            optimizer,
+            self.fit_cfg.train,
+            stage_name,
+            lr_scheduler=lr_scheduler,
+            preserve_scheduler_scale=lr_scheduler is not None,
+        )
         if runtime is not None:
             runtime["current_param_group_lrs"] = dict(resolved)
         if self._last_lr_stage != stage_name:
@@ -100,14 +121,26 @@ class MOTNScheduleCallback(TrainerCallback):
         return t
 
     def on_train_begin(self, args, state: TrainerState, control: TrainerControl, model=None, **kwargs):
+        self._restore_configured_save_interval(state)
         self._apply_schedule(model, int(state.global_step))
-        self._apply_stage_lrs(model, kwargs.get("optimizer"), self.stage_state.current_stage().name)
+        self._apply_stage_lrs(
+            model,
+            kwargs.get("optimizer"),
+            self.stage_state.current_stage().name,
+            lr_scheduler=kwargs.get("lr_scheduler"),
+            force=True,
+        )
         self._capture_param_group_lrs(getattr(model, "fitmotn_runtime", None), kwargs.get("optimizer"))
         return control
 
     def on_step_begin(self, args, state: TrainerState, control: TrainerControl, model=None, **kwargs):
         self.stage_state.set_global_step(int(state.global_step))
-        self._apply_stage_lrs(model, kwargs.get("optimizer"), self.stage_state.current_stage().name)
+        self._apply_stage_lrs(
+            model,
+            kwargs.get("optimizer"),
+            self.stage_state.current_stage().name,
+            lr_scheduler=kwargs.get("lr_scheduler"),
+        )
         self._capture_param_group_lrs(getattr(model, "fitmotn_runtime", None), kwargs.get("optimizer"))
         return control
 
@@ -192,7 +225,12 @@ class MOTNScheduleCallback(TrainerCallback):
         stage = self.stage_state.current_stage()
         runtime = getattr(model, "fitmotn_runtime", None)
         if runtime is not None:
-            self._apply_stage_lrs(model, kwargs.get("optimizer"), stage.name)
+            self._apply_stage_lrs(
+                model,
+                kwargs.get("optimizer"),
+                stage.name,
+                lr_scheduler=kwargs.get("lr_scheduler"),
+            )
             self._capture_param_group_lrs(runtime, kwargs.get("optimizer"))
             update_step_runtime(
                 runtime,

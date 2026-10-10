@@ -147,6 +147,65 @@ class StageControlObservabilityTests(unittest.TestCase):
         self.assertAlmostEqual(opt.param_groups[0]["lr"], 8e-5)
         self.assertAlmostEqual(opt.param_groups[1]["lr"], 7e-5)
 
+    def test_callback_does_not_overwrite_scheduler_lr_each_step(self):
+        cfg = self._cfg(
+            lr_scheduler_type="cosine",
+            lr_warmup=True,
+            lr_warmup_steps=2,
+            steps=10,
+            epochs=0,
+            stage_a_ratio=1.0,
+            block_lr=1e-5,
+            router_lr=2e-5,
+        )
+        plan = build_stage_plan(cfg.train)
+        opt = self._optimizer()
+        opt.param_groups[0]["lr"] = 2e-5
+        opt.param_groups[1]["lr"] = 1e-5
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            opt,
+            lambda step: float(step) / 2.0 if step < 2 else 1.0,
+        )
+        model = torch.nn.Linear(2, 2)
+        model.fitmotn_runtime = {}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            callback = MOTNScheduleCallback(
+                cfg,
+                MutableStageState(plan),
+                root / "train.jsonl",
+                root / "train_light.jsonl",
+                root / "usage.jsonl",
+                root / "eval.jsonl",
+            )
+            state = TrainerState(global_step=0)
+            callback.on_train_begin(
+                None,
+                state,
+                TrainerControl(),
+                model=model,
+                optimizer=opt,
+                lr_scheduler=scheduler,
+            )
+            self.assertAlmostEqual(opt.param_groups[0]["lr"], 0.0)
+            self.assertAlmostEqual(opt.param_groups[1]["lr"], 0.0)
+
+            opt.step()
+            scheduler.step()
+            warmed_lrs = [float(group["lr"]) for group in opt.param_groups]
+            state.global_step = 1
+            callback.on_step_begin(
+                None,
+                state,
+                TrainerControl(),
+                model=model,
+                optimizer=opt,
+                lr_scheduler=scheduler,
+            )
+            self.assertEqual([float(group["lr"]) for group in opt.param_groups], warmed_lrs)
+            self.assertAlmostEqual(warmed_lrs[0], 1e-5)
+            self.assertAlmostEqual(warmed_lrs[1], 5e-6)
+
     def test_stage_temperature_uses_stage_local_bounds(self):
         cfg = self._cfg(
             stage_a_begin_t=2.0,
@@ -321,6 +380,24 @@ class StageControlObservabilityTests(unittest.TestCase):
 
         self.assertIsNotNone(reference_model.received_labels[0])
         self.assertEqual(optimized_model.received_labels, [None])
+
+    def test_resume_restores_current_config_save_interval(self):
+        cfg = make_default_config()
+        cfg.train.save_every_updates = 500
+        plan = build_stage_plan(cfg.train)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            callback = MOTNScheduleCallback(
+                cfg,
+                MutableStageState(plan),
+                root / "train.jsonl",
+                root / "train_light.jsonl",
+                root / "usage.jsonl",
+                root / "eval.jsonl",
+            )
+            state = TrainerState(global_step=2000, save_steps=1000)
+            callback._restore_configured_save_interval(state)
+        self.assertEqual(state.save_steps, 500)
 
     def test_stage_transition_forces_checkpoint_save(self):
         cfg = make_default_config()

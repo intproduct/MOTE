@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as opt  # 按你的要求保留
 from dataclasses import dataclass
 
-from typing import List, Optional, Union, Dict, Any
+from typing import List, Optional, Union, Dict, Any, Mapping
 from .losses import balance_loss, router_z_loss
 
 import sys
@@ -682,6 +682,37 @@ class GateConfig:
     gate_mlp_bias: bool = True
     gate_output_init_std: float = 1e-3
     gate_residual_delta_scale: float = 1.0
+
+
+def gate_config_from_mapping(cfg: Mapping[str, Any], *, data_dim: int) -> GateConfig:
+    """Build the shared router contract used by every MoTN backend."""
+    return GateConfig(
+        gate_type=str(cfg["gate_type"]),
+        data_dim=int(data_dim),
+        num_experts=int(cfg["E"]),
+        k=int(cfg["topk"]),
+        temperature=float(cfg.get("temperature", 1.0)),
+        use_ste=bool(cfg.get("use_ste", True)),
+        jitter_eps=float(cfg.get("jitter_eps", 0.0)),
+        capacity_factor=float(cfg.get("capacity_factor", 1.0)),
+        min_capacity=int(cfg.get("min_capacity", 8)),
+        drop_tokens=bool(cfg.get("drop_tokens", True)),
+        drop_policy=str(cfg.get("drop_policy", "probs")),
+        aux_coeff=float(cfg.get("aux_coeff", 1e-2)),
+        zloss_coeff=float(cfg.get("zloss_coeff", 0.0)),
+        aux_mode=str(cfg.get("aux_mode", "ds")),
+        gate_arch=str(cfg.get("gate_arch", "linear")),
+        gate_hidden_dim=int(cfg.get("gate_hidden_dim", 0)),
+        gate_hidden_mult=float(cfg.get("gate_hidden_mult", 0.0625)),
+        gate_hidden_min=int(cfg.get("gate_hidden_min", 64)),
+        gate_hidden_max=int(cfg.get("gate_hidden_max", 256)),
+        gate_activation=str(cfg.get("gate_activation", "silu")),
+        gate_norm=str(cfg.get("gate_norm", "none")),
+        gate_dropout=float(cfg.get("gate_dropout", 0.0)),
+        gate_mlp_bias=bool(cfg.get("gate_mlp_bias", True)),
+        gate_output_init_std=float(cfg.get("gate_output_init_std", 1e-3)),
+        gate_residual_delta_scale=float(cfg.get("gate_residual_delta_scale", 1.0)),
+    )
 
 
 def gate_factory_config(config: GateConfig) -> nn.Module:

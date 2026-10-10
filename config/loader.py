@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 from dataclasses import fields, is_dataclass
@@ -39,8 +40,9 @@ VALID_RL_TRAINABLE_MODES = {"all", "patch_only", "motn_only", "gate_only", "rout
 VALID_FORMAT_MODES = {"raw", "chat"}
 VALID_ZERO_ADVANTAGE_RETRY_ACTIONS = {"warn_continue", "raise"}
 VALID_BLOCK_INIT_MODES = {"gamma_normal", "base_stats_normal", "base_stats_trunc_normal"}
-VALID_EXTRA_DATASET_FORMATS = {"text", "chat_messages", "prompt_response", "reasoning_qa"}
-VALID_EXTRA_DATASET_SOURCES = {"hf", "local_jsonl", "jsonl", "jsonl_gz", "load_from_disk", "auto"}
+VALID_APPROX_GLOBAL_FIT_MODES = {"excluded", "joint", "residual"}
+VALID_EXTRA_DATASET_FORMATS = {"text", "token_ids", "chat_messages", "prompt_response", "reasoning_qa"}
+VALID_EXTRA_DATASET_SOURCES = {"hf", "local_token_shards", "local_jsonl", "jsonl", "jsonl_gz", "load_from_disk", "auto"}
 
 MODEL_ALIASES = {
     "qwen3_8b": "${MODEL_ROOT}/Qwen3-8B",
@@ -297,11 +299,14 @@ def _normalize_extra_datasets(cfg: FitMoTNConfig) -> None:
             if max_samples <= 0:
                 raise ValueError(f"data.extra_datasets[{idx}].max_samples must be > 0 when set, got {max_samples}")
             ds["max_samples"] = max_samples
-        default_group = "pretrain" if dataset_format == "text" else "task"
+        default_group = "pretrain" if dataset_format in {"text", "token_ids"} else "task"
         ds["group"] = str(ds.get("group", default_group) or default_group)
         ds["bucket"] = str(ds.get("bucket", "pretrain_general" if ds["group"] == "pretrain" else "extra_task") or "extra_task")
         ds["source_family"] = str(
-            ds.get("source_family", "text" if dataset_format == "text" else ("reasoning" if dataset_format == "reasoning_qa" else "chat"))
+            ds.get(
+                "source_family",
+                "token_shards" if dataset_format == "token_ids" else ("text" if dataset_format == "text" else ("reasoning" if dataset_format == "reasoning_qa" else "chat")),
+            )
         )
         role_map = dict(role_defaults)
         role_map.update({str(k).strip().lower(): str(v).strip().lower() for k, v in dict(ds.get("role_map") or {}).items()})
@@ -321,7 +326,7 @@ def _normalize_extra_datasets(cfg: FitMoTNConfig) -> None:
                 )
         if source == "hf" and not str(ds.get("hf_name", "")).strip():
             raise ValueError(f"data.extra_datasets[{idx}].hf_name is required when source='hf'")
-        if source in {"local_jsonl", "jsonl", "jsonl_gz", "load_from_disk"} and not str(ds.get("path", "")).strip():
+        if source in {"local_token_shards", "local_jsonl", "jsonl", "jsonl_gz", "load_from_disk"} and not str(ds.get("path", "")).strip():
             raise ValueError(f"data.extra_datasets[{idx}].path is required when source={source!r}")
         if source == "auto" and not (str(ds.get("path", "")).strip() or str(ds.get("cache_path", "")).strip() or str(ds.get("hf_name", "")).strip()):
             raise ValueError(f"data.extra_datasets[{idx}] requires path, cache_path, or hf_name when source='auto'")
@@ -392,7 +397,24 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
     train_cfg = cfg.train
     data_cfg = cfg.data
     model_cfg = cfg.model
+    approx_cfg = cfg.approx_init
     default_log_every = int(getattr(train_cfg, "log_every", 1))
+
+    global_fit_mode = str(getattr(approx_cfg, "global_fit_mode", "excluded") or "excluded").strip().lower()
+    if global_fit_mode not in VALID_APPROX_GLOBAL_FIT_MODES:
+        raise ValueError(
+            "approx_init.global_fit_mode must be one of "
+            f"{sorted(VALID_APPROX_GLOBAL_FIT_MODES)}, got {global_fit_mode!r}"
+        )
+    approx_cfg.global_fit_mode = global_fit_mode
+    if approx_cfg.global_fit_steps is not None and int(approx_cfg.global_fit_steps) <= 0:
+        raise ValueError("approx_init.global_fit_steps must be > 0 when set")
+    if approx_cfg.global_fit_steps is not None:
+        approx_cfg.global_fit_steps = int(approx_cfg.global_fit_steps)
+    if approx_cfg.global_fit_lr is not None:
+        approx_cfg.global_fit_lr = float(approx_cfg.global_fit_lr)
+        if (not math.isfinite(approx_cfg.global_fit_lr)) or approx_cfg.global_fit_lr <= 0.0:
+            raise ValueError("approx_init.global_fit_lr must be finite and > 0 when set")
 
     block_init_mode = str(getattr(model_cfg, "block_init_mode", "gamma_normal") or "gamma_normal").strip().lower()
     if block_init_mode not in VALID_BLOCK_INIT_MODES:
@@ -409,6 +431,14 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
     if reasoning_format not in VALID_FORMAT_MODES:
         raise ValueError(f"data.reasoning_format must be one of {sorted(VALID_FORMAT_MODES)}, got {reasoning_format!r}")
     data_cfg.reasoning_format = reasoning_format
+    length_buckets = sorted(set(int(value) for value in (getattr(data_cfg, "pad_to_length_buckets", []) or [])))
+    if any(value <= 0 for value in length_buckets):
+        raise ValueError("data.pad_to_length_buckets values must all be > 0")
+    if any(value > int(data_cfg.seq_len_run) for value in length_buckets):
+        raise ValueError("data.pad_to_length_buckets cannot exceed data.seq_len_run")
+    if length_buckets and length_buckets[-1] != int(data_cfg.seq_len_run):
+        raise ValueError("data.pad_to_length_buckets must end at data.seq_len_run")
+    data_cfg.pad_to_length_buckets = length_buckets
     data_cfg.reasoning_chat_enable_thinking = bool(getattr(data_cfg, "reasoning_chat_enable_thinking", False))
     system_prompt = getattr(data_cfg, "reasoning_chat_system_prompt", None)
     data_cfg.reasoning_chat_system_prompt = None if system_prompt is None or str(system_prompt).strip() == "" else str(system_prompt)
@@ -435,6 +465,9 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
     if data_cfg.source_max_epochs < 0:
         raise ValueError("data.source_max_epochs must be >= 0")
     data_cfg.fail_on_dynamic_skip = bool(getattr(data_cfg, "fail_on_dynamic_skip", True))
+    data_cfg.rejection_quarantine_dir = _normalize_optional_path_value(
+        getattr(data_cfg, "rejection_quarantine_dir", None)
+    )
     data_cfg.use_frozen_sft_release = bool(getattr(data_cfg, "use_frozen_sft_release", False))
     data_cfg.frozen_sft_exclusive = bool(getattr(data_cfg, "frozen_sft_exclusive", True))
     data_cfg.frozen_sft_release_dir = _normalize_optional_path_value(getattr(data_cfg, "frozen_sft_release_dir", None))
@@ -456,6 +489,23 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
         raise ValueError("train.resume_weights_from and train.resume_checkpoint_from are mutually exclusive")
     train_cfg.resume_fitmotn_from = weights_resume
     train_cfg.resume_weights_from = weights_resume
+    train_cfg.resume_expand_layers = bool(getattr(train_cfg, "resume_expand_layers", False))
+    trainable_patch_layers = getattr(train_cfg, "trainable_patch_layers", None)
+    if trainable_patch_layers is not None:
+        trainable_patch_layers = str(trainable_patch_layers).strip()
+        if not trainable_patch_layers:
+            raise ValueError("train.trainable_patch_layers must be null or a non-empty layer selector")
+    train_cfg.trainable_patch_layers = trainable_patch_layers
+    if train_cfg.resume_expand_layers and not weights_resume:
+        raise ValueError("train.resume_expand_layers=true requires train.resume_weights_from")
+    if train_cfg.resume_expand_layers and exact_resume:
+        raise ValueError("train.resume_expand_layers is only supported for weight-only resume")
+    train_cfg.resume_reset_data_sampling_state = bool(getattr(train_cfg, "resume_reset_data_sampling_state", False))
+    train_cfg.gradient_checkpointing = bool(getattr(train_cfg, "gradient_checkpointing", False))
+    if train_cfg.resume_reset_data_sampling_state and not exact_resume:
+        raise ValueError(
+            "train.resume_reset_data_sampling_state=true requires train.resume_checkpoint_from"
+        )
     train_cfg.resume_checkpoint_from = exact_resume
 
     resume_stage = str(getattr(train_cfg, "resume_stage", "auto") or "auto").strip().lower()
@@ -567,6 +617,49 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
         raise ValueError(f"train.final_answer_weight must be > 0, got {train_cfg.final_answer_weight}")
     train_cfg.final_answer_marker = str(getattr(train_cfg, "final_answer_marker", "####"))
     train_cfg.final_answer_weight_enabled = bool(getattr(train_cfg, "final_answer_weight_enabled", False))
+    train_cfg.kd_enabled = bool(getattr(train_cfg, "kd_enabled", False))
+    train_cfg.kd_distribution = str(getattr(train_cfg, "kd_distribution", "topk")).strip().lower()
+    if train_cfg.kd_distribution not in {"topk", "exact"}:
+        raise ValueError(
+            f"train.kd_distribution must be topk or exact, got {train_cfg.kd_distribution!r}"
+        )
+    raw_teacher_path = getattr(train_cfg, "kd_teacher_model_path", None)
+    train_cfg.kd_teacher_model_path = None if raw_teacher_path is None else str(raw_teacher_path).strip()
+    raw_teacher_device = getattr(train_cfg, "kd_teacher_device", None)
+    train_cfg.kd_teacher_device = None if raw_teacher_device is None else str(raw_teacher_device).strip()
+    train_cfg.kd_temperature = float(getattr(train_cfg, "kd_temperature", 2.0))
+    train_cfg.kd_divergence = str(getattr(train_cfg, "kd_divergence", "forward_kl")).strip().lower()
+    if train_cfg.kd_divergence not in {"forward_kl", "reverse_kl", "jsd"}:
+        raise ValueError(
+            "train.kd_divergence must be forward_kl, reverse_kl, or jsd, "
+            f"got {train_cfg.kd_divergence!r}"
+        )
+    train_cfg.kd_jsd_beta = float(getattr(train_cfg, "kd_jsd_beta", 0.5))
+    if not 0.0 < train_cfg.kd_jsd_beta < 1.0:
+        raise ValueError(f"train.kd_jsd_beta must be in (0, 1), got {train_cfg.kd_jsd_beta}")
+    if train_cfg.kd_distribution == "topk" and train_cfg.kd_divergence != "forward_kl":
+        raise ValueError("reverse_kl and jsd currently require train.kd_distribution=exact")
+    train_cfg.kd_weight = float(getattr(train_cfg, "kd_weight", 1.0))
+    train_cfg.kd_hard_ce_weight = float(getattr(train_cfg, "kd_hard_ce_weight", 0.0))
+    train_cfg.kd_topk = int(getattr(train_cfg, "kd_topk", 64))
+    train_cfg.kd_token_chunk_size = int(getattr(train_cfg, "kd_token_chunk_size", 64))
+    if train_cfg.kd_temperature <= 0.0:
+        raise ValueError(f"train.kd_temperature must be > 0, got {train_cfg.kd_temperature}")
+    if train_cfg.kd_weight < 0.0 or train_cfg.kd_hard_ce_weight < 0.0:
+        raise ValueError("train.kd_weight and train.kd_hard_ce_weight must be non-negative")
+    if train_cfg.kd_enabled and train_cfg.kd_weight + train_cfg.kd_hard_ce_weight <= 0.0:
+        raise ValueError("KD requires a positive kd_weight or kd_hard_ce_weight")
+    if train_cfg.kd_topk < 1:
+        raise ValueError(f"train.kd_topk must be >= 1, got {train_cfg.kd_topk}")
+    if train_cfg.kd_token_chunk_size < 1:
+        raise ValueError(
+            f"train.kd_token_chunk_size must be >= 1, got {train_cfg.kd_token_chunk_size}"
+        )
+    if train_cfg.kd_enabled:
+        if not train_cfg.kd_teacher_model_path:
+            raise ValueError("train.kd_teacher_model_path is required when KD is enabled")
+        if not train_cfg.kd_teacher_device:
+            raise ValueError("train.kd_teacher_device is required when KD is enabled")
     train_cfg.save_every_updates = int(getattr(train_cfg, "save_every_updates", 1000))
     train_cfg.checkpoint_keep_last_n = int(getattr(train_cfg, "checkpoint_keep_last_n", 3))
     train_cfg.checkpoint_keep_every_n = int(getattr(train_cfg, "checkpoint_keep_every_n", 0))
@@ -579,6 +672,44 @@ def _finalize_train_config(cfg: FitMoTNConfig, explicit_train_keys: set[str], *,
         raise ValueError("train checkpoint retention values must be >= 0")
     if train_cfg.checkpoint_temp_max_age_sec < 0.0:
         raise ValueError("train.checkpoint_temp_max_age_sec must be >= 0")
+
+    train_cfg.checkpoint_selector_enabled = bool(getattr(train_cfg, "checkpoint_selector_enabled", False))
+    raw_candidates = getattr(train_cfg, "checkpoint_selector_candidates", []) or []
+    if not isinstance(raw_candidates, (list, tuple)):
+        raise ValueError("train.checkpoint_selector_candidates must be a list of positive update integers")
+    train_cfg.checkpoint_selector_candidates = sorted({int(value) for value in raw_candidates})
+    if any(value <= 0 for value in train_cfg.checkpoint_selector_candidates):
+        raise ValueError("train.checkpoint_selector_candidates must contain only positive update integers")
+    train_cfg.checkpoint_selector_primary_task = str(
+        getattr(train_cfg, "checkpoint_selector_primary_task", "mmlu") or "mmlu"
+    ).strip()
+    train_cfg.checkpoint_selector_secondary_task = str(
+        getattr(train_cfg, "checkpoint_selector_secondary_task", "gsm8k") or "gsm8k"
+    ).strip()
+    raw_primary_floor = getattr(train_cfg, "checkpoint_selector_primary_floor", None)
+    train_cfg.checkpoint_selector_primary_floor = None if raw_primary_floor is None else float(raw_primary_floor)
+    train_cfg.checkpoint_selector_verify_hashes = bool(
+        getattr(train_cfg, "checkpoint_selector_verify_hashes", False)
+    )
+    train_cfg.checkpoint_selector_probe_restore = bool(
+        getattr(train_cfg, "checkpoint_selector_probe_restore", True)
+    )
+    if train_cfg.checkpoint_selector_enabled:
+        if not train_cfg.checkpoint_selector_candidates:
+            raise ValueError("checkpoint selector requires non-empty train.checkpoint_selector_candidates")
+        if not train_cfg.checkpoint_selector_primary_task or not train_cfg.checkpoint_selector_secondary_task:
+            raise ValueError("checkpoint selector task names must be non-empty")
+        if train_cfg.checkpoint_selector_primary_task == train_cfg.checkpoint_selector_secondary_task:
+            raise ValueError("checkpoint selector primary and secondary tasks must be different")
+        if train_cfg.checkpoint_selector_primary_floor is None or not math.isfinite(
+            train_cfg.checkpoint_selector_primary_floor
+        ):
+            raise ValueError("checkpoint selector requires a finite train.checkpoint_selector_primary_floor")
+        eval_every = int(getattr(train_cfg, "eval_every_updates", 0))
+        if eval_every <= 0 or any(value % eval_every != 0 for value in train_cfg.checkpoint_selector_candidates):
+            raise ValueError("checkpoint selector candidates must align with train.eval_every_updates")
+        if any(value % train_cfg.save_every_updates != 0 for value in train_cfg.checkpoint_selector_candidates):
+            raise ValueError("checkpoint selector candidates must align with train.save_every_updates")
 
     train_cfg.usage_dump_every = int(getattr(train_cfg, "usage_report_every", 0))
     train_cfg.usage_light_every = int(getattr(train_cfg, "usage_light_every", 0))
@@ -643,6 +774,10 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
     rl_cfg.use_config_data = bool(getattr(rl_cfg, "use_config_data", True))
     rl_cfg.no_ref_model = bool(getattr(rl_cfg, "no_ref_model", True))
     rl_cfg.enable_usage_tracking = bool(getattr(rl_cfg, "enable_usage_tracking", False))
+    old_logprobs_mode = str(getattr(rl_cfg, "old_logprobs_mode", "recompute") or "recompute").strip().lower()
+    if old_logprobs_mode not in {"recompute", "same_forward"}:
+        raise ValueError("rl.old_logprobs_mode must be 'recompute' or 'same_forward'")
+    rl_cfg.old_logprobs_mode = old_logprobs_mode
     rl_cfg.gradient_checkpointing = bool(getattr(rl_cfg, "gradient_checkpointing", False))
     rl_cfg.rollout_use_cache = bool(getattr(rl_cfg, "rollout_use_cache", True))
     rl_cfg.checkpoint_fail_on_save_error = bool(getattr(rl_cfg, "checkpoint_fail_on_save_error", True))
@@ -804,6 +939,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
         "grad_accum",
         "max_new_tokens",
         "log_every",
+        "post_update_diagnostics_updates",
         "log_memory_every",
         "logprob_micro_batch_size",
         "rollout_micro_batch_size",
@@ -895,7 +1031,7 @@ def _finalize_rl_config(cfg: FitMoTNConfig) -> None:
             raise ValueError("rl.checkpoint_temp_max_age_sec must be >= 0")
         if int(rl_cfg.eval_every_updates) < 0:
             raise ValueError(f"rl.eval_every_updates must be >= 0, got {rl_cfg.eval_every_updates}")
-        for field_name in ["log_memory_every", "logprob_micro_batch_size", "rollout_micro_batch_size", "rollout_max_prompt_tokens", "empty_cache_every"]:
+        for field_name in ["log_memory_every", "post_update_diagnostics_updates", "logprob_micro_batch_size", "rollout_micro_batch_size", "rollout_max_prompt_tokens", "empty_cache_every"]:
             value = int(getattr(rl_cfg, field_name))
             if value < 0:
                 raise ValueError(f"rl.{field_name} must be >= 0, got {value}")
@@ -1056,10 +1192,13 @@ def apply_config_payload(cfg: FitMoTNConfig, payload: Mapping[str, Any]) -> FitM
 def load_config_from_json(config_json: str | Path, *, finalize: bool = True) -> FitMoTNConfig:
     cfg = make_default_config()
     path = Path(config_json).expanduser().resolve()
-    with path.open("r", encoding="utf-8") as f:
-        payload = json.load(f)
+    raw_bytes = path.read_bytes()
+    payload = json.loads(raw_bytes.decode("utf-8"))
     if finalize:
-        return apply_config_payload(cfg, payload)
+        cfg = apply_config_payload(cfg, payload)
+        setattr(cfg, "_config_source_path", str(path))
+        setattr(cfg, "_config_source_sha256", hashlib.sha256(raw_bytes).hexdigest())
+        return cfg
     payload = _ensure_mapping("config payload", payload)
     valid_sections = {field.name for field in fields(cfg)}
     unknown_sections = sorted(set(payload.keys()) - valid_sections)
@@ -1076,6 +1215,8 @@ def load_config_from_json(config_json: str | Path, *, finalize: bool = True) -> 
     explicit_model_keys = set(payload.get("model", {}).keys()) if isinstance(payload.get("model"), Mapping) else set()
     setattr(cfg, "_explicit_train_keys", explicit_train_keys)
     setattr(cfg, "_explicit_model_keys", explicit_model_keys)
+    setattr(cfg, "_config_source_path", str(path))
+    setattr(cfg, "_config_source_sha256", hashlib.sha256(raw_bytes).hexdigest())
     return cfg
 
 
