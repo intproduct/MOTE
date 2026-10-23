@@ -1,6 +1,7 @@
 # gated_adtn_layer.py
 from __future__ import annotations
 from dataclasses import dataclass, replace
+from functools import lru_cache
 from typing import List, Optional, Tuple, Literal, Dict
 
 import math
@@ -437,7 +438,7 @@ class TensorBlock(nn.Module):
 # -----------------------------
 # 2) Apply：把 block 作用到输入的高阶张量上（核心）
 # -----------------------------
-def apply_block_to_sites(
+def _apply_block_to_sites_reference(
     x_sites: tc.Tensor,         # [N, d, d, ..., d] (q_in site dims)
     U: tc.Tensor,               # [d]*k_in + [d]*k_out
     pos_in: List[int],          # length = k_in, 0-based over q_in
@@ -542,6 +543,39 @@ def apply_block_to_sites(
         raise RuntimeError(f"perm_back out of range: perm_back={perm_back}, y.ndim={y.ndim}")
 
     return y.permute(perm_back)
+
+
+@lru_cache(maxsize=512)
+def _block_contraction_plan(q_in: int, k_in: int, k_out: int, pos_in: tuple):
+    """Cache only immutable axis metadata; never activations or trainable weights."""
+    if not 0 < k_in <= q_in or k_out < 0:
+        raise ValueError(f"Invalid contraction dimensions: {q_in=}, {k_in=}, {k_out=}")
+    if len(pos_in) != k_in or len(set(pos_in)) != k_in or not all(0 <= p < q_in for p in pos_in):
+        raise ValueError(f"Invalid contraction positions: {pos_in}")
+    contracted = sorted(pos_in)
+    unaffected = [p for p in range(q_in) if p not in contracted]
+    perm_to_end = (0, *(p + 1 for p in unaffected), *(p + 1 for p in contracted))
+    back, cursor = [0], 1
+    for p in range(q_in):
+        if p == contracted[0]:
+            back.extend(range(1 + len(unaffected), 1 + len(unaffected) + k_out))
+        if p not in contracted:
+            back.append(cursor)
+            cursor += 1
+    return perm_to_end, tuple(back)
+
+
+def apply_block_to_sites(x_sites, U, pos_in, *, d, q_in, k_in, k_out):
+    """Same contraction and gradients as the reference, with cached permutations."""
+    if x_sites.ndim != 1 + q_in:
+        raise ValueError(f"x_sites.ndim={x_sites.ndim}, expect {1 + q_in}")
+    perm, back = _block_contraction_plan(q_in, k_in, k_out, tuple(pos_in))
+    x_flat = x_sites.permute(perm).reshape(-1, d ** k_in)
+    matrix = U.reshape(d ** k_in, d ** k_out)
+    if x_flat.is_floating_point() and x_flat.dtype != matrix.dtype:
+        x_flat = x_flat.to(dtype=matrix.dtype)
+    y = x_flat @ matrix
+    return y.reshape(x_sites.shape[0], *([d] * (q_in - k_in + k_out))).permute(back)
 
 
 # -----------------------------
@@ -974,8 +1008,10 @@ class GatedADTNLayer(nn.Module):
                 w_sub = probs_use.index_select(0, idx)[:, b].view(-1, *([1] * (y_sub.ndim - 1)))
                 y_sub = y_sub * w_sub
 
-                # 非 in-place 聚合（像你要求的那样干净）
-                out_sites = tc.index_add(out_sites, 0, idx, y_sub)
+                # This accumulator is newly allocated, has no aliases, and is
+                # not read by any operation that saves it for backward. Updating
+                # it in place avoids a full N x out_dim copy for every expert.
+                out_sites.index_add_(0, idx, y_sub)
 
             if use_global:
                 out_sites = out_sites + (self.global_expert_weight * self._apply_global_expert(x_sites))

@@ -543,7 +543,7 @@ class TopKGate(nn.Module):
 
         if self.drop_policy == "probs":
             top_gate = logits_fp32.gather(1, top_idx)          # [N,k]
-            topk_masked = tc.zeros_like(logits_fp32)           # [N,E]
+            topk_masked = tc.full_like(logits_fp32, float("-inf"))  # [N,E]; unselected routes cannot displace negative selected logits
             topk_masked.scatter_(1, top_idx, top_gate)
             _, cap_indices = tc.topk(topk_masked, k=cap, dim=0, sorted=False)  # [cap,E]
             cap_mask = tc.zeros_like(mask).scatter_(0, cap_indices, True)

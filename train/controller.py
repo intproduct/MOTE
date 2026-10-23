@@ -356,6 +356,58 @@ def _ensure_phase_end_exact_checkpoint(trainer, model, checkpoint_root: Path, ex
     return target
 
 
+def _is_compatible_sampling_stage_extension(dataset, fit_cfg, resume_metadata) -> bool:
+    """Return true only when an exact resume merely extends one unchanged stage.
+
+    ``steps`` contributes to both ``samples_per_epoch`` and the stage end boundary,
+    so extending an otherwise identical one-stage run changes the sampling-policy
+    fingerprint. The saved per-source cursors and RNG state remain valid in that
+    narrowly defined case.
+    """
+    saved_cfg = resume_metadata.get("fit_cfg")
+    saved_plan = resume_metadata.get("stage_plan")
+    if hasattr(saved_cfg, "__dataclass_fields__"):
+        saved_cfg = to_jsonable(asdict(saved_cfg))
+    if hasattr(saved_plan, "__dataclass_fields__"):
+        saved_plan = to_jsonable(asdict(saved_plan))
+    if not isinstance(saved_cfg, dict) or not isinstance(saved_plan, dict):
+        return False
+
+    current_cfg = to_jsonable(asdict(fit_cfg))
+    if saved_cfg.get("data") != current_cfg.get("data"):
+        return False
+
+    sampling_train_fields = (
+        "batch_size", "grad_accum", "epoch_samples", "seed",
+        "stage_a_ratio", "stage_a_pretrain_ratio", "stage_a_task_ratio",
+        "task_bucket_mode", "stage_a_core_task_ratio", "stage_a_aux_task_ratio",
+        "stage_b_mode", "stage_b_pretrain_ratio", "stage_b_task_ratio",
+        "stage_b_core_task_ratio", "stage_b_aux_task_ratio",
+        "stage_b_disable_pretrain", "stage_b_reasoning_boost",
+    )
+    saved_train = saved_cfg.get("train") or {}
+    current_train = current_cfg.get("train") or {}
+    if any(saved_train.get(key) != current_train.get(key) for key in sampling_train_fields):
+        return False
+
+    saved_stages = saved_plan.get("stages") or []
+    current_plan = getattr(getattr(dataset, "stage_state", None), "plan", None)
+    current_stages = list(getattr(current_plan, "stages", []) or [])
+    if len(saved_stages) != 1 or len(current_stages) != 1:
+        return False
+
+    saved_stage = dict(saved_stages[0])
+    current_stage = {
+        key: value
+        for key, value in vars(current_stages[0]).items()
+        if not str(key).startswith("_")
+    }
+    saved_end = int(saved_stage.pop("end_update", -1))
+    current_end = int(current_stage.pop("end_update", -1))
+    saved_global_step = int(resume_metadata.get("global_step", -1))
+    return saved_stage == current_stage and saved_end == saved_global_step and current_end > saved_end
+
+
 def _restore_exact_data_sampling_state(dataset, fit_cfg, resume_metadata, runtime_state, logger) -> bool:
     """Restore explicit sampler state, or select deterministic replay for legacy sequential data."""
     if not getattr(fit_cfg.train, "resume_checkpoint_from", None) or resume_metadata is None:
@@ -389,9 +441,24 @@ def _restore_exact_data_sampling_state(dataset, fit_cfg, resume_metadata, runtim
             len(uncheckpointable),
         )
         return False
-    dataset.load_sampling_state_dict(saved_sampling_state)
-    runtime_state["data_sampling_resume"] = "restored"
-    logger.info("[Resume] data sampling restored from explicit checkpoint state")
+    try:
+        dataset.load_sampling_state_dict(saved_sampling_state)
+        resume_mode = "restored"
+    except RuntimeError as exc:
+        if str(exc) != "mixed sampling policy changed since checkpoint" or not _is_compatible_sampling_stage_extension(
+            dataset, fit_cfg, resume_metadata
+        ):
+            raise
+        compatible_state = dict(saved_sampling_state)
+        compatible_state["policy_fingerprint"] = dataset._sampling_policy_fingerprint()
+        dataset.load_sampling_state_dict(compatible_state)
+        resume_mode = "restored_compatible_stage_extension"
+        logger.info(
+            "[Resume] accepted sampling fingerprint change caused only by extending "
+            "one unchanged stage; source cursors and RNG state remain exact"
+        )
+    runtime_state["data_sampling_resume"] = resume_mode
+    logger.info("[Resume] data sampling restored from explicit checkpoint state mode=%s", resume_mode)
     return True
 
 

@@ -54,7 +54,7 @@ def load_hf_tokenizer(
         resolved_path,
         use_fast=True,
         trust_remote_code=trust_remote_code,
-        fix_mistral_regex=True,
+        fix_mistral_regex=False,
     )
     if padding_side is not None:
         tokenizer.padding_side = str(padding_side)
@@ -76,7 +76,7 @@ def load_causal_lm_and_tokenizer(
         model_path,
         use_fast=True,
         trust_remote_code=trust_remote_code,
-        fix_mistral_regex=True,
+        fix_mistral_regex=False,
     )
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
