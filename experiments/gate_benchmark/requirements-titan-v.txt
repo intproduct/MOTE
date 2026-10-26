@@ -1,0 +1,7 @@
+# Install torch 2.6.0 from the cu118 index separately; see README.
+transformers==4.57.6
+datasets==3.6.0
+accelerate==1.6.0
+numpy==2.2.6
+Pillow==11.2.1
+pytest==8.3.5

@@ -1,0 +1,122 @@
+{
+  "config": {
+    "device": "cpu",
+    "tokens": 256,
+    "dim": 2048,
+    "experts": [
+      16,
+      64
+    ],
+    "iterations": 20,
+    "output": "benchmark_cpu.json"
+  },
+  "torch": "2.14.1",
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "threads": 1,
+  "dtype": "float32",
+  "warmup": 3,
+  "results": [
+    {
+      "name": "linear",
+      "experts": 16,
+      "parameters": 32768,
+      "forward_ms": 0.060250022215768695,
+      "forward_backward_ms": 0.1363959745503962
+    },
+    {
+      "name": "mlp_r16",
+      "experts": 16,
+      "parameters": 33056,
+      "forward_ms": 0.07191646727733314,
+      "forward_backward_ms": 0.1700414577499032
+    },
+    {
+      "name": "block2_depth2",
+      "experts": 16,
+      "parameters": 33120,
+      "forward_ms": 0.3921875322703272,
+      "forward_backward_ms": 1.3887085078749806
+    },
+    {
+      "name": "brickwall_depth2",
+      "experts": 16,
+      "parameters": 33135,
+      "max_cone_qubits": 4,
+      "cone_groups": 4,
+      "forward_ms": 2.884020999772474,
+      "forward_backward_ms": 8.956104516983032
+    },
+    {
+      "name": "sweep_two_directions",
+      "experts": 16,
+      "parameters": 33149,
+      "forward_ms": 2.539270499255508,
+      "forward_backward_ms": 9.207646013237536
+    },
+    {
+      "name": "mps_m16_chi8",
+      "experts": 16,
+      "parameters": 33929,
+      "forward_ms": 0.23254149709828198,
+      "forward_backward_ms": 0.8961039711721241
+    },
+    {
+      "name": "compact_born_depth2",
+      "experts": 16,
+      "parameters": 33051,
+      "forward_ms": 0.7774164841976017,
+      "forward_backward_ms": 2.8018750017508864
+    },
+    {
+      "name": "linear",
+      "experts": 64,
+      "parameters": 131072,
+      "forward_ms": 0.08393797907046974,
+      "forward_backward_ms": 0.240312481764704
+    },
+    {
+      "name": "mlp_r16",
+      "experts": 64,
+      "parameters": 33872,
+      "forward_ms": 0.07229152834042907,
+      "forward_backward_ms": 0.17708350787870586
+    },
+    {
+      "name": "block2_depth2",
+      "experts": 64,
+      "parameters": 34176,
+      "forward_ms": 0.8622080204077065,
+      "forward_backward_ms": 3.376083477633074
+    },
+    {
+      "name": "brickwall_depth2",
+      "experts": 64,
+      "parameters": 34239,
+      "max_cone_qubits": 4,
+      "cone_groups": 4,
+      "forward_ms": 10.120145976543427,
+      "forward_backward_ms": 30.18593750311993
+    },
+    {
+      "name": "sweep_two_directions",
+      "experts": 64,
+      "parameters": 34301,
+      "forward_ms": 10.025313007645309,
+      "forward_backward_ms": 39.12508350913413
+    },
+    {
+      "name": "mps_m16_chi8",
+      "experts": 64,
+      "parameters": 34313,
+      "forward_ms": 0.2350624999962747,
+      "forward_backward_ms": 0.9164789807982743
+    },
+    {
+      "name": "compact_born_depth2",
+      "experts": 64,
+      "parameters": 33193,
+      "forward_ms": 1.9756664987653494,
+      "forward_backward_ms": 7.194728998001665
+    }
+  ]
+}

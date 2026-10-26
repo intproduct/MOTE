@@ -38,6 +38,8 @@ packages = [
     "fitmotn.data",
     "fitmotn.diagnostics",
     "fitmotn.eval",
+    "fitmotn.experiments",
+    "fitmotn.experiments.gate_benchmark",
     "fitmotn.export",
     "fitmotn.export.remote_code",
     "fitmotn.init",
@@ -55,6 +57,8 @@ fitmotn = "."
 "fitmotn.data" = "data"
 "fitmotn.diagnostics" = "diagnostics"
 "fitmotn.eval" = "eval"
+"fitmotn.experiments" = "experiments"
+"fitmotn.experiments.gate_benchmark" = "experiments/gate_benchmark"
 "fitmotn.export" = "export"
 "fitmotn.export.remote_code" = "export/remote_code"
 "fitmotn.init" = "init"
@@ -62,3 +66,6 @@ fitmotn = "."
 "fitmotn.tasks" = "tasks"
 "fitmotn.train" = "train"
 "fitmotn.utils" = "utils"
+
+[tool.setuptools.package-data]
+"fitmotn.experiments.gate_benchmark" = ["configs/*.json", "requirements-titan-v.txt", "README.md"]

@@ -1,0 +1,48 @@
+[
+  {
+    "coupling_angle": 0.2,
+    "trials": [
+      {
+        "seed": 0,
+        "adjacent_mean": 0.036283750465495146,
+        "far_mean_distance_ge8": 1.0140318240944221e-12,
+        "diagonal_mean": 0.6870202495342678
+      },
+      {
+        "seed": 1,
+        "adjacent_mean": 0.043464289611555455,
+        "far_mean_distance_ge8": 1.6233040182118191e-12,
+        "diagonal_mean": 0.7328114544243484
+      },
+      {
+        "seed": 2,
+        "adjacent_mean": 0.04680559391915947,
+        "far_mean_distance_ge8": 8.637545684484863e-12,
+        "diagonal_mean": 0.5961363320753179
+      }
+    ]
+  },
+  {
+    "coupling_angle": 1.0,
+    "trials": [
+      {
+        "seed": 0,
+        "adjacent_mean": 0.1458763285952509,
+        "far_mean_distance_ge8": 2.0773071260521817e-06,
+        "diagonal_mean": 0.4366340583313496
+      },
+      {
+        "seed": 1,
+        "adjacent_mean": 0.1928608116419685,
+        "far_mean_distance_ge8": 2.9282234819646982e-06,
+        "diagonal_mean": 0.5194458402869451
+      },
+      {
+        "seed": 2,
+        "adjacent_mean": 0.2075172692786287,
+        "far_mean_distance_ge8": 3.2777428446627126e-06,
+        "diagonal_mean": 0.5456758068562197
+      }
+    ]
+  }
+]

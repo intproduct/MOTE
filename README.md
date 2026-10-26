@@ -1711,3 +1711,7 @@ vllm_fallback_to_hf=false。
 
 - 训练主线：`primary_eval_backend=lm_eval`
 - checkpoint 参考测评：用 `eval_auto.py --eval_backend both` 或 `--eval_backend evalscope`
+
+## Quantum / MPS gate experiment branch
+
+`mote-quantum` adds a compact joint-Born router (`log2(E)` qubits for E=2..64 experts), a classical MPS router, and parameter-matched MLP controls. The [TITAN V experiment runbook](experiments/gate_benchmark/README.md) includes environment setup, offline smoke checks, image MLP tasks, 2/3-layer BERT + MoTE-FFN tasks, data preparation, fixed-seed runs and paired summaries.

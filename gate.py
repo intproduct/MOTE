@@ -4,10 +4,12 @@
 import torch as tc
 import torch.nn as nn
 import torch.optim as opt  # 按你的要求保留
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from typing import List, Optional, Union, Dict, Any, Mapping
 from .losses import balance_loss, router_z_loss
+from .quantum_gate import QuantumGate
+from .structured_routers import CompactBornGate, ResidualMPSGate
 
 import sys
 import os
@@ -63,6 +65,9 @@ class RouterLogits(nn.Module):
         gate_mlp_bias: bool = True,
         gate_output_init_std: float = 1e-3,
         gate_residual_delta_scale: float = 1.0,
+        gate_quantum: Optional[Dict[str, Any]] = None,
+        gate_mps: Optional[Dict[str, Any]] = None,
+        gate_learnable_gain: bool = False,
     ):
         super().__init__()
         self.data_dim = int(data_dim)
@@ -79,8 +84,11 @@ class RouterLogits(nn.Module):
         self.gate_output_init_std = float(gate_output_init_std)
         self.gate_residual_delta_scale = float(gate_residual_delta_scale)
         self.resolved_hidden_dim = None
+        self.gate_quantum = dict(gate_quantum or {})
+        self.gate_mps = dict(gate_mps or {})
+        self.raw_gain = nn.Parameter(tc.tensor(math.log(math.expm1(1.0)))) if gate_learnable_gain else None
 
-        if self.gate_arch not in {"linear", "mlp", "residual_mlp"}:
+        if self.gate_arch not in {"linear", "mlp", "residual_mlp", "quantum", "compact_born", "mps"}:
             raise ValueError(f"Unsupported gate_arch: {gate_arch!r}")
         if self.gate_norm not in {"none", "layernorm"}:
             raise ValueError(f"Unsupported gate_norm: {gate_norm!r}")
@@ -90,8 +98,26 @@ class RouterLogits(nn.Module):
         self.linear = None
         self.base_linear = None
         self.mlp = None
+        self.quantum = None
+        self.structured = None
         if self.gate_arch == "linear":
             self.linear = nn.Linear(self.data_dim, self.num_experts, bias=False)
+        elif self.gate_arch in {"compact_born", "mps"}:
+            if self.gate_dropout != 0:
+                raise ValueError("structured routers require gate_dropout=0")
+            cls = CompactBornGate if self.gate_arch == "compact_born" else ResidualMPSGate
+            options = self.gate_quantum if self.gate_arch == "compact_born" else self.gate_mps
+            self.structured = cls(self.data_dim, self.num_experts, norm=self.gate_norm,
+                                  output_init_std=self.gate_output_init_std, **options)
+            self.resolved_hidden_dim = getattr(self.structured, "rank", getattr(self.structured, "sites", None))
+        elif self.gate_arch == "quantum":
+            if self.gate_dropout != 0:
+                raise ValueError("quantum router does not use gate_dropout; set it to zero")
+            self.quantum = QuantumGate(
+                self.data_dim, self.num_experts, norm=self.gate_norm,
+                output_init_std=self.gate_output_init_std, **self.gate_quantum,
+            )
+            self.resolved_hidden_dim = self.quantum.rank
         elif self.gate_arch == "mlp":
             self.resolved_hidden_dim = _resolve_gate_hidden_dim(
                 self.data_dim,
@@ -132,11 +158,21 @@ class RouterLogits(nn.Module):
         return int(sum(p.numel() for p in self.parameters()))
 
     def forward(self, x: tc.Tensor) -> tc.Tensor:
+        logits = self._unscaled_logits(x)
+        if self.raw_gain is not None:
+            logits = logits * nn.functional.softplus(self.raw_gain.to(logits.dtype))
+        return logits
+
+    def _unscaled_logits(self, x: tc.Tensor) -> tc.Tensor:
+        if self.structured is not None:
+            return self.structured(x)
         # ADTN deliberately performs routing statistics in fp32, while an HF
         # `from_pretrained(dtype=...)` load may cast the exported router to
         # fp16/bf16.  Always align the activation with the actual router
         # parameters before the Linear/LayerNorm operations; logits are
         # promoted to fp32 by the caller before softmax/top-k.
+        if self.gate_arch == "quantum":
+            return self.quantum(x)
         ref = next(self.parameters(), None)
         if ref is not None and x.is_floating_point() and x.dtype != ref.dtype:
             x = x.to(dtype=ref.dtype)
@@ -291,6 +327,9 @@ class SoftGate(nn.Module):
         gate_mlp_bias: bool = True,
         gate_output_init_std: float = 1e-3,
         gate_residual_delta_scale: float = 1.0,
+        gate_quantum: Optional[Dict[str, Any]] = None,
+        gate_mps: Optional[Dict[str, Any]] = None,
+        gate_learnable_gain: bool = False,
     ):
         super().__init__()
         self.router = RouterLogits(
@@ -307,6 +346,9 @@ class SoftGate(nn.Module):
             gate_mlp_bias=gate_mlp_bias,
             gate_output_init_std=gate_output_init_std,
             gate_residual_delta_scale=gate_residual_delta_scale,
+            gate_quantum=gate_quantum,
+            gate_mps=gate_mps,
+            gate_learnable_gain=gate_learnable_gain,
         )
         self.temperature = float(temperature)
         self.last_aux = None
@@ -418,6 +460,9 @@ class TopKGate(nn.Module):
         gate_mlp_bias: bool = True,
         gate_output_init_std: float = 1e-3,
         gate_residual_delta_scale: float = 1.0,
+        gate_quantum: Optional[Dict[str, Any]] = None,
+        gate_mps: Optional[Dict[str, Any]] = None,
+        gate_learnable_gain: bool = False,
     ):
         super().__init__()
         self.router = RouterLogits(
@@ -434,6 +479,9 @@ class TopKGate(nn.Module):
             gate_mlp_bias=gate_mlp_bias,
             gate_output_init_std=gate_output_init_std,
             gate_residual_delta_scale=gate_residual_delta_scale,
+            gate_quantum=gate_quantum,
+            gate_mps=gate_mps,
+            gate_learnable_gain=gate_learnable_gain,
         )
 
         self.k = int(k)
@@ -682,6 +730,9 @@ class GateConfig:
     gate_mlp_bias: bool = True
     gate_output_init_std: float = 1e-3
     gate_residual_delta_scale: float = 1.0
+    gate_quantum: Dict[str, Any] = field(default_factory=dict)
+    gate_mps: Dict[str, Any] = field(default_factory=dict)
+    gate_learnable_gain: bool = False
 
 
 def gate_config_from_mapping(cfg: Mapping[str, Any], *, data_dim: int) -> GateConfig:
@@ -712,12 +763,15 @@ def gate_config_from_mapping(cfg: Mapping[str, Any], *, data_dim: int) -> GateCo
         gate_mlp_bias=bool(cfg.get("gate_mlp_bias", True)),
         gate_output_init_std=float(cfg.get("gate_output_init_std", 1e-3)),
         gate_residual_delta_scale=float(cfg.get("gate_residual_delta_scale", 1.0)),
+        gate_quantum=dict(cfg.get("gate_quantum") or {}),
+        gate_mps=dict(cfg.get("gate_mps") or {}),
+        gate_learnable_gain=bool(cfg.get("gate_learnable_gain", False)),
     )
 
 
 def gate_factory_config(config: GateConfig) -> nn.Module:
     gt = config.gate_type.lower()
-    if gt == "topk":
+    if gt in {"topk", "quantum"}:
         return TopKGate(
             config.data_dim, config.num_experts,
             k=config.k,
@@ -731,7 +785,7 @@ def gate_factory_config(config: GateConfig) -> nn.Module:
             aux_coeff=config.aux_coeff,
             zloss_coeff=config.zloss_coeff,
             aux_mode=config.aux_mode,
-            gate_arch=config.gate_arch,
+            gate_arch="quantum" if gt == "quantum" else config.gate_arch,
             gate_hidden_dim=config.gate_hidden_dim,
             gate_hidden_mult=config.gate_hidden_mult,
             gate_hidden_min=config.gate_hidden_min,
@@ -742,6 +796,9 @@ def gate_factory_config(config: GateConfig) -> nn.Module:
             gate_mlp_bias=config.gate_mlp_bias,
             gate_output_init_std=config.gate_output_init_std,
             gate_residual_delta_scale=config.gate_residual_delta_scale,
+            gate_quantum=config.gate_quantum,
+            gate_mps=config.gate_mps,
+            gate_learnable_gain=config.gate_learnable_gain,
         )
     if gt == "softmax":
         return SoftGate(
@@ -759,78 +816,20 @@ def gate_factory_config(config: GateConfig) -> nn.Module:
             gate_mlp_bias=config.gate_mlp_bias,
             gate_output_init_std=config.gate_output_init_std,
             gate_residual_delta_scale=config.gate_residual_delta_scale,
+            gate_quantum=config.gate_quantum,
+            gate_mps=config.gate_mps,
+            gate_learnable_gain=config.gate_learnable_gain,
         )
     raise ValueError(f"Unsupported gate type: {config.gate_type}")
 
 def gate_factory(gate_type: str, data_dim: int, num_experts: int, **kwargs) -> nn.Module:
-    gate_type = gate_type.lower()
-    if gate_type == "topk":
-        return TopKGate(
-            data_dim,
-            num_experts,
-            k=kwargs.get("k", 2),
-            temperature=kwargs.get("temperature", 1.0),
-            use_ste = kwargs.get("use_ste", True),
-            jitter_eps=kwargs.get("jitter_eps", 0.0),
-            capacity_factor = 1.0,
-            min_capacity = 8,
-            drio_tokens = True,
-            drop_policy = "probs",
-            aux_coeff = 1e-2,
-            gate_arch=kwargs.get("gate_arch", "linear"),
-            gate_hidden_dim=kwargs.get("gate_hidden_dim", 0),
-            gate_hidden_mult=kwargs.get("gate_hidden_mult", 0.0625),
-            gate_hidden_min=kwargs.get("gate_hidden_min", 64),
-            gate_hidden_max=kwargs.get("gate_hidden_max", 256),
-            gate_activation=kwargs.get("gate_activation", "silu"),
-            gate_norm=kwargs.get("gate_norm", "none"),
-            gate_dropout=kwargs.get("gate_dropout", 0.0),
-            gate_mlp_bias=kwargs.get("gate_mlp_bias", True),
-            gate_output_init_std=kwargs.get("gate_output_init_std", 1e-3),
-            gate_residual_delta_scale=kwargs.get("gate_residual_delta_scale", 1.0),
-        )
-    if gate_type == "softmax":
-        return SoftGate(
-            data_dim,
-            num_experts,
-            temperature=kwargs.get("temperature", 1.0),
-            gate_arch=kwargs.get("gate_arch", "linear"),
-            gate_hidden_dim=kwargs.get("gate_hidden_dim", 0),
-            gate_hidden_mult=kwargs.get("gate_hidden_mult", 0.0625),
-            gate_hidden_min=kwargs.get("gate_hidden_min", 64),
-            gate_hidden_max=kwargs.get("gate_hidden_max", 256),
-            gate_activation=kwargs.get("gate_activation", "silu"),
-            gate_norm=kwargs.get("gate_norm", "none"),
-            gate_dropout=kwargs.get("gate_dropout", 0.0),
-            gate_mlp_bias=kwargs.get("gate_mlp_bias", True),
-            gate_output_init_std=kwargs.get("gate_output_init_std", 1e-3),
-            gate_residual_delta_scale=kwargs.get("gate_residual_delta_scale", 1.0),
-        )
-    if gate_type == "quantum":
-        return Quantum_layer_Gate(data_dim, num_experts, 2, "tensor", 1, True)
-    raise ValueError(f"Unsupported gate type: {gate_type}")
+    return gate_factory_config(GateConfig(
+        gate_type=gate_type, data_dim=data_dim, num_experts=num_experts, **kwargs
+    ))
 
 
 def _gate_factory_config(config):
-    gate_type = config.gate_type.lower()
-    if gate_type == "topk":
-        return TopKGate(
-            config.data_dim,
-            config.num_experts,
-            k=config.k,
-            temperature=config.temperature,
-            use_ste = config.use_ste,
-            jitter_eps=config.jitter_eps
-        )
-    if gate_type == "softmax":
-        return SoftGate(
-            config.data_dim,
-            config.num_experts,
-            temperature=config.temperature,
-        )
-    if gate_type == "quantum":
-        return Quantum_layer_Gate(config.data_dim, config.num_experts,2, "tensor", 1, True)
-    raise ValueError(f"Unsupported gate type: {gate_type}")
+    return gate_factory_config(config)
 
 
 
@@ -1017,75 +1016,26 @@ def measurement(tensor: tc.Tensor, ope: tc.Tensor):
 
 
 class Quantum_layer_Gate(nn.Module):
-    def __init__(
-        self,
-        d_in: int,
-        num_experts: int,
-        dims: Optional[int] = None,
-        form: str = "tensor",
-        k: int = 1,
-        sample: bool = True,
-    ):
-        super().__init__()
-        self.form = form
-        self.dims = dims
-        self.num_experts = num_experts
-        self.k = k
-        self.sample = sample
+    """Legacy constructor for the bounded VQC router; returns (probs, mask, aux).
 
-        if dims is not None:
-            self.project = nn.Linear(d_in, dims ** num_experts)
-            self.gate = get_quantum_layer(dims ** num_experts, num_experts, self.form, "standard", dims, None, None)
-        else:
-            self.project = nn.Linear(d_in, 2 ** num_experts)
-            self.gate = get_quantum_layer(2 ** num_experts, num_experts, self.form, "standard", None, None, None)
+    ``sample`` selects the existing TopK/soft route. It no longer invokes a
+    separate stochastic Gumbel implementation. No old dense quantum state
+    checkpoint is converted implicitly.
+    """
+    def __init__(self, d_in: int, num_experts: int, dims: Optional[int] = None,
+                 form: str = "tensor", k: int = 1, sample: bool = True, **kwargs):
+        super().__init__()
+        if dims not in {None, 2} or form != "tensor":
+            raise ValueError("Quantum_layer_Gate supports qubits (dims=2) and form='tensor'")
+        self.gate = gate_factory_config(GateConfig(
+            gate_type="topk" if sample else "softmax", data_dim=d_in,
+            num_experts=num_experts, k=k, gate_arch="quantum", **kwargs,
+        ))
 
     def forward(self, x: tc.Tensor):
-        psi = self.project(x)  # [B, d_in] -> [B, 2**E]（或 dims**E）
-
-        if self.form == "tensor":
-            # psi @ gate.reshape(...)
-            gate_mat = self.gate.reshape(psi.shape[-1], -1).to(dtype=psi.dtype, device=psi.device)
-            psi = psi @ gate_mat
-
-            if self.dims != 2:
-                raise NotImplementedError("目前只实现 dims=2 的 Pauli-Z 测量")
-
-            full_shape = psi.shape
-            leading_shape = full_shape[:-1]  # e.g. (B,) 或 (B,S)（取决于你的输入）
-            psi_qubits = psi.reshape(leading_shape + (2,) * self.num_experts)
-
-            probs = measure_sigma_z_probs_general(
-                psi_qubits,
-                num_qubits=self.num_experts,
-            )
-
-            if self.sample is False:
-                return probs, None
-
-            # 下面保持你原逻辑：假设 probs 是 (B, E) 的二维情况
-            # 若你输入是 (B,S,...) 使 probs 变成 (B,S,E)，这里也会与原 MLX 一样不匹配（保持功能路径等价）
-            B, E = probs.shape
-            k = min(self.k, E)
-
-            U = tc.rand(probs.shape, device=probs.device, dtype=tc.float32)
-            g = -tc.log(-tc.log(U + 1e-8) + 1e-8)
-            logits = tc.log(probs.to(tc.float32) + 1e-8) + g
-
-            if k <= 0:
-                raise ValueError(f"k must select at least one expert, got k={self.k}")
-            _, topk_idx = tc.topk(logits, k=k, dim=-1, largest=True, sorted=False)
-            topk_idx = topk_idx.detach()
-
-            mask = tc.zeros((B, E), device=probs.device, dtype=probs.dtype)
-            ones = tc.ones((B, k), device=probs.device, dtype=probs.dtype)
-            mask = mask.scatter(dim=1, index=topk_idx, src=ones).detach()
-
-            masked = probs * mask
-            denom = tc.sum(masked, dim=-1, keepdim=True) + tc.tensor(1e-9, device=probs.device, dtype=probs.dtype)
-            norm = masked / denom
-
-            return norm.to(probs.dtype), mask.to(probs.dtype)
-
-        # 你原实现只覆盖 form == "tensor"；其它保持不扩展
-        return None
+        shape = x.shape[:-1]
+        probs, mask, aux = self.gate(x.reshape(-1, x.shape[-1]))
+        probs = probs.reshape(*shape, probs.shape[-1])
+        if mask is not None:
+            mask = mask.reshape(*shape, mask.shape[-1])
+        return probs, mask, aux

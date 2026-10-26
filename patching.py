@@ -199,6 +199,9 @@ def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = No
         resolved_hidden = resolved
     summary = {
         "gate_arch": getattr(first, "gate_arch", None),
+        "gate_quantum": dict(getattr(first, "gate_quantum", {}) or {}),
+        "gate_mps": dict(getattr(first, "gate_mps", {}) or {}),
+        "gate_learnable_gain": getattr(first, "raw_gain", None) is not None,
         "gate_hidden_dim": getattr(first, "gate_hidden_dim", None),
         "resolved_gate_hidden_dim": resolved_hidden,
         "gate_activation": getattr(first, "gate_activation", None),
@@ -393,6 +396,9 @@ def build_patch_model_config(cfg) -> Dict[str, Any]:
         "gate_mlp_bias": cfg.model.gate_mlp_bias,
         "gate_output_init_std": cfg.model.gate_output_init_std,
         "gate_residual_delta_scale": cfg.model.gate_residual_delta_scale,
+        "gate_quantum": dict(getattr(cfg.model, "gate_quantum", {}) or {}),
+        "gate_mps": dict(getattr(cfg.model, "gate_mps", {}) or {}),
+        "gate_learnable_gain": bool(getattr(cfg.model, "gate_learnable_gain", False)),
         "global_expert_enabled": cfg.model.global_expert_enabled,
         "global_expert_weight": cfg.model.global_expert_weight,
         "global_expert_init_scale": cfg.model.global_expert_init_scale,

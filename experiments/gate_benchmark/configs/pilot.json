@@ -1,0 +1,9 @@
+{
+  "device": "cuda", "precision": "fp32", "seeds": [17],
+  "gates": ["mlp", "compact_born", "mps"],
+  "experts": 16, "topk": 4, "budget": "matched", "bert_layers": 3,
+  "train_limit": 2048, "dev_limit": 256, "test_limit": 512,
+  "eval_every": 25, "log_every": 10,
+  "mlp": {"tasks": ["fashion_mnist"], "steps": 100},
+  "bert": {"tasks": ["sst2"], "steps": 100, "warm_init_steps": 20}
+}

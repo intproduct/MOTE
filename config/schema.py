@@ -51,6 +51,9 @@ class ModelConfig:
     gate_mlp_bias: bool = True
     gate_output_init_std: float = 1e-3
     gate_residual_delta_scale: float = 1.0
+    gate_quantum: Dict[str, Any] = field(default_factory=dict)
+    gate_mps: Dict[str, Any] = field(default_factory=dict)
+    gate_learnable_gain: bool = False
     pos_strategy: str = "random"
     init_gamma: float = 0.6
     block_init_mode: str = "gamma_normal"

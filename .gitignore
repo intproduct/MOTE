@@ -13,3 +13,6 @@ checkpoints/
 *.pt
 *.pth
 *.safetensors
+
+# Local experiment environments
+.venv/

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="710" viewBox="0 0 1700 710">
+<rect width="1700" height="710" fill="white"/>
+<g font-family="Arial, sans-serif" fill="#17283b">
+<text x="40" y="52" font-size="31" text-anchor="start" fill="#17283b" font-weight="bold">Compact Born gate: four qubits produce sixteen expert probabilities</text>
+<text x="40" y="90" font-size="21" text-anchor="start" fill="#536577" font-weight="normal">Proposed research circuit for E = 16, depth = 2. This is not the existing blockwise QuantumGate.</text>
+<rect x="28" y="117" width="1644" height="432" rx="9" fill="#f6f8fb" stroke="none" stroke-width="2"/>
+<text x="265" y="166" font-size="20" text-anchor="middle" fill="#536577" font-weight="normal">Input layer 1</text>
+<text x="485" y="166" font-size="20" text-anchor="middle" fill="#536577" font-weight="normal">Pair gates</text>
+<text x="725" y="166" font-size="20" text-anchor="middle" fill="#536577" font-weight="normal">Input layer 2</text>
+<text x="945" y="166" font-size="20" text-anchor="middle" fill="#536577" font-weight="normal">Pair gate</text>
+<text x="1155" y="166" font-size="20" text-anchor="middle" fill="#536577" font-weight="normal">Readout axis</text>
+<text x="1320" y="166" font-size="20" text-anchor="middle" fill="#536577" font-weight="normal">Z basis</text>
+<text x="53" y="227" font-size="22" text-anchor="start" fill="#17283b" font-weight="normal">q0: |0⟩</text>
+<line x1="151" y1="220" x2="1380" y2="220" stroke="#8b9bad" stroke-width="2"/>
+<rect x="188.0" y="194" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="265" y="227" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="648.0" y="194" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="725" y="227" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="1078.0" y="194" width="154" height="52" rx="9" fill="#fff0dd" stroke="#b78a3a" stroke-width="2"/>
+<text x="1155" y="227" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry(β)</text>
+<rect x="1277.0" y="194" width="86" height="52" rx="9" fill="#e1f3ec" stroke="#3c816c" stroke-width="2"/>
+<text x="1320" y="227" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">MZ</text>
+<text x="53" y="317" font-size="22" text-anchor="start" fill="#17283b" font-weight="normal">q1: |0⟩</text>
+<line x1="151" y1="310" x2="1380" y2="310" stroke="#8b9bad" stroke-width="2"/>
+<rect x="188.0" y="284" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="265" y="317" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="648.0" y="284" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="725" y="317" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="1078.0" y="284" width="154" height="52" rx="9" fill="#fff0dd" stroke="#b78a3a" stroke-width="2"/>
+<text x="1155" y="317" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry(β)</text>
+<rect x="1277.0" y="284" width="86" height="52" rx="9" fill="#e1f3ec" stroke="#3c816c" stroke-width="2"/>
+<text x="1320" y="317" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">MZ</text>
+<text x="53" y="407" font-size="22" text-anchor="start" fill="#17283b" font-weight="normal">q2: |0⟩</text>
+<line x1="151" y1="400" x2="1380" y2="400" stroke="#8b9bad" stroke-width="2"/>
+<rect x="188.0" y="374" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="265" y="407" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="648.0" y="374" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="725" y="407" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="1078.0" y="374" width="154" height="52" rx="9" fill="#fff0dd" stroke="#b78a3a" stroke-width="2"/>
+<text x="1155" y="407" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry(β)</text>
+<rect x="1277.0" y="374" width="86" height="52" rx="9" fill="#e1f3ec" stroke="#3c816c" stroke-width="2"/>
+<text x="1320" y="407" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">MZ</text>
+<text x="53" y="497" font-size="22" text-anchor="start" fill="#17283b" font-weight="normal">q3: |0⟩</text>
+<line x1="151" y1="490" x2="1380" y2="490" stroke="#8b9bad" stroke-width="2"/>
+<rect x="188.0" y="464" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="265" y="497" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="648.0" y="464" width="154" height="52" rx="9" fill="#e5efff" stroke="#4778b7" stroke-width="2"/>
+<text x="725" y="497" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry → Rz</text>
+<rect x="1078.0" y="464" width="154" height="52" rx="9" fill="#fff0dd" stroke="#b78a3a" stroke-width="2"/>
+<text x="1155" y="497" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">Ry(β)</text>
+<rect x="1277.0" y="464" width="86" height="52" rx="9" fill="#e1f3ec" stroke="#3c816c" stroke-width="2"/>
+<text x="1320" y="497" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">MZ</text>
+<rect x="445" y="194" width="80" height="142" rx="9" fill="#e4e0fa" stroke="#8470b4" stroke-width="2"/>
+<text x="485" y="272.0" font-size="23" text-anchor="middle" fill="#17283b" font-weight="normal">G01</text>
+<rect x="445" y="374" width="80" height="142" rx="9" fill="#e4e0fa" stroke="#8470b4" stroke-width="2"/>
+<text x="485" y="452.0" font-size="23" text-anchor="middle" fill="#17283b" font-weight="normal">G23</text>
+<rect x="905" y="284" width="80" height="142" rx="9" fill="#e4e0fa" stroke="#8470b4" stroke-width="2"/>
+<text x="945" y="362.0" font-size="23" text-anchor="middle" fill="#17283b" font-weight="normal">G12</text>
+<rect x="1410" y="194" width="230" height="330" rx="9" fill="#ffffff" stroke="#b8c8d8" stroke-width="2"/>
+<text x="1525" y="235" font-size="21" text-anchor="middle" fill="#17283b" font-weight="bold">Joint distribution</text>
+<text x="1525" y="283" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">0000 → expert 0</text>
+<text x="1525" y="326" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">0001 → expert 1</text>
+<text x="1525" y="369" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">0010 → expert 2</text>
+<text x="1525" y="411" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">⋮</text>
+<text x="1525" y="456" font-size="21" text-anchor="middle" fill="#17283b" font-weight="normal">1111 → expert 15</text>
+<text x="1525" y="498" font-size="18" text-anchor="middle" fill="#536577" font-weight="normal">p(e) = |amplitude(e)|²</text>
+<text x="43" y="592" font-size="23" text-anchor="start" fill="#17283b" font-weight="normal">Each Ry / Rz receives its own token-dependent angle at each layer.</text>
+<text x="43" y="630" font-size="22" text-anchor="start" fill="#536577" font-weight="normal">Gij contains two controlled-Ry rotations in opposite directions, with separate trainable angles.</text>
+<text x="43" y="675" font-size="24" text-anchor="start" fill="#17283b" font-weight="bold">16 joint probabilities → log probabilities → existing temperature / TopK / capacity / auxiliary loss</text>
+</g>
+</svg>
