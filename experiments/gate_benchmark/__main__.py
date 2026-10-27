@@ -101,7 +101,7 @@ def smoke(cfg, output=None):
                 common_hash,
                 {},
             )
-    print(f"PASS: six offline training/checkpoint/evaluation runs: {root}")
+    print(f"PASS: {2*len(cfg['gates'])} offline training/checkpoint/evaluation runs: {root}")
     return root
 
 
@@ -119,7 +119,7 @@ def doctor(cfg):
             compiled_arches=torch.cuda.get_arch_list(),
         )
     x = torch.randn(8, 64, device=device, requires_grad=True)
-    for arch in ("mlp", "compact_born", "mps"):
+    for arch in ("mlp", "compact_born", "mps", "residual_mpo", "amplitude_born"):
         gate = RouterLogits(
             64, 64, gate_arch=arch, gate_hidden_dim=16, gate_learnable_gain=True
         ).to(device)
@@ -159,7 +159,7 @@ def main():
     parser.add_argument("--device")
     parser.add_argument("--precision", choices=["fp32", "fp16"])
     parser.add_argument("--seeds", nargs="+", type=int)
-    parser.add_argument("--gates", nargs="+", choices=["mlp", "compact_born", "mps"])
+    parser.add_argument("--gates", nargs="+", help="configured gate architectures or variant names")
     parser.add_argument("--bert-layers", type=int, choices=[2, 3])
     parser.add_argument("--experts", type=int)
     parser.add_argument("--topk", type=int)

@@ -1,10 +1,12 @@
 from __future__ import annotations
 import hashlib
 import json
+import re
 from copy import deepcopy
 from pathlib import Path
 
 GATES = ("mlp", "compact_born", "mps")
+ARCHES = GATES + ("residual_mpo", "amplitude_born")
 IMAGE_TASKS = ("mnist", "fashion_mnist", "cifar10")
 TEXT_TASKS = ("sst2", "mrpc", "rte")
 DEFAULT = {
@@ -86,8 +88,14 @@ def validate(c):
         raise ValueError("experts must be one of 2,4,8,16,32,64")
     if not 1 <= c["topk"] <= e:
         raise ValueError("topk must be in [1,experts]")
-    if not c["gates"] or not set(c["gates"]) <= set(GATES):
-        raise ValueError(f"gates must be selected from {GATES}")
+    variants = c.get("variants", {})
+    if not c["gates"] or not set(c["gates"]) <= set(ARCHES) | set(variants):
+        raise ValueError(f"gates must select supported architectures or configured variants")
+    for name, v in variants.items():
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", name) or v.get("arch") not in ARCHES:
+            raise ValueError(f"invalid gate variant: {name}")
+        if v.get("fraction", 1) <= 0 or v.get("bond_dim", 2) < 1 or v.get("depth", 2) not in range(1, 5):
+            raise ValueError(f"invalid gate budget/dimensions: {name}")
     if c["precision"] not in {"fp32", "fp16"} or c["budget"] not in {"matched", "rank"}:
         raise ValueError("precision=fp32/fp16 and budget=matched/rank required")
     if c["bert_layers"] not in {2, 3}:

@@ -24,6 +24,32 @@ def router_config(c, arch, dim, seed):
         if c["budget"] == "matched"
         else c["rank"]
     )
+    variant = c.get("variants", {}).get(arch)
+    mpo_options = dict(rank=rank, depth=depth, bond_dim=2)
+    quantum_options = dict(rank=rank, depth=depth, entangle=c["quantum_entangle"])
+    if variant is not None or arch in {"residual_mpo", "amplitude_born"}:
+        variant = variant or {"arch": arch}
+        arch = variant["arch"]
+        depth = variant.get("depth", c["depth"])
+        chi = variant.get("bond_dim", 2)
+        common = (2*dim if c["norm"] == "layernorm" else 0) + int(c["learnable_gain"])
+        # Anchor all variants to the actual default MLP router, including LN/gain.
+        full_budget = common + hidden*(dim+e+1) + e
+        requested = variant.get("fraction", 1.0)*full_budget
+        if arch == "mlp":
+            hidden = max(1, round((requested-common-e)/(dim+e+1)))
+        elif arch == "residual_mpo":
+            bonds = [1] + [chi]*(q-1) + [1]
+            fixed = depth*sum(4*a*b for a, b in zip(bonds[:-1], bonds[1:])) + depth + e*e
+            rank = max(1, round((requested-common-fixed)/(dim+e)))
+        elif arch == "amplitude_born":
+            edges = sum(2*len(range(i % 2, q-1, 2)) for i in range(depth)) if c["quantum_entangle"] else 0
+            fixed = depth*q + edges
+            rank = max(1, round((requested-common-fixed)/(dim+e+depth*q)))
+        else:
+            raise ValueError('budget variants currently support mlp/residual_mpo/amplitude_born')
+        mpo_options = dict(rank=rank, depth=depth, bond_dim=chi)
+        quantum_options = dict(rank=rank, depth=depth, entangle=c["quantum_entangle"])
     return dict(
         E=e,
         d=2,
@@ -39,8 +65,8 @@ def router_config(c, arch, dim, seed):
         gate_activation="silu",
         gate_output_init_std=c["output_init_std"],
         gate_learnable_gain=c["learnable_gain"],
-        gate_quantum=dict(rank=rank, depth=depth, entangle=c["quantum_entangle"]),
-        gate_mps=dict(sites=c["sites"], bond_dim=c["bond_dim"]),
+        gate_quantum=quantum_options,
+        gate_mps=mpo_options if arch == "residual_mpo" else dict(sites=c["sites"], bond_dim=c["bond_dim"]),
         temperature=c["temperature"],
         aux_coeff=c["aux_coeff"],
         zloss_coeff=0.0,

@@ -10,6 +10,7 @@ from typing import List, Optional, Union, Dict, Any, Mapping
 from .losses import balance_loss, router_z_loss
 from .quantum_gate import QuantumGate
 from .structured_routers import CompactBornGate, ResidualMPSGate
+from .advanced_routers import ResidualMPOGate, AmplitudeReuploadBornGate
 
 import sys
 import os
@@ -88,7 +89,7 @@ class RouterLogits(nn.Module):
         self.gate_mps = dict(gate_mps or {})
         self.raw_gain = nn.Parameter(tc.tensor(math.log(math.expm1(1.0)))) if gate_learnable_gain else None
 
-        if self.gate_arch not in {"linear", "mlp", "residual_mlp", "quantum", "compact_born", "mps"}:
+        if self.gate_arch not in {"linear", "mlp", "residual_mlp", "quantum", "compact_born", "mps", "residual_mpo", "amplitude_born"}:
             raise ValueError(f"Unsupported gate_arch: {gate_arch!r}")
         if self.gate_norm not in {"none", "layernorm"}:
             raise ValueError(f"Unsupported gate_norm: {gate_norm!r}")
@@ -102,11 +103,14 @@ class RouterLogits(nn.Module):
         self.structured = None
         if self.gate_arch == "linear":
             self.linear = nn.Linear(self.data_dim, self.num_experts, bias=False)
-        elif self.gate_arch in {"compact_born", "mps"}:
+        elif self.gate_arch in {"compact_born", "mps", "residual_mpo", "amplitude_born"}:
             if self.gate_dropout != 0:
                 raise ValueError("structured routers require gate_dropout=0")
-            cls = CompactBornGate if self.gate_arch == "compact_born" else ResidualMPSGate
-            options = self.gate_quantum if self.gate_arch == "compact_born" else self.gate_mps
+            cls = {"compact_born": CompactBornGate, "mps": ResidualMPSGate,
+                   "residual_mpo": ResidualMPOGate, "amplitude_born": AmplitudeReuploadBornGate}[self.gate_arch]
+            # gate_mps is the existing tensor-network options channel; MPO uses
+            # rank/depth/bond_dim here, while MPS retains sites/bond_dim.
+            options = self.gate_quantum if self.gate_arch in {"compact_born", "amplitude_born"} else self.gate_mps
             self.structured = cls(self.data_dim, self.num_experts, norm=self.gate_norm,
                                   output_init_std=self.gate_output_init_std, **options)
             self.resolved_hidden_dim = getattr(self.structured, "rank", getattr(self.structured, "sites", None))

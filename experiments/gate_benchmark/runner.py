@@ -1,5 +1,6 @@
 from __future__ import annotations
 import gc
+import hashlib
 import json
 import math
 import os
@@ -25,6 +26,7 @@ from .models import (
     parameter_report,
     warm_initialize,
     routed_modules,
+    is_router_key,
 )
 
 
@@ -61,7 +63,13 @@ def environment():
         dirty = check.returncode != 0
     except (subprocess.CalledProcessError, OSError):
         pass
+    root = Path(__file__).resolve().parents[2]
+    sources = ('gate.py', 'structured_routers.py', 'advanced_routers.py',
+               'experiments/gate_benchmark/models.py', 'experiments/gate_benchmark/runner.py',
+               'experiments/gate_benchmark/config.py')
     return {
+        "source_sha256": {name: hashlib.sha256((root/name).read_bytes()).hexdigest()
+                          for name in sources if (root/name).exists()},
         "python": platform.python_version(),
         "torch": torch.__version__,
         "transformers": transformers.__version__,
@@ -177,6 +185,8 @@ def train_one(
         "environment": environment(),
     }
     write_json(out / "manifest.json", manifest)
+    initial_router = {n: p.detach().cpu().clone() for n, p in model.named_parameters()
+                      if is_router_key(n) and p.numel()}
     seed_all(seed, cfg["deterministic"])
     generator = torch.Generator().manual_seed(seed)
     loader = DataLoader(
@@ -259,6 +269,13 @@ def train_one(
                     "amp_skipped_steps": skipped,
                     "routing_last_batch": routing_snapshot(model),
                 }
+                if step == 1:
+                    row["router_gradient_audit"] = {
+                        n: {"finite": bool(torch.isfinite(p.grad).all()),
+                            "nonzero": bool(p.grad.abs().sum() > 0)}
+                        if p.grad is not None else {"finite": False, "nonzero": False}
+                        for n, p in model.named_parameters() if n in initial_router
+                    }
                 log.write(json.dumps(row) + "\n")
                 log.flush()
                 print(
@@ -287,6 +304,11 @@ def train_one(
         model, data["test"], task, settings["batch_size"], device
     )
     result = {
+        "router_update_audit": {
+            n: {"changed": not torch.equal(p.detach().cpu(), initial_router[n]),
+                "l2_delta": float((p.detach().cpu()-initial_router[n]).double().norm())}
+            for n, p in model.named_parameters() if n in initial_router
+        },
         "stage": stage,
         "task": task,
         "gate": arch,
@@ -312,6 +334,10 @@ def train_one(
 
 
 def run(cfg, stage="all", tasks=None, seeds=None, gates=None):
+    if gates is not None and not set(gates) <= set(cfg["gates"]):
+        raise ValueError('requested gates are not in the configured experiment plan')
+    if seeds is not None and not set(seeds) <= set(cfg["seeds"]):
+        raise ValueError('requested seeds are not in the configured experiment plan')
     device = torch.device(cfg["device"])
     if device.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError(
