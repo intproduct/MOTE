@@ -1,0 +1,166 @@
+[
+  {
+    "id": "physics-d2d5c7e4e1a3fb29b5bd",
+    "input_sha256": "3932bf70ae316a01d730d80d1556bbbc246d27e47efc2451c236f19ed2facf13",
+    "final_sha256": "42287fc2938b034cd6846511ca8df58b8544dc5d2ba05405e5f359a196ec1c2f",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Expanded (x+iy)^2 and checked both real and imaginary components."
+  },
+  {
+    "id": "physics-51dbad5fa12a551af6e9",
+    "input_sha256": "f7a998f9988090f6ca48dfc9191fbb12f8bb30e2b961490918a77079244960fb",
+    "final_sha256": "1405a952a2c896fbfe7523a0f676a6c1fd3bc6a1daba008961ccad016d80671c",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Expanded 3(x+iy)-1 and checked real/imaginary components."
+  },
+  {
+    "id": "physics-a02575e4bc77eb98bd38",
+    "input_sha256": "a8baf8d194654881ea6d4ae1f7d74d812718e3e683c64ff7d346461152307847",
+    "final_sha256": "d373f1b038f8b22a333a75dd70a0327536dbf506d177afe165afcc28fa935eb0",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked componentwise complex addition."
+  },
+  {
+    "id": "physics-ba69d377609dc4a5ebe9",
+    "input_sha256": "841cfd450dd6d20d419fa598c7b8e4005808a1b4cfd999f490300af8ae2f51a3",
+    "final_sha256": "fb0fe0e06f83f42773444d1958fd8cc92f8f7a33b90b4384da05ebfbed802ae9",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked addition and multiplication using i^2=-1."
+  },
+  {
+    "id": "physics-9d8948305b8f834b17ff",
+    "input_sha256": "4ddce66d01ff7d515f6a64624c3b2062d73a94a637b9c7a611bfc0c2ff95a8cc",
+    "final_sha256": "403c958dd3acb982f52f6143bf260959dd73ae8f0909c4d9e8ccc9c30df793a0",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked integer power: 3^3 exp(-6i)."
+  },
+  {
+    "id": "physics-a0013e23d7f72f14de49",
+    "input_sha256": "e65cbcc5298ee97d7779444f31061a1acb577fb2e8733262ac1d31e22335052d",
+    "final_sha256": "17f710d7bbb75c5f21d7259e2261d2aaf420e88c3059b12cd431c12c31dbc392",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked conjugation in Cartesian and polar coordinates."
+  },
+  {
+    "id": "physics-79c88967973098ae5dcd",
+    "input_sha256": "3ba0afb2df3756c6664b4c9514f1761dc2f6c6a5d8cc09b78a312cebfb6d1144",
+    "final_sha256": "fb7a053034468afcf6f16cc32eff1e84f45376ef1ced61604792f6cc0ef949ca",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked Euler identity."
+  },
+  {
+    "id": "physics-46834161a9ec233ca11f",
+    "input_sha256": "bf6df9488bc5ad3b0de4bc9b7efbb1f1a87ff00453ecce90538aa153509a5caa",
+    "final_sha256": "7f910ff5fc2201407b177ffae1cb758b1d3f3b363fc35ddec5faaaee27921089",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked conjugate of 7+8i."
+  },
+  {
+    "id": "physics-871c1efa648c572f4cbf",
+    "input_sha256": "bab31061c4ca62544cc674bc457c9443fd484b0e1f3cf7c5190afa70a8d8f1f3",
+    "final_sha256": "eda3919a0ecc38256494cd7f1057bcbb6b45461f85af74ec57acc73f4dfaccbf",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked subtraction gives -2-7i."
+  },
+  {
+    "id": "physics-86e9f1040fa96664f2e9",
+    "input_sha256": "77b9f7f49bac9dfce76a3c74056d88a9f5181cd8bcee4fe3a28eb7a7d6bb6fbe",
+    "final_sha256": "d06fc2e826fd3af62636d6770bdd14cb002a7a01df65680138f39297307dc4c7",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked multiplication gives 41-37i."
+  },
+  {
+    "id": "physics-ce5b8434511be91ec0d5",
+    "input_sha256": "131f00699d8236f8e726ba72e630439101efa7a4b99d20b474431ca78fef0a8c",
+    "final_sha256": "bd15b927e71d2537a19b9d5b9b0b9ddee6c71a19c0ea147fd11d108ce75b58ac",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked division by multiplying by 1-i, giving -5i."
+  },
+  {
+    "id": "physics-a7b79d54aae6ab696061",
+    "input_sha256": "9f936fa6d7f285dfc6eaa51e283caeb4e7d5021feb14dbc997d854db07706d02",
+    "final_sha256": "254b2c684392678699affcf81bae1b57314c488237e78c67fb6a30ac7050f4b0",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Checked multiplication of polar forms gives 10 exp(-5i)."
+  },
+  {
+    "id": "physics-d3ab15d85a76f796c47d",
+    "input_sha256": "f6c546b0280dedb7e4fb4043e7bc00e57433f2ffbed29f66314ba8df4474e782",
+    "final_sha256": "4d74709408517af5021b9400bd8b0cde1084d82f05466379fc5fc3326a0d9cae",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Momentum is a vector; mass, speed and kinetic energy are scalars."
+  },
+  {
+    "id": "physics-2d495a8c6479c2b2e006",
+    "input_sha256": "6b3690cd13b170029508e5dea4e0a3d8f53ac952f52b9059eb5c98bc81e65e1c",
+    "final_sha256": "fb060a3703be8fa2fde3e5b5fe3926f2ab1223ab4a68cae451dac8ba0f1dc32f",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "On a horizontal moving belt, friction accelerates the object; acceleration duration v/(mu*g) increases with belt speed."
+  },
+  {
+    "id": "physics-6b8791b061186c0dfa0d",
+    "input_sha256": "83803aa417fc5a67ecacb0505c82e159e908e6354ec6ada3e2771ba5b93158d0",
+    "final_sha256": "f69b2d2889dda969b862ea0febee00f7d98e2a9eb708c967ee4c95b612bd7fc4",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "Under the stated free-fall approximation without air resistance, speed increases and gravitational acceleration stays approximately constant."
+  },
+  {
+    "id": "physics-95277696dd7541b5709a",
+    "input_sha256": "aaf8442a8ece2816656adbc83ec6445cb035699c8d98334b225993caf4c63acc",
+    "final_sha256": "e37dd4de56c3ca82e04612c997428ce75c01dc9d89d28ec8093c9bbc1d20af67",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "The airborne diver is the free-fall case in the listed elementary-mechanics scenarios."
+  },
+  {
+    "id": "physics-0b5d516ff1a3977e2577",
+    "input_sha256": "92c277847e363563b1d471c57aad3a9cf24c8fcd9efbf2e8e23767c6486cb3c9",
+    "final_sha256": "4ec3f99161be5f89e5814990393b8ca5725442b3977d8568f43e270eba50c454",
+    "verdict": "pass",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_semantic_review",
+    "note": "With contact retained and downward acceleration, N=m(g-a)<mg, while action/reaction forces remain equal."
+  },
+  {
+    "id": "math-01a5efe142c7314e",
+    "input_sha256": "742f6d0beb1086219b19940755b279d75eca4139c745437b199529e9be521b93",
+    "final_sha256": "a0154c340970ae3f69913a502d72a33de1b1d7302ac692e519e968b5be9f15a8",
+    "verdict": "correct_reference",
+    "corrected_reference": "0",
+    "original_reference": "4",
+    "scope": "visible_solution_and_answer",
+    "reviewer": "assistant_review_and_exhaustive_integer_check",
+    "note": "A multiple of 100 has a remainder modulo 1000 divisible by 100. Exhaustive integer enumeration over 1600..3500 confirms zero solutions. Teacher final is correct for the supplied question; source gold is corrected only in derived data."
+  }
+]
