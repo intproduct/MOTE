@@ -1,6 +1,6 @@
 // Generated from the matching Markdown report. Edit the Markdown and rerun.
 #set page(paper: "a4", margin: (x: 23mm, y: 22mm), numbering: "1")
-#set text(font: ("Noto Serif SC", "Cambria"), size: 10.5pt, lang: "zh")
+#set text(font: ("Times New Roman", "KaiTi"), size: 10.5pt, lang: "zh")
 #set par(justify: true, leading: 0.75em)
 #set heading(numbering: none)
 #show heading.where(level: 1): set text(size: 19pt, fill: rgb("17365d"))

@@ -1,6 +1,6 @@
 // Generated from the matching Markdown report. Edit the Markdown and rerun.
 #set page(paper: "a4", margin: (x: 23mm, y: 22mm), numbering: "1")
-#set text(font: ("Noto Serif SC", "Cambria"), size: 10.5pt, lang: "zh")
+#set text(font: ("Times New Roman", "KaiTi"), size: 10.5pt, lang: "zh")
 #set par(justify: true, leading: 0.75em)
 #set heading(numbering: none)
 #show heading.where(level: 1): set text(size: 19pt, fill: rgb("17365d"))
@@ -12,9 +12,9 @@
 
 #text("调研日期：2026-10-29。本文区分论文报告的结果、数学推导和待验证的工程假设；没有开展新的模型训练，也没有证明本项目 QuantumGate 优于经典路由。")
 
-#strong[#text("工作区核对补充（2026-10-29）")]#text("：本文最初只读取了已提交的 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c7d6690")#text("，遗漏另一个工作区 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "D:/files/MOTE")#text(" 尚未提交的最新实验实现。后续已确认分类、自回归、路由稳定性实验均在该工作区的 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mote-quantum")#text(" 上进行；新增代码现已保存为 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c726b4e")#text("，本报告及数据工具也已通过 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "6b49d37")#text(" 归并到该分支。下文对 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c7d6690")#text(" 的结构分析仍以该固定版本为边界，不能当作对最新 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "SharedBornRouter")#text(" 的完整评审。")
+#strong[#text("工作区核对补充（2026-10-29）")]#text("：本文最初只读取了已提交的 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "c7d6690")#text("，遗漏另一个工作区 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "D:/files/MOTE")#text(" 尚未提交的最新实验实现。后续已确认分类、自回归、路由稳定性实验均在该工作区的 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "mote-quantum")#text(" 上进行；新增代码现已保存为 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "c726b4e")#text("，本报告及数据工具也已通过 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "6b49d37")#text(" 归并到该分支。下文对 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "c7d6690")#text(" 的结构分析仍以该固定版本为边界，不能当作对最新 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "SharedBornRouter")#text(" 的完整评审。")
 
-#text("最新路由稳定性实验使用输入无关的共享正交矩阵 U、非线性联合振幅编码和直接概率读出。其已复核报告记录：18 项训练完成，原 Born 与共享 Born 均未达到预注册的质量、延迟和切换率组合目标；无 U、无 CRY 等关键消融尚缺。因此本文提出的结构归因对照仍有必要，但后续实验应接着已有结果做。原始报告位于 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "D:/files/MOTE/outputs/ro​uting_stability_round1/R​EPORT_zh.md")#text("，本轮不改写其数据和结论。")
+#text("最新路由稳定性实验使用输入无关的共享正交矩阵 U、非线性联合振幅编码和直接概率读出。其已复核报告记录：18 项训练完成，原 Born 与共享 Born 均未达到预注册的质量、延迟和切换率组合目标；无 U、无 CRY 等关键消融尚缺。因此本文提出的结构归因对照仍有必要，但后续实验应接着已有结果做。原始报告位于 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "D:/files/MOTE/outputs/ro​uting_stability_round1/R​EPORT_zh.md")#text("，本轮不改写其数据和结论。")
 
 #heading(level: 2)[#text("1. 结论与建议")]
 
@@ -32,15 +32,15 @@
 
 #heading(level: 2)[#text("2. 本次以哪一版代码为依据")]
 
-#text("工作分支为 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mote-sft-v2")#text("。已将此前尚未提交的数据工具提交为 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "551735a859132ae2aa59e41d​9771ec9688a823e4")#text("，推送至同名远端分支；87 个 Python 文件完成语法检查，相关测试共 111 项通过。数据、缓存和输出目录未混入提交。")
+#text("工作分支为 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "mote-sft-v2")#text("。已将此前尚未提交的数据工具提交为 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "551735a859132ae2aa59e41d​9771ec9688a823e4")#text("，推送至同名远端分支；87 个 Python 文件完成语法检查，相关测试共 111 项通过。数据、缓存和输出目录未混入提交。")
 
-#text("调研使用另外一个远端分支 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "origin/mote-quantum")#text(" 的固定提交 ")#strong[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c7d6690dfb13f2bf0a00ae14​5020ba7b0bb222fd")]#text("，通过 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "git show")#text(" 读取，没有切换工作分支、合并该分支或修改模型实现。下述判断不针对工作分支中的旧 QuantumGate。")
+#text("调研使用另外一个远端分支 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "origin/mote-quantum")#text(" 的固定提交 ")#strong[#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "c7d6690dfb13f2bf0a00ae14​5020ba7b0bb222fd")]#text("，通过 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "git show")#text(" 读取，没有切换工作分支、合并该分支或修改模型实现。下述判断不针对工作分支中的旧 QuantumGate。")
 
-- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/quantum_gate.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "quantum_gate.py")]#text("：每个专家对应一个 qubit，但按小块独立模拟；RY/CRY 实数演化，输出各 qubit 的边缘概率后取 log。随后共享 softmax 将这些边缘量归一化。它不是一次联合测量直接得到的专家类别分布。")
-- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/structured_routers.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "structured_routers.py")]#text("：")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "compact_born")#text(" 使用 q=log2(E) 个 qubit 和 E 个复振幅，RY/RZ 数据重上传及 CRY 耦合，联合 Born 概率。生产实现要求 E 为 2 的幂，范围 2–64；不要沿用原型文档中支持其他 E 的描述。")
-- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/advanced_routers.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "advanced_routers.py")]#text("：")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text(" 从正振幅编码开始，归一化后进行实数 RY/CRY 数据重上传，平方读出。")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "residual_mpo")#text(" 则是经典非线性残差张量网络，不是酉量子演化。")
-- #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mps")#text(" 也是经典结构化特征模型。它可以作为量子启发方法的有效对照，不能将其效果归为量子硬件优势。")
-- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/gate.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "gate.py")]#text(" 共享 top-k、容量限制和辅助损失，可选可学习正增益。所有这些 gate 都针对每个 token 重新构造状态，")#strong[#text("没有跨 token 保留的量子记忆")]#text("。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/quantum_gate.py")[#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "quantum_gate.py")]#text("：每个专家对应一个 qubit，但按小块独立模拟；RY/CRY 实数演化，输出各 qubit 的边缘概率后取 log。随后共享 softmax 将这些边缘量归一化。它不是一次联合测量直接得到的专家类别分布。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/structured_routers.py")[#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "structured_routers.py")]#text("：")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "compact_born")#text(" 使用 q=log2(E) 个 qubit 和 E 个复振幅，RY/RZ 数据重上传及 CRY 耦合，联合 Born 概率。生产实现要求 E 为 2 的幂，范围 2–64；不要沿用原型文档中支持其他 E 的描述。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/advanced_routers.py")[#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "advanced_routers.py")]#text("：")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "amplitude_born")#text(" 从正振幅编码开始，归一化后进行实数 RY/CRY 数据重上传，平方读出。")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "residual_mpo")#text(" 则是经典非线性残差张量网络，不是酉量子演化。")
+- #text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "mps")#text(" 也是经典结构化特征模型。它可以作为量子启发方法的有效对照，不能将其效果归为量子硬件优势。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/gate.py")[#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "gate.py")]#text(" 共享 top-k、容量限制和辅助损失，可选可学习正增益。所有这些 gate 都针对每个 token 重新构造状态，")#strong[#text("没有跨 token 保留的量子记忆")]#text("。")
 
 #text("项目已有 ")#link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/experiments/gate_benchmark/PARETO_STUDY.md")[#text("Pareto 实验协议")]#text("。本次没有据此宣称任何未核验的胜率或 GPU 加速结果。新实验应衔接现有协议，补充机制消融与持续学习，而非重复建立一套不兼容基准。")
 
@@ -66,15 +66,15 @@
 
 #text("写 ψ_i=√p_i exp(iφ_i)，纯态的 Fubini–Study 线元局部满足：")
 
-#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "ds_FS² = 1/4 Σ_i dp_i²/p_i + Σ_i p_i dφ_i² − (Σ_i p_i dφ_i)²")#text("。")
+#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "ds_FS² = 1/4 Σ_i dp_i²/p_i + Σ_i p_i dφ_i² − (Σ_i p_i dφ_i)²")#text("。")
 
 #text("第一项对应概率的 Fisher 几何；后两项包含固定测量可能看不到的相位变化。全局相位无物理意义，所以严格说应考虑投影态空间。一般固定测量的经典 Fisher 信息不超过量子 Fisher 信息；并非一次固定测量能使用全部态信息。参见 ")#link("https://doi.org/10.1103/PhysRevLett.72.3439")[#text("Braunstein–Caves")]#text("、")#link("https://arxiv.org/abs/quant-ph/9808009")[#text("Barndorff-Nielsen–Gill")]#text("。")
 
 #strong[#text("对当前代码的一个具体推论")]#text("：对于归一化的实数纯态，局部所有读出振幅非零时，计算基概率 p_i=ψ_i² 的 Fisher 矩阵满足：")
 
-#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "F_classical,ab = Σ_i (∂a p_i)(∂b p_i)/p_i = 4 Σ_i (∂a ψ_i)(∂b ψ_i) = F_quantum,ab")#text("。")
+#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "F_classical,ab = Σ_i (∂a p_i)(∂b p_i)/p_i = 4 Σ_i (∂a ψ_i)(∂b ψ_i) = F_quantum,ab")#text("。")
 
-#text("所以 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text(" 在概率平滑、额外温度/增益和 top-k ")#strong[#text("之前")]#text("，量子自然梯度与相应输出概率的经典自然梯度有直接对应关系。这是本次对实现作出的数学推导，不是已测得的模型优势。零振幅、混态、边缘读出或额外后处理不能直接套用该等式。")
+#text("所以 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "amplitude_born")#text(" 在概率平滑、额外温度/增益和 top-k ")#strong[#text("之前")]#text("，量子自然梯度与相应输出概率的经典自然梯度有直接对应关系。这是本次对实现作出的数学推导，不是已测得的模型优势。零振幅、混态、边缘读出或额外后处理不能直接套用该等式。")
 
 #text("复态反例也很简单：ψ=(1,exp(iθ))/√2，计算基输出始终是 (1/2,1/2)，输出 Fisher 为 0，量子 Fisher 为 1。状态变化未必改变当前路由；后续混合操作则可能使相位变得可观测。这提示我们：若目标是保护专家选择，应先测路由 KL/Fisher，再决定是否值得额外保护不可见的状态方向。")
 
@@ -88,7 +88,7 @@
 
 #strong[#text("机器 unlearning")]#text("是有意移除错误或指定训练数据的影响，目标与保留旧任务不同。2026 年 Nature Communications 的 ")#link("https://www.nature.com/articles/s41467-026-70420-4")[#text("Superior resilience to poisoning and amenability to unlearning in quantum machine learning")]#text(" 在所选任务中报告量子模型对数据污染更有韧性、近似 unlearning 更容易。")#link("https://arxiv.org/html/2508.02422v1")[#text("作者全文")]#text(" 使用 MNIST 二分类及量子相任务，包含经典网络规模对照。这是有价值的实验线索，但尚不是大模型路由上的结论，也不等于严格的数据删除隐私保证。")
 
-#text("对该论文还应追问机制是否量子独有。其预印本附录的简化分析对比线性 logit 与余弦 logit。对任何经典非线性 logit z(θ)，二元交叉熵都满足 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "L''=p(1−p)(z')²+(p−y)z''​")#text("。因此由曲率带来的第二项，也能在经典正弦/余弦网络中产生。这里是针对该版本简化机制的分析，不是否定论文整体实验。我们应该加入周期经典对照，而不是只比较线性或普通 ReLU 网络。")
+#text("对该论文还应追问机制是否量子独有。其预印本附录的简化分析对比线性 logit 与余弦 logit。对任何经典非线性 logit z(θ)，二元交叉熵都满足 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "L''=p(1−p)(z')²+(p−y)z''​")#text("。因此由曲率带来的第二项，也能在经典正弦/余弦网络中产生。这里是针对该版本简化机制的分析，不是否定论文整体实验。我们应该加入周期经典对照，而不是只比较线性或普通 ReLU 网络。")
 
 #heading(level: 2)[#text("5. 其他可能优势，以及迁移的边界")]
 
@@ -126,18 +126,18 @@
 
 #text("基础对照先保持相同的输入归一化、编码 rank、初始概率熵、温度/增益策略、top-k、优化器搜索预算：")
 
-- #text("当前强经典 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "residual_mlp")#text("/MLP；另保留线性基线。")
+- #text("当前强经典 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "residual_mlp")#text("/MLP；另保留线性基线。")
 - #text("同编码器的平方振幅归一化头，不加线路。")
 - #text("同编码器的经典周期特征网络，以及低秩双线性对照。")
-- #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text("：实振幅与实数演化。")
-- #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "compact_born")#text("：复振幅、相位及重上传。")
+- #text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "amplitude_born")#text("：实振幅与实数演化。")
+- #text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "compact_born")#text("：复振幅、相位及重上传。")
 
 #text("不必一次运行所有变体。先做配对试验，淘汰显著昂贵且无收益的配置。分别报告同参数预算和同墙钟预算的结果；仅同参数量不够公平。")
 
 #text("针对候选胜者再做以下消融：")
 
 - #text("有无重上传；同样输入编码下的固定演化与输入依赖演化。")
-- #text("有无耦合；但注意 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text(" 的联合振幅编码可能已生成非乘积态，")#strong[#text("去掉 CRY 不等于去掉全部纠缠")]#text("。真正的无纠缠对照需要乘积态编码和局部门。")
+- #text("有无耦合；但注意 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "amplitude_born")#text(" 的联合振幅编码可能已生成非乘积态，")#strong[#text("去掉 CRY 不等于去掉全部纠缠")]#text("。真正的无纠缠对照需要乘积态编码和局部门。")
 - #text("实数/复数；增加相位之后是否真的改变可观测输出和任务表现。")
 - #text("不同专家编号置换和耦合图，多个种子平均。")
 - #text("在归一化之前可被相邻无约束线性层吸收的固定正交变换，不应单独算一种新表达能力；输入依赖演化则另当别论。")
@@ -148,7 +148,7 @@
 
 #text("主设计为经典/Born gate × 无保护/同一种保护。先测便宜的旧域路由 KL 或经验 Fisher EWC，之后再考虑 QFI。对双方使用相同旧数据预算、相同正则强度搜索范围，报告旧域保留和新域学习的 Pareto 曲线。若 MoTE/MixT 作为外层架构共同研究，应先在一个架构内部隔离 gate 效果，再验证跨架构是否成立，避免把外层差异混入结论。")
 
-#text("每次域切换评估所有历史任务。设 A_i,j 为学习完任务 i 后对任务 j 的分数；报告最终平均分、")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mean_j(max_{i=j..T} A_i,j − A_T,j)")#text(" 的遗忘量和新任务学习速度。选择正则强度时不能使用最终测试集。")
+#text("每次域切换评估所有历史任务。设 A_i,j 为学习完任务 i 后对任务 j 的分数；报告最终平均分、")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "mean_j(max_{i=j..T} A_i,j − A_T,j)")#text(" 的遗忘量和新任务学习速度。选择正则强度时不能使用最终测试集。")
 
 #text("冻结 backbone 后的路由 KL 只保护路由行为。联合训练时还需保留旧的原始输入以重新提取特征；只保存旧 hidden states 可能掩盖 backbone 漂移。即使路由不变，expert 参数改变也会导致遗忘，所以要同时检查任务输出。")
 
@@ -181,5 +181,5 @@
 
 #text("最值得争取的论文主张是：")#strong[#text("对特定混合任务分布，明确的态编码和受约束交互，在公平预算下改善路由的可塑性—保持权衡，并给出可复现的几何或频谱解释。")]#text(" 这比“量子概率优于 softmax”更具体，也更容易被实验支持或推翻。")
 
-#text("附带的 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "geometry_checks.py")#text(" 与 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "geometry_checks.json")#text(" 仅检验本文几个数学等式和反例，不是 QuantumGate 性能实验。论文索引见 ")#text("SOURCES_zh.md")#text("。")
+#text("附带的 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "geometry_checks.py")#text(" 与 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "geometry_checks.json")#text(" 仅检验本文几个数学等式和反例，不是 QuantumGate 性能实验。论文索引见 ")#text("SOURCES_zh.md")#text("。")
 

@@ -31,7 +31,7 @@ def inline(value):
         elif code is not None:
             # Add invisible break opportunities to long source paths/hashes.
             code = re.sub(r"(\S{24})", "\\1\u200b", code)
-            result.append(f"#text(font: (\"Consolas\", \"Noto Sans SC\"), size: 8.5pt, {string(code)})")
+            result.append(f"#text(font: (\"Times New Roman\", \"KaiTi\"), size: 8.5pt, {string(code)})")
         else:
             result.append(f"#emph[{inline(italic)}]")
         start = match.end()
@@ -61,7 +61,7 @@ def convert(source):
         blocks.append("")
     return '''// Generated from the matching Markdown report. Edit the Markdown and rerun.
 #set page(paper: "a4", margin: (x: 23mm, y: 22mm), numbering: "1")
-#set text(font: ("Noto Serif SC", "Cambria"), size: 10.5pt, lang: "zh")
+#set text(font: ("Times New Roman", "KaiTi"), size: 10.5pt, lang: "zh")
 #set par(justify: true, leading: 0.75em)
 #set heading(numbering: none)
 #show heading.where(level: 1): set text(size: 19pt, fill: rgb("17365d"))

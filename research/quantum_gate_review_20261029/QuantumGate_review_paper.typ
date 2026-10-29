@@ -1,17 +1,17 @@
 // Self-contained paper-style edition. No network packages or external bibliography.
 // Compile: typst compile QuantumGate_review_paper.typ QuantumGate_review_paper.pdf
-// Tested with Typst 0.11.1. Recommended fonts: Noto Serif SC / Noto Sans SC.
+// Tested with Typst 0.11.1. Chinese: KaiTi. English: Times New Roman.
 #set document(title: "量子机器学习优势向专家路由的迁移：QuantumGate 的信息几何、持续学习与验证框架", date: datetime(year: 2026, month: 10, day: 29))
 #set page(paper: "a4", margin: (top: 23mm, bottom: 22mm, left: 24mm, right: 24mm), numbering: "1", number-align: center,
   header: align(right, text(size: 8pt, fill: rgb("666666"))[QuantumGate · 文献综述与机制分析]))
-#set text(font: ("Noto Serif SC", "Cambria"), size: 10.5pt, lang: "zh")
+#set text(font: ("Times New Roman", "KaiTi"), size: 10.5pt, lang: "zh")
 #set par(justify: true, leading: 0.72em)
 #set heading(numbering: "1.1")
-#show heading.where(level: 1): set text(font: ("Noto Sans SC", "Cambria"), size: 14pt, weight: "bold")
-#show heading.where(level: 2): set text(font: ("Noto Sans SC", "Cambria"), size: 11.5pt, weight: "bold")
+#show heading.where(level: 1): set text(size: 14pt, weight: "bold")
+#show heading.where(level: 2): set text(size: 11.5pt, weight: "bold")
 #set math.equation(numbering: "(1)")
 #show math.equation: set text(font: "New Computer Modern Math")
-#show raw: set text(font: ("Consolas", "Noto Sans SC"), size: 9pt)
+#show raw: set text(font: ("Times New Roman", "KaiTi"), size: 9pt)
 #show link: set text(fill: rgb("1c4264"))
 #set figure(supplement: [图])
 #let c(n) = super(link(label("ref-" + str(n)), text("[" + str(n) + "]")))
@@ -24,7 +24,7 @@
 ]
 
 #align(center)[
-  #text(font: "Noto Sans SC", size: 20pt, weight: "bold")[量子机器学习优势向专家路由的迁移]
+  #text(size: 20pt, weight: "bold")[量子机器学习优势向专家路由的迁移]
   #v(0.45em)
   #text(size: 13pt)[QuantumGate 的信息几何、持续学习与验证框架]
   #v(0.6em)
