@@ -40,6 +40,8 @@ packages = [
     "fitmotn.eval",
     "fitmotn.experiments",
     "fitmotn.experiments.gate_benchmark",
+    "fitmotn.experiments.autoregressive_gate",
+    "fitmotn.experiments.routing_stability",
     "fitmotn.export",
     "fitmotn.export.remote_code",
     "fitmotn.init",
@@ -59,6 +61,8 @@ fitmotn = "."
 "fitmotn.eval" = "eval"
 "fitmotn.experiments" = "experiments"
 "fitmotn.experiments.gate_benchmark" = "experiments/gate_benchmark"
+"fitmotn.experiments.autoregressive_gate" = "experiments/autoregressive_gate"
+"fitmotn.experiments.routing_stability" = "experiments/routing_stability"
 "fitmotn.export" = "export"
 "fitmotn.export.remote_code" = "export/remote_code"
 "fitmotn.init" = "init"
@@ -69,3 +73,5 @@ fitmotn = "."
 
 [tool.setuptools.package-data]
 "fitmotn.experiments.gate_benchmark" = ["configs/*.json", "requirements-titan-v.txt", "README.md"]
+"fitmotn.experiments.autoregressive_gate" = ["configs/*.json", "README.md"]
+"fitmotn.experiments.routing_stability" = ["configs/*.json", "README.md"]
