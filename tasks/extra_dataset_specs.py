@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import Any, List
 
 from ..config.schema import DataConfig
-from ..data.specs import HFChatTask, HFTextTask, LocalTokenShardTask, TaskSpec
+from ..data.specs import FrozenTokenTask, HFChatTask, HFTextTask, LocalTokenShardTask, TaskSpec
 from ..runtime import normalize_hf_config
 
 
 def _source_to_kind(source: str, dataset_format: str) -> str:
+    if source == "frozen_release":
+        return "frozen_token_release"
     if source == "hf":
         return "hf_text" if dataset_format == "text" else "hf_chat"
     if source == "local_jsonl":
@@ -54,7 +56,9 @@ def build_extra_dataset_tasks(cfg: DataConfig, group: str | None = None, logger=
                 **dict(ds.get("metadata") or {}),
             },
         }
-        if dataset_format == "token_ids":
+        if source == "frozen_release":
+            tasks.append(FrozenTokenTask(**common))
+        elif dataset_format == "token_ids":
             tasks.append(LocalTokenShardTask(**common))
         elif dataset_format == "text":
             tasks.append(HFTextTask(text_field=str(ds.get("text_field", "text") or "text"), **common))

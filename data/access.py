@@ -5,7 +5,6 @@ from typing import Any, Dict
 
 from ..runtime import normalize_hf_config
 from .shard_loader import iter_jsonl, iter_jsonl_gz
-from .release import validate_frozen_sft_release
 
 try:
     from datasets import load_dataset, load_from_disk
@@ -61,6 +60,10 @@ def inspect_task_dataset(task, logger=None) -> Dict[str, Any]:
         "resolved_samples": None,
     }
     if str(getattr(task, "kind", "")) == "frozen_sft":
+        # Release validation also uses task adapters; defer this dependency
+        # until inspection so importing data.release cannot cycle via tasks.
+        from .release import validate_frozen_sft_release
+
         report = validate_frozen_sft_release(path)
         info["source"] = "frozen_release"
         info["ok"] = bool(report.get("ok"))
@@ -71,6 +74,18 @@ def inspect_task_dataset(task, logger=None) -> Dict[str, Any]:
             from .release import iter_frozen_sft_records
 
             info["sample"] = next(iter_frozen_sft_records(path), None)
+        return info
+    if str(getattr(task, "kind", "")) == "frozen_token_release":
+        from .training_release import ACCEPTED_FILENAME as BOUND_ACCEPTED_FILENAME, validate_bound_training_release
+
+        report = validate_bound_training_release(path)
+        info["source"] = "bound_training_release"
+        info["ok"] = bool(report.get("ok"))
+        info["reason"] = "bound training release ready" if info["ok"] else f"invalid bound training release: {report.get('errors')}"
+        manifest = report.get("manifest") or {}
+        info["resolved_samples"] = manifest.get("accepted_count")
+        if info["ok"] and int(manifest.get("accepted_count", 0)) > 0:
+            info["sample"] = next(iter_jsonl(path / BOUND_ACCEPTED_FILENAME), None)
         return info
     if str(getattr(task, "kind", "")) == "synthetic_reasoning":
         dataset = getattr(task, "metadata", {}).get("synthetic_dataset")

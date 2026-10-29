@@ -1,0 +1,17 @@
+{
+  "scope": "Mathematical sanity checks only; no model training or performance evidence.",
+  "seed": 20261029,
+  "numpy_version": "2.5.1",
+  "simplex_sqrt_born_max_error": 1.3877787807814457e-17,
+  "simplex_log_softmax_max_error": 1.3877787807814457e-17,
+  "squared_amplitude_softmax_max_error": 2.7755575615628914e-17,
+  "gain_temperature_power_max_error": 6.938893903907228e-17,
+  "real_state_cfi_qfi_max_error": 3.552713678800501e-15,
+  "phase_only_classical_fisher": 3.15463533837902e-34,
+  "phase_only_quantum_fisher": 1.0,
+  "fixed_orthogonal_distance_error": 0.0,
+  "near_tie_total_variation": 2.0000000044984034e-08,
+  "near_tie_top1_changed": true,
+  "classical_cosine_hessian_absolute_error": 1.2593866893784167e-08,
+  "all_checks_passed": true
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MoTE model-independent SFT JSONL v1.0",
+  "type": "object",
+  "required": ["id", "problem_id", "family_id", "input", "output", "final", "solution", "domain", "source", "split", "quality_level", "release_status", "verification", "review_flags", "provenance", "schema_version"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "problem_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "family_id": {"type": "string"},
+    "input": {"type": "string"},
+    "output": {"type": "string"},
+    "final": {"type": "string"},
+    "solution": {"type": ["string", "null"]},
+    "auxiliary_reasoning": {"type": ["string", "null"]},
+    "output_sections": {"type": "object"},
+    "response_mode": {"enum": ["direct", "reasoning", "solution"]},
+    "domain": {"type": "string"},
+    "source": {"type": "string"},
+    "source_revision": {"type": ["string", "null"]},
+    "source_split": {"type": ["string", "null"]},
+    "license": {"type": ["string", "array", "null"]},
+    "split": {"enum": ["train", "dev", "test", "diagnostic_dev", "smoke_only", "benchmark_excluded"]},
+    "quality_level": {"enum": ["unverified", "structural_only", "reference_matched", "independently_recomputed", "prior_execution_pass", "assistant_reviewed_final"]},
+    "release_status": {"enum": ["answer_checked", "review_required", "quarantine"]},
+    "verification": {"type": "object"},
+    "review_flags": {"type": "array", "items": {"type": "string"}},
+    "provenance": {"type": "array", "minItems": 1},
+    "schema_version": {"const": "mote-sft-jsonl-1.0"}
+  },
+  "additionalProperties": true
+}

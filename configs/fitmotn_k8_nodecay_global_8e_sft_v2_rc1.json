@@ -1,0 +1,55 @@
+{
+  "model": {
+    "model_path": "${MODEL_ROOT}/Qwen3-0.6B",
+    "device": "cuda:0",
+    "use_amp": true,
+    "trust_remote_code": true
+  },
+  "data": {
+    "seq_len_run": 1280,
+    "dataloader_num_workers": 0,
+    "use_frozen_sft_release": true,
+    "frozen_sft_release_dir": "${DATA_ROOT}/releases/fitmotn-sft-v2-repaired-rc1",
+    "frozen_sft_exclusive": true,
+    "wt_frozen_sft": 1.0,
+    "frozen_sft_bucket": "frozen_sft",
+    "source_sampling_mode": "deterministic_strict",
+    "source_shuffle": true,
+    "source_max_epochs": 1,
+    "fail_on_dynamic_skip": true,
+    "reasoning_format": "raw",
+    "use_wiki_local": false,
+    "use_fineweb": false,
+    "use_code": false,
+    "use_gsm8k_train": false,
+    "use_gsm8k_socratic_train": false,
+    "use_svamp_train": false,
+    "use_synthetic_arithmetic_train": false,
+    "use_metamath_train": false,
+    "use_math_train": false,
+    "use_mmlu_train": false,
+    "use_openr1_math": false,
+    "use_numinamath_cot": false,
+    "use_openthoughts_math": false,
+    "use_bespoke_stratos": false
+  },
+  "train": {
+    "batch_size": 1,
+    "grad_accum": 8,
+    "steps": 4000,
+    "epochs": 1.0,
+    "epoch_samples": 200000,
+    "stage_a_ratio": 0.0,
+    "stage_a_pretrain_ratio": 0.0,
+    "stage_a_task_ratio": 1.0,
+    "stage_b_mode": "task_only",
+    "stage_b_pretrain_ratio": 0.0,
+    "stage_b_task_ratio": 1.0,
+    "stage_b_disable_pretrain": true
+  },
+  "output": {
+    "root_dir": "${OUTPUT_ROOT}/fitmotn_runs",
+    "run_name": "fitmotn_k8_nodecay_global_8e_sft_v2_rc1_no_code",
+    "overwrite_output_dir": false
+  }
+}
