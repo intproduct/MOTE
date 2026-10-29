@@ -1,0 +1,602 @@
+{
+  "canonical_workspace": "D:\\files\\MOTE",
+  "branch": "mote-quantum",
+  "archive_policy": "Historical helper sources only; original output paths retained. Do not execute archive copies without reviewing original paths and experiment protocol.",
+  "helpers_count": 75,
+  "helpers": [
+    {
+      "source": "outputs/gate_benchmark/analyze_results.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/analyze_results.py",
+      "bytes": 12192,
+      "sha256": "ed1ee10179b012b066a2bbf64a44c96a6b75362d15a4c3dc54ed328143fac65e"
+    },
+    {
+      "source": "outputs/gate_benchmark/audit_results.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/audit_results.py",
+      "bytes": 10406,
+      "sha256": "cd4c0d20f33f69574730a1620803b6d3e9e77ef132e5ce5441275db017ef1436"
+    },
+    {
+      "source": "outputs/gate_benchmark/benchmark_dispatch.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/benchmark_dispatch.py",
+      "bytes": 4462,
+      "sha256": "1f3b66be638f47c8364e3edd04b031978e2015e5d065267cbd2dc1d07cc2099d"
+    },
+    {
+      "source": "outputs/gate_benchmark/benchmark_unique_dispatch.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/benchmark_unique_dispatch.py",
+      "bytes": 4563,
+      "sha256": "49a84046914c1e2e1519c92d719d9a8529ae9e4235e01c762e090d6dbb1bd05e"
+    },
+    {
+      "source": "outputs/gate_benchmark/check_pilot_masks.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/check_pilot_masks.py",
+      "bytes": 2066,
+      "sha256": "4baa90da71f84f73778efdd09e30b62bc4cf3e263e59a094dfd14b13f659cbcf"
+    },
+    {
+      "source": "outputs/gate_benchmark/completed_task_summary.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/completed_task_summary.py",
+      "bytes": 1518,
+      "sha256": "eeddbcec75b35860b12cdb286e0a31cf47562aa3168d292115060add60f915d4"
+    },
+    {
+      "source": "outputs/gate_benchmark/concurrent_matrix.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/concurrent_matrix.py",
+      "bytes": 5158,
+      "sha256": "59f89bbf9308175607bc91fea7bf58b4b944e4d5ccb35ece3fdc264bec96cabc"
+    },
+    {
+      "source": "outputs/gate_benchmark/draw_direct_mpo.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/draw_direct_mpo.py",
+      "bytes": 3190,
+      "sha256": "84d0256e50a1c1d80c50a5f24c421e9729a5b4c2956f367b5b01c381ed95364f"
+    },
+    {
+      "source": "outputs/gate_benchmark/draw_mps_shapes.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/draw_mps_shapes.py",
+      "bytes": 5698,
+      "sha256": "b9157db7bb487c1558ea220a05213c5689609c46a6150b95ae435a28187818d4"
+    },
+    {
+      "source": "outputs/gate_benchmark/draw_original_recurrence.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/draw_original_recurrence.py",
+      "bytes": 3785,
+      "sha256": "d18585e6c5af5c5c17ca730d7db39db49f749d91df20403a7673ecf5853edcce"
+    },
+    {
+      "source": "outputs/gate_benchmark/final_qa_bundle.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/final_qa_bundle.py",
+      "bytes": 9080,
+      "sha256": "e590b28cc37e46ac5f5186d24922d788573ecec8d834fb30de6470c7f2586f01"
+    },
+    {
+      "source": "outputs/gate_benchmark/learning_diagnostics.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/learning_diagnostics.py",
+      "bytes": 1903,
+      "sha256": "9edf039d2a20ec8b3ddee16d5bf2399381505154d1adb37ce49892ba41212429"
+    },
+    {
+      "source": "outputs/gate_benchmark/live_health.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/live_health.py",
+      "bytes": 2424,
+      "sha256": "2b018d9faec289b8d3275e632caf5576b5931f4ffb571e64469ae5c2c723e1d8"
+    },
+    {
+      "source": "outputs/gate_benchmark/logs/setup_environment.ps1",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/logs/setup_environment.ps1",
+      "bytes": 2077,
+      "sha256": "691668d138d87d2c26b82bde6f2edd075d7541fb99ce5d65655ff073fa9cac73"
+    },
+    {
+      "source": "outputs/gate_benchmark/make_report.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/make_report.py",
+      "bytes": 24888,
+      "sha256": "7d322c260c80626dcc5bcd67bce9c6ff025ac5690c0bb7ce41f1c2bc6158eb8c"
+    },
+    {
+      "source": "outputs/gate_benchmark/method_review_checks.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/method_review_checks.py",
+      "bytes": 3265,
+      "sha256": "881e58a52d1967c0e81fdaaaca7742731bcac60dbaec132eb905cecc0954af50"
+    },
+    {
+      "source": "outputs/gate_benchmark/monitor_progress.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/monitor_progress.py",
+      "bytes": 2902,
+      "sha256": "4db82a52496676745de8cd2adaa1cd0f5c4f0cd8bc92e9bd08817fc447b82d64"
+    },
+    {
+      "source": "outputs/gate_benchmark/plot_serial_efficiency.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/plot_serial_efficiency.py",
+      "bytes": 1916,
+      "sha256": "e0013cd03ec769938d933f1bcc5aacc6de574bb8f5964c3b182d58657f5ccb3c"
+    },
+    {
+      "source": "outputs/gate_benchmark/postprocess.ps1",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/postprocess.ps1",
+      "bytes": 1572,
+      "sha256": "dae6c1bc4db42503e583fc67128e70d77fe9c50936d00dd43b169cf54c47bca7"
+    },
+    {
+      "source": "outputs/gate_benchmark/profile_step.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/profile_step.py",
+      "bytes": 1575,
+      "sha256": "715d54569773b816f3b25626aca624e99f172d175a32134d8db329975769cfcc"
+    },
+    {
+      "source": "outputs/gate_benchmark/run_phase.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/run_phase.py",
+      "bytes": 2712,
+      "sha256": "716d5225ad18c14a95ffccb789f1366beb175b321a15e96205df65ddd7c6172f"
+    },
+    {
+      "source": "outputs/gate_benchmark/serial_efficiency.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/serial_efficiency.py",
+      "bytes": 10702,
+      "sha256": "280bf49fe1e6f6b6bc8e20d26bd2a13c255593f4deb7bac626b1dcec5c3b6df8"
+    },
+    {
+      "source": "outputs/gate_benchmark/unique_dispatch_ops.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/unique_dispatch_ops.py",
+      "bytes": 857,
+      "sha256": "265d84b53302dc73d5a27138392dd4ca3aff0e40cd4b6c9c2a7620d4d6b8786a"
+    },
+    {
+      "source": "outputs/gate_benchmark/validate_parallel_pilot.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/validate_parallel_pilot.py",
+      "bytes": 2239,
+      "sha256": "41b6e80b6079551523fb0a560fabb4ba95655e121a0eea16f97f2557b53d9ff2"
+    },
+    {
+      "source": "outputs/gate_benchmark/watch_progress.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark/watch_progress.py",
+      "bytes": 847,
+      "sha256": "d4e81f781f815b04d9fab57ac5cc5f3aff6b8752919991450ad5514fa1b4faea"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/analyze.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/analyze.py",
+      "bytes": 21923,
+      "sha256": "c088beeee22c6cfe28d3505b77c0086a09464c25803c78e20cadd9806f4d86de"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/finalize_report.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/finalize_report.py",
+      "bytes": 14175,
+      "sha256": "468b0f58f359939306332db8c13eb73d75b23778f7a3a1dbc9ea8026216dc9ec"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/health.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/health.py",
+      "bytes": 2916,
+      "sha256": "459bfc468206682452d5d38a7870ab9273e6be63589b1aca1a4c65a3595941ec"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/orchestrate_formal.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/orchestrate_formal.py",
+      "bytes": 3849,
+      "sha256": "7f556866e35346919559252cc04e849cf6795dd9ea5b6612cb3a1c3cdaf3b9ec"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/postprocessing_fixes/20261028_0242_serial_measurement_path/analyze_before.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/postprocessing_fixes/20261028_0242_serial_measurement_path/analyze_before.py",
+      "bytes": 21621,
+      "sha256": "244bb9e1c9483d0039389100757bfd7d16caac02ba57fd4bc3ca0992d3b0630c"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/pytest_1822/test_hygiene_checker_detects_c0/file (1).py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/pytest_1822/test_hygiene_checker_detects_c0/file (1).py",
+      "bytes": 17,
+      "sha256": "099a80bf5fdf42d0fb27d9d57ed03cba8e382babbd2f1cb9421692f6a23d9d28"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/recovery_audit.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/recovery_audit.py",
+      "bytes": 3288,
+      "sha256": "15c0767eabdbb3d06673857d254a4710c06a3688c26dc9da77a19dd37c7743e2"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/serial_efficiency.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/serial_efficiency.py",
+      "bytes": 10935,
+      "sha256": "3eefe7a134e781a8409e742ecf91e66347a970387b57aaa5df7e529b8c611677"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/ADTN.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/ADTN.py",
+      "bytes": 49178,
+      "sha256": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/advanced_routers.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/advanced_routers.py",
+      "bytes": 7325,
+      "sha256": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/config.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/config.py",
+      "bytes": 4611,
+      "sha256": "69902d730ce40505ee22c79df55cf852a8f1e034238596b5ab5bd4a42cdaef68"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/data.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/data.py",
+      "bytes": 7277,
+      "sha256": "3470ac90269b3b4baf403a6bc3afd0aed3ed0e623ec5e1dfbe43c38d49e1f7b9"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/models.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/models.py",
+      "bytes": 11983,
+      "sha256": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/runner.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/experiments/gate_benchmark/runner.py",
+      "bytes": 16625,
+      "sha256": "ccdcce13b0140297b42d25074d136e1b7715f209015b87f52108c1eff969daaf"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/gate.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/gate.py",
+      "bytes": 42098,
+      "sha256": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/quantum_gate.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/quantum_gate.py",
+      "bytes": 8700,
+      "sha256": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/sparse_mixt.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/sparse_mixt.py",
+      "bytes": 16251,
+      "sha256": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_formal/structured_routers.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_formal/structured_routers.py",
+      "bytes": 7681,
+      "sha256": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/advanced_routers.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/advanced_routers.py",
+      "bytes": 7325,
+      "sha256": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/__main__.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/__main__.py",
+      "bytes": 7175,
+      "sha256": "89c5e85cccda072b51375f100ca3f7168d7d0aba9a2dcdecb28de79829cb0d3a"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/audit_pareto.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/audit_pareto.py",
+      "bytes": 8524,
+      "sha256": "e737b3b09bb72d5e9190d5e7633bed643c61f68f5e893662f7b1332a192b2853"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/config.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/config.py",
+      "bytes": 4611,
+      "sha256": "69902d730ce40505ee22c79df55cf852a8f1e034238596b5ab5bd4a42cdaef68"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/models.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/models.py",
+      "bytes": 11983,
+      "sha256": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/runner.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/experiments/gate_benchmark/runner.py",
+      "bytes": 16625,
+      "sha256": "ccdcce13b0140297b42d25074d136e1b7715f209015b87f52108c1eff969daaf"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/gate.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/gate.py",
+      "bytes": 42098,
+      "sha256": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/quantum_gate.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/quantum_gate.py",
+      "bytes": 8700,
+      "sha256": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/structured_routers.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/structured_routers.py",
+      "bytes": 7681,
+      "sha256": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/source_snapshot_v1/tests/test_advanced_routers.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/source_snapshot_v1/tests/test_advanced_routers.py",
+      "bytes": 7413,
+      "sha256": "88aab93d80e3501e2b7e752aa4b69ecb4a1ec96ff22080f1ff99c9fa29218501"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/status.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/status.py",
+      "bytes": 3053,
+      "sha256": "32ed3ace1b7ef533ba3d530f528a8c71819e9cd13163a28875c8b99434ab9788"
+    },
+    {
+      "source": "outputs/gate_benchmark_round2/verify_delivery.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/verify_delivery.py",
+      "bytes": 8943,
+      "sha256": "2844315d62a4f7f875c411056792ad518489f3c102fbaf39d71ca993e12dbb98"
+    },
+    {
+      "source": "outputs/autoregressive_gate/check_progress.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/check_progress.py",
+      "bytes": 4404,
+      "sha256": "3cd470093f22d8df5862383fed8e6a8a453757b9dd2c7157458591bca061bb63"
+    },
+    {
+      "source": "outputs/autoregressive_gate/complete_review.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/complete_review.py",
+      "bytes": 9376,
+      "sha256": "eb92b03966238b609a552dd5ad67d2c1f8cec10fa00790da4fb4a1800e9e16c3"
+    },
+    {
+      "source": "outputs/autoregressive_gate/final_review.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/final_review.py",
+      "bytes": 10123,
+      "sha256": "017ecca581495deeae18cabb06c46a6c5cb6f054b3d406a5fbf3bb6e3b413e9b"
+    },
+    {
+      "source": "outputs/autoregressive_gate/pytest_regression/test_hygiene_checker_detects_c0/file (1).py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/pytest_regression/test_hygiene_checker_detects_c0/file (1).py",
+      "bytes": 17,
+      "sha256": "099a80bf5fdf42d0fb27d9d57ed03cba8e382babbd2f1cb9421692f6a23d9d28"
+    },
+    {
+      "source": "outputs/autoregressive_gate/review_history/automatic_20261028_1927/analysis.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/review_history/automatic_20261028_1927/analysis.py",
+      "bytes": 17630,
+      "sha256": "1edf3332aaaf98c619454990e14e3c750b21e9df490076db4402926035bd97ff"
+    },
+    {
+      "source": "outputs/autoregressive_gate/review_history/reviewed/analysis.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/review_history/reviewed/analysis.py",
+      "bytes": 18633,
+      "sha256": "c56dd4c04f4f3bc385896d8c1b2563f84de7ba4b5326e604ee877198301e18e3"
+    },
+    {
+      "source": "outputs/autoregressive_gate/write_reviewed_report.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/write_reviewed_report.py",
+      "bytes": 19166,
+      "sha256": "bc82847b0fbd7fd4a6fd3830c2a78172398be38723b2cac85cd79be01be0c034"
+    },
+    {
+      "source": "outputs/routing_stability/20261028/probe_preliminary.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability/20261028/probe_preliminary.py",
+      "bytes": 8521,
+      "sha256": "1ad84438a9bb8c4fab28d80880d23ab4c4f3956ea47f200dc52d583dc143fea9"
+    },
+    {
+      "source": "outputs/routing_stability_round1/finalize_review.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/finalize_review.py",
+      "bytes": 8958,
+      "sha256": "4668f73b85e7ce3fa26958e53ebde51807b85052a3f5aa7af63ea8aa89345054"
+    },
+    {
+      "source": "outputs/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/experiments/routing_stability/analysis.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/experiments/routing_stability/analysis.py",
+      "bytes": 17195,
+      "sha256": "5ff79bcff67b6f32c6b2aa36cd5cee3404a240153f44be34c8a1070c30e4ac08"
+    },
+    {
+      "source": "outputs/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/experiments/routing_stability/calibrate.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/experiments/routing_stability/calibrate.py",
+      "bytes": 2519,
+      "sha256": "9d7ed8ba42f65cab0842a8b8e98f6afaee08bee57610b40a36fc4540b4516f9e"
+    },
+    {
+      "source": "outputs/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/experiments/routing_stability/pipeline.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/experiments/routing_stability/pipeline.py",
+      "bytes": 4687,
+      "sha256": "83d422a1acc8bcc792b0bafa3c712d2bbf8b9e45ac037f601f2a37a77e36fc38"
+    },
+    {
+      "source": "outputs/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/tests/test_routing_stability.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/formal/756b04397b2d/supporting_source_snapshot/tests/test_routing_stability.py",
+      "bytes": 6984,
+      "sha256": "cb41c30c186dc4a23a43d3a88c9bca402f87d8f3b7b4f832e99fc62c5b42b149"
+    },
+    {
+      "source": "outputs/routing_stability_round1/gradient_calibration.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/gradient_calibration.py",
+      "bytes": 2180,
+      "sha256": "5d9328ee9e3d7ea27c54d8966bc5ca03e95a92ecf52a54e57e5ec3e2b99b1f5e"
+    },
+    {
+      "source": "outputs/routing_stability_round1/health_check.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/health_check.py",
+      "bytes": 5117,
+      "sha256": "d249f6639f992b4a8831afb1f3addab324b3bafe4a911f5521eb0b350e1b203d"
+    },
+    {
+      "source": "outputs/routing_stability_round1/mature_gradient_calibration.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/mature_gradient_calibration.py",
+      "bytes": 2345,
+      "sha256": "63d95954c4bc0ffdb9c46b87936b73658d256b18dd8c3104fc2e4c618aa59f4a"
+    },
+    {
+      "source": "outputs/routing_stability_round1/monitor.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/monitor.py",
+      "bytes": 2057,
+      "sha256": "9c2f597a1c6e9eb55745f6627a092097dc45713c757540ad12bad71a6ed9f832"
+    },
+    {
+      "source": "outputs/routing_stability_round1/review_audit.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/review_audit.py",
+      "bytes": 12336,
+      "sha256": "1bee01ff7729d4fad6fdf63231661117006525c157c3c7b7be96d563b6df82e3"
+    },
+    {
+      "source": "outputs/routing_stability_round1/review_report.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/review_report.py",
+      "bytes": 27899,
+      "sha256": "b61e439c2479f631274933d427921ec01c037ff20d30b7010fd0e3712a6c89d8"
+    },
+    {
+      "source": "outputs/routing_stability_round1/validation_queue.py",
+      "archive": "research/workspace_reconciliation_20261029/archived_helpers/routing_stability_round1/validation_queue.py",
+      "bytes": 1496,
+      "sha256": "26831cf0aaab1d1013ab779c06b660870de5e6a87b3f613f6ada3fa42bd02064"
+    }
+  ],
+  "frozen_source_checks": [
+    {
+      "manifest": "outputs/autoregressive_gate/formal/9b3af7494afc/frozen_sources.json",
+      "all_match": true,
+      "files": [
+        {
+          "path": "ADTN.py",
+          "expected": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+          "actual": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd"
+        },
+        {
+          "path": "gate.py",
+          "expected": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+          "actual": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd"
+        },
+        {
+          "path": "losses.py",
+          "expected": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+          "actual": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765"
+        },
+        {
+          "path": "sparse_mixt.py",
+          "expected": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+          "actual": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24"
+        },
+        {
+          "path": "structured_routers.py",
+          "expected": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+          "actual": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+        },
+        {
+          "path": "quantum_gate.py",
+          "expected": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+          "actual": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45"
+        },
+        {
+          "path": "advanced_routers.py",
+          "expected": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+          "actual": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4"
+        },
+        {
+          "path": "experiments/gate_benchmark/models.py",
+          "expected": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+          "actual": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db"
+        },
+        {
+          "path": "experiments/autoregressive_gate/model.py",
+          "expected": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb",
+          "actual": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb"
+        },
+        {
+          "path": "experiments/autoregressive_gate/data.py",
+          "expected": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a",
+          "actual": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a"
+        },
+        {
+          "path": "experiments/autoregressive_gate/runner.py",
+          "expected": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102",
+          "actual": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102"
+        }
+      ]
+    },
+    {
+      "manifest": "outputs/routing_stability_round1/formal/756b04397b2d/frozen_sources.json",
+      "all_match": true,
+      "files": [
+        {
+          "path": "ADTN.py",
+          "expected": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+          "actual": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd"
+        },
+        {
+          "path": "gate.py",
+          "expected": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+          "actual": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd"
+        },
+        {
+          "path": "losses.py",
+          "expected": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+          "actual": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765"
+        },
+        {
+          "path": "sparse_mixt.py",
+          "expected": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+          "actual": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24"
+        },
+        {
+          "path": "structured_routers.py",
+          "expected": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+          "actual": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+        },
+        {
+          "path": "quantum_gate.py",
+          "expected": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+          "actual": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45"
+        },
+        {
+          "path": "advanced_routers.py",
+          "expected": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+          "actual": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4"
+        },
+        {
+          "path": "experiments/gate_benchmark/models.py",
+          "expected": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+          "actual": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db"
+        },
+        {
+          "path": "experiments/autoregressive_gate/model.py",
+          "expected": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb",
+          "actual": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb"
+        },
+        {
+          "path": "experiments/autoregressive_gate/data.py",
+          "expected": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a",
+          "actual": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a"
+        },
+        {
+          "path": "experiments/autoregressive_gate/runner.py",
+          "expected": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102",
+          "actual": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102"
+        },
+        {
+          "path": "experiments/routing_stability/routers.py",
+          "expected": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1",
+          "actual": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1"
+        },
+        {
+          "path": "experiments/routing_stability/model.py",
+          "expected": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270",
+          "actual": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270"
+        },
+        {
+          "path": "experiments/routing_stability/runner.py",
+          "expected": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94",
+          "actual": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94"
+        },
+        {
+          "path": "experiments/routing_stability/probe.py",
+          "expected": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e",
+          "actual": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e"
+        }
+      ]
+    }
+  ]
+}

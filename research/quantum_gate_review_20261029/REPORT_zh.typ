@@ -1,0 +1,185 @@
+// Generated from the matching Markdown report. Edit the Markdown and rerun.
+#set page(paper: "a4", margin: (x: 23mm, y: 22mm), numbering: "1")
+#set text(font: ("Noto Serif SC", "Cambria"), size: 10.5pt, lang: "zh")
+#set par(justify: true, leading: 0.75em)
+#set heading(numbering: none)
+#show heading.where(level: 1): set text(size: 19pt, fill: rgb("17365d"))
+#show heading.where(level: 2): set text(size: 14pt, fill: rgb("17365d"))
+#show heading.where(level: 3): set text(size: 12pt)
+#show link: set text(fill: rgb("24578a"))
+
+#heading(level: 1)[#text("Quantum Machine Learning 的潜在优势及其向 QuantumGate 的迁移")]
+
+#text("调研日期：2026-10-29。本文区分论文报告的结果、数学推导和待验证的工程假设；没有开展新的模型训练，也没有证明本项目 QuantumGate 优于经典路由。")
+
+#strong[#text("工作区核对补充（2026-10-29）")]#text("：本文最初只读取了已提交的 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c7d6690")#text("，遗漏另一个工作区 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "D:/files/MOTE")#text(" 尚未提交的最新实验实现。后续已确认分类、自回归、路由稳定性实验均在该工作区的 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mote-quantum")#text(" 上进行；新增代码现已保存为 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c726b4e")#text("，本报告及数据工具也已通过 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "6b49d37")#text(" 归并到该分支。下文对 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c7d6690")#text(" 的结构分析仍以该固定版本为边界，不能当作对最新 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "SharedBornRouter")#text(" 的完整评审。")
+
+#text("最新路由稳定性实验使用输入无关的共享正交矩阵 U、非线性联合振幅编码和直接概率读出。其已复核报告记录：18 项训练完成，原 Born 与共享 Born 均未达到预注册的质量、延迟和切换率组合目标；无 U、无 CRY 等关键消融尚缺。因此本文提出的结构归因对照仍有必要，但后续实验应接着已有结果做。原始报告位于 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "D:/files/MOTE/outputs/ro​uting_stability_round1/R​EPORT_zh.md")#text("，本轮不改写其数据和结论。")
+
+#heading(level: 2)[#text("1. 结论与建议")]
+
+#text("值得继续研究 QuantumGate。最有希望的理由是：特定编码和受约束演化可能产生适合任务的归纳偏置；概率与状态的几何可以指导参数保护和优化；周期性、高阶交互及范数约束可能改变噪声敏感性。这些都是可验证的机制假设。")
+
+#text("但“量子概率天然比经典概率更强”“酉变换天然解决遗忘”都不能作为目前的结论。特别是本项目使用 GPU 精确模拟的小型量子态，首先应争取")#strong[#text("相同计算预算下更好的任务表现或稳定性")]#text("，不能直接引用量子硬件的复杂度优势。")
+
+#text("建议优先开展三条路线：")
+
+#enum(start: 1, [#strong[#text("编码与概率参数化")]#text("：相同输入编码下比较 softmax、平方振幅、实数酉/正交演化、复数线路和周期网络，找出优势的来源。")])
+#enum(start: 2, [#strong[#text("持续学习与路由保护")]#text("：在域切换中比较不同 gate，并让经典和量子 gate 都使用相同的 EWC 或旧样本路由 KL 保护。")])
+#enum(start: 3, [#strong[#text("噪声与优化几何")]#text("：分开测试标签噪声、输入扰动、错误样本移除后的恢复；随后评估经典 Fisher 和量子 Fisher 是否提供额外价值。")])
+
+#text("如果优势被平方归一化或经典周期网络复现，这仍然是有价值的研究结果：它给出了更便宜的实现，并明确了 QuantumGate 真正有效的组成部分。")
+
+#heading(level: 2)[#text("2. 本次以哪一版代码为依据")]
+
+#text("工作分支为 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mote-sft-v2")#text("。已将此前尚未提交的数据工具提交为 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "551735a859132ae2aa59e41d​9771ec9688a823e4")#text("，推送至同名远端分支；87 个 Python 文件完成语法检查，相关测试共 111 项通过。数据、缓存和输出目录未混入提交。")
+
+#text("调研使用另外一个远端分支 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "origin/mote-quantum")#text(" 的固定提交 ")#strong[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c7d6690dfb13f2bf0a00ae14​5020ba7b0bb222fd")]#text("，通过 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "git show")#text(" 读取，没有切换工作分支、合并该分支或修改模型实现。下述判断不针对工作分支中的旧 QuantumGate。")
+
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/quantum_gate.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "quantum_gate.py")]#text("：每个专家对应一个 qubit，但按小块独立模拟；RY/CRY 实数演化，输出各 qubit 的边缘概率后取 log。随后共享 softmax 将这些边缘量归一化。它不是一次联合测量直接得到的专家类别分布。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/structured_routers.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "structured_routers.py")]#text("：")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "compact_born")#text(" 使用 q=log2(E) 个 qubit 和 E 个复振幅，RY/RZ 数据重上传及 CRY 耦合，联合 Born 概率。生产实现要求 E 为 2 的幂，范围 2–64；不要沿用原型文档中支持其他 E 的描述。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/advanced_routers.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "advanced_routers.py")]#text("：")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text(" 从正振幅编码开始，归一化后进行实数 RY/CRY 数据重上传，平方读出。")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "residual_mpo")#text(" 则是经典非线性残差张量网络，不是酉量子演化。")
+- #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mps")#text(" 也是经典结构化特征模型。它可以作为量子启发方法的有效对照，不能将其效果归为量子硬件优势。")
+- #link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/gate.py")[#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "gate.py")]#text(" 共享 top-k、容量限制和辅助损失，可选可学习正增益。所有这些 gate 都针对每个 token 重新构造状态，")#strong[#text("没有跨 token 保留的量子记忆")]#text("。")
+
+#text("项目已有 ")#link("https://github.com/intproduct/MOTE/blob/c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd/experiments/gate_benchmark/PARETO_STUDY.md")[#text("Pareto 实验协议")]#text("。本次没有据此宣称任何未核验的胜率或 GPU 加速结果。新实验应衔接现有协议，补充机制消融与持续学习，而非重复建立一套不兼容基准。")
+
+#heading(level: 2)[#text("3. 关于“不传统的概率流形”：哪些成立")]
+
+#text("你的直觉抓住了一个值得研究的区别：")#strong[#text("输出概率相同，并不意味着参数化、可达函数族、训练路径和归纳偏置相同。")]
+
+#text("不过，对于固定测量后用于选择 E 个专家的概率向量，输出仍位于普通概率单纯形：p_i≥0，Σp_i=1。任意这样的向量都能用 ψ_i=√p_i 构造一个归一化量子态；任意严格正的向量也都能写成 softmax(log p)。当前实现加入概率平滑，连“能精确输出零概率”也不是主要区别。")
+
+#text("因此更准确的研究问题是：")#strong[#text("相同概率空间上，Hilbert/projective state 空间的参数化和测量映射，是否提供了更合适的函数约束和训练几何？")]#text(" 量子理论中多种不相容测量的结构，并不会因为单次固定基测量就自动成为 MoE 路由的优势。")
+
+#text("三个需要拆开的层次：")
+
+#enum(start: 1, [#strong[#text("可表达的单个概率向量")]#text("：完整状态 Born 映射与 softmax 没有上述意义的覆盖优势。受限线路可能只覆盖一部分分布，覆盖更小有时有益、有时有害。")])
+#enum(start: 2, [#strong[#text("输入到概率的函数族")]#text("：x 如何编码、重复编码多少次、是否耦合、实数或复数、读取哪种量，都可能改变它。这里最可能出现任务相关收益。")])
+#enum(start: 3, [#strong[#text("参数更新的度量")]#text("：相同输出函数也可能有不同的条件数、平坦方向和优化难度。这需要与经典自然梯度、谱约束和周期网络进行对照。")])
+
+#text("一个直接的经典对照是 p_i=a_i²/Σa_j²。只要振幅非零，它也等于 softmax(2 log|a_i|)。这个等式不意味着两种网络训练完全一样，但说明“Born 读出”本身不足以证明新的概率表达能力。")
+
+#text("当前平滑后的概率为 p̃_i=(p_i+ε)/(1+Eε)。共享模块使用温度 T 和增益 g 时，在 top-k 之前有 softmax((g/T)log p̃)_i ∝ p̃_i^(g/T)。因此概率锐度的差异可能来自 g/T，必须统一控制，不能全部归因于量子结构。")
+
+#heading(level: 3)[#text("3.1 状态几何不等于输出几何")]
+
+#text("写 ψ_i=√p_i exp(iφ_i)，纯态的 Fubini–Study 线元局部满足：")
+
+#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "ds_FS² = 1/4 Σ_i dp_i²/p_i + Σ_i p_i dφ_i² − (Σ_i p_i dφ_i)²")#text("。")
+
+#text("第一项对应概率的 Fisher 几何；后两项包含固定测量可能看不到的相位变化。全局相位无物理意义，所以严格说应考虑投影态空间。一般固定测量的经典 Fisher 信息不超过量子 Fisher 信息；并非一次固定测量能使用全部态信息。参见 ")#link("https://doi.org/10.1103/PhysRevLett.72.3439")[#text("Braunstein–Caves")]#text("、")#link("https://arxiv.org/abs/quant-ph/9808009")[#text("Barndorff-Nielsen–Gill")]#text("。")
+
+#strong[#text("对当前代码的一个具体推论")]#text("：对于归一化的实数纯态，局部所有读出振幅非零时，计算基概率 p_i=ψ_i² 的 Fisher 矩阵满足：")
+
+#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "F_classical,ab = Σ_i (∂a p_i)(∂b p_i)/p_i = 4 Σ_i (∂a ψ_i)(∂b ψ_i) = F_quantum,ab")#text("。")
+
+#text("所以 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text(" 在概率平滑、额外温度/增益和 top-k ")#strong[#text("之前")]#text("，量子自然梯度与相应输出概率的经典自然梯度有直接对应关系。这是本次对实现作出的数学推导，不是已测得的模型优势。零振幅、混态、边缘读出或额外后处理不能直接套用该等式。")
+
+#text("复态反例也很简单：ψ=(1,exp(iθ))/√2，计算基输出始终是 (1/2,1/2)，输出 Fisher 为 0，量子 Fisher 为 1。状态变化未必改变当前路由；后续混合操作则可能使相位变得可观测。这提示我们：若目标是保护专家选择，应先测路由 KL/Fisher，再决定是否值得额外保护不可见的状态方向。")
+
+#heading(level: 2)[#text("4. 遗忘：确实有相关论文，但要区分三件事")]
+
+#strong[#text("灾难性遗忘")]#text("是学习新任务后丢失旧任务能力。2022 年 ")#link("https://arxiv.org/abs/2108.02786")[#text("Quantum Continual Learning Overcoming Catastrophic Forgetting")]#text(" 将参数重要性保护用于量子持续学习。2026 年发表于 npj Quantum Information 的 ")#link("https://www.nature.com/articles/s41534-025-01174-y")[#text("超导量子持续学习实验")]#text(" 也显示量子模型会遗忘，需要 EWC；它在 18 qubit 系统和所选任务上展示了保持旧任务的效果。")#link("https://arxiv.org/html/2409.09729")[#text("作者预印本")]#text(" 可供复核。")
+
+#text("这些研究支持“在量子模型中研究 Fisher/重要性保护是可行的”，并不支持“量子参数天然不会遗忘”。EWC 本来就是经典持续学习方法，见 ")#link("https://arxiv.org/abs/1612.00796")[#text("Kirkpatrick 等")]#text("。因此应比较 MLP、Born gate 各自有无同样保护的四组结果。只有量子组加保护而经典组不加，会把正则化收益误当成结构收益。")
+
+#strong[#text("长期依赖")]#text("是序列模型能否保留较早输入的信息。")#link("https://proceedings.mlr.press/v48/arjovsky16.html")[#text("Unitary Evolution Recurrent Neural Networks")]#text(" 利用酉/正交递归缓解梯度问题，属于经典网络也能利用的结构。当前 gate 没有跨 token 状态，不能直接声称获得这类记忆优势。")
+
+#strong[#text("机器 unlearning")]#text("是有意移除错误或指定训练数据的影响，目标与保留旧任务不同。2026 年 Nature Communications 的 ")#link("https://www.nature.com/articles/s41467-026-70420-4")[#text("Superior resilience to poisoning and amenability to unlearning in quantum machine learning")]#text(" 在所选任务中报告量子模型对数据污染更有韧性、近似 unlearning 更容易。")#link("https://arxiv.org/html/2508.02422v1")[#text("作者全文")]#text(" 使用 MNIST 二分类及量子相任务，包含经典网络规模对照。这是有价值的实验线索，但尚不是大模型路由上的结论，也不等于严格的数据删除隐私保证。")
+
+#text("对该论文还应追问机制是否量子独有。其预印本附录的简化分析对比线性 logit 与余弦 logit。对任何经典非线性 logit z(θ)，二元交叉熵都满足 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "L''=p(1−p)(z')²+(p−y)z''​")#text("。因此由曲率带来的第二项，也能在经典正弦/余弦网络中产生。这里是针对该版本简化机制的分析，不是否定论文整体实验。我们应该加入周期经典对照，而不是只比较线性或普通 ReLU 网络。")
+
+#heading(level: 2)[#text("5. 其他可能优势，以及迁移的边界")]
+
+#strong[#text("稳定性和泛化。")]#text(" ")#link("https://arxiv.org/abs/2501.12737")[#text("Yang、Xie、Xu")]#text(" 建立了 QNN 的算法稳定性与泛化界，涉及可训练门数、优化步数、步长、可观测量范数和损失假设。“算法稳定性”主要指训练集轻微改变对输出/损失的影响，不是所有稳定性的总称。门数增加或训练更久也可能恶化界。它不是 QNN 普遍优于 NN 的证明，带有可学习编码、log 概率和硬 top-k 的混合路由也不能直接套用结论。")
+
+#link("https://arxiv.org/abs/2111.05292")[#text("Caro 等")]#text(" 给出受有效可训练门数控制的泛化结果，对少数据学习有启发；但不能只计算量子线路参数而忽略前面的经典编码器。")#link("https://arxiv.org/abs/2306.13461")[#text("Gil-Fuster 等")]#text(" 则表明 QNN 也可以拟合随机标签，反对“量子结构自动防止过拟合”的泛化解读。")
+
+#strong[#text("Fisher 谱和有效维度。")]#text(" ")#link("https://arxiv.org/abs/2011.00027")[#text("The power of quantum neural networks")]#text(" 报告了选定模型的有效维度和训练表现；")#link("https://arxiv.org/abs/2303.13462")[#text("DQFIM 工作")]#text(" 强调数据、线路和对称性共同决定可学习结构。可迁移的是测量有效秩、条件数和任务相关方向，而不是追求更大维度本身。不同参数缩放会改变普通 Hessian 谱，不能直接用原始谱的漂亮程度宣称量子优势。")
+
+#strong[#text("自然梯度。")]#text(" ")#link("https://arxiv.org/abs/1909.02108")[#text("Quantum Natural Gradient")]#text(" 使用态空间的几何度量。本项目态空间很小，精确或块近似度量可以研究。但它应与经典输出 Fisher、路由 KL 信赖域和相同计算预算的优化器比较；既要看达到同等指标的训练步数，也要看墙钟时间和显存。")
+
+#strong[#text("编码、周期函数和高阶交互。")]#text(" ")#link("https://arxiv.org/abs/1907.02085")[#text("Data re-uploading")]#text(" 与 ")#link("https://arxiv.org/abs/2008.08605")[#text("编码决定表达能力的 Fourier 分析")]#text(" 支持“输入映射是核心设计因素”。当前重上传 gate 值得与正弦/余弦 MLP、低秩双线性特征和平方振幅头比较。相关普适性结果不自动适用于当前受限深度、耦合图和读出方式。")
+
+#strong[#text("对称性与结构先验。")]#text(" ")#link("https://arxiv.org/abs/2205.06217")[#text("Geometric Quantum Machine Learning")]#text(" 说明合适的对称性有助于构建模型；")#link("https://arxiv.org/abs/1605.05775")[#text("经典 MPS 监督学习")]#text(" 也体现了张量结构的价值。但专家 0 到 E−1 的二进制编号并没有天然物理含义。必须测试编号置换和耦合图，确认模型是否利用了真实结构，而非偶然的专家排列。")
+
+#strong[#text("范数保持与鲁棒性。")]#text(" 固定同一个酉算子保持态间距离，固定测量不会增大量子态的可区分性。但当前 U 随输入重上传而变化，输入编码本身可能放大扰动，接近零的概率经过 log 会放大数值敏感性，硬 top-k 还会产生离散翻转。因此范数保持只是局部构件的性质，不是整个路由系统的稳定性保证。")#link("https://arxiv.org/abs/1905.04286")[#text("量子分类器的对抗脆弱性研究")]#text(" 也说明应实测而非推断。")
+
+#strong[#text("真正的计算/样本复杂度优势。")]#text(" ")#link("https://arxiv.org/abs/2011.01938")[#text("Power of data in quantum machine learning")]#text(" 强调任务与量子特征的匹配及强经典基线。2022 年 ")#link("https://www.preskill.caltech.edu/pubs/preskill-2022-quantum-advantage.pdf")[#text("Quantum advantage in learning from experiments")]#text(" 的优势利用了量子实验访问条件。不能由此推到经典 hidden states 的小型路由器。")
+
+#text("也不能笼统说“经典数据不存在量子优势”：2026 年 10 月更新的 ")#link("https://arxiv.org/abs/2604.07639")[#text("Exponential quantum advantage in processing massive classical data")]#text(" 预印本提出流式经典数据处理中的机器规模优势，使用 quantum oracle sketching 等机制。本次核验了摘要和版本信息，没有完成其 169 页证明的独立审查。该硬件/访问模型与当前 GPU 精确模拟的 gate 不同，不能作为本项目的性能证明。")
+
+#heading(level: 2)[#text("6. 必须正视的反证和风险")]
+
+#link("https://arxiv.org/abs/2403.07059")[#text("Bowles 等的系统基准")]#text(" 在 160 个小型分类数据集上比较多类 QML 模型，经典方法整体表现更强，部分量子模型去掉纠缠后仍相当或更好。这不能否定所有 QML，却要求我们用强经典对照，并把纠缠的作用交给消融结果。")
+
+#text("更复杂的线路也可能更难训练。")#link("https://arxiv.org/abs/2001.00550")[#text("成本函数与 barren plateau")]#text(" 以及 ")#link("https://arxiv.org/abs/2208.11060")[#text("量子核集中现象")]#text(" 分别提示梯度和相似度退化的风险。当前 q=4–6 很小，不能生搬大规模渐近结论，但也没有必要盲目增加线路深度或表达性。")
+
+#text("另外，已有 ")#link("https://arxiv.org/abs/2507.05190")[#text("QMoE")]#text(" 等量子路由与专家工作的预印本。它们的量子分类器设置与 MoTE 大语言模型不同，但写论文时不能未经完整检索便宣称首次提出量子门控。")
+
+#heading(level: 2)[#text("7. 建议的实验顺序")]
+
+#heading(level: 3)[#text("第一阶段：用低成本机制实验筛选")]
+
+#text("冻结 backbone 和 experts，从真实、无泄漏训练样本提取 hidden states；保留旧域和新域独立验证集。先用不发生容量丢弃的设置观察 gate 本身，再恢复统一有限容量。冻结特征实验只用于机制筛选，不能替代最终联合训练。")
+
+#text("基础对照先保持相同的输入归一化、编码 rank、初始概率熵、温度/增益策略、top-k、优化器搜索预算：")
+
+- #text("当前强经典 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "residual_mlp")#text("/MLP；另保留线性基线。")
+- #text("同编码器的平方振幅归一化头，不加线路。")
+- #text("同编码器的经典周期特征网络，以及低秩双线性对照。")
+- #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text("：实振幅与实数演化。")
+- #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "compact_born")#text("：复振幅、相位及重上传。")
+
+#text("不必一次运行所有变体。先做配对试验，淘汰显著昂贵且无收益的配置。分别报告同参数预算和同墙钟预算的结果；仅同参数量不够公平。")
+
+#text("针对候选胜者再做以下消融：")
+
+- #text("有无重上传；同样输入编码下的固定演化与输入依赖演化。")
+- #text("有无耦合；但注意 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "amplitude_born")#text(" 的联合振幅编码可能已生成非乘积态，")#strong[#text("去掉 CRY 不等于去掉全部纠缠")]#text("。真正的无纠缠对照需要乘积态编码和局部门。")
+- #text("实数/复数；增加相位之后是否真的改变可观测输出和任务表现。")
+- #text("不同专家编号置换和耦合图，多个种子平均。")
+- #text("在归一化之前可被相邻无约束线性层吸收的固定正交变换，不应单独算一种新表达能力；输入依赖演化则另当别论。")
+
+#heading(level: 3)[#text("第二阶段：专门检验抗遗忘")]
+
+#text("使用数学→代码→通用等有真实分布差异的序列，至少三个平衡的任务顺序；先做 3 个种子探索，有候选收益后扩到至少 5 个种子确认，最终样本数由方差和效应大小决定。这些数量是工程起点，不是显著性的保证。")
+
+#text("主设计为经典/Born gate × 无保护/同一种保护。先测便宜的旧域路由 KL 或经验 Fisher EWC，之后再考虑 QFI。对双方使用相同旧数据预算、相同正则强度搜索范围，报告旧域保留和新域学习的 Pareto 曲线。若 MoTE/MixT 作为外层架构共同研究，应先在一个架构内部隔离 gate 效果，再验证跨架构是否成立，避免把外层差异混入结论。")
+
+#text("每次域切换评估所有历史任务。设 A_i,j 为学习完任务 i 后对任务 j 的分数；报告最终平均分、")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mean_j(max_{i=j..T} A_i,j − A_T,j)")#text(" 的遗忘量和新任务学习速度。选择正则强度时不能使用最终测试集。")
+
+#text("冻结 backbone 后的路由 KL 只保护路由行为。联合训练时还需保留旧的原始输入以重新提取特征；只保存旧 hidden states 可能掩盖 backbone 漂移。即使路由不变，expert 参数改变也会导致遗忘，所以要同时检查任务输出。")
+
+#heading(level: 3)[#text("第三阶段：分别验证不同含义的稳定性")]
+
+- #text("数据噪声：先选择一种可控任务，以 0%、5%、10%、20% 固定种子的错误标签/答案构造训练变体，干净验证集不变。不要把正常的长推理当成噪声，也不要把截断 bug 当成合理论证。")
+- #text("输入扰动：同一 hidden state 的归一化小扰动，测概率 JS/KL、top-k 翻转率及任务损失。可增加同义改写等真实输入扰动。")
+- #text("数据敏感性：替换少量训练样本、同初始化重新训练，比较输出变化；这是最接近算法稳定性的问题。")
+- #text("恢复/unlearning：在污染训练后移除错误样本，使用各模型相同清洁恢复预算，并以从干净数据重新训练的结果作为参照。普通恢复实验不能标成严格 certified unlearning。")
+
+#heading(level: 3)[#text("每阶段共同记录")]
+
+#enum(start: 1, [#text("任务正确率与完成率；数学最终答案是否交付、代码是否可执行、达到生成上限的比例。路由变稳但生成能力下降不能算胜利。")])
+#enum(start: 2, [#text("专家利用率、熵、失活专家、容量 drop、top-k 边界间隔。分开记录 mask 前和容量处理后的概率/选择。")])
+#enum(start: 3, [#text("概率变化和 top-k 翻转：即使概率变化很小，近乎并列的专家仍可交换名次。若 logits 的无穷范数扰动小于第 k 和 k+1 名间隔的一半，选择集合才有局部保证。")])
+#enum(start: 4, [#text("梯度范数、编码器及读出 Jacobian、经验 Fisher/QFI 的有效秩。按共同规范报告，避免以参数缩放制造“谱更好”。")])
+#enum(start: 5, [#text("参数量、吞吐、峰值显存、训练到同等指标的时间，以及同时间内的指标。对 MPS/MPO 计入实际构造及收缩成本。")])
+#enum(start: 6, [#text("配对种子和样本上的效应差及区间。用足够多的干净测试样本降低测量误差；训练种子的变异不能用单次运行的大量 token 当独立重复来掩盖。")])
+
+#text("容量受同批其他 token 影响，batch 构成和 packing 必须一致。并检查 padding 是否进入归一化与统计。共享辅助损失也应核对：当前代码名为 z-loss 的量使用 logsumexp，可能对 logit 的共同平移敏感；Born log 概率和普通未归一化 logits 的数值语义不同。机制筛选宜先关闭这类不具有相同语义的项，再单独评估；不应在此次调研中静默修改实现。")
+
+#heading(level: 2)[#text("8. 什么结果能支撑怎样的结论")]
+
+- #text("Born 组优于原始 MLP，但与平方振幅头相同：支持概率参数化/正则化机制，不支持线路必需。")
+- #text("同样保护下，两类 gate 遗忘都下降且差异消失：支持通用持续学习机制。")
+- #text("QuantumGate 在相同新任务得分下保留更多旧任务，且不能被周期/平方/谱约束基线解释：才形成结构相关抗遗忘证据。")
+- #text("只在个别专家编号或单个 seed 上获胜：目前更像不稳定的结构匹配，应先复核。")
+- #text("同步数更好但同时间更差：可以报告优化性质，不能称部署或训练效率优势。")
+- #text("路由 KL 更低但任务准确率/完成率更差：可能只是学得慢或被冻结，不能称稳定性优势。")
+
+#text("最值得争取的论文主张是：")#strong[#text("对特定混合任务分布，明确的态编码和受约束交互，在公平预算下改善路由的可塑性—保持权衡，并给出可复现的几何或频谱解释。")]#text(" 这比“量子概率优于 softmax”更具体，也更容易被实验支持或推翻。")
+
+#text("附带的 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "geometry_checks.py")#text(" 与 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "geometry_checks.json")#text(" 仅检验本文几个数学等式和反例，不是 QuantumGate 性能实验。论文索引见 ")#text("SOURCES_zh.md")#text("。")
+

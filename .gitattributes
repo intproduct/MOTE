@@ -1,0 +1,3 @@
+*.pdf binary
+# Preserve forensic copies byte-for-byte, including their original whitespace.
+research/workspace_reconciliation_20261029/archived_helpers/** -text -whitespace
