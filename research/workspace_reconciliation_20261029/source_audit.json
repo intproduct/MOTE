@@ -2,7 +2,7 @@
   "canonical_workspace": "D:\\files\\MOTE",
   "branch": "mote-quantum",
   "archive_policy": "Historical helper sources only; original output paths retained. Do not execute archive copies without reviewing original paths and experiment protocol.",
-  "helpers_count": 75,
+  "helpers_count": 73,
   "helpers": [
     {
       "source": "outputs/gate_benchmark/analyze_results.py",
@@ -185,12 +185,6 @@
       "sha256": "244bb9e1c9483d0039389100757bfd7d16caac02ba57fd4bc3ca0992d3b0630c"
     },
     {
-      "source": "outputs/gate_benchmark_round2/pytest_1822/test_hygiene_checker_detects_c0/file (1).py",
-      "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/pytest_1822/test_hygiene_checker_detects_c0/file (1).py",
-      "bytes": 17,
-      "sha256": "099a80bf5fdf42d0fb27d9d57ed03cba8e382babbd2f1cb9421692f6a23d9d28"
-    },
-    {
       "source": "outputs/gate_benchmark_round2/recovery_audit.py",
       "archive": "research/workspace_reconciliation_20261029/archived_helpers/gate_benchmark_round2/recovery_audit.py",
       "bytes": 3288,
@@ -351,12 +345,6 @@
       "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/final_review.py",
       "bytes": 10123,
       "sha256": "017ecca581495deeae18cabb06c46a6c5cb6f054b3d406a5fbf3bb6e3b413e9b"
-    },
-    {
-      "source": "outputs/autoregressive_gate/pytest_regression/test_hygiene_checker_detects_c0/file (1).py",
-      "archive": "research/workspace_reconciliation_20261029/archived_helpers/autoregressive_gate/pytest_regression/test_hygiene_checker_detects_c0/file (1).py",
-      "bytes": 17,
-      "sha256": "099a80bf5fdf42d0fb27d9d57ed03cba8e382babbd2f1cb9421692f6a23d9d28"
     },
     {
       "source": "outputs/autoregressive_gate/review_history/automatic_20261028_1927/analysis.py",

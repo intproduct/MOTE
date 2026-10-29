@@ -24,9 +24,9 @@ def main():
         for source in sorted(base.rglob("*")):
             if source.suffix not in {".py", ".ps1"} or not source.is_file():
                 continue
-            # Frozen copies of production code are already protected by their
-            # manifests; avoid duplicating these and any generated caches.
-            if any(part in {"source_snapshot", "__pycache__", "data"} for part in source.relative_to(base).parts):
+            # Skip routine frozen copies and generated test/cache artifacts.
+            # Named historical snapshots remain part of the provenance archive.
+            if any(part in {"source_snapshot", "__pycache__", "data"} or part.startswith("pytest") for part in source.relative_to(base).parts):
                 continue
             data = source.read_bytes()
             if source.suffix == ".py":

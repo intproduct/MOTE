@@ -32,7 +32,7 @@
 - #text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c726b4e")#text(" 保存实验工作区原有的 30 个变更文件，包括自回归、路由稳定性、研究脚本、测试和包注册。")
 - #text("通过合并提交 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "6b49d37")#text("，将 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "mote-sft-v2")#text(" 尚未进入量子分支的四个提交整体合入：")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "c933d3d")#text("、")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "e9edf9d")#text("、")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "551735a")#text("、")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "b365d99")#text("。采用保留历史的合并，而非覆盖量子分支或直接复制旧目录。")
 - #text("三处冲突分别在配置源类型、混合数据加载器和额外数据集注册。解决后同时保留 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "local_token_shards/token​_ids")#text("、拒绝样本隔离和 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "frozen_release/FrozenTok​enTask")#text(" 功能。")
-- #text("另外原样归档被 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "outputs/")#text(" 忽略的 75 个 Python/PowerShell 文件，包含辅助脚本及历史源码快照。来源、字节数和 SHA-256 见 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "source_audit.json")#text("。归档不执行这些脚本，不改变原始结果目录。")
+- #text("另外原样归档被 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "outputs/")#text(" 忽略的 73 个 Python/PowerShell 文件，包含辅助脚本及历史源码快照，排除测试生成的临时文件。来源、字节数和 SHA-256 见 ")#text(font: ("Consolas", "Noto Sans SC"), size: 8.5pt, "source_audit.json")#text("。归档不执行这些脚本，不改变原始结果目录。")
 - #text("数据集、模型权重、检查点、大型训练产物和本地环境继续保留在原路径，不纳入源码提交。")
 
 #heading(level: 2)[#text("验证结果")]
