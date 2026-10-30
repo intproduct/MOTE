@@ -1,0 +1,2 @@
+{"step": 2, "train_loss_normalized": 0.3987481892108917, "gradient_norm": 0.9825226664543152, "mse": 0.7637620568275452, "constant_mse": 0.7138755321502686, "r2_vs_constant": -0.0698812642128428, "within_token_rho": 0.05422794117647059, "top4_set_agreement": 0.0}
+{"step": 4, "train_loss_normalized": 0.7277581095695496, "gradient_norm": 2.410663366317749, "mse": 0.7467939853668213, "constant_mse": 0.7138755321502686, "r2_vs_constant": -0.04611231472999067, "within_token_rho": 0.07518382352941178, "top4_set_agreement": 0.0}

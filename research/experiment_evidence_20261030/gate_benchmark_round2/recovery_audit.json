@@ -1,0 +1,51 @@
+{
+  "time": "2026-10-28T03:10:21.610413+08:00",
+  "require_complete": true,
+  "passed": true,
+  "all_recovered": true,
+  "checks": [
+    {
+      "run": "mlp_mnist_amp_d1_full_seed17",
+      "completed": true,
+      "archived_curve_rows": 44,
+      "compared_curve_rows": 44,
+      "compared_rows_exact_match": true
+    },
+    {
+      "run": "mlp_mnist_amp_d1_full_seed29",
+      "completed": true,
+      "archived_curve_rows": 4,
+      "compared_curve_rows": 4,
+      "compared_rows_exact_match": true
+    },
+    {
+      "run": "mlp_mnist_amp_d1_half_seed17",
+      "completed": true,
+      "archived_curve_rows": 42,
+      "compared_curve_rows": 42,
+      "compared_rows_exact_match": true
+    },
+    {
+      "run": "mlp_mnist_amp_d1_half_seed29",
+      "completed": true,
+      "archived_curve_rows": 1,
+      "compared_curve_rows": 1,
+      "compared_rows_exact_match": true
+    },
+    {
+      "run": "mlp_mnist_mpo_c1_half_seed29",
+      "completed": true,
+      "archived_curve_rows": 7,
+      "compared_curve_rows": 7,
+      "compared_rows_exact_match": true
+    },
+    {
+      "run": "mlp_mnist_mpo_c2_full_seed29",
+      "completed": true,
+      "archived_curve_rows": 7,
+      "compared_curve_rows": 7,
+      "compared_rows_exact_match": true
+    }
+  ],
+  "issues": []
+}

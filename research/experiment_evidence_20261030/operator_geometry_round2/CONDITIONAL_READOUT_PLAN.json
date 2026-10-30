@@ -1,0 +1,21 @@
+{
+  "status": "conditional_design_not_launched",
+  "decision_after": [
+    "all27 utility results and CPU action/prediction audits",
+    "label-free KL/Fisher risk stage",
+    "deterministic positive teacher calibration"
+  ],
+  "question": "Can a small adjustment of the readout reduce functionally harmful actual top-k crossings while preserving frozen-model language quality?",
+  "proposed_intervention": "A separate paired readout-only adaptation pilot, with no-change, unweighted margin, and function-cost-weighted margin controls across MLP, entangled Born, and product Born. Preserve each initial model, encoder, and expert pool; count actual and effective readout degrees of freedom.",
+  "rationale": "The expanded fixed4/5 differential diagnoses293of295 BF16 crossings; the two exceptions are rank3-to5 and rank4-to6, so an eventual objective must consider other close pairs. Full-state Fisher is insensitive to fixed post-encoding unitaries; readout boundaries and functional costs are the intended changing quantities.",
+  "required_before_launch": [
+    "Risk diagnostics must show useful pair-specific structure beyond individual expert energy; otherwise do not label a family-aware objective as supported.",
+    "Freeze target and coefficient calibration using train/internal-dev only, not viewed validation.",
+    "Include matched classical controls and unweighted margin; retaining old failures is mandatory.",
+    "Avoid fixed-route collapse using quality and utilization accounting, not raw switch count.",
+    "Verify backward estimator and same samples; compare real finite KL and CE after sparse reweighting.",
+    "Budget launch and finish before07:45 with08:20 reporting reserve."
+  ],
+  "fallback": "If the prerequisite signal is absent, use remaining time for independent statistics, counterfactual/checkpoint replay, actual deployment-overhead timing, uncertainty and final reporting; do not train a claimed winner solely to fill time.",
+  "novelty_position": "Function-sensitive stability already appears in NeurIPS2022. New value would require a specific efficient readout construction, falsifiable geometric predictions, and a demonstrated tradeoff versus classical controls. No generic-first quantum routing/Fisher claim."
+}

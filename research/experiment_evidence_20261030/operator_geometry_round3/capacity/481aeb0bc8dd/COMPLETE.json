@@ -1,0 +1,12 @@
+{
+  "stage": "capacity_calibration",
+  "state": "ready_for_review",
+  "pid": 49196,
+  "active": false,
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\capacity\\481aeb0bc8dd",
+  "started": "2026-10-30T11:23:20.232228+08:00",
+  "completed": 9,
+  "total": 9,
+  "current": null,
+  "finished": "2026-10-30T11:37:53.108775+08:00"
+}

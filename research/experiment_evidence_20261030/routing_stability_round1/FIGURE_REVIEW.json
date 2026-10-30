@@ -1,0 +1,42 @@
+{
+  "time": "2026-10-29T07:09:41.545137+08:00",
+  "all_six_visually_reviewed": true,
+  "figures": [
+    {
+      "file": "learning_steps.png",
+      "sha256": "c516c426ea54c78c77bff9183fa1798cc5e95e255f5e3fe5b2a2cfa300609d1c",
+      "review": "9个validation步数点完整；均值和样本SD阴影与curves.csv一致，右图显示2000–4000步。六组曲线接近，单seed差异大于margin均值变化。",
+      "passed": true
+    },
+    {
+      "file": "learning_time.png",
+      "sha256": "facbfc0ff10b368e9fbf097017a2eb67e2881d48e559f9818387add7f4e98de0",
+      "review": "横轴为各相同步数下的平均实测计算秒；MLP较快，不能把连线当作固定时刻重新验证。评估/存盘不计入横轴。",
+      "passed": true
+    },
+    {
+      "file": "quality_stability.png",
+      "sha256": "b710aebb5f9f54133cbe1538f907ea71825d56922acdfc3b829b06d211adf4e1",
+      "review": "Test PPL均值±样本SD与局部BF16集合切换率分开展示，y轴从0起。共享Born切换率高于MLP；颜色和误差棒与aggregate一致。",
+      "passed": true
+    },
+    {
+      "file": "efficiency.png",
+      "sha256": "11a4e85251c0897f3e958a8d6f1d662136cb4635c71c9d347b343785344a9480",
+      "review": "串行训练token/s与b16×128整模型前向ms分别展示。训练包含margin，eval移除其分支；共享Born相对原Born的推理收益明显，训练仍慢于MLP。",
+      "passed": true
+    },
+    {
+      "file": "boundary_margin.png",
+      "sha256": "f96f599171e6ba95034dd74b1a02d999f4cd9d98c10c2b51a8d17c45a1f34c23",
+      "review": "左图为batch p05均值而非全局p05；右图阈值0.05。旧Born与另两类分布不同，不能单凭跨结构gap大小断言稳定。",
+      "passed": true
+    },
+    {
+      "file": "expert_load.png",
+      "sha256": "e3aa5b03aba3b4ed2ced8540c21eb7be8ab4415bc520499b3b0f77f26e396a56",
+      "review": "hard load CV和未用专家每模块均值对应test路由记录。右图对称±SD下界可小于0，这是误差棒而非负专家数；实际只发生MLP+margin seed29的一模块一个未用专家。",
+      "passed": true
+    }
+  ]
+}

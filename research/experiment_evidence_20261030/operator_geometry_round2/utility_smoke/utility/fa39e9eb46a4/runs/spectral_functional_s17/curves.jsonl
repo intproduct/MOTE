@@ -1,0 +1,2 @@
+{"step": 2, "train_loss_normalized": 0.8672424554824829, "gradient_norm": 0.43450209498405457, "seconds": 0.014773700007935986, "mse": 0.0979120060801506, "constant_mse": 0.10050788521766663, "r2_vs_train_mean": 0.02582761672772449, "within_token_expert_rho": 0.10955882352941176}
+{"step": 4, "train_loss_normalized": 0.726712167263031, "gradient_norm": 0.7897480726242065, "seconds": 0.032750099984696135, "mse": 0.0979982316493988, "constant_mse": 0.10050788521766663, "r2_vs_train_mean": 0.02496971817517346, "within_token_expert_rho": 0.06268382352941176}

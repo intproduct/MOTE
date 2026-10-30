@@ -1,0 +1,7 @@
+{
+  "finished": "2026-10-30T03:37:31.657522+08:00",
+  "rows": 144,
+  "event_rows": 506,
+  "source_sha256": "bb88794b2c7d58e130a96034996f923d940018df1c7108cfa520b358b18cdbcd",
+  "scope": "Post-hoc CPU replay. NLL damage measured conditional on a set flip; continuous weight-only changes not included. Gaussian input stress is not native GPU precision."
+}

@@ -1,0 +1,27 @@
+{
+  "name": "function_geometry_diagnostic_v1",
+  "stage": "diagnostic",
+  "source_config": "experiments/routing_stability/configs/titan_v.json",
+  "source_group": "outputs/routing_stability_round1/formal/756b04397b2d",
+  "data_root": "outputs/autoregressive_gate/data",
+  "variants": ["mlp_half", "amp_half", "born_lite"],
+  "seeds": [17, 29, 43],
+  "module": "blocks.1.down",
+  "splits": ["train", "validation"],
+  "windows_per_split": 64,
+  "positions": [31, 63, 95, 127],
+  "context": 128,
+  "window_batch": 2,
+  "intervention_batch": 256,
+  "sampling_seed": 20261030,
+  "device": "cuda",
+  "memory_fraction": 0.35,
+  "bootstrap_repeats": 1000,
+  "identity_atol": 0.00005,
+  "pilot_decision": {
+    "oracle_mean_nll_gain_floor": 0.02,
+    "required_seeds_with_window_ci_gain": 2,
+    "scope": "Signal sufficiency for a small router-only pilot, not evidence of deployable or quantum advantage; no label-oracle at inference."
+  },
+  "protocol": "All 4x12 single substitutions in final down module; selected mass held fixed; earlier routes and all weights frozen. Train-only global geometry; held-out validation check. No test split access."
+}

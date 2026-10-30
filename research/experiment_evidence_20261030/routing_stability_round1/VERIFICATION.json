@@ -1,0 +1,25 @@
+{
+  "time": "2026-10-28T23:18:02.521605+08:00",
+  "tests": {
+    "passed": 61,
+    "log": "tests_v3.log",
+    "commands": "pytest tests/test_routing_stability.py tests/test_autoregressive_gate.py tests/test_advanced_routers.py -q --basetemp=outputs/routing_stability_round1/test_tmp_v3"
+  },
+  "initial_issues": [
+    {
+      "issue": "legacy state_hash does not accept scalar router gains",
+      "resolution": "new independent full_state_hash reshapes scalar before byte view; old frozen utility unchanged"
+    },
+    {
+      "issue": "pytest default temp directory denied access",
+      "resolution": "dedicated output temp directory; no deletion of existing tests or artifacts"
+    }
+  ],
+  "pilot_v1": {
+    "numerical_pass": true,
+    "scientifically_accepted": false,
+    "reason": "three margin variants collapsed toward fixed experts; all raw results retained"
+  },
+  "legacy_frozen_sources_unchanged": true,
+  "new_files": "experiments/routing_stability; tests/test_routing_stability.py; explicit new package entry added alongside existing pyproject edits"
+}

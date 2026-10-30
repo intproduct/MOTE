@@ -1,0 +1,9 @@
+{
+  "config_hash": "3a0386d9a1878c01b9e577e831f1e144e71971fd24c0857f798bf210f0584675",
+  "seed": 17,
+  "method": "product_functional",
+  "initial_parameter_hash": "08e70b778c0def802c7119378ea2421a5c565e3672206a9451182ff82febaf53",
+  "parameters": 10285,
+  "target_scale": 0.35134321451187134,
+  "selection": "minimum internal-dev utility MSE among fixed evaluation steps; validation not accessed until selection is complete"
+}

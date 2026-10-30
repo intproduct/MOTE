@@ -1,0 +1,407 @@
+{
+  "purpose": "Byte-exact source evidence for completed functional experiments; not a new launcher",
+  "files": [
+    {
+      "path": "ADTN.py",
+      "sha256": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+      "bytes": 49178
+    },
+    {
+      "path": "advanced_routers.py",
+      "sha256": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+      "bytes": 7325
+    },
+    {
+      "path": "experiments/autoregressive_gate/data.py",
+      "sha256": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a",
+      "bytes": 5878
+    },
+    {
+      "path": "experiments/autoregressive_gate/model.py",
+      "sha256": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb",
+      "bytes": 3520
+    },
+    {
+      "path": "experiments/autoregressive_gate/runner.py",
+      "sha256": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102",
+      "bytes": 22248
+    },
+    {
+      "path": "experiments/gate_benchmark/models.py",
+      "sha256": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+      "bytes": 11983
+    },
+    {
+      "path": "experiments/operator_geometry/metrics.py",
+      "sha256": "658a0daa228e83a1bc37c7a419aef450fdd6ce4fd7606cbb1b5c718265bfd900",
+      "bytes": 3078
+    },
+    {
+      "path": "experiments/operator_geometry/runner.py",
+      "sha256": "b6c934c47c0efb8489483ab6b24c05956be2b719fcad39e59442bbe8672e6ba2",
+      "bytes": 16156
+    },
+    {
+      "path": "experiments/routing_stability/configs/titan_v.json",
+      "sha256": "66ef7e040b365e8e942f6d40959ce508ae8713f85ea314aad0bc46149af85719",
+      "bytes": 2565
+    },
+    {
+      "path": "experiments/routing_stability/model.py",
+      "sha256": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270",
+      "bytes": 4664
+    },
+    {
+      "path": "experiments/routing_stability/probe.py",
+      "sha256": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e",
+      "bytes": 7546
+    },
+    {
+      "path": "experiments/routing_stability/routers.py",
+      "sha256": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1",
+      "bytes": 5027
+    },
+    {
+      "path": "experiments/routing_stability/runner.py",
+      "sha256": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94",
+      "bytes": 24604
+    },
+    {
+      "path": "gate.py",
+      "sha256": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+      "bytes": 42098
+    },
+    {
+      "path": "losses.py",
+      "sha256": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+      "bytes": 2133
+    },
+    {
+      "path": "quantum_gate.py",
+      "sha256": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+      "bytes": 8700
+    },
+    {
+      "path": "sparse_mixt.py",
+      "sha256": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+      "bytes": 16251
+    },
+    {
+      "path": "structured_routers.py",
+      "sha256": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+      "bytes": 7681
+    },
+    {
+      "path": "experiments/operator_geometry/round2_data.py",
+      "sha256": "c6521327b7aa6ac6afb444e8a25eff131ee61be5b331e29b3d46f508b9aaf2ad",
+      "bytes": 8832
+    },
+    {
+      "path": "experiments/operator_geometry/round2_train.py",
+      "sha256": "559898aec2089f8a09fc632b08af3d6cbd8cd93c956cc34630d8dfccb64d87b8",
+      "bytes": 12845
+    },
+    {
+      "path": "experiments/operator_geometry/routers.py",
+      "sha256": "52515a58c2457282eefd7748397308a2ffbca32a8830c6f9452172840874fa1c",
+      "bytes": 5601
+    },
+    {
+      "path": "experiments/operator_geometry/round2_positive.py",
+      "sha256": "3c2d3ac29bfa7cd09810c0155cbc4b3bf9e59e6ce9a4f21255e9a962b92cbcde",
+      "bytes": 10158
+    },
+    {
+      "path": "experiments/operator_geometry/round3_capacity.py",
+      "sha256": "c6c0689d97f7b6ec5521b7ffd4293a4aa5ea4d8d6894b0f5ae5e950140a83fbd",
+      "bytes": 10881
+    },
+    {
+      "path": "experiments/operator_geometry/round2_numeric.py",
+      "sha256": "9de09945cbbc1d3489b967b8949baee07f4e3d47e9b89e40a1e03de8225a0453",
+      "bytes": 1005
+    },
+    {
+      "path": "experiments/operator_geometry/round3_functional.py",
+      "sha256": "9a3ee36ee44ffabb414a12098ef5ddf3751908c735080bf5e132852cf38bf12d",
+      "bytes": 14152
+    },
+    {
+      "path": "experiments/operator_geometry/round3_replay_v2.py",
+      "sha256": "5cc12e47a5ab5ce0e73ccbea15e48851c19dca26336a09b7041f7ddbf3f9f93b",
+      "bytes": 15674
+    },
+    {
+      "path": "experiments/operator_geometry/round3_functional_diagonal.py",
+      "sha256": "1205951e9534e7635339b5c292f075e2dee8e4e6056dd2cdfc951c96678b6fd0",
+      "bytes": 5227
+    }
+  ],
+  "original_manifest_checks": [
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "ADTN.py",
+      "sha256": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "advanced_routers.py",
+      "sha256": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/autoregressive_gate/data.py",
+      "sha256": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/autoregressive_gate/model.py",
+      "sha256": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/autoregressive_gate/runner.py",
+      "sha256": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/gate_benchmark/models.py",
+      "sha256": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/metrics.py",
+      "sha256": "658a0daa228e83a1bc37c7a419aef450fdd6ce4fd7606cbb1b5c718265bfd900"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/runner.py",
+      "sha256": "b6c934c47c0efb8489483ab6b24c05956be2b719fcad39e59442bbe8672e6ba2"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/routing_stability/configs/titan_v.json",
+      "sha256": "66ef7e040b365e8e942f6d40959ce508ae8713f85ea314aad0bc46149af85719"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/routing_stability/model.py",
+      "sha256": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/routing_stability/probe.py",
+      "sha256": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/routing_stability/routers.py",
+      "sha256": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/routing_stability/runner.py",
+      "sha256": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "gate.py",
+      "sha256": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "losses.py",
+      "sha256": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "quantum_gate.py",
+      "sha256": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "sparse_mixt.py",
+      "sha256": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "structured_routers.py",
+      "sha256": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_data.py",
+      "sha256": "c6521327b7aa6ac6afb444e8a25eff131ee61be5b331e29b3d46f508b9aaf2ad"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_train.py",
+      "sha256": "559898aec2089f8a09fc632b08af3d6cbd8cd93c956cc34630d8dfccb64d87b8"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/routers.py",
+      "sha256": "52515a58c2457282eefd7748397308a2ffbca32a8830c6f9452172840874fa1c"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_positive.py",
+      "sha256": "3c2d3ac29bfa7cd09810c0155cbc4b3bf9e59e6ce9a4f21255e9a962b92cbcde"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_capacity.py",
+      "sha256": "c6c0689d97f7b6ec5521b7ffd4293a4aa5ea4d8d6894b0f5ae5e950140a83fbd"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_numeric.py",
+      "sha256": "9de09945cbbc1d3489b967b8949baee07f4e3d47e9b89e40a1e03de8225a0453"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_functional.py",
+      "sha256": "9a3ee36ee44ffabb414a12098ef5ddf3751908c735080bf5e132852cf38bf12d"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional/50b8c7704256/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_replay_v2.py",
+      "sha256": "5cc12e47a5ab5ce0e73ccbea15e48851c19dca26336a09b7041f7ddbf3f9f93b"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "ADTN.py",
+      "sha256": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "advanced_routers.py",
+      "sha256": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/autoregressive_gate/data.py",
+      "sha256": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/autoregressive_gate/model.py",
+      "sha256": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/autoregressive_gate/runner.py",
+      "sha256": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/gate_benchmark/models.py",
+      "sha256": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/metrics.py",
+      "sha256": "658a0daa228e83a1bc37c7a419aef450fdd6ce4fd7606cbb1b5c718265bfd900"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/runner.py",
+      "sha256": "b6c934c47c0efb8489483ab6b24c05956be2b719fcad39e59442bbe8672e6ba2"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/routing_stability/configs/titan_v.json",
+      "sha256": "66ef7e040b365e8e942f6d40959ce508ae8713f85ea314aad0bc46149af85719"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/routing_stability/model.py",
+      "sha256": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/routing_stability/probe.py",
+      "sha256": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/routing_stability/routers.py",
+      "sha256": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/routing_stability/runner.py",
+      "sha256": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "gate.py",
+      "sha256": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "losses.py",
+      "sha256": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "quantum_gate.py",
+      "sha256": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "sparse_mixt.py",
+      "sha256": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "structured_routers.py",
+      "sha256": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_data.py",
+      "sha256": "c6521327b7aa6ac6afb444e8a25eff131ee61be5b331e29b3d46f508b9aaf2ad"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_train.py",
+      "sha256": "559898aec2089f8a09fc632b08af3d6cbd8cd93c956cc34630d8dfccb64d87b8"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/routers.py",
+      "sha256": "52515a58c2457282eefd7748397308a2ffbca32a8830c6f9452172840874fa1c"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_positive.py",
+      "sha256": "3c2d3ac29bfa7cd09810c0155cbc4b3bf9e59e6ce9a4f21255e9a962b92cbcde"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_capacity.py",
+      "sha256": "c6c0689d97f7b6ec5521b7ffd4293a4aa5ea4d8d6894b0f5ae5e950140a83fbd"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round2_numeric.py",
+      "sha256": "9de09945cbbc1d3489b967b8949baee07f4e3d47e9b89e40a1e03de8225a0453"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_functional.py",
+      "sha256": "9a3ee36ee44ffabb414a12098ef5ddf3751908c735080bf5e132852cf38bf12d"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_replay_v2.py",
+      "sha256": "5cc12e47a5ab5ce0e73ccbea15e48851c19dca26336a09b7041f7ddbf3f9f93b"
+    },
+    {
+      "manifest": "outputs/operator_geometry_round3/functional_diagonal/260b32fdf440/source_hashes.json",
+      "file": "experiments/operator_geometry/round3_functional_diagonal.py",
+      "sha256": "1205951e9534e7635339b5c292f075e2dee8e4e6056dd2cdfc951c96678b6fd0"
+    }
+  ]
+}

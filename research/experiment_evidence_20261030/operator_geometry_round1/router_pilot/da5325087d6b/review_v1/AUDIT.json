@@ -1,0 +1,43 @@
+{
+  "finished": "2026-10-30T02:49:08.203677+08:00",
+  "expected_runs": 27,
+  "runs": 27,
+  "checkpoint_replays": 27,
+  "missing": [],
+  "issues": [],
+  "passed": true,
+  "device": "cuda",
+  "config_hash": "da5325087d6b2220e5d0518437784272f9f2245b080ef9fcd3abbdcbec772995",
+  "criteria": {
+    "ce_improves_vs_random_all_three_seeds": false,
+    "ce_within_001_of_classical_each_seed": true,
+    "harmful_events_lower_than_random_pooled": true
+  },
+  "large_training_eligible": false,
+  "selection_rule": "Review all 3 seeds; only expand if functional quantum assignment reduces validation CE versus its matched random assignment in all 3 seeds, preserves CE within 0.01 nat of classical functional control, and reduces harmful BF16-input-roundtrip events. Otherwise revise hypothesis and retain failures.",
+  "geometry": [
+    {
+      "seed": 17,
+      "functional_cost": 11.661059594434192,
+      "identity_cost": 11.83476876499022,
+      "random_mean_cost": 11.889070024922017,
+      "relative_reduction_vs_random": 0.019178155230801575
+    },
+    {
+      "seed": 29,
+      "functional_cost": 9.166060445580289,
+      "identity_cost": 9.390280468147264,
+      "random_mean_cost": 9.354552881738856,
+      "relative_reduction_vs_random": 0.020149807109063
+    },
+    {
+      "seed": 43,
+      "functional_cost": 10.043413590239338,
+      "identity_cost": 10.258224240632188,
+      "random_mean_cost": 10.275406351596754,
+      "relative_reduction_vs_random": 0.02257747804994259
+    }
+  ],
+  "scope": "Fixed final checkpoint; sampled validation CE and BPE PPL, not full validation. Window CIs are within checkpoint, 3-seed SD across checkpoints. No test access. Shared-GPU wall seconds are not latency comparisons.",
+  "review_source_sha256": "a68ad4f0921acfb65b6eec7745a290c9eaeebcbbbfc8d7b06d50c1ea0e1487ea"
+}

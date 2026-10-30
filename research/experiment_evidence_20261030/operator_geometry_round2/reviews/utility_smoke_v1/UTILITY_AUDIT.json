@@ -1,0 +1,374 @@
+{
+  "passed": true,
+  "expected_runs": 9,
+  "verified_runs": 9,
+  "missing": [],
+  "checks": [
+    {
+      "method": "mlp",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 4,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "spectral_functional",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 2,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "spectral_random",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 4,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "shared_born",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 4,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "angle_natural",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 2,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "angle_random",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 4,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "angle_functional",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 2,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "product_functional",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 2,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    },
+    {
+      "method": "exp_adapter",
+      "seed": 17,
+      "files_verified": 7,
+      "selected_step": 4,
+      "replays": {
+        "dev": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        },
+        "validation": {
+          "cpu_vs_saved_cost_max_abs": 0.0,
+          "action_recomputed": true,
+          "tokens": 16
+        }
+      }
+    }
+  ],
+  "same_samples_per_seed": {
+    "17": "8d797c8e2872d80904ca34110757aca5c5b7bed188af2527551164f2d07ff2bf"
+  },
+  "paired_against_mlp": [
+    {
+      "method": "mlp",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": 0.0,
+      "ci95_windows": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "method": "mlp",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": 0.0,
+      "ci95_windows": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "method": "spectral_functional",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": -0.010899662971496582,
+      "ci95_windows": [
+        -0.032698988914489746,
+        0.0
+      ]
+    },
+    {
+      "method": "spectral_functional",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.019264906644821167,
+      "ci95_windows": [
+        -0.051505088806152344,
+        -0.0009960532188415527
+      ]
+    },
+    {
+      "method": "spectral_random",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": -0.03745923191308975,
+      "ci95_windows": [
+        -0.10582616180181503,
+        0.06690637767314911
+      ]
+    },
+    {
+      "method": "spectral_random",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.11292969435453415,
+      "ci95_windows": [
+        -0.17802944779396057,
+        -0.024226106703281403
+      ]
+    },
+    {
+      "method": "shared_born",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": -0.0012462958693504333,
+      "ci95_windows": [
+        -0.03581550344824791,
+        0.04208832234144211
+      ]
+    },
+    {
+      "method": "shared_born",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.05541618913412094,
+      "ci95_windows": [
+        -0.11398391425609589,
+        0.003151535987854004
+      ]
+    },
+    {
+      "method": "angle_natural",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": 0.0,
+      "ci95_windows": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "method": "angle_natural",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.016369104385375977,
+      "ci95_windows": [
+        -0.04910731315612793,
+        0.0
+      ]
+    },
+    {
+      "method": "angle_random",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": -0.013074353337287903,
+      "ci95_windows": [
+        -0.029416710138320923,
+        0.003268003463745117
+      ]
+    },
+    {
+      "method": "angle_random",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.023437857627868652,
+      "ci95_windows": [
+        -0.12218672037124634,
+        0.05582988262176514
+      ]
+    },
+    {
+      "method": "angle_functional",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": 0.0,
+      "ci95_windows": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "method": "angle_functional",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.016369104385375977,
+      "ci95_windows": [
+        -0.04910731315612793,
+        0.0
+      ]
+    },
+    {
+      "method": "product_functional",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": -0.02773284912109375,
+      "ci95_windows": [
+        -0.0554656982421875,
+        0.0
+      ]
+    },
+    {
+      "method": "product_functional",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": 0.004618972539901733,
+      "ci95_windows": [
+        -0.010647833347320557,
+        0.026666700839996338
+      ]
+    },
+    {
+      "method": "exp_adapter",
+      "seed": 17,
+      "split": "dev",
+      "reference": "mlp",
+      "paired_delta_ce": -0.06684723496437073,
+      "ci95_windows": [
+        -0.15177786350250244,
+        0.027480831369757652
+      ]
+    },
+    {
+      "method": "exp_adapter",
+      "seed": 17,
+      "split": "validation",
+      "reference": "mlp",
+      "paired_delta_ce": -0.11720411479473114,
+      "ci95_windows": [
+        -0.21292072534561157,
+        -0.021487504243850708
+      ]
+    }
+  ],
+  "scope": "CPU replay independently verifies saved GPU predictions and exact action accounting; CPU/GPU tolerance5e-4. No additional training or validation selection."
+}

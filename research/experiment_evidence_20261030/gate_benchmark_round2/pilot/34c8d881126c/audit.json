@@ -1,0 +1,524 @@
+{
+  "expected": 26,
+  "completed_audited": 26,
+  "passed": true,
+  "issues": [],
+  "data": {
+    "fashion_mnist": {
+      "sizes": {
+        "train": 2048,
+        "dev": 256,
+        "test": 512
+      },
+      "source_split": "test",
+      "sha256": "981a769eb00526a4110e30c2b9f39478cf3d004513e028927a74f4d3c801199c",
+      "train_dev_disjoint": true
+    },
+    "sst2": {
+      "sizes": {
+        "train": 2048,
+        "dev": 256,
+        "test": 512
+      },
+      "source_split": "validation",
+      "sha256": "171ce4027962a864e11a137fe310590b8e75f0e95be6f93a7773b6b0ccb2595f",
+      "train_dev_disjoint": true
+    }
+  },
+  "runs": [
+    {
+      "run": "mlp_fashion_mnist_mlp_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mlp",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.6363723278045654,
+      "last_ce": 0.21945986151695251,
+      "router_parameters": 227660,
+      "best_dev": {
+        "accuracy": 0.78125,
+        "ce": 0.5865209698677063,
+        "score": 0.78125
+      },
+      "seconds_per_step": 0.9917691870039562,
+      "peak_cuda_bytes": 236715520
+    },
+    {
+      "run": "mlp_fashion_mnist_compact_born_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "compact_born",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.6348421573638916,
+      "last_ce": 0.21978694200515747,
+      "router_parameters": 227608,
+      "best_dev": {
+        "accuracy": 0.78125,
+        "ce": 0.5843222141265869,
+        "score": 0.78125
+      },
+      "seconds_per_step": 1.7639544420025777,
+      "peak_cuda_bytes": 240771072
+    },
+    {
+      "run": "mlp_fashion_mnist_mlp_half_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mlp_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.634927272796631,
+      "last_ce": 0.2217194139957428,
+      "router_parameters": 115844,
+      "best_dev": {
+        "accuracy": 0.77734375,
+        "ce": 0.5993708372116089,
+        "score": 0.77734375
+      },
+      "seconds_per_step": 0.9281235599983484,
+      "peak_cuda_bytes": 235204608
+    },
+    {
+      "run": "mlp_fashion_mnist_mpo_c1_full_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mpo_c1_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.6348719596862793,
+      "last_ce": 0.22050614655017853,
+      "router_parameters": 229720,
+      "best_dev": {
+        "accuracy": 0.77734375,
+        "ce": 0.5919067859649658,
+        "score": 0.77734375
+      },
+      "seconds_per_step": 0.9151658070011763,
+      "peak_cuda_bytes": 236994048
+    },
+    {
+      "run": "mlp_fashion_mnist_mpo_c1_half_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mpo_c1_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.639481544494629,
+      "last_ce": 0.2173096388578415,
+      "router_parameters": 113816,
+      "best_dev": {
+        "accuracy": 0.78125,
+        "ce": 0.5710164904594421,
+        "score": 0.78125
+      },
+      "seconds_per_step": 0.9592226079967804,
+      "peak_cuda_bytes": 235378688
+    },
+    {
+      "run": "mlp_fashion_mnist_mpo_c2_full_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mpo_c2_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.637269973754883,
+      "last_ce": 0.22246237099170685,
+      "router_parameters": 230232,
+      "best_dev": {
+        "accuracy": 0.77734375,
+        "ce": 0.594089686870575,
+        "score": 0.77734375
+      },
+      "seconds_per_step": 0.8482046919979621,
+      "peak_cuda_bytes": 236945920
+    },
+    {
+      "run": "mlp_fashion_mnist_mpo_c2_half_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mpo_c2_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.6378250122070312,
+      "last_ce": 0.22107557952404022,
+      "router_parameters": 114328,
+      "best_dev": {
+        "accuracy": 0.7734375,
+        "ce": 0.5930103659629822,
+        "score": 0.7734375
+      },
+      "seconds_per_step": 0.8949870119971456,
+      "peak_cuda_bytes": 235718656
+    },
+    {
+      "run": "mlp_fashion_mnist_mpo_c4_full_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mpo_c4_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.637012481689453,
+      "last_ce": 0.21951815485954285,
+      "router_parameters": 227864,
+      "best_dev": {
+        "accuracy": 0.78515625,
+        "ce": 0.5720180869102478,
+        "score": 0.78515625
+      },
+      "seconds_per_step": 0.9168152810022002,
+      "peak_cuda_bytes": 236607488
+    },
+    {
+      "run": "mlp_fashion_mnist_mpo_c4_half_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "mpo_c4_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.641230821609497,
+      "last_ce": 0.22010457515716553,
+      "router_parameters": 116120,
+      "best_dev": {
+        "accuracy": 0.78125,
+        "ce": 0.5881479978561401,
+        "score": 0.78125
+      },
+      "seconds_per_step": 0.9004719520028448,
+      "peak_cuda_bytes": 235695104
+    },
+    {
+      "run": "mlp_fashion_mnist_amp_d1_full_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "amp_d1_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.6361663341522217,
+      "last_ce": 0.21962909400463104,
+      "router_parameters": 227992,
+      "best_dev": {
+        "accuracy": 0.78515625,
+        "ce": 0.5749501585960388,
+        "score": 0.78515625
+      },
+      "seconds_per_step": 1.1236075659975178,
+      "peak_cuda_bytes": 237378560
+    },
+    {
+      "run": "mlp_fashion_mnist_amp_d1_half_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "amp_d1_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.640141010284424,
+      "last_ce": 0.21721430122852325,
+      "router_parameters": 111784,
+      "best_dev": {
+        "accuracy": 0.78515625,
+        "ce": 0.576447606086731,
+        "score": 0.78515625
+      },
+      "seconds_per_step": 1.1176329010003245,
+      "peak_cuda_bytes": 236161024
+    },
+    {
+      "run": "mlp_fashion_mnist_amp_d2_full_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "amp_d2_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.637484550476074,
+      "last_ce": 0.21921643614768982,
+      "router_parameters": 228568,
+      "best_dev": {
+        "accuracy": 0.77734375,
+        "ce": 0.5775771141052246,
+        "score": 0.77734375
+      },
+      "seconds_per_step": 1.0737843029981013,
+      "peak_cuda_bytes": 237875200
+    },
+    {
+      "run": "mlp_fashion_mnist_amp_d2_half_seed17",
+      "stage": "mlp",
+      "task": "fashion_mnist",
+      "gate": "amp_d2_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 2.638906478881836,
+      "last_ce": 0.21875344216823578,
+      "router_parameters": 112056,
+      "best_dev": {
+        "accuracy": 0.78125,
+        "ce": 0.5754032731056213,
+        "score": 0.78125
+      },
+      "seconds_per_step": 0.9276775999990059,
+      "peak_cuda_bytes": 236801024
+    },
+    {
+      "run": "bert_sst2_mlp_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mlp",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7368409633636475,
+      "last_ce": 0.6493157744407654,
+      "router_parameters": 76434,
+      "best_dev": {
+        "accuracy": 0.71875,
+        "ce": 0.5961728096008301,
+        "score": 0.71875
+      },
+      "seconds_per_step": 0.8704732040013187,
+      "peak_cuda_bytes": 373729280
+    },
+    {
+      "run": "bert_sst2_compact_born_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "compact_born",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7364348769187927,
+      "last_ce": 0.6249321103096008,
+      "router_parameters": 76386,
+      "best_dev": {
+        "accuracy": 0.7109375,
+        "ce": 0.6221398115158081,
+        "score": 0.7109375
+      },
+      "seconds_per_step": 1.1867751889984357,
+      "peak_cuda_bytes": 383457280
+    },
+    {
+      "run": "bert_sst2_mlp_half_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mlp_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.73161780834198,
+      "last_ce": 0.6409565806388855,
+      "router_parameters": 40137,
+      "best_dev": {
+        "accuracy": 0.69921875,
+        "ce": 0.6256604790687561,
+        "score": 0.69921875
+      },
+      "seconds_per_step": 0.9419106540019857,
+      "peak_cuda_bytes": 371381760
+    },
+    {
+      "run": "bert_sst2_mpo_c1_full_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mpo_c1_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7305401563644409,
+      "last_ce": 0.6411833167076111,
+      "router_parameters": 77154,
+      "best_dev": {
+        "accuracy": 0.703125,
+        "ce": 0.5909500122070312,
+        "score": 0.703125
+      },
+      "seconds_per_step": 0.8008084619999863,
+      "peak_cuda_bytes": 372526592
+    },
+    {
+      "run": "bert_sst2_mpo_c1_half_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mpo_c1_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7426843643188477,
+      "last_ce": 0.6316268444061279,
+      "router_parameters": 37794,
+      "best_dev": {
+        "accuracy": 0.7109375,
+        "ce": 0.6000072956085205,
+        "score": 0.7109375
+      },
+      "seconds_per_step": 0.858214368004119,
+      "peak_cuda_bytes": 371975680
+    },
+    {
+      "run": "bert_sst2_mpo_c2_full_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mpo_c2_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7322960495948792,
+      "last_ce": 0.6367835402488708,
+      "router_parameters": 77538,
+      "best_dev": {
+        "accuracy": 0.71484375,
+        "ce": 0.5923426151275635,
+        "score": 0.71484375
+      },
+      "seconds_per_step": 0.8640212159988004,
+      "peak_cuda_bytes": 372780544
+    },
+    {
+      "run": "bert_sst2_mpo_c2_half_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mpo_c2_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.734616219997406,
+      "last_ce": 0.6289451122283936,
+      "router_parameters": 37362,
+      "best_dev": {
+        "accuracy": 0.703125,
+        "ce": 0.589958131313324,
+        "score": 0.703125
+      },
+      "seconds_per_step": 0.8046147649979685,
+      "peak_cuda_bytes": 372848640
+    },
+    {
+      "run": "bert_sst2_mpo_c4_full_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mpo_c4_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7356209754943848,
+      "last_ce": 0.6287943124771118,
+      "router_parameters": 74946,
+      "best_dev": {
+        "accuracy": 0.7109375,
+        "ce": 0.5931071043014526,
+        "score": 0.7109375
+      },
+      "seconds_per_step": 0.8214715390000492,
+      "peak_cuda_bytes": 372468224
+    },
+    {
+      "run": "bert_sst2_mpo_c4_half_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "mpo_c4_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7213543057441711,
+      "last_ce": 0.6297855973243713,
+      "router_parameters": 37890,
+      "best_dev": {
+        "accuracy": 0.70703125,
+        "ce": 0.5896080732345581,
+        "score": 0.70703125
+      },
+      "seconds_per_step": 0.8383959430013783,
+      "peak_cuda_bytes": 373132288
+    },
+    {
+      "run": "bert_sst2_amp_d1_full_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "amp_d1_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7343235015869141,
+      "last_ce": 0.6406379342079163,
+      "router_parameters": 76710,
+      "best_dev": {
+        "accuracy": 0.703125,
+        "ce": 0.5933211445808411,
+        "score": 0.703125
+      },
+      "seconds_per_step": 0.9571058750001248,
+      "peak_cuda_bytes": 373660672
+    },
+    {
+      "run": "bert_sst2_amp_d1_half_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "amp_d1_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7355654835700989,
+      "last_ce": 0.6422890424728394,
+      "router_parameters": 36282,
+      "best_dev": {
+        "accuracy": 0.703125,
+        "ce": 0.5973225831985474,
+        "score": 0.703125
+      },
+      "seconds_per_step": 0.9953694059990812,
+      "peak_cuda_bytes": 373090304
+    },
+    {
+      "run": "bert_sst2_amp_d2_full_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "amp_d2_full",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7372878193855286,
+      "last_ce": 0.6367293000221252,
+      "router_parameters": 77178,
+      "best_dev": {
+        "accuracy": 0.70703125,
+        "ce": 0.5939003825187683,
+        "score": 0.70703125
+      },
+      "seconds_per_step": 1.0843065599974944,
+      "peak_cuda_bytes": 374595584
+    },
+    {
+      "run": "bert_sst2_amp_d2_half_seed17",
+      "stage": "bert",
+      "task": "sst2",
+      "gate": "amp_d2_half",
+      "seed": 17,
+      "passed": true,
+      "origin": "new_training",
+      "first_ce": 0.7386420369148254,
+      "last_ce": 0.6448906064033508,
+      "router_parameters": 36498,
+      "best_dev": {
+        "accuracy": 0.70703125,
+        "ce": 0.5921257138252258,
+        "score": 0.70703125
+      },
+      "seconds_per_step": 0.798462131001288,
+      "peak_cuda_bytes": 374999552
+    }
+  ]
+}

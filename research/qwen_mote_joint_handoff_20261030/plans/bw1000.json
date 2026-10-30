@@ -1,0 +1,18 @@
+{
+  "machine": "bw1000",
+  "status": "vendor_compatibility_and_portability_validation",
+  "training_cli_ready": false,
+  "common_protocol": "../COMMON_PROTOCOL.json",
+  "hardware": "Lab rental Hygon BW1000 64GB DCU; verify actual identity",
+  "model": "Qwen/Qwen3-0.6B-Base",
+  "output_prefix": "outputs/qwen_joint/bw1000",
+  "precision_cohort": "dtk_bf16_experts_fp32_router",
+  "initial_microbatch_sequences": 1,
+  "sequence_length": 1024,
+  "execution": "Single device, retain vendor DTK stack; validate each custom operation and backward pass",
+  "owns": ["DTK environment capture", "CUDA/HIP API and attention compatibility", "FP32 CPU-reference router checks", "same 0.6B all-method pilot and cost measurement"],
+  "dependency": "Shared integration release for full Qwen probes; immediate work is historical CPU/router tests and hardware preflight",
+  "acceptance": "All methods must pass forward/backward, full checkpoint save/load/resume, routing and sparsity checks. Record all semantic kernel changes; classify results as a separate hardware cohort.",
+  "followup": "After compatibility and throughput acceptance, run complete 1.7B method/seed matrix using the same frozen protocol; do not contribute a single unmatched method to the A800 matrix.",
+  "must_not": ["install generic torch over DTK", "describe BW1000 as NVIDIA Blackwell", "silently remove unsupported operations or change gradient rules"]
+}

@@ -1,0 +1,9 @@
+{
+  "config_hash": "3a0386d9a1878c01b9e577e831f1e144e71971fd24c0857f798bf210f0584675",
+  "seed": 43,
+  "method": "exp_adapter",
+  "initial_parameter_hash": "046b3a46c4d10c02ae6472d6b9f03d10d2c52d627a13762878f96ae169eced7c",
+  "parameters": 10365,
+  "target_scale": 0.3134550154209137,
+  "selection": "minimum internal-dev utility MSE among fixed evaluation steps; validation not accessed until selection is complete"
+}

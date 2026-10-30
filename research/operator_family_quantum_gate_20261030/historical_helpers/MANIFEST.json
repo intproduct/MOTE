@@ -1,0 +1,20 @@
+{
+  "purpose": "Historical finalization helper and smoke configurations; preserve original paths and data. Review before execution; not Qwen launchers.",
+  "files": [
+    {
+      "original": "tmp/finalize_functional_delivery.py",
+      "archived": "finalize_functional_delivery.py",
+      "sha256": "f76132cda727b2c74479061b407a41132c07d6eea8ea1039afb70880e8cedf82"
+    },
+    {
+      "original": "tmp/round2_positive_smoke.json",
+      "archived": "round2_positive_smoke.json",
+      "sha256": "9c7200984442c924bd0a7766a04cbb00a7ba03b42603ef788dbeaf9cc8c3576d"
+    },
+    {
+      "original": "tmp/round2_boundary_gradient_smoke.json",
+      "archived": "round2_boundary_gradient_smoke.json",
+      "sha256": "922a99855cfa275f924a6d9907ae8540a8ca02ebb08f619885a7bc244826f056"
+    }
+  ]
+}

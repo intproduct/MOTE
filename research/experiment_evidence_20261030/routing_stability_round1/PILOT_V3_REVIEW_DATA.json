@@ -1,0 +1,401 @@
+[
+  {
+    "variant": "mlp_half",
+    "group": "2c58817d07ec",
+    "dev_ppl": 283.9396087929097,
+    "initial_model_hash": "ce0370344a29b0eeec2577dfccc0ad1662c30641b34fa94c3c72e95eb084eaa3",
+    "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+    "batch_hash": "597cb9c7ad2251bf44745046121ec3af2a7701247efaa32771c25dbf5f43ebc1",
+    "router_params": 26758,
+    "margin": {
+      "margin_weight": 0.0,
+      "margin_loss": 0.0
+    },
+    "load_cv": [
+      0.5909949789286995,
+      0.6580134001953789,
+      0.5360407097642537,
+      0.5812004941117248
+    ],
+    "unused": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "batch16_vs1": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    },
+    "input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 85,
+      "percent": 0.12969970703125
+    },
+    "input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 9,
+      "percent": 0.01373291015625
+    },
+    "input_uniform_rms_0.001": {
+      "n": 65536,
+      "changed": 24,
+      "percent": 0.03662109375
+    },
+    "input_uniform_rms_0.01": {
+      "n": 65536,
+      "changed": 279,
+      "percent": 0.42572021484375
+    },
+    "propagated_input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 129,
+      "percent": 0.19683837890625
+    },
+    "propagated_input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 10,
+      "percent": 0.0152587890625
+    },
+    "repeat": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    }
+  },
+  {
+    "variant": "amp_half",
+    "group": "2c58817d07ec",
+    "dev_ppl": 292.3190827788382,
+    "initial_model_hash": "202444eb0ae1a40aff16e03171d88ee41450a1ac41f5e892dfdf077a40b7459d",
+    "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+    "batch_hash": "597cb9c7ad2251bf44745046121ec3af2a7701247efaa32771c25dbf5f43ebc1",
+    "router_params": 24188,
+    "margin": {
+      "margin_weight": 0.0,
+      "margin_loss": 0.0
+    },
+    "load_cv": [
+      0.6835583296044045,
+      0.5099222580631886,
+      0.6340969114199031,
+      0.5857224061885621
+    ],
+    "unused": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "batch16_vs1": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    },
+    "input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 81,
+      "percent": 0.12359619140625
+    },
+    "input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 13,
+      "percent": 0.01983642578125
+    },
+    "input_uniform_rms_0.001": {
+      "n": 65536,
+      "changed": 28,
+      "percent": 0.042724609375
+    },
+    "input_uniform_rms_0.01": {
+      "n": 65536,
+      "changed": 273,
+      "percent": 0.41656494140625
+    },
+    "propagated_input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 110,
+      "percent": 0.1678466796875
+    },
+    "propagated_input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 23,
+      "percent": 0.03509521484375
+    },
+    "repeat": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    }
+  },
+  {
+    "variant": "born_lite",
+    "group": "2c58817d07ec",
+    "dev_ppl": 298.3174727300559,
+    "initial_model_hash": "a203ce6b2bbbbbf8d88d2ee3bb67d4ea68563b910ea3a0aeef023cb3fe61229e",
+    "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+    "batch_hash": "597cb9c7ad2251bf44745046121ec3af2a7701247efaa32771c25dbf5f43ebc1",
+    "router_params": 26684,
+    "margin": {
+      "margin_weight": 0.0,
+      "margin_loss": 0.0
+    },
+    "load_cv": [
+      0.5830869990740736,
+      0.6552978156351433,
+      0.5775347613173566,
+      0.583012683464912
+    ],
+    "unused": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "batch16_vs1": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    },
+    "input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 89,
+      "percent": 0.13580322265625
+    },
+    "input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 17,
+      "percent": 0.02593994140625
+    },
+    "input_uniform_rms_0.001": {
+      "n": 65536,
+      "changed": 29,
+      "percent": 0.04425048828125
+    },
+    "input_uniform_rms_0.01": {
+      "n": 65536,
+      "changed": 329,
+      "percent": 0.50201416015625
+    },
+    "propagated_input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 128,
+      "percent": 0.1953125
+    },
+    "propagated_input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 19,
+      "percent": 0.02899169921875
+    },
+    "repeat": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    }
+  },
+  {
+    "variant": "mlp_margin",
+    "group": "1361f2f058eb",
+    "dev_ppl": 283.5216033192101,
+    "initial_model_hash": "ce0370344a29b0eeec2577dfccc0ad1662c30641b34fa94c3c72e95eb084eaa3",
+    "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+    "batch_hash": "597cb9c7ad2251bf44745046121ec3af2a7701247efaa32771c25dbf5f43ebc1",
+    "router_params": 26758,
+    "margin": {
+      "margin_weight": 0.01,
+      "margin_loss": 1.3558925274992362e-05,
+      "standardized_gap_mean": 0.03963702172040939,
+      "standardized_gap_p05": 0.0002803057723212987,
+      "fraction_below_threshold": 0.80462646484375
+    },
+    "load_cv": [
+      0.6188943699317498,
+      0.5883794561408316,
+      0.6158418925798992,
+      0.5977561991415531
+    ],
+    "unused": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "batch16_vs1": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    },
+    "input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 68,
+      "percent": 0.103759765625
+    },
+    "input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 11,
+      "percent": 0.01678466796875
+    },
+    "input_uniform_rms_0.001": {
+      "n": 65536,
+      "changed": 23,
+      "percent": 0.03509521484375
+    },
+    "input_uniform_rms_0.01": {
+      "n": 65536,
+      "changed": 245,
+      "percent": 0.37384033203125
+    },
+    "propagated_input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 108,
+      "percent": 0.164794921875
+    },
+    "propagated_input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 16,
+      "percent": 0.0244140625
+    },
+    "repeat": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    }
+  },
+  {
+    "variant": "amp_margin",
+    "group": "1361f2f058eb",
+    "dev_ppl": 291.72496845365663,
+    "initial_model_hash": "202444eb0ae1a40aff16e03171d88ee41450a1ac41f5e892dfdf077a40b7459d",
+    "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+    "batch_hash": "597cb9c7ad2251bf44745046121ec3af2a7701247efaa32771c25dbf5f43ebc1",
+    "router_params": 24188,
+    "margin": {
+      "margin_weight": 0.01,
+      "margin_loss": 4.3347376958990935e-06,
+      "standardized_gap_mean": 0.11100113391876221,
+      "standardized_gap_p05": 0.0038544684648513794,
+      "fraction_below_threshold": 0.42034912109375
+    },
+    "load_cv": [
+      0.676664503592324,
+      0.5069023432163386,
+      0.6403254374105344,
+      0.5924806993421805
+    ],
+    "unused": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "batch16_vs1": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    },
+    "input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 88,
+      "percent": 0.13427734375
+    },
+    "input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 10,
+      "percent": 0.0152587890625
+    },
+    "input_uniform_rms_0.001": {
+      "n": 65536,
+      "changed": 36,
+      "percent": 0.054931640625
+    },
+    "input_uniform_rms_0.01": {
+      "n": 65536,
+      "changed": 303,
+      "percent": 0.46234130859375
+    },
+    "propagated_input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 125,
+      "percent": 0.19073486328125
+    },
+    "propagated_input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 15,
+      "percent": 0.02288818359375
+    },
+    "repeat": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    }
+  },
+  {
+    "variant": "born_lite_margin",
+    "group": "1361f2f058eb",
+    "dev_ppl": 298.1016704032343,
+    "initial_model_hash": "a203ce6b2bbbbbf8d88d2ee3bb67d4ea68563b910ea3a0aeef023cb3fe61229e",
+    "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+    "batch_hash": "597cb9c7ad2251bf44745046121ec3af2a7701247efaa32771c25dbf5f43ebc1",
+    "router_params": 26684,
+    "margin": {
+      "margin_weight": 0.01,
+      "margin_loss": 1.086757765733637e-05,
+      "standardized_gap_mean": 0.05109425261616707,
+      "standardized_gap_p05": 0.0008663937333039939,
+      "fraction_below_threshold": 0.74932861328125
+    },
+    "load_cv": [
+      0.6952811642959428,
+      0.6887773899899837,
+      0.6485186786427759,
+      0.6575543443656275
+    ],
+    "unused": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "batch16_vs1": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    },
+    "input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 64,
+      "percent": 0.09765625
+    },
+    "input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 9,
+      "percent": 0.01373291015625
+    },
+    "input_uniform_rms_0.001": {
+      "n": 65536,
+      "changed": 30,
+      "percent": 0.0457763671875
+    },
+    "input_uniform_rms_0.01": {
+      "n": 65536,
+      "changed": 248,
+      "percent": 0.37841796875
+    },
+    "propagated_input_bf16_roundtrip": {
+      "n": 65536,
+      "changed": 94,
+      "percent": 0.1434326171875
+    },
+    "propagated_input_fp16_roundtrip": {
+      "n": 65536,
+      "changed": 9,
+      "percent": 0.01373291015625
+    },
+    "repeat": {
+      "n": 65536,
+      "changed": 0,
+      "percent": 0.0
+    }
+  }
+]

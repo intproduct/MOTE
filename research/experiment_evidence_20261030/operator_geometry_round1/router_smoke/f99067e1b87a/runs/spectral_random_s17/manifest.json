@@ -1,0 +1,10 @@
+{
+  "config_hash": "f99067e1b87a581873648061c30421748f6469a771e468b4dc6b02b5adb32cce",
+  "method": "spectral_random",
+  "seed": 17,
+  "initial_router_hash": "1f3ce47818e4cbea2f15cf5d33fc6adc106447e10ab406df55d3cd2a5076ff9c",
+  "router_parameters": 10276,
+  "expert_pool_sha256": "836ba64d37ed1a45789baab905427bd8996d5656630c567d810be145ee820714",
+  "initialization_seed": 900017,
+  "sampling_seed": 910017
+}

@@ -1,0 +1,134 @@
+{
+  "passed": true,
+  "finished": "2026-10-30T11:15:55.435437+08:00",
+  "counts": {
+    "utility": 27,
+    "positive": 9,
+    "ridge": 9,
+    "geometry": 9,
+    "risk_checkpoints": 3,
+    "risk_replacements": 1179648,
+    "boundary_replays": 24
+  },
+  "missing": [],
+  "failed": [],
+  "source_checks": [
+    {
+      "group": "outputs\\operator_geometry_round2\\utility\\3a0386d9a187",
+      "source_files_verified": 21
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\positive\\d4ee19e23787",
+      "source_files_verified": 23
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\risk\\3a17e2fefbb6",
+      "source_files_verified": 21
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\data\\86a2ba9f5aa2",
+      "source_files_verified": 19
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\energy\\decomposition_v1",
+      "source_files_verified": 3
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\geometry\\input_geometry_v1",
+      "source_files_verified": 3
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\ridge\\01c1341f7586",
+      "source_files_verified": 1
+    },
+    {
+      "group": "outputs\\operator_geometry_round2\\boundary_gradient\\input_sensitivity_v1",
+      "source_files_verified": 23
+    }
+  ],
+  "prior_audits": [
+    {
+      "path": "outputs\\operator_geometry_round2\\reviews\\utility_action_v1\\UTILITY_AUDIT.json",
+      "sha256": "74e7c89a16658a0b019d58028b70719eeede42e1f3754b98e8380ee8c50cc4b3",
+      "passed": true
+    },
+    {
+      "path": "outputs\\operator_geometry_round2\\reviews\\utility_prediction_v1\\PREDICTION_AUDIT.json",
+      "sha256": "c5d4d239d617d538d4b761630684b8e7be89b182bb735857a719f79c751dadce",
+      "passed": true
+    },
+    {
+      "path": "outputs\\operator_geometry_round2\\reviews\\positive_formal_v1\\PREDICTION_AUDIT.json",
+      "sha256": "ef2a9b691cffcedada367a440f1e92379045ea96244361906cec84b1e9006d41",
+      "passed": true
+    },
+    {
+      "path": "outputs\\operator_geometry_round2\\reviews\\controls_v1\\AUDIT.json",
+      "sha256": "392c39a7c9c95fa3b24caa115a75bcfdd01bedd28de34b426c14fa4328c7614c",
+      "passed": true
+    }
+  ],
+  "risk_checks": [
+    {
+      "seed": 17,
+      "split": "dev",
+      "sha256": "abef5e050f959530dea96edf1b6912a8297b643a0414249c4183498d41e5f201",
+      "replacements": 196608,
+      "finite": true,
+      "summary_recomputed": true,
+      "nll_replay_max_abs": 1.7753724677049831e-06
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "sha256": "7d2025e9259d49d09eb9a1c5ff1d5cc200d6f6681a20f028276d77e80f6ae6b2",
+      "replacements": 196608,
+      "finite": true,
+      "summary_recomputed": true,
+      "nll_replay_max_abs": 1.7603510649166765e-06
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "sha256": "f1fc04c61fe50d9ed3d9d3a2106c9614c82c2a412411052870a868a3079d0690",
+      "replacements": 196608,
+      "finite": true,
+      "summary_recomputed": true,
+      "nll_replay_max_abs": 2.0504397468812385e-06
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "sha256": "9a3553a66661a7d8e88da1e9cb23c96daa19c01cb2909b28f2548c207b0b4226",
+      "replacements": 196608,
+      "finite": true,
+      "summary_recomputed": true,
+      "nll_replay_max_abs": 1.9531025721164497e-06
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "sha256": "22400d028ca9a63645d0c8523bb22e2800c1eb60dc5be426f4d5485aab01e2b7",
+      "replacements": 196608,
+      "finite": true,
+      "summary_recomputed": true,
+      "nll_replay_max_abs": 1.8624188147242648e-06
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "sha256": "adbf304a3aa68e47541e21c2a47d61f6b14e90faa7cf7841f4e3e171cfccc741",
+      "replacements": 196608,
+      "finite": true,
+      "summary_recomputed": true,
+      "nll_replay_max_abs": 1.7660198192714915e-06
+    }
+  ],
+  "not_performed": [
+    "conditional readout adaptation",
+    "isolated deployment timing",
+    "full-validation or test CE/PPL evaluation of new routers",
+    "end-to-end backbone retraining"
+  ],
+  "scope": "Stage completion only. All calculations CPU; no training, no changes to prior results. Stage budget may be extended after network interruption per user instruction."
+}

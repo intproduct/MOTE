@@ -1,0 +1,17 @@
+{
+  "authorization": "User requested continuous work for approximately five to six hours and a staged review afterwards.",
+  "started_local": "2026-10-30T03:23:00+08:00",
+  "target_review_local": "2026-10-30T09:00:00+08:00",
+  "report_reserve_local": "2026-10-30T08:20:00+08:00",
+  "latest_delivery_local": "2026-10-30T09:20:00+08:00",
+  "automation_id": "mote",
+  "rounds": [
+    {"id": "A", "budget_minutes": 55, "question": "Does the static hypercube assignment match actual near-boundary swaps and observed perturbations?", "deliverables": ["boundary and functional-distance diagnostics", "larger disjoint train/internal-dev/validation cache", "analytic utility and exact replacement checks"]},
+    {"id": "B", "budget_minutes": 95, "question": "Can low-cost input-only models predict conditional expert utility rather than label-aware oracle choices?", "deliverables": ["matched classical and quantum predictors across three seeds", "train-only development selection", "held-out prediction and replacement-regret measurements"]},
+    {"id": "C", "budget_minutes": 90, "question": "Can the learned information improve deployed routing under matched information and parameter budgets?", "deliverables": ["controlled residual or replacement routing confirmation if internal-dev signal supports it", "product-state and random-geometry controls", "all preserved failures and negative decisions"]},
+    {"id": "D", "budget_minutes": 50, "question": "Are effects reproducible, material and affordable within the measurement scope?", "deliverables": ["saved-checkpoint replay", "per-seed paired statistics", "rare-event uncertainty", "plots and Chinese Markdown/Typst/PDF stage report"]},
+    {"id": "reserve", "budget_minutes": 40, "question": "Repair or investigate concrete anomalies without mixing protocols.", "deliverables": ["documented revisions or remaining limitations"]}
+  ],
+  "constraints": ["No modification of frozen round-one sources/configs/results", "One GPU experiment at a time and 35% allocator limit", "Do not terminate other users' processes", "No subagents", "No tuning to previously observed validation; development split must use train tokens", "Test samples are reserved", "Do not claim quantum advantage from geometry correlations or rare zero-event counts", "Preserve runs and checkpoint states; no implicit resume", "Bound later rounds by deadline and reserve audit time"],
+  "decision_policy": "A negative candidate is retained as a result. If input-only utility learning cannot improve held-out internal-dev route quality, diagnose the information target and do not scale that candidate. Use remaining time for mechanistic tests, strong classical controls, uncertainty and documentation. Do not idle merely because a candidate fails, or run repetitions merely to consume the budget."
+}

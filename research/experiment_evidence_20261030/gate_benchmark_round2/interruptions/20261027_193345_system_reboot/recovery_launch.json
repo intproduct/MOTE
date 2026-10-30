@@ -1,0 +1,9 @@
+{
+  "pid": 3616,
+  "started": "2026-10-27T19:47:36.4053847+08:00",
+  "max_workers": 3,
+  "stdout": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\logs\\formal_pipeline_recovery_20261027_194736.log",
+  "stderr": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\logs\\formal_pipeline_recovery_20261027_194736.err",
+  "original_pipeline_log": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\logs\\formal_pipeline.log",
+  "incident": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\incident.json"
+}

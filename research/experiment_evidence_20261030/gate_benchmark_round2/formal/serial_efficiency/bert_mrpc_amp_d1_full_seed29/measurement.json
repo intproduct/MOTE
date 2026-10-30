@@ -1,0 +1,29 @@
+{
+  "stage": "bert",
+  "task": "mrpc",
+  "gate": "amp_d1_full",
+  "seed": 29,
+  "source_checkpoint_step": 600,
+  "warmup_steps": 3,
+  "measured_steps": 10,
+  "final_reevaluation_matches": true,
+  "routing_reevaluation_matches": true,
+  "training_seconds": 6.956537899994146,
+  "seconds_per_step": 0.6956537899994146,
+  "step_time_sample_std": 0.025440303922372783,
+  "examples_per_second": 22.999946568268484,
+  "peak_cuda_mib": 514.30029296875,
+  "step_seconds": [
+    0.6967146999995748,
+    0.714360800000577,
+    0.6938986999994086,
+    0.658021799998096,
+    0.6633919999985665,
+    0.6892555999984324,
+    0.6855467999994289,
+    0.7169261999988521,
+    0.6936344999994617,
+    0.7447868000017479
+  ],
+  "protocol": "serial selected-checkpoint continuation with fresh AdamW; includes data fetch, transfer, forward/backward, clipping and optimizer; 3 warmup + 10 measured; weights discarded"
+}

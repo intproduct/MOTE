@@ -1,0 +1,682 @@
+{
+  "passed": true,
+  "records": 96,
+  "toy_identity_and_gauge_checks": true,
+  "checks": [
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "initial",
+      "gram_abs_error": 6.505213034913027e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "coefficient",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "output",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "fisher",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "initial",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "coefficient",
+      "gram_abs_error": 4.0657581468206416e-20
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "output",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "fisher",
+      "gram_abs_error": 2.710505431213761e-20
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "initial",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "coefficient",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "output",
+      "gram_abs_error": 6.505213034913027e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "fisher",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "initial",
+      "gram_abs_error": 1.3877787807814457e-17
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "coefficient",
+      "gram_abs_error": 1.3010426069826053e-18
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "output",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "fisher",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "initial",
+      "gram_abs_error": 3.2526065174565133e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "coefficient",
+      "gram_abs_error": 2.710505431213761e-20
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "output",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "fisher",
+      "gram_abs_error": 2.710505431213761e-20
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "initial",
+      "gram_abs_error": 2.710505431213761e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "coefficient",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "output",
+      "gram_abs_error": 2.710505431213761e-20
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "fisher",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "initial",
+      "gram_abs_error": 3.469446951953614e-18
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "coefficient",
+      "gram_abs_error": 3.2526065174565133e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "output",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "fisher",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "initial",
+      "gram_abs_error": 1.734723475976807e-17
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "coefficient",
+      "gram_abs_error": 1.734723475976807e-18
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "output",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "fisher",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "initial",
+      "gram_abs_error": 2.0328790734103208e-20
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "coefficient",
+      "gram_abs_error": 6.505213034913027e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "output",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "fisher",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "initial",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "coefficient",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "output",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "fisher",
+      "gram_abs_error": 4.0657581468206416e-20
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "initial",
+      "gram_abs_error": 3.469446951953614e-18
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "coefficient",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "output",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "fisher",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "initial",
+      "gram_abs_error": 1.3877787807814457e-17
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "coefficient",
+      "gram_abs_error": 3.469446951953614e-18
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "output",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "fisher",
+      "gram_abs_error": 1.734723475976807e-18
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "initial",
+      "gram_abs_error": 2.710505431213761e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "coefficient",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "output",
+      "gram_abs_error": 1.3552527156068805e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "fisher",
+      "gram_abs_error": 1.3552527156068805e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "initial",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "coefficient",
+      "gram_abs_error": 1.3552527156068805e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "output",
+      "gram_abs_error": 4.0657581468206416e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "fisher",
+      "gram_abs_error": 4.0657581468206416e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "initial",
+      "gram_abs_error": 1.734723475976807e-18
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "coefficient",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "output",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "fisher",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "initial",
+      "gram_abs_error": 3.469446951953614e-18
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "coefficient",
+      "gram_abs_error": 1.734723475976807e-18
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "output",
+      "gram_abs_error": 5.204170427930421e-18
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "fisher",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "initial",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "coefficient",
+      "gram_abs_error": 8.131516293641283e-20
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "output",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "mlp",
+      "objective": "fisher",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "initial",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "coefficient",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "output",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "affine_born",
+      "objective": "fisher",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "initial",
+      "gram_abs_error": 1.3877787807814457e-17
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "coefficient",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "output",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_cz",
+      "objective": "fisher",
+      "gram_abs_error": 1.3010426069826053e-18
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "initial",
+      "gram_abs_error": 3.469446951953614e-17
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "coefficient",
+      "gram_abs_error": 2.6020852139652106e-18
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "output",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "method": "reencode_product",
+      "objective": "fisher",
+      "gram_abs_error": 1.3010426069826053e-18
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "initial",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "coefficient",
+      "gram_abs_error": 2.168404344971009e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "output",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "mlp",
+      "objective": "fisher",
+      "gram_abs_error": 1.0842021724855044e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "initial",
+      "gram_abs_error": 6.505213034913027e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "coefficient",
+      "gram_abs_error": 5.421010862427522e-20
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "output",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "affine_born",
+      "objective": "fisher",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "initial",
+      "gram_abs_error": 6.938893903907228e-18
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "coefficient",
+      "gram_abs_error": 8.673617379884035e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "output",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_cz",
+      "objective": "fisher",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "initial",
+      "gram_abs_error": 1.3877787807814457e-17
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "coefficient",
+      "gram_abs_error": 4.336808689942018e-19
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "output",
+      "gram_abs_error": 1.734723475976807e-18
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "method": "reencode_product",
+      "objective": "fisher",
+      "gram_abs_error": 3.469446951953614e-18
+    }
+  ],
+  "completed": "2026-10-30T12:38:21.854418+08:00",
+  "script_sha256": "7abaf1af997a7d449c7bfe05437b3a38f0a43748ae8c91b78e1989a2d82193cf",
+  "plan_sha256": "154a967881c976d2d0bc7d0bf6f042258aecd24cedea88e50bca0d3e210d221d"
+}

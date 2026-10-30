@@ -1,0 +1,124 @@
+{
+  "state": "complete",
+  "completed_at": "2026-10-28T19:44:53.987018+08:00",
+  "passed": true,
+  "base_git_commit": "c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd",
+  "branch": "mote-quantum",
+  "new_autoregressive_code_committed": false,
+  "group": "formal/9b3af7494afc",
+  "config_hash": "9b3af7494afc69a26867471ab8a0c5a929deea9b76eb96c5729aacb304c109a4",
+  "training_complete": 18,
+  "checkpoint_reevaluated": 18,
+  "serial_benchmarks": 18,
+  "generation_samples": 54,
+  "checkpoint_files_checked_on_cpu": 36,
+  "pilot_complete": {
+    "batch8": "6/6",
+    "batch32": "6/6"
+  },
+  "tests_passed": 177,
+  "training_steps_per_run": 4000,
+  "training_tokens_per_run": 16384000,
+  "validation_reload_max_ce_abs_error": 0.0,
+  "frozen_sources_unchanged": true,
+  "raw_measurements_unchanged": true,
+  "shared_init_expert_positions_batch_order_consistent": true,
+  "independent_aggregate_and_pairs_recomputed": true,
+  "report_reviewed": true,
+  "figures_reviewed": [
+    {
+      "file": "figures/learning_steps.png",
+      "sha256": "bd1c93f9d556baa1bff35115b3f077949f22e2b0991ce0059f797950d265e9de",
+      "passed": true,
+      "visual_inspection": "完整轨迹与后期放大面板均已逐张查看；步数/CE坐标、实测点、样本SD及图例可读。"
+    },
+    {
+      "file": "figures/learning_time.png",
+      "sha256": "a596fee61fd4b5cfc6c0f2ad1cd819ec90c74077383e13803ee3e61c0b1e37f9",
+      "passed": true,
+      "visual_inspection": "完整与放大面板已查看；注明同一步的种子平均时间，不伪称固定秒数重评估；训练耗时排除验证保存。"
+    },
+    {
+      "file": "figures/parameter_efficiency.png",
+      "sha256": "f52762bf0c90fa7eef466a9d493d77e7207f7e192bd4fd4dc026cf68b135d449",
+      "passed": true,
+      "visual_inspection": "实际路由参数横轴，测试PPL及样本SD纵轴；full/half标签分列，未断轴。"
+    },
+    {
+      "file": "figures/serial_efficiency.png",
+      "sha256": "069deb6e143546d630aa6d6f7025fb6f0ce7b0668ba3b2f22b5e480606f1f4cd",
+      "passed": true,
+      "visual_inspection": "串行端到端训练计时，5预热+20测量；单位及误差条可读，未解释为推理速度。"
+    },
+    {
+      "file": "figures/paired_differences.png",
+      "sha256": "d3a90f09de517dec88ac39772dc1e8c35f6321d3caa149cbc267c9098be449b5",
+      "passed": true,
+      "visual_inspection": "同种子配对CE差及未校正95% t区间；全部区间跨零，未据小均值差宣称显著优势。"
+    }
+  ],
+  "csv_rows": {
+    "runs.csv": 18,
+    "aggregate.csv": 6,
+    "paired_deltas.csv": 30,
+    "paired_summary.csv": 10,
+    "curves.csv": 1620,
+    "routing.csv": 72,
+    "sample_variances.csv": 6,
+    "validation_thresholds.csv": 18
+  },
+  "missing": [],
+  "failed": [],
+  "unfinished": [],
+  "unresolved_execution_errors": [],
+  "delivery_helper_corrections": [
+    "Initial CSV row assertion expected six aggregate threshold rows; file correctly contains eighteen per-run rows. Expected count corrected without changing CSV or training artifacts."
+  ],
+  "research_limitations": [
+    "Three seeds, one small English corpus, small model and context128.",
+    "All best checkpoints at step4000; not fully converged capacity comparison.",
+    "BPE-token PPL is not word-level PPL; generated samples are repetitive.",
+    "No isolated entanglement/chi ablation or quantum hardware advantage test.",
+    "Short serial training benchmark on a Windows desktop GPU; no inference/profiler claim.",
+    "Router parameter reduction is a much smaller total-model reduction.",
+    "last.pt lacks optimizer/RNG; cannot claim seamless resume."
+  ],
+  "pipeline_started": "2026-10-28T12:45:28.902710+08:00",
+  "pipeline_finished": "2026-10-28T19:27:08.577015+08:00",
+  "artifacts_sha256": {
+    "runs.csv": "818a3d2637bfe8d53b3a8e7fb34cb2f006fdecd7cea1b473b77be2c7cbced1a0",
+    "aggregate.csv": "d57a0795cee742d78153267a550d2767a4776c11f3759f858feb1fb452fa29fe",
+    "paired_deltas.csv": "1bbb2adfc55460c71022fa2d1d2a159910794cd60d4afc05f04ed95bcac8a61a",
+    "paired_summary.csv": "5322a23a2fa3b4daf925f00b9e366f33fc5c04aec91841710af3f58d4e397ae8",
+    "curves.csv": "83f184ebdc36e4fc688890113b294d20d3d44dcbe07909605d4b1663e24dc905",
+    "routing.csv": "2bdf760848d41d83316219441a9ad3f7a71a989a5edfe5dff2d601bad95960da",
+    "sample_variances.csv": "72a44995e89f56d5134e78cbd0c23e78bc096b210e4886a0f0b04cfe721ee230",
+    "validation_thresholds.csv": "aedb9c1a286c3a75a70374d9264d70400917ebe7bdb080736262830cd1705a71",
+    "raw_summary.json": "8afdb16c10d647d84f4b92cbc82ad04bcc9a5daa6bfa5e445a2fc48da31610c3",
+    "generation_samples.json": "fc1689c672af9de06c1d2d8fb776bd482b36747fd0325e9f488b2c014831fcf4",
+    "REPORT_zh.md": "4c8eed9be3d8493a5fbc1b7d84a1d7b827819742907ceb5136bffae9983f1f52",
+    "REVIEW_METRICS.json": "cd2e9f0008f9893e38f9fdf62050cb558f89b57c9143783ffaefc86e202d4967",
+    "REVIEW_AUDIT.json": "30c0534188f68281ec032ad6adb41d0c525d9640a36dcfe175d0c707d8291138",
+    "VISUAL_REVIEW.json": "906e95533f75744c8cad7424ffb142bbf5046b9f0bb2cc482cd1bfec5b845893",
+    "DELIVERY_CHECK.json": "1f2afd1091df6df05c4ba2f0b9027f6fe377677fb25be5be0083fd4b7bb9f68e",
+    "VERIFICATION.json": "1be897edd9e50cdcf7f5e85468205e27e1bf7ff5b931f9bd5ba197706eeb7e46",
+    "dependencies.txt": "b892c0da08226ab46a877c88b7910ec55e138c4c495a7596949f01973b3a6191",
+    "final_review.py": "017ecca581495deeae18cabb06c46a6c5cb6f054b3d406a5fbf3bb6e3b413e9b",
+    "write_reviewed_report.py": "bc82847b0fbd7fd4a6fd3830c2a78172398be38723b2cac85cd79be01be0c034",
+    "complete_review.py": "eb92b03966238b609a552dd5ad67d2c1f8cec10fa00790da4fb4a1800e9e16c3",
+    "formal/9b3af7494afc/audit.json": "c164870e41a1512bf67782949174382339c53f2fd1e9a85da62a344345da560b",
+    "formal/9b3af7494afc/config.json": "20d3f55663b0497e0ce0e5333480ebfe79c3026060296bca52e1a85bc6cde86d",
+    "formal/9b3af7494afc/frozen_sources.json": "c5a037a813fd421d57783fbe9b230211710b33ba986d0c098775ef8976b37031",
+    "formal/9b3af7494afc/missing_failed_unfinished.json": "ac018e160c6a1378d5baf9cb1be138e9aa74da72b75e241c12c56dee08237770",
+    "review_history/reviewed/analysis.py": "c56dd4c04f4f3bc385896d8c1b2563f84de7ba4b5326e604ee877198301e18e3",
+    "AUTOMATION.json": "a1da80ea219f3e01416813a7a34aa21fb3b09a7580efc2b268dc2802ecd96b3f",
+    "SESSION_STATE.md": "9e39885be0d08ae89901ff2a7777a0c5d108c2a55a257458ff84b3fcfe7c0764",
+    "STATUS.json": "d68a8095ae07affd9cdb7b0408b6258823e931e9d8927b864d25eb5c88785115",
+    "ACTIVE_PROCESS.json": "d68a8095ae07affd9cdb7b0408b6258823e931e9d8927b864d25eb5c88785115"
+  },
+  "automation": {
+    "id": "mote",
+    "state": "deleted",
+    "confirmed_at": "2026-10-28T19:45:27.835752+08:00"
+  }
+}

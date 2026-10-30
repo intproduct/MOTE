@@ -1,0 +1,31 @@
+[
+  {
+    "path": "D:\\files\\MOTE\\research\\operator_family_quantum_gate_20261030\\STAGE_REVIEW_20261030_zh.pdf",
+    "sha256": "31d4c077f90f2414de94ea8e636502a5e5b8dbf83f3704cf35ddb4e72065e835",
+    "pages": 5,
+    "fonts": {
+      "QRBMMT+TimesNewRomanPS-BoldMT": 30,
+      "JJGDRN+KaiTi": 2975,
+      "VGCMDX+TimesNewRomanPSMT": 698,
+      "GEHJDX+NewCMMath-Book": 35
+    },
+    "chinese_font_check": true,
+    "latin_font_check": true,
+    "within_page_bounds": true,
+    "visual_review": "All pages and three plotted figures inspected at1600px; no clipping or overlap."
+  },
+  {
+    "path": "D:\\files\\MOTE\\research\\operator_family_quantum_gate_20261030\\STAGE_SUPPLEMENT_20261030_zh.pdf",
+    "sha256": "6b447ff40ed0acabd0fa8ab8e789ba0dc57fc0f7e8cf75c034caf03c0ddd21bd",
+    "pages": 6,
+    "fonts": {
+      "DILQDV+KaiTi": 1675,
+      "LOYSDY+TimesNewRomanPSMT": 3614,
+      "KUSPJF+TimesNewRomanPS-BoldMT": 317
+    },
+    "chinese_font_check": true,
+    "latin_font_check": true,
+    "within_page_bounds": true,
+    "visual_review": "All pages and three plotted figures inspected at1600px; no clipping or overlap."
+  }
+]

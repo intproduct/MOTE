@@ -1,0 +1,11 @@
+[
+  {
+    "seed": 17,
+    "checks": [
+      {
+        "fisher_direct_relative_error": 3.8525081287153546e-07
+      }
+    ],
+    "sha256": "fa470fe0c83e90a8363174d8e14494819c75a62c7f6ec0240ef2c877d80811b8"
+  }
+]

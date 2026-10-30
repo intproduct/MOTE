@@ -1,0 +1,16 @@
+{
+  "source_group": "D:\\files\\MOTE\\outputs\\operator_geometry_round1\\router_pilot\\da5325087d6b",
+  "methods": [
+    "angle_natural",
+    "angle_random",
+    "angle_functional",
+    "product_functional"
+  ],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "device": "cpu",
+  "scope": "post-hoc mechanism diagnostics, not new candidate selection"
+}

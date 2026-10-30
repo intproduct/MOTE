@@ -1,0 +1,32 @@
+{
+  "name": "function_geometry_diagnostic_v1",
+  "stage": "smoke",
+  "source_config": "experiments/routing_stability/configs/titan_v.json",
+  "source_group": "outputs/routing_stability_round1/formal/756b04397b2d",
+  "data_root": "outputs/autoregressive_gate/data",
+  "variants": [
+    "mlp_half"
+  ],
+  "seeds": [
+    17
+  ],
+  "module": "blocks.1.down",
+  "splits": [
+    "train",
+    "validation"
+  ],
+  "windows_per_split": 2,
+  "positions": [
+    31,
+    127
+  ],
+  "context": 128,
+  "window_batch": 2,
+  "intervention_batch": 256,
+  "sampling_seed": 20261030,
+  "device": "cuda",
+  "memory_fraction": 0.35,
+  "bootstrap_repeats": 1000,
+  "identity_atol": 5e-05,
+  "protocol": "All 4x12 single substitutions in final down module; selected mass held fixed; earlier routes and all weights frozen. Train-only global geometry; held-out validation check. No test split access."
+}

@@ -1,0 +1,119 @@
+{
+  "method": "exp_adapter",
+  "seed": 17,
+  "steps": 4000,
+  "selected_step": 400,
+  "parameters": 10365,
+  "parameter_changed": true,
+  "threshold": 0.1,
+  "threshold_calibration_dev": [
+    {
+      "threshold": 0.0,
+      "delta_ce": 0.0825081467628479,
+      "changed": 4096
+    },
+    {
+      "threshold": 0.01,
+      "delta_ce": 0.052944742143154144,
+      "changed": 1430
+    },
+    {
+      "threshold": 0.02,
+      "delta_ce": 0.024106014519929886,
+      "changed": 462
+    },
+    {
+      "threshold": 0.05,
+      "delta_ce": 0.0011191428638994694,
+      "changed": 21
+    },
+    {
+      "threshold": 0.1,
+      "delta_ce": -0.00034171153674833477,
+      "changed": 5
+    },
+    {
+      "threshold": 0.2,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 0.5,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 1.0,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 2.0,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": null,
+      "delta_ce": 0.0,
+      "changed": 0
+    }
+  ],
+  "splits": {
+    "dev": {
+      "prediction": {
+        "mse": 0.12413139641284943,
+        "constant_mse": 0.12400799989700317,
+        "r2_vs_train_mean": -0.0009950689951352398,
+        "within_token_expert_rho": 0.0008487477022058819
+      },
+      "action": {
+        "tokens": 4096,
+        "threshold": 0.1,
+        "changed": 5,
+        "mean_delta_ce": -0.00034171153674833477,
+        "delta_ce_ci95_windows": [
+          -0.0010418478632345796,
+          0.00022547456392203437
+        ],
+        "regret_to_label_oracle": 0.27751338481903076,
+        "label_oracle_mean_delta_ce": -0.27785512804985046,
+        "harm_gt_01": 2,
+        "benefit_lt_minus_01": 3,
+        "predicted_vs_actual_selected_candidate_rho": -0.10143295228316228
+      }
+    },
+    "validation": {
+      "prediction": {
+        "mse": 0.12932568788528442,
+        "constant_mse": 0.12921802699565887,
+        "r2_vs_train_mean": -0.0008331723686600956,
+        "within_token_expert_rho": -0.0019599008550827504
+      },
+      "action": {
+        "tokens": 4096,
+        "threshold": 0.1,
+        "changed": 1,
+        "mean_delta_ce": 3.160117194056511e-05,
+        "delta_ce_ci95_windows": [
+          0.0,
+          9.480351582169533e-05
+        ],
+        "regret_to_label_oracle": 0.2846229672431946,
+        "label_oracle_mean_delta_ce": -0.2845913767814636,
+        "harm_gt_01": 1,
+        "benefit_lt_minus_01": 0,
+        "predicted_vs_actual_selected_candidate_rho": -0.0889314347159749
+      }
+    }
+  },
+  "seconds_shared_gpu": 169.0694072000042,
+  "files": {
+    "best_dev.pt": "83a9d2dd60166d63d7b3e4783899f243e8c14f40d3c189109cb62d7a1d1658f7",
+    "curves.jsonl": "02143ee6a09b8942b2e9c70a536de87673580ea6d810232e6bd3ac10201f5ee7",
+    "dev_predictions.npz": "53c9c6027aca3763b41b88ae08f73dc3f4233bfa8a2460303ae7241d96d0a54f",
+    "last.pt": "803cf0b6e4b197a1227b3d5e4fc96fae7225ce6e0f6a0073a1afc87d5a017c04",
+    "manifest.json": "5ca154a42ddd9d25bea9aa4221e376a6b1dfe3c0c6a4e13c57ef840e2dc127a4",
+    "sample_indices.npy": "ff3cdd2a06d68f39a511798c404d6f288360bdf32130943b817db438116e6e63",
+    "validation_predictions.npz": "545f93b6b6a3da0b6e3011ea4046b2d834f376d7e34fea0e389faa0405d85f6b"
+  }
+}

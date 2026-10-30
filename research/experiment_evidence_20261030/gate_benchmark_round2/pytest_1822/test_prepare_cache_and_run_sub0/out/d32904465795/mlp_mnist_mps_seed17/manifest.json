@@ -1,0 +1,244 @@
+{
+  "config": {
+    "cache_dir": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\pytest_1822\\test_prepare_cache_and_run_sub0\\cache",
+    "output_dir": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\pytest_1822\\test_prepare_cache_and_run_sub0\\out",
+    "device": "cpu",
+    "precision": "fp32",
+    "seeds": [
+      17
+    ],
+    "gates": [
+      "mlp",
+      "compact_born",
+      "mps"
+    ],
+    "data_seed": 20261027,
+    "deterministic": true,
+    "experts": 4,
+    "topk": 2,
+    "k_in": 2,
+    "drop_tokens": false,
+    "aux_coeff": 0.01,
+    "temperature": 1.0,
+    "norm": "layernorm",
+    "budget": "matched",
+    "rank": 4,
+    "sites": 4,
+    "bond_dim": 3,
+    "depth": 2,
+    "quantum_entangle": true,
+    "learnable_gain": true,
+    "output_init_std": 0.001,
+    "bert_model": "google/bert_uncased_L-4_H-256_A-4",
+    "bert_revision": "main",
+    "bert_layers": 2,
+    "max_length": 128,
+    "train_limit": 10000,
+    "dev_limit": 1000,
+    "test_limit": 2000,
+    "dev_fraction": 0.15,
+    "eval_every": 1,
+    "log_every": 1,
+    "mlp": {
+      "tasks": [
+        "mnist"
+      ],
+      "width": 16,
+      "layers": 2,
+      "expansion": 2,
+      "batch_size": 4,
+      "steps": 2,
+      "lr": 0.001,
+      "weight_decay": 0.01,
+      "warm_init_steps": 0
+    },
+    "bert": {
+      "tasks": [],
+      "batch_size": 4,
+      "steps": 2,
+      "lr": 0.0001,
+      "weight_decay": 0.01,
+      "warm_init_steps": 0
+    }
+  },
+  "stage": "mlp",
+  "task": "mnist",
+  "gate": "mps",
+  "seed": 17,
+  "shared_state_sha256": "f2558d39831ee11d13b3113e09128559d9837fb8d2424e3bcc3229a51a410f64",
+  "data": {
+    "task": "mnist",
+    "repo": "ylecun/mnist",
+    "revision": "fake-revision",
+    "data_key": "81d9d986c6a6333d",
+    "final_source_split": "test",
+    "classes": 2,
+    "input_dim": 32,
+    "indices": {
+      "train": [
+        8,
+        11,
+        24,
+        5,
+        25,
+        14,
+        9,
+        18,
+        3,
+        16,
+        15,
+        29,
+        1,
+        26,
+        0,
+        2,
+        4,
+        21,
+        6,
+        10,
+        22,
+        17,
+        27,
+        12,
+        13,
+        7
+      ],
+      "dev": [
+        20,
+        19,
+        23,
+        28
+      ],
+      "test": [
+        8,
+        10,
+        2,
+        9,
+        1,
+        4,
+        5,
+        7,
+        3,
+        11,
+        6,
+        0
+      ]
+    },
+    "indices_sha256": "9fbbe33f988ef832fd7467224af9858536dd2838a820a96c60dba0228369a6e9",
+    "fingerprints": {
+      "train": "26",
+      "dev": "4",
+      "test": "12"
+    },
+    "sizes": {
+      "train": 26,
+      "dev": 4,
+      "test": 12
+    },
+    "tensor_file_sha256": "54874c6f2d1144d48e9efca91dcc7a761d36d77c33714485d6666bb56bff678e",
+    "pretrained_model": null
+  },
+  "parameters": {
+    "total": 2402,
+    "router_total": 784,
+    "routers": {
+      "blocks.0.up": 148,
+      "blocks.0.down": 244,
+      "blocks.1.up": 148,
+      "blocks.1.down": 244
+    },
+    "positions": {
+      "blocks.0.up": [
+        [
+          1,
+          2
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "blocks.0.down": [
+        [
+          1,
+          4
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      "blocks.1.up": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "blocks.1.down": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          1,
+          3
+        ]
+      ]
+    }
+  },
+  "warm_initialization": {},
+  "environment": {
+    "source_sha256": {
+      "gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+      "structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+      "advanced_routers.py": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+      "experiments/gate_benchmark/models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+      "experiments/gate_benchmark/runner.py": "ccdcce13b0140297b42d25074d136e1b7715f209015b87f52108c1eff969daaf",
+      "experiments/gate_benchmark/config.py": "69902d730ce40505ee22c79df55cf852a8f1e034238596b5ab5bd4a42cdaef68"
+    },
+    "python": "3.11.18",
+    "torch": "2.6.0+cu118",
+    "transformers": "4.57.6",
+    "datasets": "3.6.0",
+    "cuda_runtime": "11.8",
+    "git_commit": "807366cb8afc58b1fc37086f998ae791e8bb16a6",
+    "git_tracked_dirty": true,
+    "gpu": "NVIDIA TITAN V"
+  }
+}

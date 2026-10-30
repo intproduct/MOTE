@@ -1,0 +1,18 @@
+{
+  "data_group": "outputs/operator_geometry_round2/smoke/data/d3534f3146be",
+  "energy_group": "outputs/operator_geometry_round2/energy/centered_smoke_v1",
+  "geometry_group": "outputs/operator_geometry_round2/geometry/smoke_input_geometry_v1",
+  "seeds": [
+    17
+  ],
+  "geometry_ranks": [
+    8,
+    16,
+    32
+  ],
+  "batch": 64,
+  "device": "cpu",
+  "wait_for_utility": false,
+  "latest_start": "2026-10-30T06:45:00+08:00",
+  "scope": "Predeclared label-free risk diagnostics, 4096 internal-dev and4096 validation tokens per seed, all48 fixed-mass substitutions. Compare energy/compatibility and classical/quantum-state geometries on identical information. No checkpoint or hyperparameter selection from these metrics."
+}

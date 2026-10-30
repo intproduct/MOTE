@@ -1,0 +1,18 @@
+{
+  "machine": "v100_pair",
+  "status": "compatibility_then_independent_0.6B_fp16_replication",
+  "training_cli_ready": false,
+  "common_protocol": "../COMMON_PROTOCOL.json",
+  "hardware": "Owned 2 x V100 16GB SXM2; inspect physical/NVLink topology",
+  "model": "Qwen/Qwen3-0.6B-Base",
+  "output_prefix": "outputs/qwen_joint/v100_pair",
+  "precision_cohort": "fp16_gradscaler_experts_fp32_router",
+  "initial_microbatch_sequences": 1,
+  "sequence_length": 1024,
+  "execution": "Prefer independent single-GPU workers; each performs a complete common method matrix for its assigned seed. Do not assume DDP merges VRAM.",
+  "seed_assignment": {"worker_gpu0": [17, 43], "worker_gpu1": [29]},
+  "owns": ["Volta runtime checks", "FP16 numerical checks", "independent replicas from shared frozen integration release"],
+  "dependency": "Shared integration/data release produced by pro4000; existing CPU tests and hardware probe can run immediately",
+  "oom_policy": "Keep originals; measure checkpointing/chunked loss. If sequence length must change, create a new entire cohort; FSDP is a separate accepted profile, not an implicit fallback.",
+  "pool_with_bf16": false
+}

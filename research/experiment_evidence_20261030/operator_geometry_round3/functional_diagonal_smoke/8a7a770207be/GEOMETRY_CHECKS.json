@@ -1,0 +1,17 @@
+[
+  {
+    "seed": 17,
+    "source": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional\\50b8c7704256\\geometry_s17.pt",
+    "sha256": "10b828c72ddd5aecf60be6288e2965ac376975cfeb6702157cf9a8af48b4db4e",
+    "checks": {
+      "output": {
+        "same_trace_normalizer": 0.025487706065177917,
+        "off_diagonal_zero": true
+      },
+      "fisher": {
+        "same_trace_normalizer": 0.07545658200979233,
+        "off_diagonal_zero": true
+      }
+    }
+  }
+]

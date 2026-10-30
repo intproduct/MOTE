@@ -1,0 +1,9 @@
+{
+  "original_group_preserved": "outputs/operator_geometry_round3/replay/0f6a8f7407c8",
+  "original_status": "failed at strict original-gate identity check before any model replay completed",
+  "cause": "v1 selected original-gate top4 from softmax probabilities, whereas actual TopKGate selects logits before softmax. In seed17 internal-dev row3462, unequal logits differing by4.768e-7 round to identical FP32 probabilities. Probability topk selects expert7 in place of expert8.",
+  "diagnosis": "diagnostics/selector_v1/summary.json: cached and regenerated logits identical across all6splits, zero native-logit selector changes. Batch1 actual original gate retains original experts. Thus this observed v1 failure is an evaluation selector protocol error, not observed original-model train/inference mismatch.",
+  "repair": "Independent round3_replay_v2.py and round3_replay_v2.json. Originalgate topk uses raw logits; probability-output candidate topk uses its native probability. Compute indices on inference device, carry unchanged through calibration and CPU storage. Preserve allv1source/config/results/logs. No training changes.",
+  "checks": "GPU smoke with complete4096position dev/validation splits, original+MLP+reencodingCZ,10qualityrows,20roundtrip records and fullmodel shortcut probes passed. Regression test fixes supplied pre-softmax indices under tied probabilities and calibration. Three stage3 mathematical/selector tests passed in0.45s.",
+  "reporting": "Report this protocol failure and corrected baseline explicitly. Monotonic transforms preserve exact rankings mathematically but can create ties in finite precision. Do not count the v1 event as evidence of QuantumGate superiority."
+}

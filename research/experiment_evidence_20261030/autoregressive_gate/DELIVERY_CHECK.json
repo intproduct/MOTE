@@ -1,0 +1,21 @@
+{
+  "training_complete": 18,
+  "checkpoint_reevaluated": 18,
+  "serial_benchmarks": 18,
+  "expected": 18,
+  "figures": [
+    "learning_steps.png",
+    "learning_time.png",
+    "paired_differences.png",
+    "parameter_efficiency.png",
+    "serial_efficiency.png"
+  ],
+  "human_review_pending": false,
+  "created": "2026-10-28T19:27:07.557241+08:00",
+  "review_completed_at": "2026-10-28T19:44:53.987018+08:00",
+  "reviewer": "Codex agent (no separate human approval claimed)",
+  "report_and_figures_reviewed": true,
+  "missing": [],
+  "failed": [],
+  "unfinished": []
+}

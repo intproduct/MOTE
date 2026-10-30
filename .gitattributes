@@ -1,3 +1,8 @@
 *.pdf binary
 # Preserve forensic copies byte-for-byte, including their original whitespace.
 research/workspace_reconciliation_20261029/archived_helpers/** -text -whitespace
+# Published measurement bytes and frozen research reports retain their SHA-256.
+research/experiment_evidence_20261030/** -text -whitespace
+research/operator_family_quantum_gate_20261030/** -text -whitespace
+research/operator_geometry_runtime_snapshot_20261030/** -text -whitespace
+experiments/operator_geometry/** -text -whitespace

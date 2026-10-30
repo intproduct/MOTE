@@ -1,0 +1,314 @@
+{
+  "passed": true,
+  "models_verified": 18,
+  "split_replays": 36,
+  "checks": [
+    {
+      "family": "ridge",
+      "seed": 17,
+      "rank": 4,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.214306433183765e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.1275702593849246e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 17,
+      "rank": 8,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 3.122502256758253e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 3.2959746043559335e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 17,
+      "rank": 16,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 4.119968255444917e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 3.9898639947466563e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 17,
+      "rank": 8,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 5.773159728050814e-15,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 5.10702591327572e-15,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 17,
+      "rank": 16,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.099120794378905e-14,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 9.325873406851315e-15,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 17,
+      "rank": 32,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.1546319456101628e-14,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.3322676295501878e-14,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 29,
+      "rank": 4,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 6.938893903907228e-18,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 8.673617379884035e-18,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 29,
+      "rank": 8,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.1492543028346347e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.3010426069826053e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 29,
+      "rank": 16,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 2.2985086056692694e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 2.688821387764051e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 29,
+      "rank": 8,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 5.551115123125783e-15,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 5.9396931817445875e-15,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 29,
+      "rank": 16,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.3322676295501878e-14,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.4654943925052066e-14,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 29,
+      "rank": 32,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.1102230246251565e-14,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 9.769962616701378e-15,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 43,
+      "rank": 4,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 5.551115123125783e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 6.245004513516506e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 43,
+      "rank": 8,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 2.0816681711721685e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 2.1250362580715887e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "ridge",
+      "seed": 43,
+      "rank": 16,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 4.163336342344337e-17,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 4.423544863740858e-17,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 43,
+      "rank": 8,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 7.993605777301127e-15,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 7.105427357601002e-15,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 43,
+      "rank": 16,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.1102230246251565e-14,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.0769163338864018e-14,
+          "selection_recomputed": true
+        }
+      }
+    },
+    {
+      "family": "geometry",
+      "seed": 43,
+      "rank": 32,
+      "replays": {
+        "dev": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.1546319456101628e-14,
+          "selection_recomputed": true
+        },
+        "validation": {
+          "tokens": 4096,
+          "factor_prediction_max_abs_error": 1.021405182655144e-14,
+          "selection_recomputed": true
+        }
+      }
+    }
+  ],
+  "scope": "All saved factors, data/result hashes, predictions, internal-dev regularizer selection, geometry targets, and calibrated utility actions checked on CPU."
+}

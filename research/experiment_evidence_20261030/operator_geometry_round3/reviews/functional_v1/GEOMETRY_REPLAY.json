@@ -1,0 +1,38 @@
+[
+  {
+    "seed": 17,
+    "metric": "output",
+    "independent_cpu_replay_relative_error": 2.4899147632595486e-08,
+    "minimum_sample_eigenvalue": -3.547030968050142e-10
+  },
+  {
+    "seed": 17,
+    "metric": "fisher",
+    "independent_cpu_replay_relative_error": 1.09640708956249e-07,
+    "minimum_sample_eigenvalue": -2.3810595794029107e-09
+  },
+  {
+    "seed": 29,
+    "metric": "output",
+    "independent_cpu_replay_relative_error": 8.280963470497227e-09,
+    "minimum_sample_eigenvalue": -3.4106131079884905e-11
+  },
+  {
+    "seed": 29,
+    "metric": "fisher",
+    "independent_cpu_replay_relative_error": 1.4220093191852357e-07,
+    "minimum_sample_eigenvalue": -3.194148676753255e-09
+  },
+  {
+    "seed": 43,
+    "metric": "output",
+    "independent_cpu_replay_relative_error": 1.0747296386171001e-08,
+    "minimum_sample_eigenvalue": -2.3374018852607316e-10
+  },
+  {
+    "seed": 43,
+    "metric": "fisher",
+    "independent_cpu_replay_relative_error": 1.1490764961763489e-07,
+    "minimum_sample_eigenvalue": -5.5370053421491885e-09
+  }
+]

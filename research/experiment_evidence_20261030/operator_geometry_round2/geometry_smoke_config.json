@@ -1,0 +1,24 @@
+{
+  "study_id": "smoke_input_geometry_v1",
+  "data_group": "outputs/operator_geometry_round2/smoke/data/d3534f3146be",
+  "seeds": [
+    17
+  ],
+  "ranks": [
+    8,
+    16,
+    32
+  ],
+  "sketch_dim": 8,
+  "sketch_seed": 20261032,
+  "ridge_grid": [
+    0.0001,
+    0.001,
+    0.01,
+    0.1,
+    1.0
+  ],
+  "deadline": "2026-10-30T07:00:00+08:00",
+  "selection": "Internal-dev sketch MSE per predeclared rank; anchor is training95th-percentile expert contrast norm; no selection between ray metrics on validation",
+  "scope": "Label-free expert contrast prediction from input only; shared eight-dimensional Gaussian output sketch; fidelity and anchored fidelity are mathematical state geometries with equal-information classical calculations; no deployed quantum-router performance claim"
+}

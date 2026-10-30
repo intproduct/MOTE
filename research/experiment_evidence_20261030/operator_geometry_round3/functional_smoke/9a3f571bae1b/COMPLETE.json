@@ -1,0 +1,12 @@
+{
+  "state": "ready_for_review",
+  "stage": "functional_metric_adaptation",
+  "pid": 31312,
+  "active": false,
+  "started": "2026-10-30T12:09:59.688984+08:00",
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional_smoke\\9a3f571bae1b",
+  "completed": 12,
+  "total": 12,
+  "current": null,
+  "finished": "2026-10-30T12:10:14.599302+08:00"
+}

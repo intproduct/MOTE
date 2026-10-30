@@ -1,0 +1,21 @@
+{
+  "created_local": "2026-10-30T14:42:45.906540+08:00",
+  "pdf": "PLAN_zh.pdf",
+  "sha256": "868631e81ae20e8ff13446153eff9c42da60693b829e295f895b2f152b8e7f46",
+  "pages": 2,
+  "reviewed_pages": [
+    1,
+    2
+  ],
+  "fonts": [
+    "KaiTi",
+    "TimesNewRomanPSMT",
+    "TimesNewRomanPS-BoldMT"
+  ],
+  "visual_review": "Both rendered pages inspected: headings and paragraphs readable, margins/page numbers intact, no overlap or clipped text. Script-appropriate KaiTi and Times New Roman embedded.",
+  "renderer": "Typst 0.11.1; pdftoppm 120 DPI",
+  "render_hashes": {
+    "page-1.png": "b2fd4fb215e1c7f356999f11453afe82953ce7326ca333a5597df0dd9f5b88bf",
+    "page-2.png": "ec3e5e9f60ea1ea8dd245279924f4b56f62c42f474605a697c45a89c4a344d66"
+  }
+}

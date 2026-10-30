@@ -1,0 +1,7 @@
+amp_skipped_steps,best_step,examples_per_second,experiment,final_accuracy,final_ce,final_score,gate,router_parameters,run_dir,seed,stage,task,total_parameters,training_seconds
+0,1,45.27201691447503,.,0.5,0.698281466960907,0.5,compact_born,756,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_offline_six_run_smoke_and0\runs\bert_compact_born,7,bert,synthetic,4998,0.17670959999668412
+0,1,101.90303926072261,.,0.5,0.6978880167007446,0.5,mlp,792,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_offline_six_run_smoke_and0\runs\bert_mlp,7,bert,synthetic,5034,0.07850599999801489
+0,1,78.78024545876347,.,0.5,0.6992897391319275,0.5,mps,784,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_offline_six_run_smoke_and0\runs\bert_mps,7,bert,synthetic,5026,0.10154830000101356
+0,1,49.14297719079657,.,0.5,0.8019225597381592,0.5,compact_born,756,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_offline_six_run_smoke_and0\runs\mlp_compact_born,7,mlp,synthetic,2374,0.16279030000441708
+0,1,136.07224077302325,.,0.5,0.8195505142211914,0.5,mlp,792,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_offline_six_run_smoke_and0\runs\mlp_mlp,7,mlp,synthetic,2410,0.05879229999118252
+0,1,96.6821116307869,.,0.5,0.813564658164978,0.5,mps,784,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_offline_six_run_smoke_and0\runs\mlp_mps,7,mlp,synthetic,2402,0.0827454000027501

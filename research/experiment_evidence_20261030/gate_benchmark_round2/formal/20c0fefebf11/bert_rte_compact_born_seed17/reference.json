@@ -1,0 +1,14 @@
+{
+  "kind": "audited_historical_control",
+  "source_run": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433\\bert_rte_compact_born_seed17",
+  "source_group": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433",
+  "reason": "same protocol; four repeated pilot trajectories exactly match",
+  "protocol_sha256": "7452d979cbc8ae0a7aaa9528b00bd1cf3ffa810e24ed9cc468e8722d149ae6b8",
+  "files_sha256": {
+    "manifest.json": "38083aea91929206525a3ab5320e1fe33a0ec3f4895e986e94f2784a59db6301",
+    "initial_dev.json": "722a83e110d914de03a716ece7bbe2eb2c98fae36e92878713a13364f39cf813",
+    "curves.jsonl": "b553afb4337471be412db2990ed311d12efd277b03e218438a74e967603783e7",
+    "best.pt": "fef5e0845584effa21369807b8fd6dddadc4149cdf7f09f5b868fb42f7b736ee",
+    "result.json": "a46a4d6fe29584317e43deab9867d0b48c689e7a1d6e5b679d84509b5af24a1f"
+  }
+}

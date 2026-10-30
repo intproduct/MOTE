@@ -1,0 +1,9 @@
+{
+  "config_hash": "fa39e9eb46a49c26cea0785036d08bbb0fca535996b2fdc0c9da37f20a44a727",
+  "seed": 17,
+  "method": "angle_natural",
+  "initial_parameter_hash": "08e70b778c0def802c7119378ea2421a5c565e3672206a9451182ff82febaf53",
+  "parameters": 10285,
+  "target_scale": 0.35577020049095154,
+  "selection": "minimum internal-dev utility MSE among fixed evaluation steps; validation not accessed until selection is complete"
+}

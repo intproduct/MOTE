@@ -1,0 +1,80 @@
+{
+  "pilot_group": "outputs\\gate_benchmark_round2\\pilot\\34c8d881126c",
+  "selection_split": "internal_dev_only",
+  "rule": "mean best dev score over tasks; within 0.005 choose smallest chi/depth",
+  "internal_dev_means": {
+    "mlp": 0.75,
+    "compact_born": 0.74609375,
+    "mlp_half": 0.73828125,
+    "mpo_c1_full": 0.740234375,
+    "mpo_c1_half": 0.74609375,
+    "mpo_c2_full": 0.74609375,
+    "mpo_c2_half": 0.73828125,
+    "mpo_c4_full": 0.748046875,
+    "mpo_c4_half": 0.744140625,
+    "amp_d1_full": 0.744140625,
+    "amp_d1_half": 0.744140625,
+    "amp_d2_full": 0.7421875,
+    "amp_d2_half": 0.744140625
+  },
+  "decisions": [
+    {
+      "family": "mpo",
+      "budget": "full",
+      "selected": "mpo_c2_full",
+      "best_mean": 0.748046875,
+      "within_0_5pp": [
+        "mpo_c2_full",
+        "mpo_c4_full"
+      ],
+      "candidates": {
+        "mpo_c1_full": 0.740234375,
+        "mpo_c2_full": 0.74609375,
+        "mpo_c4_full": 0.748046875
+      }
+    },
+    {
+      "family": "mpo",
+      "budget": "half",
+      "selected": "mpo_c1_half",
+      "best_mean": 0.74609375,
+      "within_0_5pp": [
+        "mpo_c1_half",
+        "mpo_c4_half"
+      ],
+      "candidates": {
+        "mpo_c1_half": 0.74609375,
+        "mpo_c2_half": 0.73828125,
+        "mpo_c4_half": 0.744140625
+      }
+    },
+    {
+      "family": "amp",
+      "budget": "full",
+      "selected": "amp_d1_full",
+      "best_mean": 0.744140625,
+      "within_0_5pp": [
+        "amp_d1_full",
+        "amp_d2_full"
+      ],
+      "candidates": {
+        "amp_d1_full": 0.744140625,
+        "amp_d2_full": 0.7421875
+      }
+    },
+    {
+      "family": "amp",
+      "budget": "half",
+      "selected": "amp_d1_half",
+      "best_mean": 0.744140625,
+      "within_0_5pp": [
+        "amp_d1_half",
+        "amp_d2_half"
+      ],
+      "candidates": {
+        "amp_d1_half": 0.744140625,
+        "amp_d2_half": 0.744140625
+      }
+    }
+  ]
+}

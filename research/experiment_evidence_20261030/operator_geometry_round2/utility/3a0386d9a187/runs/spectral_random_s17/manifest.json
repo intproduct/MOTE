@@ -1,0 +1,9 @@
+{
+  "config_hash": "3a0386d9a1878c01b9e577e831f1e144e71971fd24c0857f798bf210f0584675",
+  "seed": 17,
+  "method": "spectral_random",
+  "initial_parameter_hash": "2a9ed72b4a420ef449665c8b513f020aebc038e9419a1d50cbddc8c292ffa768",
+  "parameters": 10277,
+  "target_scale": 0.35134321451187134,
+  "selection": "minimum internal-dev utility MSE among fixed evaluation steps; validation not accessed until selection is complete"
+}

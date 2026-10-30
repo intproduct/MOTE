@@ -1,0 +1,9 @@
+{
+  "config_hash": "fa39e9eb46a49c26cea0785036d08bbb0fca535996b2fdc0c9da37f20a44a727",
+  "seed": 17,
+  "method": "mlp",
+  "initial_parameter_hash": "17d0af9e07c10fcbddc10e8b2a1fbc269d4eea73b6c85d787cdb481a74a22c01",
+  "parameters": 10385,
+  "target_scale": 0.35577020049095154,
+  "selection": "minimum internal-dev utility MSE among fixed evaluation steps; validation not accessed until selection is complete"
+}

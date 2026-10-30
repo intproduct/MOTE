@@ -1,0 +1,144 @@
+{
+  "estimated_at": "2026-10-29T04:18:10.228508+08:00",
+  "complete_runs": 12,
+  "expected_runs": 18,
+  "active_run": "mlp_half_s43",
+  "seed29_durations": [
+    {
+      "variant": "amp_half",
+      "wall_seconds": 1501.940915500003,
+      "training_seconds": 1196.504994599978
+    },
+    {
+      "variant": "amp_margin",
+      "wall_seconds": 1554.8289531000046,
+      "training_seconds": 1248.277831600557
+    },
+    {
+      "variant": "born_lite_margin",
+      "wall_seconds": 1412.1377636999969,
+      "training_seconds": 1179.6452964000055
+    },
+    {
+      "variant": "born_lite",
+      "wall_seconds": 1377.4061277,
+      "training_seconds": 1148.0408916999295
+    },
+    {
+      "variant": "mlp_half",
+      "wall_seconds": 1067.4671932000056,
+      "training_seconds": 841.3454246995097
+    },
+    {
+      "variant": "mlp_margin",
+      "wall_seconds": 1089.8668260999984,
+      "training_seconds": 869.869970800486
+    }
+  ],
+  "observed_seed29_wall_hours": 2.2232354942500026,
+  "remaining_training_hours_range": [
+    2.0,
+    2.4
+  ],
+  "remaining_reevaluation_timing_probe_minutes_range": [
+    30,
+    40
+  ],
+  "remaining_report_review_minutes_range": [
+    15,
+    30
+  ],
+  "communicated_remaining_hours_range": [
+    3,
+    4
+  ],
+  "estimated_finish_local": "2026-10-29 07:00–08:00 Asia/Shanghai",
+  "basis": "Seeds17 and29 completed in 2.236 and2.223 hours respectively; seed43 is already underway. Post-training stages remain estimates; includes allowance for variation, not a deadline guarantee.",
+  "previous_estimate": {
+    "estimated_at": "2026-10-29T01:58:48.319970+08:00",
+    "complete_runs": 6,
+    "expected_runs": 18,
+    "active_run": "mlp_half_s29",
+    "seed17_durations": [
+      {
+        "variant": "amp_half",
+        "wall_seconds": 1531.3943516,
+        "training_seconds": 1223.0652960999578
+      },
+      {
+        "variant": "amp_margin",
+        "wall_seconds": 1558.2398692999996,
+        "training_seconds": 1250.3167227997328
+      },
+      {
+        "variant": "born_lite_margin",
+        "wall_seconds": 1393.0755075000052,
+        "training_seconds": 1162.065669099844
+      },
+      {
+        "variant": "born_lite",
+        "wall_seconds": 1377.2593634000077,
+        "training_seconds": 1145.2302963996772
+      },
+      {
+        "variant": "mlp_half",
+        "wall_seconds": 1078.788944999993,
+        "training_seconds": 852.350766599804
+      },
+      {
+        "variant": "mlp_margin",
+        "wall_seconds": 1110.8733655000106,
+        "training_seconds": 881.6855499007652
+      }
+    ],
+    "observed_seed17_wall_hours": 2.2360087228611154,
+    "remaining_training_hours_range": [
+      4.3,
+      4.8
+    ],
+    "remaining_reevaluation_timing_probe_minutes_range": [
+      30,
+      40
+    ],
+    "remaining_report_review_minutes_range": [
+      15,
+      30
+    ],
+    "communicated_remaining_hours_range": [
+      5,
+      6
+    ],
+    "estimated_finish_local": "2026-10-29 07:00–08:00 Asia/Shanghai",
+    "basis": "All six seed17 measured wall durations; remaining two seeds use the same matrix. Allows timing variation. Post-training stages remain estimates. No deadline guarantee.",
+    "previous_estimate": {
+      "estimated_at": "2026-10-29T00:04:04.954947+08:00",
+      "complete_runs": 1,
+      "expected_runs": 18,
+      "active_run": "mlp_margin_s17",
+      "observed_active_step": 650,
+      "observed_completed_mlp_wall_seconds": 1078.788944999993,
+      "reference_original_born_wall_seconds_range": [
+        1500.58,
+        1523.64
+      ],
+      "remaining_training_hours_range": [
+        6,
+        6.5
+      ],
+      "remaining_reevaluation_timing_probe_minutes_range": [
+        30,
+        40
+      ],
+      "remaining_report_review_minutes_range": [
+        15,
+        30
+      ],
+      "communicated_remaining_hours_range": [
+        7,
+        8
+      ],
+      "estimated_finish_local": "2026-10-29 07:00–08:00 Asia/Shanghai",
+      "basis": "First full formal MLP duration, mature prior original-Born durations under same protocol, and shared-Born pilot compute rate. Update after all six methods for seed17 complete. Not a deadline guarantee."
+    }
+  }
+}

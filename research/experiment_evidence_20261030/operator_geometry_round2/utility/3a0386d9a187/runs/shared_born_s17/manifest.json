@@ -1,0 +1,9 @@
+{
+  "config_hash": "3a0386d9a1878c01b9e577e831f1e144e71971fd24c0857f798bf210f0584675",
+  "seed": 17,
+  "method": "shared_born",
+  "initial_parameter_hash": "39da528d3e7a2bd5106866bab817eb4580c6db4146b30d538b9fa58eaa40f6e0",
+  "parameters": 10376,
+  "target_scale": 0.35134321451187134,
+  "selection": "minimum internal-dev utility MSE among fixed evaluation steps; validation not accessed until selection is complete"
+}

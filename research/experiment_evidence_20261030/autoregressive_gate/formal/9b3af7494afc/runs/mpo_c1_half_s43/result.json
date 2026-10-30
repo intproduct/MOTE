@@ -1,0 +1,609 @@
+{
+  "variant": "mpo_c1_half",
+  "seed": 43,
+  "phase": "formal",
+  "config_hash": "9b3af7494afc69a26867471ab8a0c5a929deea9b76eb96c5729aacb304c109a4",
+  "steps": 4000,
+  "best_step": 4000,
+  "initial_validation": {
+    "ce": 8.360736203747164,
+    "ppl": 4275.841498468845,
+    "nll_sum": 2698862.368041992,
+    "tokens": 322802,
+    "next_token_accuracy": 0.0006660429613199422
+  },
+  "best_validation": {
+    "ce": 4.391906191842252,
+    "ppl": 80.79428168862371,
+    "nll_sum": 1417716.1025390625,
+    "tokens": 322802,
+    "next_token_accuracy": 0.23624698731730287,
+    "routing": {
+      "blocks.0.up": {
+        "entropy": 2.008826600590467,
+        "load": [
+          0.5142989044456097,
+          0.3260537502478683,
+          0.461081573479993,
+          0.21696999554427965,
+          0.6534413419591513,
+          0.2678341265238161,
+          0.37088383651786727,
+          0.01555683620860599,
+          0.0013106038072575848,
+          0.42995395846317713,
+          0.004988350188426102,
+          0.02308428762641285,
+          0.00868003916319651,
+          0.014089765516557605,
+          0.33560597610549275,
+          0.35616665427915967
+        ],
+        "load_cv": 0.8319759389355579,
+        "unused_experts": 0,
+        "routed_tokens_with_window_overlap": 645504
+      },
+      "blocks.0.down": {
+        "entropy": 2.14386007167885,
+        "load": [
+          0.022588550962467834,
+          0.0019039386278009122,
+          0.0013214480467975411,
+          0.20296078723277833,
+          0.21425273894507238,
+          0.6234663147172733,
+          0.4153204317925446,
+          0.21599711233983787,
+          0.36681414832441006,
+          0.060772667561947484,
+          0.0931535668253024,
+          0.676531826305692,
+          0.28754430647622536,
+          0.4714842975470558,
+          0.06924356781825314,
+          0.2766442965496728
+        ],
+        "load_cv": 0.8284888263210023,
+        "unused_experts": 0,
+        "routed_tokens_with_window_overlap": 645504
+      },
+      "blocks.1.up": {
+        "entropy": 2.033139476552975,
+        "load": [
+          0.3676832366646837,
+          0.38677529497513474,
+          0.4236534552904625,
+          0.012982103907143622,
+          0.019767499504448012,
+          0.2550100386792791,
+          0.5538091166209022,
+          0.061587534703043935,
+          0.007465484334906072,
+          0.5490206102754728,
+          0.10771892970601836,
+          0.37424555077525373,
+          0.05362321534874585,
+          0.4135791567637527,
+          0.37220063702752376,
+          0.0408781355345888
+        ],
+        "load_cv": 0.7795032268978904,
+        "unused_experts": 0,
+        "routed_tokens_with_window_overlap": 645504
+      },
+      "blocks.1.down": {
+        "entropy": 1.9851424985761186,
+        "load": [
+          0.0988684810628594,
+          0.20739917955877477,
+          0.020363932679330288,
+          0.10241919492365656,
+          0.41985487309141384,
+          0.026796115903601557,
+          0.42028399514178066,
+          0.4144668352230423,
+          0.027133836506047986,
+          0.28677281628590173,
+          0.4482760757485624,
+          0.12213712076145151,
+          0.3196649439935762,
+          0.5310191726214163,
+          0.19811805968964924,
+          0.3564253668510415
+        ],
+        "load_cv": 0.662126855837192,
+        "unused_experts": 0,
+        "routed_tokens_with_window_overlap": 645504
+      }
+    }
+  },
+  "last_validation": {
+    "ce": 4.391906191842252,
+    "ppl": 80.79428168862371,
+    "nll_sum": 1417716.1025390625,
+    "tokens": 322802,
+    "next_token_accuracy": 0.23624698731730287
+  },
+  "first_train_ce": 8.352191925048828,
+  "last_train_ce": 4.095075607299805,
+  "training_seconds": 953.4788431006455,
+  "wall_seconds": 1206.4037995000108,
+  "tokens_seen": 16384000,
+  "training_tokens_per_second": 17183.39123993606,
+  "peak_allocated_mb": 992.28466796875,
+  "peak_reserved_mb": 1072.0,
+  "parameters": {
+    "total": 1672812,
+    "router_total": 25196,
+    "routers": {
+      "blocks.0.up": 2979,
+      "blocks.0.down": 9619,
+      "blocks.1.up": 2979,
+      "blocks.1.down": 9619
+    },
+    "positions": {
+      "blocks.0.up": [
+        [
+          1,
+          2,
+          3,
+          7
+        ],
+        [
+          2,
+          3,
+          5,
+          6
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          1,
+          2,
+          4
+        ],
+        [
+          0,
+          4,
+          5,
+          7
+        ],
+        [
+          0,
+          1,
+          6,
+          7
+        ],
+        [
+          1,
+          2,
+          3,
+          5
+        ],
+        [
+          0,
+          4,
+          6,
+          7
+        ],
+        [
+          0,
+          1,
+          5,
+          7
+        ],
+        [
+          2,
+          3,
+          4,
+          6
+        ],
+        [
+          0,
+          2,
+          3,
+          6
+        ],
+        [
+          1,
+          4,
+          5,
+          7
+        ],
+        [
+          2,
+          5,
+          6,
+          7
+        ],
+        [
+          0,
+          1,
+          3,
+          4
+        ],
+        [
+          1,
+          2,
+          4,
+          7
+        ],
+        [
+          0,
+          3,
+          5,
+          6
+        ]
+      ],
+      "blocks.0.down": [
+        [
+          2,
+          3,
+          4,
+          7
+        ],
+        [
+          3,
+          4,
+          6,
+          9
+        ],
+        [
+          0,
+          7,
+          8,
+          9
+        ],
+        [
+          2,
+          3,
+          5,
+          8
+        ],
+        [
+          0,
+          1,
+          2,
+          5
+        ],
+        [
+          0,
+          1,
+          6,
+          9
+        ],
+        [
+          4,
+          6,
+          7,
+          8
+        ],
+        [
+          1,
+          2,
+          5,
+          7
+        ],
+        [
+          1,
+          3,
+          6,
+          9
+        ],
+        [
+          0,
+          4,
+          5,
+          8
+        ],
+        [
+          1,
+          6,
+          7,
+          8
+        ],
+        [
+          0,
+          4,
+          5,
+          9
+        ],
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          0,
+          1,
+          2,
+          7
+        ],
+        [
+          3,
+          6,
+          8,
+          9
+        ],
+        [
+          1,
+          5,
+          6,
+          8
+        ]
+      ],
+      "blocks.1.up": [
+        [
+          1,
+          3,
+          4,
+          7
+        ],
+        [
+          1,
+          2,
+          5,
+          6
+        ],
+        [
+          0,
+          1,
+          5,
+          7
+        ],
+        [
+          0,
+          2,
+          4,
+          6
+        ],
+        [
+          3,
+          5,
+          6,
+          7
+        ],
+        [
+          0,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          3,
+          4,
+          5
+        ],
+        [
+          0,
+          2,
+          6,
+          7
+        ],
+        [
+          0,
+          3,
+          4,
+          7
+        ],
+        [
+          1,
+          2,
+          4,
+          6
+        ],
+        [
+          0,
+          1,
+          2,
+          5
+        ],
+        [
+          0,
+          3,
+          5,
+          6
+        ],
+        [
+          2,
+          3,
+          4,
+          7
+        ],
+        [
+          1,
+          5,
+          6,
+          7
+        ],
+        [
+          0,
+          3,
+          5,
+          7
+        ],
+        [
+          1,
+          2,
+          3,
+          4
+        ]
+      ],
+      "blocks.1.down": [
+        [
+          3,
+          4,
+          7,
+          9
+        ],
+        [
+          1,
+          3,
+          6,
+          8
+        ],
+        [
+          2,
+          3,
+          8,
+          9
+        ],
+        [
+          0,
+          1,
+          2,
+          9
+        ],
+        [
+          0,
+          2,
+          5,
+          8
+        ],
+        [
+          4,
+          5,
+          6,
+          7
+        ],
+        [
+          0,
+          4,
+          5,
+          6
+        ],
+        [
+          1,
+          5,
+          7,
+          9
+        ],
+        [
+          3,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          1,
+          2,
+          6
+        ],
+        [
+          1,
+          2,
+          7,
+          9
+        ],
+        [
+          0,
+          5,
+          6,
+          8
+        ],
+        [
+          3,
+          4,
+          5,
+          8
+        ],
+        [
+          0,
+          4,
+          7,
+          9
+        ],
+        [
+          1,
+          2,
+          3,
+          6
+        ],
+        [
+          3,
+          4,
+          8,
+          9
+        ]
+      ]
+    }
+  },
+  "shared_init_hash": "0de514dfd40ab44c2214b75a2ed28e687626d92ec81b3606042ca13575b679a5",
+  "batch_order_sha256": "44b66244b9e2afc4bcaac0de3dc4e9c6c76bb3a1d3d5aadcc81a217077bb6f55",
+  "data_manifest_sha256": "2bfd87f0b578160ca83760ef9821d3b9582b6774bd2ee8fd1a227d608e6a9bb4",
+  "finite_steps": 4000,
+  "nonzero_router_grad_steps": 4000,
+  "shared_parameters_updated": true,
+  "router_parameter_max_changes": {
+    "blocks.0.up.mote.core.gate.router.raw_gain": 0.4213763475418091,
+    "blocks.0.up.mote.core.gate.router.structured.residual_scale": 0.32801759243011475,
+    "blocks.0.up.mote.core.gate.router.structured.norm.weight": 0.1281977891921997,
+    "blocks.0.up.mote.core.gate.router.structured.norm.bias": 0.14813001453876495,
+    "blocks.0.up.mote.core.gate.router.structured.input_proj.weight": 0.1973293423652649,
+    "blocks.0.up.mote.core.gate.router.structured.amplitude_proj.weight": 0.3929140865802765,
+    "blocks.0.up.mote.core.gate.router.structured.operators.0.cores.0": 0.3302451968193054,
+    "blocks.0.up.mote.core.gate.router.structured.operators.0.cores.1": 0.2523109018802643,
+    "blocks.0.up.mote.core.gate.router.structured.operators.0.cores.2": 0.19088155031204224,
+    "blocks.0.up.mote.core.gate.router.structured.operators.0.cores.3": 0.20002985000610352,
+    "blocks.0.up.mote.core.gate.router.structured.operators.1.cores.0": 0.33057087659835815,
+    "blocks.0.up.mote.core.gate.router.structured.operators.1.cores.1": 0.28162020444869995,
+    "blocks.0.up.mote.core.gate.router.structured.operators.1.cores.2": 0.3209611773490906,
+    "blocks.0.up.mote.core.gate.router.structured.operators.1.cores.3": 0.33993473649024963,
+    "blocks.0.up.mote.core.gate.router.structured.readout.weight": 0.211309015750885,
+    "blocks.0.down.mote.core.gate.router.raw_gain": 0.41907548904418945,
+    "blocks.0.down.mote.core.gate.router.structured.residual_scale": 0.34248802065849304,
+    "blocks.0.down.mote.core.gate.router.structured.norm.weight": 0.16365879774093628,
+    "blocks.0.down.mote.core.gate.router.structured.norm.bias": 0.17768269777297974,
+    "blocks.0.down.mote.core.gate.router.structured.input_proj.weight": 0.17358948290348053,
+    "blocks.0.down.mote.core.gate.router.structured.amplitude_proj.weight": 0.4713291525840759,
+    "blocks.0.down.mote.core.gate.router.structured.operators.0.cores.0": 0.24849647283554077,
+    "blocks.0.down.mote.core.gate.router.structured.operators.0.cores.1": 0.2701053321361542,
+    "blocks.0.down.mote.core.gate.router.structured.operators.0.cores.2": 0.4425339996814728,
+    "blocks.0.down.mote.core.gate.router.structured.operators.0.cores.3": 0.13701003789901733,
+    "blocks.0.down.mote.core.gate.router.structured.operators.1.cores.0": 0.21069201827049255,
+    "blocks.0.down.mote.core.gate.router.structured.operators.1.cores.1": 0.16687166690826416,
+    "blocks.0.down.mote.core.gate.router.structured.operators.1.cores.2": 0.3224814832210541,
+    "blocks.0.down.mote.core.gate.router.structured.operators.1.cores.3": 0.15871544182300568,
+    "blocks.0.down.mote.core.gate.router.structured.readout.weight": 0.2376464456319809,
+    "blocks.1.up.mote.core.gate.router.raw_gain": 0.4276672601699829,
+    "blocks.1.up.mote.core.gate.router.structured.residual_scale": 0.21373838186264038,
+    "blocks.1.up.mote.core.gate.router.structured.norm.weight": 0.16536164283752441,
+    "blocks.1.up.mote.core.gate.router.structured.norm.bias": 0.15549418330192566,
+    "blocks.1.up.mote.core.gate.router.structured.input_proj.weight": 0.2035692036151886,
+    "blocks.1.up.mote.core.gate.router.structured.amplitude_proj.weight": 0.385658860206604,
+    "blocks.1.up.mote.core.gate.router.structured.operators.0.cores.0": 0.1952807605266571,
+    "blocks.1.up.mote.core.gate.router.structured.operators.0.cores.1": 0.43013617396354675,
+    "blocks.1.up.mote.core.gate.router.structured.operators.0.cores.2": 0.16768425703048706,
+    "blocks.1.up.mote.core.gate.router.structured.operators.0.cores.3": 0.14506709575653076,
+    "blocks.1.up.mote.core.gate.router.structured.operators.1.cores.0": 0.29412874579429626,
+    "blocks.1.up.mote.core.gate.router.structured.operators.1.cores.1": 0.31502899527549744,
+    "blocks.1.up.mote.core.gate.router.structured.operators.1.cores.2": 0.21379639208316803,
+    "blocks.1.up.mote.core.gate.router.structured.operators.1.cores.3": 0.265913724899292,
+    "blocks.1.up.mote.core.gate.router.structured.readout.weight": 0.3261869251728058,
+    "blocks.1.down.mote.core.gate.router.raw_gain": 0.5163027048110962,
+    "blocks.1.down.mote.core.gate.router.structured.residual_scale": 0.3456032872200012,
+    "blocks.1.down.mote.core.gate.router.structured.norm.weight": 0.15189307928085327,
+    "blocks.1.down.mote.core.gate.router.structured.norm.bias": 0.14586114883422852,
+    "blocks.1.down.mote.core.gate.router.structured.input_proj.weight": 0.1829078197479248,
+    "blocks.1.down.mote.core.gate.router.structured.amplitude_proj.weight": 0.4590787887573242,
+    "blocks.1.down.mote.core.gate.router.structured.operators.0.cores.0": 0.1957310140132904,
+    "blocks.1.down.mote.core.gate.router.structured.operators.0.cores.1": 0.11283423006534576,
+    "blocks.1.down.mote.core.gate.router.structured.operators.0.cores.2": 0.31032800674438477,
+    "blocks.1.down.mote.core.gate.router.structured.operators.0.cores.3": 0.11285459995269775,
+    "blocks.1.down.mote.core.gate.router.structured.operators.1.cores.0": 0.276623010635376,
+    "blocks.1.down.mote.core.gate.router.structured.operators.1.cores.1": 0.1885533332824707,
+    "blocks.1.down.mote.core.gate.router.structured.operators.1.cores.2": 0.15059831738471985,
+    "blocks.1.down.mote.core.gate.router.structured.operators.1.cores.3": 0.26444751024246216,
+    "blocks.1.down.mote.core.gate.router.structured.readout.weight": 0.2525070607662201
+  },
+  "checkpoint_sha256": "75a0967d688a08491e13bd59e97b11e2099f95ba303bad0d84a33aaf3f46b4e6",
+  "completed_at": "2026-10-28T18:13:38.794706+08:00"
+}

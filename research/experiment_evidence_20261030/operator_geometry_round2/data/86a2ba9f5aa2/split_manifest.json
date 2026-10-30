@@ -1,0 +1,14 @@
+{
+  "train_token_sha256": "b283b3b13fe4b28eedb6966eeb1127c3f059c494e0f487ea77838a417061836f",
+  "validation_token_sha256": "380871ab1a25148d5dc1bff36d52cf4c9769175add8264b706151981a324b15e",
+  "cut_token_index": 2312704,
+  "train_range": [
+    0,
+    2312704
+  ],
+  "dev_range": [
+    2312704,
+    3083720
+  ],
+  "policy": "Train range is half-open at cut; no train inputs or targets reach dev. First dev context begins at cut. Test samples are not read."
+}

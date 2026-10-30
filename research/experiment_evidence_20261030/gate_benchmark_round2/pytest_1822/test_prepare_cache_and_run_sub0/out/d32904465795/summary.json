@@ -1,0 +1,45 @@
+{
+  "groups": [
+    {
+      "experiment": ".",
+      "stage": "mlp",
+      "task": "mnist",
+      "gate": "compact_born",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 51.695415777509275
+    },
+    {
+      "experiment": ".",
+      "stage": "mlp",
+      "task": "mnist",
+      "gate": "mlp",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 130.18544908012473
+    },
+    {
+      "experiment": ".",
+      "stage": "mlp",
+      "task": "mnist",
+      "gate": "mps",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 126.23632700133133
+    }
+  ],
+  "incomplete_runs": [],
+  "missing_runs": []
+}

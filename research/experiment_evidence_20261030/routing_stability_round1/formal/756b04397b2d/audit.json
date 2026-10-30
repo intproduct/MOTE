@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "expected": 18,
+  "complete": 18,
+  "problems": [],
+  "runs": [
+    "mlp_half_s17",
+    "mlp_margin_s17",
+    "amp_half_s17",
+    "amp_margin_s17",
+    "born_lite_s17",
+    "born_lite_margin_s17",
+    "mlp_half_s29",
+    "mlp_margin_s29",
+    "amp_half_s29",
+    "amp_margin_s29",
+    "born_lite_s29",
+    "born_lite_margin_s29",
+    "mlp_half_s43",
+    "mlp_margin_s43",
+    "amp_half_s43",
+    "amp_margin_s43",
+    "born_lite_s43",
+    "born_lite_margin_s43"
+  ],
+  "time": "2026-10-29T06:52:53.911417+08:00"
+}

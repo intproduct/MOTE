@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "models": 21,
+  "quality_rows": 78,
+  "roundtrip_records": 156,
+  "timings": 78,
+  "paired_rows": 432,
+  "raw_files_verified": 234,
+  "all_calibrations_keep_top4": true,
+  "full_model_shortcut_max_abs": 1.239776611328125e-05,
+  "missing": [],
+  "failed": [],
+  "source_audit_sha256": "6d5e2d83fa0bd29adc88d481945aa06fa944b4c6183edd3f1deb0bc45b552897",
+  "scope": "Exploratory 2000-resample paired window intervals, conditional on3frozen seeds, no multiplicity correction. Sampled final-module replay; no test data."
+}

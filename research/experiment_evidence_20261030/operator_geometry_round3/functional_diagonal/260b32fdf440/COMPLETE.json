@@ -1,0 +1,12 @@
+{
+  "state": "ready_for_review",
+  "stage": "functional_diagonal_control",
+  "pid": 37440,
+  "active": false,
+  "started": "2026-10-30T12:38:38.831057+08:00",
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional_diagonal\\260b32fdf440",
+  "completed": 24,
+  "total": 24,
+  "current": null,
+  "finished": "2026-10-30T12:54:48.538151+08:00"
+}

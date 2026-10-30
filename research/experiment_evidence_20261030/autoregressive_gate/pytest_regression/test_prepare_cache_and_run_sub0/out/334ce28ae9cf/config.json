@@ -1,0 +1,62 @@
+{
+  "cache_dir": "D:\\files\\MOTE\\outputs\\autoregressive_gate\\pytest_regression\\test_prepare_cache_and_run_sub0\\cache",
+  "output_dir": "D:\\files\\MOTE\\outputs\\autoregressive_gate\\pytest_regression\\test_prepare_cache_and_run_sub0\\out",
+  "device": "cpu",
+  "precision": "fp32",
+  "seeds": [
+    17
+  ],
+  "gates": [
+    "mlp",
+    "compact_born",
+    "mps"
+  ],
+  "data_seed": 20261027,
+  "deterministic": true,
+  "experts": 4,
+  "topk": 2,
+  "k_in": 2,
+  "drop_tokens": false,
+  "aux_coeff": 0.01,
+  "temperature": 1.0,
+  "norm": "layernorm",
+  "budget": "matched",
+  "rank": 4,
+  "sites": 4,
+  "bond_dim": 3,
+  "depth": 2,
+  "quantum_entangle": true,
+  "learnable_gain": true,
+  "output_init_std": 0.001,
+  "bert_model": "google/bert_uncased_L-4_H-256_A-4",
+  "bert_revision": "main",
+  "bert_layers": 2,
+  "max_length": 128,
+  "train_limit": 10000,
+  "dev_limit": 1000,
+  "test_limit": 2000,
+  "dev_fraction": 0.15,
+  "eval_every": 1,
+  "log_every": 1,
+  "mlp": {
+    "tasks": [
+      "mnist"
+    ],
+    "width": 16,
+    "layers": 2,
+    "expansion": 2,
+    "batch_size": 4,
+    "steps": 2,
+    "lr": 0.001,
+    "weight_decay": 0.01,
+    "warm_init_steps": 0
+  },
+  "bert": {
+    "tasks": [],
+    "batch_size": 4,
+    "steps": 2,
+    "lr": 0.0001,
+    "weight_decay": 0.01,
+    "warm_init_steps": 0
+  }
+}

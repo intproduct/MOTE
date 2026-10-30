@@ -1,0 +1,28 @@
+{
+  "stage": "capacity_geometry_and_corrected_sparse_replay",
+  "stage_complete": true,
+  "overall_research_complete": false,
+  "completed_local": "2026-10-30T12:23:42.322504+08:00",
+  "training_runs": 9,
+  "checkpoint_cpu_replays": 18,
+  "frozen_models_replayed": 21,
+  "quality_rows": 78,
+  "roundtrip_records": 156,
+  "timings": 78,
+  "raw_arrays_verified": 234,
+  "source_data_audit": "outputs\\operator_geometry_round3\\reviews\\sparse_replay_v2\\AUDIT.json",
+  "pdf_qa": "outputs\\operator_geometry_round3\\reviews\\pdf_capacity_v1\\PDF_QA.json",
+  "source_data_audit_sha256": "c30ee4d7deea3f904dcbebffff8b09ac6bd024c9838699e6c4e9b5db5455169a",
+  "files": {
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_REVIEW_20261030_zh.md": "323f34e617d25c7b356dd108aefd262e0122b5e82331328708b751e679048f1d",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_REVIEW_20261030_zh.typ": "5e0927aafcb7c8780ed8679014b0c83afe0611d32be8b0b5e11cd3337ddd1e24",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_REVIEW_20261030_zh.pdf": "18efbca566123dde0d9bd27a9b27bde77afe2afe2103236a636466ad57854f9c",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.md": "a2e8069cff08ffa3a8abe625c3a0463f3634a813a17a93fb2083a4ed9c5f4fe7",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.typ": "f201be6c595720d55f1c82305d8938413c3ea00bb5e267c511f121af00894887",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.pdf": "0468de69e9727a71bebf125a499879a92ba0cc2d2e7ed5b6836adb5799cfb332"
+  },
+  "prior_failure_preserved": "replay/0f6a8f7407c8",
+  "current_continuation": "outputs\\operator_geometry_round3\\functional\\50b8c7704256",
+  "pending": "36functional metric adaptations, independent review, next stage report; no joint expert training yet",
+  "missing": []
+}

@@ -1,0 +1,87 @@
+{
+  "passed": true,
+  "models_including_original": 3,
+  "quality_rows": 10,
+  "checks": [
+    {
+      "seed": 17,
+      "method": "original",
+      "checkpoint_sha256": "836ba64d37ed1a45789baab905427bd8996d5656630c567d810be145ee820714",
+      "files": {
+        "dev_native_bf16_input_roundtrip.npz": "c42f7a00824a4c254a0fc2c117479aaea0b28fa0cdcc27818ffa2bc0b1439892",
+        "dev_native_clean.npz": "8b673406faf6801c87e4df31a2b05c3c9acfb5e3a5f083f4aa9434d48e01aed2",
+        "dev_native_fp16_input_roundtrip.npz": "0fdb72f853ddeda26915193e7c60f5534a546c76eab51228a4705c019a66ab7d",
+        "validation_native_bf16_input_roundtrip.npz": "04312823e6706bd8b28b72fe17cb8ca1e7497cc76a8f95f591bdaaff2eff4f2c",
+        "validation_native_clean.npz": "9bf9677dce134ba48e257be24649d1cd740695900ad4620cc338a63e688e45f1",
+        "validation_native_fp16_input_roundtrip.npz": "3ead7089c0a4f40aecc4de8e55356fb49734d6b81d781d2b22631a17d88c457d"
+      }
+    },
+    {
+      "checkpoint_sha256": "47f9661bc7e2f1312de381ebd00e2f62956d1c4ad492ebe3f0940cc6653cc343",
+      "selected_step": 4000,
+      "parameter_count_with_calibration_scalar": 10385,
+      "effective_calibration_power": 3.2021725177764893,
+      "samples_verified": true,
+      "curves_verified": true,
+      "finite_weights": true,
+      "result_path": "D:\\files\\MOTE\\outputs\\operator_geometry_round2\\positive\\d4ee19e23787\\runs\\mlp_s17\\result.json",
+      "seed": 17,
+      "method": "mlp",
+      "dev_score_replay_max_abs": 2.4139881134033203e-06,
+      "dev_native_full_model_max_abs": 1.049041748046875e-05,
+      "validation_score_replay_max_abs": 2.86102294921875e-06,
+      "validation_native_full_model_max_abs": 1.049041748046875e-05,
+      "dev_calibrated_full_model_max_abs": 1.1444091796875e-05,
+      "validation_calibrated_full_model_max_abs": 8.58306884765625e-06,
+      "files": {
+        "dev_calibrated_bf16_input_roundtrip.npz": "7e00336e71a91d447218b0246126abb41b6196433827d8c0f50b7fe8678d2255",
+        "dev_calibrated_clean.npz": "dacfcb79d86aa60b7b205a71441f37623e508dcc95ac0e56cb7eab79ba78c17c",
+        "dev_calibrated_fp16_input_roundtrip.npz": "e736b4c29a8428062f49fe931231f577c3f0df1fd248f9cb1628cfd6d2ee8e10",
+        "dev_native_bf16_input_roundtrip.npz": "8dbb35923805140c8fd71710a7bf3f763402d0aaf5daeac95f8f63d41a7a68fb",
+        "dev_native_clean.npz": "77c17ff34a0f09b02b26c843926627f8d38fbb2baa51424ced22a3b1c8a8493a",
+        "dev_native_fp16_input_roundtrip.npz": "70f3eb1a2c1be2d21828e3c7894a03051c18a80846f9e5d05e4e09083fe4e5a8",
+        "validation_calibrated_bf16_input_roundtrip.npz": "06ef39c733b54b36f30396be891045178bdccc97a706088c1fd3e43359b65688",
+        "validation_calibrated_clean.npz": "23f7d3a168117088d7bd70fc8b84c3bbda4e26a2c9742ff0b882f3eee0788913",
+        "validation_calibrated_fp16_input_roundtrip.npz": "3a1be4379a47231465303f916644bcf9f3ed106e4b66056ccb4da5a29197ca85",
+        "validation_native_bf16_input_roundtrip.npz": "4a3b9bbdd20640e5ee6ec9661740d1851d75c46383cf9509a6a92a509b07a1a3",
+        "validation_native_clean.npz": "8fbc541c89d926ab37a65a1e2438510d5a121dcffd1e01829b4ea4b7d93904d0",
+        "validation_native_fp16_input_roundtrip.npz": "64b607b8b1749a96a6488e21fa4fc8121d7b99070638f7883467f96139d3a2aa"
+      }
+    },
+    {
+      "checkpoint_sha256": "11e898cf7debc307b259ebe7dfb7ec0f6a265861bd4c2803d1263f9096a039fb",
+      "selected_step": 3000,
+      "parameter_count_with_calibration_scalar": 10313,
+      "effective_calibration_power": 1.0255416631698608,
+      "samples_verified": true,
+      "curves_verified": true,
+      "finite_weights": true,
+      "result_path": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\capacity\\481aeb0bc8dd\\runs\\reencode_cz_s17\\result.json",
+      "seed": 17,
+      "method": "reencode_cz",
+      "dev_score_replay_max_abs": 9.298324584960938e-06,
+      "dev_native_full_model_max_abs": 9.5367431640625e-06,
+      "validation_score_replay_max_abs": 5.0067901611328125e-06,
+      "validation_native_full_model_max_abs": 8.58306884765625e-06,
+      "dev_calibrated_full_model_max_abs": 1.1444091796875e-05,
+      "validation_calibrated_full_model_max_abs": 8.58306884765625e-06,
+      "files": {
+        "dev_calibrated_bf16_input_roundtrip.npz": "acaa0409e06ec5dc31e9fa7eba6ab5e3629604b79ab163cbcff1e141f5ae26e5",
+        "dev_calibrated_clean.npz": "bb82252977a320055ec4bf45ddba28a71332a84c79898aef46b25b7f7852145f",
+        "dev_calibrated_fp16_input_roundtrip.npz": "865c0d2647a4204ef3680a65429cbc85ba45e9fc519de6feb3e8c676106f1ace",
+        "dev_native_bf16_input_roundtrip.npz": "0087807f703b70efba5d6590498725f836ea148b640b049d2d997738d0616468",
+        "dev_native_clean.npz": "1e79aa5a68dc469a25b2f0a91d77f2cec577d2d20bb816f649d594b1b7d53f1c",
+        "dev_native_fp16_input_roundtrip.npz": "f5562d12dfd870f57dd5eaa1eb108c3fc26e43ef33b7acd1f3b9a338ba16820b",
+        "validation_calibrated_bf16_input_roundtrip.npz": "eb3aeaa91cd7b3f0cec2a4dfeec6058b54d7c51af11f025edd9c2e143dd2d3aa",
+        "validation_calibrated_clean.npz": "8c0593d96e05689fb00f88c075aec45e3a65fa2221301052c0d9476825488e7c",
+        "validation_calibrated_fp16_input_roundtrip.npz": "bc2182219c236130d3587fcae6422e1706c9edc7944c6c9f118c6ba5f296d9d8",
+        "validation_native_bf16_input_roundtrip.npz": "0973e0be0300fc5ff9e55ef69d07d36a5731985bc49d6430ffbb317b2d490c72",
+        "validation_native_clean.npz": "aee2fa14146c371e3afdbdf029e715897d7949bf9b9205bfac458766009913af",
+        "validation_native_fp16_input_roundtrip.npz": "f7a06959fa4d3866228407a07a212844b27980ff65be1db66ee6f2f13d3b599f"
+      }
+    }
+  ],
+  "missing": [],
+  "failed": [],
+  "frozen_backbones_unchanged": true
+}

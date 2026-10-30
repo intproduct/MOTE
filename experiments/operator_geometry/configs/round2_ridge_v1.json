@@ -1,0 +1,10 @@
+{
+  "data_group": "outputs/operator_geometry_round2/data/86a2ba9f5aa2",
+  "seeds": [17, 29, 43],
+  "ranks": [4, 8, 16],
+  "ridge_grid": [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0],
+  "thresholds": [0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, null],
+  "deadline": "2026-10-30T07:00:00+08:00",
+  "selection": "Internal-dev utility MSE per fixed rank; replacement threshold by internal-dev exact CE; validation only after selection",
+  "scope": "CPU classical strong controls; factorized rank8 has similar order of parameters to rank8 nonlinear routers; not an exactly matched architecture"
+}

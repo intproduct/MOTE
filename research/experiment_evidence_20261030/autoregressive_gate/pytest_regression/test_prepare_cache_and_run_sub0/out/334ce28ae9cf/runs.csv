@@ -1,0 +1,4 @@
+amp_skipped_steps,best_step,examples_per_second,experiment,final_accuracy,final_ce,final_score,gate,router_parameters,run_dir,seed,stage,task,total_parameters,training_seconds
+0,1,51.293855445423155,.,0.5,0.7066598534584045,0.5,compact_born,756,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_prepare_cache_and_run_sub0\out\334ce28ae9cf\mlp_mnist_compact_born_seed17,17,mlp,mnist,2374,0.15596409999852767
+0,1,149.3136239471309,.,0.5,0.7059616446495056,0.5,mlp,792,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_prepare_cache_and_run_sub0\out\334ce28ae9cf\mlp_mnist_mlp_seed17,17,mlp,mnist,2410,0.053578499995637685
+0,1,98.96690918399655,.,0.5,0.706516683101654,0.5,mps,784,D:\files\MOTE\outputs\autoregressive_gate\pytest_regression\test_prepare_cache_and_run_sub0\out\334ce28ae9cf\mlp_mnist_mps_seed17,17,mlp,mnist,2402,0.08083509999414673

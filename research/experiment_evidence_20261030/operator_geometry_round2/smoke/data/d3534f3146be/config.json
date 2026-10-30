@@ -1,0 +1,32 @@
+{
+  "name": "conditional_utility_data_v1",
+  "stage": "data",
+  "source_config": "experiments/routing_stability/configs/titan_v.json",
+  "source_group": "outputs/routing_stability_round1/formal/756b04397b2d",
+  "source_variant": "mlp_half",
+  "data_root": "outputs/autoregressive_gate/data",
+  "seeds": [
+    17
+  ],
+  "module": "blocks.1.down",
+  "context": 128,
+  "positions": [
+    31,
+    63,
+    95,
+    127
+  ],
+  "train_fraction": 0.75,
+  "train_windows": 8,
+  "dev_windows": 4,
+  "validation_windows": 4,
+  "sampling_seed": 20261030,
+  "window_batch": 2,
+  "identity_atol": 5e-05,
+  "target_batch": 256,
+  "exact_batch": 512,
+  "train_exact_probe_tokens": 16,
+  "device": "cuda",
+  "memory_fraction": 0.35,
+  "scope": "Freeze original half-MLP backbone and expert pool. Internal dev is a disjoint suffix of train tokens. Train signed utility targets are head-CE directional derivatives, with exact 48-way equal-budget replacement checks. Validation is reporting only; no test samples used."
+}

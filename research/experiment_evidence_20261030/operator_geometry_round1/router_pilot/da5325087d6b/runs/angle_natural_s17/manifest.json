@@ -1,0 +1,10 @@
+{
+  "config_hash": "da5325087d6b2220e5d0518437784272f9f2245b080ef9fcd3abbdcbec772995",
+  "method": "angle_natural",
+  "seed": 17,
+  "initial_router_hash": "f71d641ee7fd3e78452878c84f0c2c4c54354acfabfd01ec8a8f024a75c8dab6",
+  "router_parameters": 10284,
+  "expert_pool_sha256": "836ba64d37ed1a45789baab905427bd8996d5656630c567d810be145ee820714",
+  "initialization_seed": 900017,
+  "sampling_seed": 910017
+}

@@ -1,0 +1,14 @@
+{
+  "kind": "audited_historical_control",
+  "source_run": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433\\mlp_cifar10_compact_born_seed43",
+  "source_group": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433",
+  "reason": "same protocol; four repeated pilot trajectories exactly match",
+  "protocol_sha256": "7452d979cbc8ae0a7aaa9528b00bd1cf3ffa810e24ed9cc468e8722d149ae6b8",
+  "files_sha256": {
+    "manifest.json": "0eec5bd45c1a5af78292f687b0769fd3cb40c68034103e6fa2c8fed6cab70ddf",
+    "initial_dev.json": "82927b24be169bcfc50f23629a0a0590f74245445502cf9f5565c1ad67ceffc6",
+    "curves.jsonl": "975df691d92a1f503d45bcca931c78b77883ce8443143d570f0c61e813f8b560",
+    "best.pt": "98a7635fb5bb5bcbd164726b912aefc78ff1cb6bdfd147e1069d04d6a331d1c2",
+    "result.json": "bcb2bb4a0fc56d3e35d4001b00ac28de1a3fa4b94f804f62f69420caa850a3ee"
+  }
+}

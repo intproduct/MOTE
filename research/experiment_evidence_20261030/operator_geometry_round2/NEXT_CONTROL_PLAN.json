@@ -1,0 +1,25 @@
+{
+  "status": "queued_after_risk",
+  "purpose": "Distinguish failure to learn realized-label utility from architecture or optimizer failure using an exactly input-determined positive control.",
+  "trigger": "After all27 utility runs and the already queued risk stage; do not add a GPU job ahead of risk.",
+  "teacher": "Centered negative log of cached original frozen router teacher probabilities; depends only on x and contains no realized next-token label.",
+  "models": [
+    "mlp",
+    "angle_functional",
+    "product_functional"
+  ],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "suggested_steps": 4000,
+  "protocol": "Same x and train/internal-dev split, rank8, normalization, initial parameters, minibatches and4000steps as utility prediction. Select best dev MSE. Original cached gate probabilities are an input-determined teacher; compare calibration, not language quality.",
+  "latest_start_local": "2026-10-30T06:45:00+08:00",
+  "stop_training_by_local": "2026-10-30T07:45:00+08:00",
+  "interpretation": "If deterministic teacher is learned but realized-label utility is not, this supports a target/available-information bottleneck in this protocol. It does not establish an irreducible Bayes noise floor. Preserve architectures that fail positive calibration as limitations.",
+  "pid": 42428,
+  "group": "positive/d4ee19e23787",
+  "steps": 4000,
+  "config": "experiments/operator_geometry/configs/round2_positive_v1.json"
+}

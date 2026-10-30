@@ -1,0 +1,119 @@
+{
+  "method": "exp_adapter",
+  "seed": 29,
+  "steps": 4000,
+  "selected_step": 200,
+  "parameters": 10365,
+  "parameter_changed": true,
+  "threshold": 0.05,
+  "threshold_calibration_dev": [
+    {
+      "threshold": 0.0,
+      "delta_ce": 0.07779072225093842,
+      "changed": 4094
+    },
+    {
+      "threshold": 0.01,
+      "delta_ce": 0.06615309417247772,
+      "changed": 2457
+    },
+    {
+      "threshold": 0.02,
+      "delta_ce": 0.04112252593040466,
+      "changed": 894
+    },
+    {
+      "threshold": 0.05,
+      "delta_ce": -0.00011243077460676432,
+      "changed": 4
+    },
+    {
+      "threshold": 0.1,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 0.2,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 0.5,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 1.0,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": 2.0,
+      "delta_ce": 0.0,
+      "changed": 0
+    },
+    {
+      "threshold": null,
+      "delta_ce": 0.0,
+      "changed": 0
+    }
+  ],
+  "splits": {
+    "dev": {
+      "prediction": {
+        "mse": 0.1026175320148468,
+        "constant_mse": 0.1025184765458107,
+        "r2_vs_train_mean": -0.0009662206499121417,
+        "within_token_expert_rho": 0.006237415174225561
+      },
+      "action": {
+        "tokens": 4096,
+        "threshold": 0.05,
+        "changed": 4,
+        "mean_delta_ce": -0.00011243077460676432,
+        "delta_ce_ci95_windows": [
+          -0.0005020566182793118,
+          0.00013781167581328177
+        ],
+        "regret_to_label_oracle": 0.27581387758255005,
+        "label_oracle_mean_delta_ce": -0.27592629194259644,
+        "harm_gt_01": 1,
+        "benefit_lt_minus_01": 1,
+        "predicted_vs_actual_selected_candidate_rho": -0.11133938949759117
+      }
+    },
+    "validation": {
+      "prediction": {
+        "mse": 0.10991426557302475,
+        "constant_mse": 0.10980607569217682,
+        "r2_vs_train_mean": -0.0009852813714172903,
+        "within_token_expert_rho": -0.0007583280871197792
+      },
+      "action": {
+        "tokens": 4096,
+        "threshold": 0.05,
+        "changed": 1,
+        "mean_delta_ce": -4.796020220965147e-05,
+        "delta_ce_ci95_windows": [
+          -0.0001438806066289544,
+          0.0
+        ],
+        "regret_to_label_oracle": 0.2930680215358734,
+        "label_oracle_mean_delta_ce": -0.2931159734725952,
+        "harm_gt_01": 0,
+        "benefit_lt_minus_01": 1,
+        "predicted_vs_actual_selected_candidate_rho": -0.10989893500133081
+      }
+    }
+  },
+  "seconds_shared_gpu": 168.85576979999314,
+  "files": {
+    "best_dev.pt": "eaa074cc4f8d438eec4b5b9e732d3f4b00014c9fb251dd5926b22a53fd218f8d",
+    "curves.jsonl": "e833699bb8bd5d18c5e5d5257a3f4aa759945571738ae557aef81493819cf5e7",
+    "dev_predictions.npz": "7040ffa0229c5e0e9df639d034cf1d73bdf23c0ff225652ec736f074c66d84f6",
+    "last.pt": "c56bcbd77ad2f33291b8f42f6a11ecdcdd89fd2c172c90a6c94f34d1eef509c9",
+    "manifest.json": "e2745f620b233832407608610d7051ebae46f87b142311ff5134252c4707bd9c",
+    "sample_indices.npy": "ab32b4c3fcd1f1cdc5f27c5e47caac32ba819b180240b215c1767ee59fb76b1d",
+    "validation_predictions.npz": "1fe0c8040046fdd3363aeddcbf0e3740f4b895ea664f46888960fbe9e12bc62c"
+  }
+}

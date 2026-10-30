@@ -1,0 +1,578 @@
+{
+  "variant": "mlp_margin",
+  "seed": 29,
+  "config": {
+    "name": "wikitext2_routing_margin_shared_born_v3",
+    "phase": "formal",
+    "device": "cuda",
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "gates": [
+      "mlp_half",
+      "mlp_margin",
+      "amp_half",
+      "amp_margin",
+      "born_lite",
+      "born_lite_margin"
+    ],
+    "model": {
+      "dim": 256,
+      "ff_dim": 1024,
+      "layers": 2,
+      "heads": 4,
+      "context": 128,
+      "vocab_size": 4096
+    },
+    "train": {
+      "steps": 4000,
+      "batch_size": 32,
+      "lr": 0.0006,
+      "min_lr_ratio": 0.1,
+      "warmup": 200,
+      "weight_decay": 0.01,
+      "grad_clip": 1.0,
+      "eval_every": 500,
+      "log_every": 50
+    },
+    "eval": {
+      "batch_size": 16,
+      "stride": 64,
+      "validation_tokens": null
+    },
+    "router": {
+      "experts": 16,
+      "topk": 4,
+      "k_in": 4,
+      "sites": 16,
+      "bond_dim": 8,
+      "depth": 2,
+      "rank": 16,
+      "budget": "matched",
+      "norm": "layernorm",
+      "quantum_entangle": true,
+      "learnable_gain": true,
+      "output_init_std": 0.001,
+      "temperature": 1.0,
+      "aux_coeff": 0.01,
+      "drop_tokens": false,
+      "variants": {
+        "mlp_half": {
+          "arch": "mlp",
+          "fraction": 0.5
+        },
+        "mpo_c2_full": {
+          "arch": "residual_mpo",
+          "fraction": 1.0,
+          "depth": 2,
+          "bond_dim": 2
+        },
+        "mpo_c1_half": {
+          "arch": "residual_mpo",
+          "fraction": 0.5,
+          "depth": 2,
+          "bond_dim": 1
+        },
+        "amp_d1_full": {
+          "arch": "amplitude_born",
+          "fraction": 1.0,
+          "depth": 1
+        },
+        "amp_d1_half": {
+          "arch": "amplitude_born",
+          "fraction": 0.5,
+          "depth": 1
+        }
+      }
+    },
+    "data_root": "outputs/autoregressive_gate/data",
+    "designs": {
+      "mlp_half": {
+        "base": "mlp_half",
+        "margin": false
+      },
+      "mlp_margin": {
+        "base": "mlp_half",
+        "margin": true
+      },
+      "amp_half": {
+        "base": "amp_d1_half",
+        "margin": false
+      },
+      "amp_margin": {
+        "base": "amp_d1_half",
+        "margin": true
+      },
+      "born_lite": {
+        "base": "born_lite",
+        "margin": false
+      },
+      "born_lite_margin": {
+        "base": "born_lite",
+        "margin": true
+      }
+    },
+    "margin": {
+      "threshold": 0.05,
+      "weight": 0.01,
+      "eps": 1e-06,
+      "start_fraction": 0.5,
+      "full_fraction": 0.75
+    },
+    "probe": {
+      "windows": 128,
+      "batch": 16,
+      "split": "validation",
+      "seed": 20261028,
+      "rms_levels": [
+        0.001,
+        0.01
+      ]
+    }
+  },
+  "config_hash": "756b04397b2d8392d676c2c07833d28a9825a510da312c39c11604243f6f7296",
+  "initial_model_hash": "dcbf69d08a247b96056dc9f1cfd477613287c4975cb611886a4d9d389e644f3c",
+  "shared_init_hash": "7a3604b23a4009aa59abd15939e0a4037e6cfce7d73a8c09b0933558647211e2",
+  "data_manifest_sha256": "2bfd87f0b578160ca83760ef9821d3b9582b6774bd2ee8fd1a227d608e6a9bb4",
+  "parameters": {
+    "total": 1674374,
+    "router_total": 26758,
+    "routers": {
+      "blocks.0.up": 2986,
+      "blocks.0.down": 10393,
+      "blocks.1.up": 2986,
+      "blocks.1.down": 10393
+    },
+    "positions": {
+      "blocks.0.up": [
+        [
+          0,
+          2,
+          3,
+          4
+        ],
+        [
+          1,
+          5,
+          6,
+          7
+        ],
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          0,
+          1,
+          6,
+          7
+        ],
+        [
+          0,
+          2,
+          4,
+          7
+        ],
+        [
+          1,
+          3,
+          5,
+          6
+        ],
+        [
+          1,
+          2,
+          3,
+          7
+        ],
+        [
+          0,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          3,
+          5,
+          6
+        ],
+        [
+          1,
+          2,
+          4,
+          7
+        ],
+        [
+          1,
+          3,
+          4,
+          5
+        ],
+        [
+          0,
+          2,
+          6,
+          7
+        ],
+        [
+          0,
+          4,
+          5,
+          7
+        ],
+        [
+          1,
+          2,
+          3,
+          6
+        ],
+        [
+          0,
+          1,
+          2,
+          6
+        ],
+        [
+          3,
+          4,
+          5,
+          7
+        ]
+      ],
+      "blocks.0.down": [
+        [
+          1,
+          3,
+          7,
+          8
+        ],
+        [
+          0,
+          6,
+          7,
+          9
+        ],
+        [
+          0,
+          5,
+          8,
+          9
+        ],
+        [
+          2,
+          3,
+          8,
+          9
+        ],
+        [
+          0,
+          2,
+          4,
+          5
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          1,
+          2,
+          4,
+          7
+        ],
+        [
+          1,
+          3,
+          6,
+          7
+        ],
+        [
+          0,
+          3,
+          5,
+          6
+        ],
+        [
+          2,
+          4,
+          8,
+          9
+        ],
+        [
+          1,
+          2,
+          6,
+          7
+        ],
+        [
+          0,
+          3,
+          8,
+          9
+        ],
+        [
+          0,
+          3,
+          4,
+          5
+        ],
+        [
+          1,
+          5,
+          6,
+          9
+        ],
+        [
+          2,
+          4,
+          7,
+          8
+        ],
+        [
+          4,
+          5,
+          7,
+          9
+        ]
+      ],
+      "blocks.1.up": [
+        [
+          2,
+          3,
+          4,
+          6
+        ],
+        [
+          0,
+          2,
+          6,
+          7
+        ],
+        [
+          1,
+          3,
+          4,
+          6
+        ],
+        [
+          1,
+          3,
+          5,
+          6
+        ],
+        [
+          0,
+          1,
+          5,
+          7
+        ],
+        [
+          0,
+          2,
+          4,
+          5
+        ],
+        [
+          0,
+          3,
+          4,
+          7
+        ],
+        [
+          1,
+          2,
+          5,
+          7
+        ],
+        [
+          2,
+          4,
+          6,
+          7
+        ],
+        [
+          0,
+          1,
+          3,
+          5
+        ],
+        [
+          1,
+          2,
+          3,
+          7
+        ],
+        [
+          0,
+          4,
+          5,
+          6
+        ],
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          1,
+          2,
+          7
+        ],
+        [
+          2,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          1,
+          3,
+          7
+        ]
+      ],
+      "blocks.1.down": [
+        [
+          3,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          3,
+          4,
+          6
+        ],
+        [
+          0,
+          4,
+          7,
+          8
+        ],
+        [
+          0,
+          2,
+          4,
+          7
+        ],
+        [
+          1,
+          3,
+          4,
+          6
+        ],
+        [
+          2,
+          7,
+          8,
+          9
+        ],
+        [
+          1,
+          5,
+          8,
+          9
+        ],
+        [
+          1,
+          2,
+          5,
+          9
+        ],
+        [
+          1,
+          2,
+          3,
+          8
+        ],
+        [
+          5,
+          6,
+          7,
+          9
+        ],
+        [
+          0,
+          2,
+          7,
+          9
+        ],
+        [
+          0,
+          1,
+          3,
+          6
+        ],
+        [
+          1,
+          2,
+          5,
+          8
+        ],
+        [
+          5,
+          6,
+          8,
+          9
+        ],
+        [
+          0,
+          3,
+          4,
+          7
+        ],
+        [
+          1,
+          2,
+          4,
+          5
+        ]
+      ]
+    }
+  },
+  "environment": {
+    "time": "2026-10-29T02:13:39.084634+08:00",
+    "python": "3.11.18 | packaged by conda-forge | (main, Oct 26 2026, 11:29:07) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26100-SP0",
+    "torch": "2.6.0+cu118",
+    "cuda_runtime": "11.8",
+    "numpy": "2.2.6",
+    "tokenizers": "0.22.2",
+    "transformers": "4.57.6",
+    "datasets": "3.6.0",
+    "commit": "c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd",
+    "git_status": " M pyproject.toml\n?? experiments/autoregressive_gate/\n?? experiments/routing_stability/\n?? research/routing_stability/\n?? tests/test_autoregressive_gate.py\n?? tests/test_routing_stability.py\n",
+    "gpu": "NVIDIA TITAN V",
+    "nvidia_smi": "Thu Oct 29 02:13:39 2026       \n+-----------------------------------------------------------------------------------------+\n| NVIDIA-SMI 582.28                 Driver Version: 582.28         CUDA Version: 13.0     |\n+-----------------------------------------+------------------------+----------------------+\n| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |\n| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |\n|                                         |                        |               MIG M. |\n|=========================================+========================+======================|\n|   0  NVIDIA TITAN V               WDDM  |   00000000:04:00.0  On |                  N/A |\n| 38%   53C    P2             38W /  250W |    6059MiB /  12288MiB |      3%      Default |\n|                                         |                        |                  N/A |\n+-----------------------------------------+------------------------+----------------------+\n\n+-----------------------------------------------------------------------------------------+\n| Processes:                                                                              |\n|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |\n|        ID   ID                                                               Usage      |\n|=========================================================================================|\n|    0   N/A  N/A            3316    C+G   C:\\Windows\\explorer.exe               N/A      |\n|    0   N/A  N/A            4624    C+G   ...ll Peripheral Manager\\DPM.exe      N/A      |\n|    0   N/A  N/A            5664    C+G   ...xyewy\\ShellExperienceHost.exe      N/A      |\n|    0   N/A  N/A            5784    C+G   ...cwf2zmmt10c\\PSExpressCore.exe      N/A      |\n|    0   N/A  N/A            9944    C+G   ...indows\\System32\\ShellHost.exe      N/A      |\n|    0   N/A  N/A           10208    C+G   ...2txyewy\\CrossDeviceResume.exe      N/A      |\n|    0   N/A  N/A           12112    C+G   D:\\QQ\\QQ.exe                          N/A      |\n|    0   N/A  N/A           12704    C+G   ...IA App\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           13108    C+G   ...5n1h2txyewy\\TextInputHost.exe      N/A      |\n|    0   N/A  N/A           13316    C+G   ..._cw5n1h2txyewy\\SearchHost.exe      N/A      |\n|    0   N/A  N/A           13340    C+G   ...y\\StartMenuExperienceHost.exe      N/A      |\n|    0   N/A  N/A           14356    C+G   ...IA App\\CEF\\NVIDIA Overlay.exe      N/A      |\n|    0   N/A  N/A           17096    C+G   ....0.4283.62\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           17544    C+G   ....0.4283.62\\msedgewebview2.exe      N/A      |\n|    0   N/A  N/A           23416    C+G   ...t\\Edge\\Application\\msedge.exe      N/A      |\n|    0   N/A  N/A           23588    C+G   ...lpaper_engine\\wallpaper32.exe      N/A      |\n|    0   N/A  N/A           26608    C+G   ...ndows\\System32\\mmgaserver.exe      N/A      |\n|    0   N/A  N/A           28052    C+G   ...\\cef.win64\\steamwebhelper.exe      N/A      |\n|    0   N/A  N/A           29248    C+G   ...yApp\\MicrosoftSecurityApp.exe      N/A      |\n|    0   N/A  N/A           29372    C+G   ...x40ttqa\\iCloud\\iCloudHome.exe      N/A      |\n|    0   N/A  N/A           29524      C   ...s\\MOTE\\.venv-titan\\python.exe      N/A      |\n|    0   N/A  N/A           29944    C+G   ...2p2nqsd0c76g0\\app\\ChatGPT.exe      N/A      |\n|    0   N/A  N/A           30896    C+G   ...LTBDAA3JSC2FE64NLMQ\\DeepL.exe      N/A      |\n|    0   N/A  N/A           32296    C+G   D:\\QQ\\QQ.exe                          N/A      |\n|    0   N/A  N/A           33244    C+G   ...\\codex-computer-use-swift.exe      N/A      |\n|    0   N/A  N/A           36052    C+G   ...kyb3d8bbwe\\EdgeGameAssist.exe      N/A      |\n|    0   N/A  N/A           37216    C+G   ...\\tools\\llama\\llama-server.exe      N/A      |\n|    0   N/A  N/A           41368    C+G   D:\\QQ\\QQ.exe                          N/A      |\n+-----------------------------------------------------------------------------------------+\n",
+    "source_sha256": {
+      "ADTN.py": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+      "gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+      "losses.py": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+      "sparse_mixt.py": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+      "structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+      "quantum_gate.py": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+      "advanced_routers.py": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+      "experiments/gate_benchmark/models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+      "experiments/autoregressive_gate/model.py": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb",
+      "experiments/autoregressive_gate/data.py": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a",
+      "experiments/autoregressive_gate/runner.py": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102",
+      "experiments/routing_stability/routers.py": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1",
+      "experiments/routing_stability/model.py": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270",
+      "experiments/routing_stability/runner.py": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94",
+      "experiments/routing_stability/probe.py": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e"
+    },
+    "precision": "fp32",
+    "tf32": false,
+    "threads": 1
+  }
+}

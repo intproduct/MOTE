@@ -1,0 +1,70 @@
+{
+  "task": "mnist",
+  "repo": "ylecun/mnist",
+  "revision": "fake-revision",
+  "data_key": "81d9d986c6a6333d",
+  "final_source_split": "test",
+  "classes": 2,
+  "input_dim": 32,
+  "indices": {
+    "train": [
+      8,
+      11,
+      24,
+      5,
+      25,
+      14,
+      9,
+      18,
+      3,
+      16,
+      15,
+      29,
+      1,
+      26,
+      0,
+      2,
+      4,
+      21,
+      6,
+      10,
+      22,
+      17,
+      27,
+      12,
+      13,
+      7
+    ],
+    "dev": [
+      20,
+      19,
+      23,
+      28
+    ],
+    "test": [
+      8,
+      10,
+      2,
+      9,
+      1,
+      4,
+      5,
+      7,
+      3,
+      11,
+      6,
+      0
+    ]
+  },
+  "indices_sha256": "9fbbe33f988ef832fd7467224af9858536dd2838a820a96c60dba0228369a6e9",
+  "fingerprints": {
+    "train": "26",
+    "dev": "4",
+    "test": "12"
+  },
+  "sizes": {
+    "train": 26,
+    "dev": 4,
+    "test": 12
+  }
+}

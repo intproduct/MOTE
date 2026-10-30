@@ -1,0 +1,618 @@
+[
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "dev",
+    "checkpoint_sha256": "0ea46162185bfcf4acea49ff151c60a67b1a489463e911580000fea64f9adb9a",
+    "arrays_sha256": "8f94f2aa56240ef39474d3e1e9aebe5294e439c16d2dfc2ef8075b299b19ad46",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.0096893310546875,
+      0.010217833518981933,
+      0.015871644020080566,
+      0.038259267807006836,
+      0.17610108852386475,
+      0.8551275730133057
+    ],
+    "gradient_norm_quantiles": [
+      0.07730024307966232,
+      0.11284327656030654,
+      0.34521932899951935,
+      2.861155867576599,
+      6.343500375747681,
+      7.8731689453125
+    ],
+    "linear_l2_radius_quantiles": [
+      0.00133630505297333,
+      0.0017358236480504274,
+      0.005104449111968279,
+      0.02193388156592846,
+      0.21703680604696274,
+      0.9457693099975586
+    ],
+    "hamming_one_fraction": 0.375,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          8.791685104370117e-07,
+          1.0193325579166412e-05,
+          1.3191252946853636e-05,
+          1.3649463653564453e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          3.7904828786849976e-07,
+          8.400529623031616e-07,
+          9.40263271331787e-07,
+          9.5367431640625e-07
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "dev",
+    "checkpoint_sha256": "5dbfeec1def819c9b04aea24b1420ab6a2bdfef0ccff69acc544995ddcb80c32",
+    "arrays_sha256": "af56cca97413a1ec33621f68039e38f844476e183076a7252a7f696cce08dd42",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.003911256790161133,
+      0.004037535190582276,
+      0.006057381629943848,
+      0.034795522689819336,
+      0.23740005493164062,
+      0.5173261165618896
+    ],
+    "gradient_norm_quantiles": [
+      0.04556523635983467,
+      0.05614517629146576,
+      0.46248316764831543,
+      2.146802306175232,
+      6.269659042358398,
+      8.083206176757812
+    ],
+    "linear_l2_radius_quantiles": [
+      0.0022383187897503376,
+      0.002513447217643261,
+      0.004176479764282703,
+      0.034863151609897614,
+      0.11159589886665344,
+      0.27160170674324036
+    ],
+    "hamming_one_fraction": 0.25,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          1.4354009181261063e-06,
+          6.08246773481369e-06,
+          1.0367389768362043e-05,
+          1.111254096031189e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          4.330649971961975e-07,
+          9.462237358093262e-07,
+          9.525567293167114e-07,
+          9.5367431640625e-07
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "dev",
+    "checkpoint_sha256": "b103cb5b53697792f8796bd979b52505bcb7ad38635b875cee6eea1dca78355a",
+    "arrays_sha256": "4550f964a485a0636bf4a64f200e855577c5c646b0e07be9ed72b88cd265bf82",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.011975526809692383,
+      0.012301146984100342,
+      0.015180826187133789,
+      0.055686235427856445,
+      0.3853522539138794,
+      1.0835223197937012
+    ],
+    "gradient_norm_quantiles": [
+      0.03711941838264465,
+      0.06031784638762474,
+      0.22162219136953354,
+      2.1470460295677185,
+      7.152570962905884,
+      9.691207885742188
+    ],
+    "linear_l2_radius_quantiles": [
+      0.005996230058372021,
+      0.0060167578281834725,
+      0.009314008289948106,
+      0.07074035331606865,
+      0.315629318356514,
+      0.43904152512550354
+    ],
+    "hamming_one_fraction": 0.25,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          1.4295801520347595e-06,
+          4.811212420463562e-06,
+          2.352092415094375e-05,
+          2.6538968086242676e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          4.172325134277344e-07,
+          1.043081283569336e-06,
+          1.4499761164188384e-06,
+          1.521781086921692e-06
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "dev",
+    "checkpoint_sha256": "7a3f5473be1598c2e48a09b248907658ccccb2fb30e5aad0dada373350f64e79",
+    "arrays_sha256": "337c0ca1ebc3a9dd8b08c2ddead2b57f20aac06b1cd4c33f0e120e966353bf00",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.009134054183959961,
+      0.00982370376586914,
+      0.018606901168823242,
+      0.14458060264587402,
+      0.3564155101776123,
+      1.0294241905212402
+    ],
+    "gradient_norm_quantiles": [
+      0.053984783589839935,
+      0.06437808535993099,
+      0.1595449298620224,
+      1.3985211253166199,
+      5.77376651763916,
+      14.547148704528809
+    ],
+    "linear_l2_radius_quantiles": [
+      0.0016049412079155445,
+      0.0025661512510851024,
+      0.012584659270942211,
+      0.11759856343269348,
+      0.4807109832763672,
+      1.9398107528686523
+    ],
+    "hamming_one_fraction": 0.0,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          1.0579824447631836e-06,
+          8.106231689453125e-06,
+          1.93372368812561e-05,
+          2.1129846572875977e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          6.034970283508301e-07,
+          1.1622905731201172e-06,
+          1.4171469956636428e-06,
+          1.4463439583778381e-06
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "validation",
+    "checkpoint_sha256": "0ea46162185bfcf4acea49ff151c60a67b1a489463e911580000fea64f9adb9a",
+    "arrays_sha256": "a08a940094bcbb89883c6ed16be25295ec75d1c591cb897c7c03a7fd553dc0bb",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.007312297821044922,
+      0.01140763759613037,
+      0.04914689064025879,
+      0.12708711624145508,
+      0.2707095146179199,
+      0.3848140239715576
+    ],
+    "gradient_norm_quantiles": [
+      0.2597351670265198,
+      0.2611453294754028,
+      0.32911232113838196,
+      1.2472934424877167,
+      8.515007495880127,
+      11.448699951171875
+    ],
+    "linear_l2_radius_quantiles": [
+      0.002183436881750822,
+      0.0034371701069176195,
+      0.011015661992132664,
+      0.09836627915501595,
+      0.32054629921913147,
+      0.32406583428382874
+    ],
+    "hamming_one_fraction": 0.1875,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          1.0579824447631836e-06,
+          3.63960862159729e-06,
+          7.445923984050749e-06,
+          8.035451173782349e-06
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          5.047768354415894e-07,
+          9.834766387939453e-07,
+          1.8648803234100338e-06,
+          1.996755599975586e-06
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "validation",
+    "checkpoint_sha256": "5dbfeec1def819c9b04aea24b1420ab6a2bdfef0ccff69acc544995ddcb80c32",
+    "arrays_sha256": "7396ad6c46631ffb7f4280931ada774c3a09e5597565e51b43edc08b5315d03b",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.011118650436401367,
+      0.01275275945663452,
+      0.024651408195495605,
+      0.14471566677093506,
+      0.46752309799194336,
+      2.668044090270996
+    ],
+    "gradient_norm_quantiles": [
+      0.10934080183506012,
+      0.1325324572622776,
+      0.30314141511917114,
+      3.2279690504074097,
+      8.369136333465576,
+      10.519525527954102
+    ],
+    "linear_l2_radius_quantiles": [
+      0.0062871831469237804,
+      0.007078039948828519,
+      0.014592025894671679,
+      0.048718975856900215,
+      0.25997066497802734,
+      7.793755531311035
+    ],
+    "hamming_one_fraction": 0.25,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          1.1967495083808899e-06,
+          5.97536563873291e-06,
+          1.0569766163825988e-05,
+          1.109391450881958e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          4.76837158203125e-07,
+          1.0849907994270325e-06,
+          1.5339814126491546e-06,
+          1.5795230865478516e-06
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "validation",
+    "checkpoint_sha256": "b103cb5b53697792f8796bd979b52505bcb7ad38635b875cee6eea1dca78355a",
+    "arrays_sha256": "1fba6757fd04bb5f0d05bf7371811d0b94041de42e003d4bb17c71e699a5fe9f",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.0062847137451171875,
+      0.006927549839019775,
+      0.010777950286865234,
+      0.08760428428649902,
+      0.5944414138793945,
+      1.2094085216522217
+    ],
+    "gradient_norm_quantiles": [
+      0.11480987071990967,
+      0.13947616666555404,
+      0.41726039350032806,
+      0.9154964089393616,
+      4.102604627609253,
+      8.426058769226074
+    ],
+    "linear_l2_radius_quantiles": [
+      0.004541296977549791,
+      0.006138624809682369,
+      0.016553678084164858,
+      0.07700436189770699,
+      0.6337522268295288,
+      2.2779014110565186
+    ],
+    "hamming_one_fraction": 0.1875,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          8.419156074523926e-07,
+          4.991888999938965e-06,
+          1.4026276767253873e-05,
+          1.559033989906311e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          7.171183824539185e-07,
+          1.2721866369247437e-06,
+          1.3569369912147522e-06,
+          1.3709068298339844e-06
+        ]
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "validation",
+    "checkpoint_sha256": "7a3f5473be1598c2e48a09b248907658ccccb2fb30e5aad0dada373350f64e79",
+    "arrays_sha256": "5527d46954507440fffbd8934001acdaaf541c387a8d25a98577b45f6480b3bb",
+    "tokens": 16,
+    "margin_quantiles": [
+      0.01254892349243164,
+      0.015345931053161621,
+      0.04002988338470459,
+      0.1728048324584961,
+      0.46797358989715576,
+      1.6011782884597778
+    ],
+    "gradient_norm_quantiles": [
+      0.08961918205022812,
+      0.1043913196772337,
+      0.22286339104175568,
+      2.148313522338867,
+      6.9135730266571045,
+      11.244648933410645
+    ],
+    "linear_l2_radius_quantiles": [
+      0.01226659957319498,
+      0.013925573928281665,
+      0.026992416940629482,
+      0.11054764688014984,
+      0.8831368684768677,
+      1.6501234769821167
+    ],
+    "hamming_one_fraction": 0.0,
+    "conditions": {
+      "bf16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          8.754432201385498e-07,
+          1.2479722499847412e-05,
+          3.0153244733810417e-05,
+          3.293156623840332e-05
+        ]
+      },
+      "fp16_input_roundtrip": {
+        "set_flips": 0,
+        "set_flip_rate": 0.0,
+        "set_flip_rate_ci95_windows": [
+          0.0,
+          0.0
+        ],
+        "pair_crossings": 0,
+        "predicted_pair_crossings": 0,
+        "prediction_true_positive": 0,
+        "prediction_false_positive": 0,
+        "prediction_false_negative": 0,
+        "set_flips_without_pair_crossing": 0,
+        "multiple_swaps": 0,
+        "linearization_abs_error_quantiles": [
+          2.980232238769531e-07,
+          1.385807991027832e-06,
+          1.4811754226684571e-06,
+          1.4901161193847656e-06
+        ]
+      }
+    }
+  }
+]

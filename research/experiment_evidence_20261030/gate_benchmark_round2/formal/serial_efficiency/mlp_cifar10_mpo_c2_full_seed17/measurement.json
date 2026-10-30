@@ -1,0 +1,29 @@
+{
+  "stage": "mlp",
+  "task": "cifar10",
+  "gate": "mpo_c2_full",
+  "seed": 17,
+  "source_checkpoint_step": 900,
+  "warmup_steps": 3,
+  "measured_steps": 10,
+  "final_reevaluation_matches": true,
+  "routing_reevaluation_matches": true,
+  "training_seconds": 5.990773799996532,
+  "seconds_per_step": 0.5990773799996532,
+  "step_time_sample_std": 0.018615401533077346,
+  "examples_per_second": 213.66188120819066,
+  "peak_cuda_mib": 252.26904296875,
+  "step_seconds": [
+    0.6256812999999966,
+    0.5755709000004572,
+    0.5977435999993759,
+    0.6015791999998328,
+    0.6226287999998021,
+    0.5977566000001389,
+    0.6026170999975875,
+    0.6035886999998183,
+    0.600029999997787,
+    0.5635776000017358
+  ],
+  "protocol": "serial selected-checkpoint continuation with fresh AdamW; includes data fetch, transfer, forward/backward, clipping and optimizer; 3 warmup + 10 measured; weights discarded"
+}

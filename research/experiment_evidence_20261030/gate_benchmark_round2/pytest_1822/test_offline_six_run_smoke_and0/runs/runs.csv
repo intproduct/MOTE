@@ -1,0 +1,7 @@
+amp_skipped_steps,best_step,examples_per_second,experiment,final_accuracy,final_ce,final_score,gate,router_parameters,run_dir,seed,stage,task,total_parameters,training_seconds
+0,1,53.53813455781984,.,0.5,0.698281466960907,0.5,compact_born,756,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_offline_six_run_smoke_and0\runs\bert_compact_born,7,bert,synthetic,4998,0.14942619996145368
+0,1,109.85102829246206,.,0.5,0.6978880167007446,0.5,mlp,792,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_offline_six_run_smoke_and0\runs\bert_mlp,7,bert,synthetic,5034,0.0728258999879472
+0,1,87.15793239324331,.,0.5,0.6992897391319275,0.5,mps,784,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_offline_six_run_smoke_and0\runs\bert_mps,7,bert,synthetic,5026,0.0917873999569565
+0,1,58.91233108329265,.,0.5,0.8019225597381592,0.5,compact_born,756,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_offline_six_run_smoke_and0\runs\mlp_compact_born,7,mlp,synthetic,2374,0.13579500000923872
+0,1,126.49841322942923,.,0.5,0.8195505142211914,0.5,mlp,792,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_offline_six_run_smoke_and0\runs\mlp_mlp,7,mlp,synthetic,2410,0.06324190000304952
+0,1,97.27200652197351,.,0.5,0.813564658164978,0.5,mps,784,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_offline_six_run_smoke_and0\runs\mlp_mps,7,mlp,synthetic,2402,0.08224360004533082

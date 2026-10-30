@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "runs": 24,
+  "post_selection_quality_rows": 48,
+  "roundtrip_records": 96,
+  "sources_unchanged": true,
+  "frozen_experts": true,
+  "missing": [],
+  "failed": []
+}

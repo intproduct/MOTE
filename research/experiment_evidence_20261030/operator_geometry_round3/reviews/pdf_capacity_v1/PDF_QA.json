@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "pages_visually_inspected": {
+    "CAPACITY_GEOMETRY_REVIEW_20261030_zh": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "render_width_px": 1600,
+  "figures_visually_inspected": [
+    "fidelity.png",
+    "calibration_time.png"
+  ],
+  "chinese": "KaiTi",
+  "latin": "Times New Roman",
+  "math": "New Computer Modern Math",
+  "final_changed_pages_reinspected": [
+    2,
+    3
+  ],
+  "issues_remaining": [],
+  "files": {
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_REVIEW_20261030_zh.md": "323f34e617d25c7b356dd108aefd262e0122b5e82331328708b751e679048f1d",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_REVIEW_20261030_zh.typ": "5e0927aafcb7c8780ed8679014b0c83afe0611d32be8b0b5e11cd3337ddd1e24",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_REVIEW_20261030_zh.pdf": "18efbca566123dde0d9bd27a9b27bde77afe2afe2103236a636466ad57854f9c",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.md": "a2e8069cff08ffa3a8abe625c3a0463f3634a813a17a93fb2083a4ed9c5f4fe7",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.typ": "f201be6c595720d55f1c82305d8938413c3ea00bb5e267c511f121af00894887",
+    "research\\operator_family_quantum_gate_20261030\\CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.pdf": "0468de69e9727a71bebf125a499879a92ba0cc2d2e7ed5b6836adb5799cfb332"
+  }
+}

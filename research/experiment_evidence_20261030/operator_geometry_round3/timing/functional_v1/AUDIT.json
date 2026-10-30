@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checkpoints": 60,
+  "timing_rows": 180,
+  "samples_per_row": 50,
+  "warmup_per_row": 20,
+  "missing": [],
+  "failed": [],
+  "script_sha256": "bc8800e98df12872dec479259136dda555ed21ed4fa17721476ef28cf157b260",
+  "completed": "2026-10-30T12:56:18.936010+08:00"
+}

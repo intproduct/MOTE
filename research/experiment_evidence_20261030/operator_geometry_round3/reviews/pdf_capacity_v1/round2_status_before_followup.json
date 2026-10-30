@@ -1,0 +1,8 @@
+{
+  "state": "stage_complete_with_continuation",
+  "stage_audit": "outputs\\operator_geometry_round2\\STAGE_COMPLETION_AUDIT.json",
+  "completed_stage": "operator_geometry_round2",
+  "next_stage": "capacity_calibration",
+  "authoritative_next_status": "outputs/operator_geometry_round3/capacity/STATUS.json",
+  "updated": "2026-10-30T11:34:56.286425+08:00"
+}

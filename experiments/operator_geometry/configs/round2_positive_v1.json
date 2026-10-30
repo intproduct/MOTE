@@ -1,0 +1,20 @@
+{
+  "data_group": "outputs/operator_geometry_round2/data/86a2ba9f5aa2",
+  "utility_group": "outputs/operator_geometry_round2/utility/3a0386d9a187",
+  "risk_group": "outputs/operator_geometry_round2/risk/3a17e2fefbb6",
+  "seeds": [17, 29, 43],
+  "methods": ["mlp", "angle_functional", "product_functional"],
+  "rank": 8,
+  "steps": 4000,
+  "eval_every": 200,
+  "batch_size": 256,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "gradient_clip": 1.0,
+  "device": "cuda",
+  "wait_for_risk": true,
+  "latest_start": "2026-10-30T06:45:00+08:00",
+  "stop_training_by": "2026-10-30T07:45:00+08:00",
+  "target": "Centered negative log of cached original frozen router probabilities; input-determined and no next-token labels",
+  "selection": "Best internal-dev MSE; same initialization, minibatches and4000steps as utility prediction. Report all3seeds. This is calibration, not an LM quality candidate."
+}

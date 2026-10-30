@@ -1,0 +1,12 @@
+{
+  "state": "ready_for_review",
+  "stage": "sparse_replay",
+  "pid": 40776,
+  "active": false,
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\replay_smoke_v2\\b3fd9fd81c2a",
+  "completed": 3,
+  "total": 3,
+  "started": "2026-10-30T11:56:56.724847+08:00",
+  "current": null,
+  "finished": "2026-10-30T11:57:13.328048+08:00"
+}

@@ -1,0 +1,21 @@
+{
+  "source_group": "outputs/operator_geometry_round1/router_pilot/da5325087d6b",
+  "data_group": "outputs/operator_geometry_round2/smoke/data/d3534f3146be",
+  "seeds": [
+    17
+  ],
+  "methods": [
+    "angle_natural",
+    "angle_random",
+    "angle_functional",
+    "product_functional"
+  ],
+  "splits": [
+    "dev",
+    "validation"
+  ],
+  "batch": 8,
+  "purpose": "Post-hoc fixed-pair top4/5 logprob margin derivatives on frozen first-cycle checkpoints; no new model selection",
+  "precision_scope": "CPU FP32 router with FP16/BF16 input roundtrip only; not native GPU lower precision",
+  "geometry_scope": "Encoding Fisher is smooth. This diagnostic examines the separate discrete top-k boundary; its local linear radius is not a certified global bound."
+}

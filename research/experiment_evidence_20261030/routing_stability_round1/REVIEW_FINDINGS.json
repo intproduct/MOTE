@@ -1,0 +1,133 @@
+{
+  "time": "2026-10-29T07:09:41.545137+08:00",
+  "tail_summary_bf16": [
+    {
+      "variant": "mlp_half",
+      "mae_mean": 0.0008452757780711787,
+      "mae_std": 4.2500197708887954e-05,
+      "p99_batch_mean": 0.009855318242140735,
+      "max_across_seeds": 0.3057694435119629,
+      "gt01_count": 42,
+      "gt01_percent": 0.08544921875,
+      "argmax_percent": 0.06306966145833333
+    },
+    {
+      "variant": "mlp_margin",
+      "mae_mean": 0.0008931269743091738,
+      "mae_std": 9.693136068918436e-05,
+      "p99_batch_mean": 0.011261377697034428,
+      "max_across_seeds": 0.481658935546875,
+      "gt01_count": 64,
+      "gt01_percent": 0.13020833333333334,
+      "argmax_percent": 0.08544921875
+    },
+    {
+      "variant": "amp_half",
+      "mae_mean": 0.0010847469263050395,
+      "mae_std": 5.9290912063168706e-05,
+      "p99_batch_mean": 0.013009975256863981,
+      "max_across_seeds": 0.4268970489501953,
+      "gt01_count": 78,
+      "gt01_percent": 0.15869140625,
+      "argmax_percent": 0.10172526041666667
+    },
+    {
+      "variant": "amp_margin",
+      "mae_mean": 0.0010757279402848023,
+      "mae_std": 9.849026569776651e-05,
+      "p99_batch_mean": 0.01227270249122133,
+      "max_across_seeds": 0.8490443229675293,
+      "gt01_count": 66,
+      "gt01_percent": 0.13427734375,
+      "argmax_percent": 0.103759765625
+    },
+    {
+      "variant": "born_lite",
+      "mae_mean": 0.001205976976052625,
+      "mae_std": 0.00021208588547355655,
+      "p99_batch_mean": 0.02347920895166074,
+      "max_across_seeds": 1.2411394119262695,
+      "gt01_count": 106,
+      "gt01_percent": 0.21565755208333334,
+      "argmax_percent": 0.10172526041666667
+    },
+    {
+      "variant": "born_lite_margin",
+      "mae_mean": 0.0010495676227340784,
+      "mae_std": 0.00010010847042236935,
+      "p99_batch_mean": 0.018022028302463394,
+      "max_across_seeds": 0.46476101875305176,
+      "gt01_count": 94,
+      "gt01_percent": 0.19124348958333334,
+      "argmax_percent": 0.08341471354166667
+    }
+  ],
+  "engineering_targets": [
+    {
+      "variant": "mlp_margin",
+      "baseline": "mlp_half",
+      "ppl_change_percent_mean": -0.021405118840371145,
+      "inference_ratio_mean": 1.0201274804141722,
+      "bf16_flip_ratio_mean": 0.8974484695758599,
+      "ppl_pass_seeds": 3,
+      "latency_pass_seeds": 3,
+      "bf16_pass_seeds": 0,
+      "combined_mean_target_met": false
+    },
+    {
+      "variant": "amp_half",
+      "baseline": "mlp_half",
+      "ppl_change_percent_mean": 0.48106515332532923,
+      "inference_ratio_mean": 1.4154264773746577,
+      "bf16_flip_ratio_mean": 1.0208991360600843,
+      "ppl_pass_seeds": 2,
+      "latency_pass_seeds": 0,
+      "bf16_pass_seeds": 0,
+      "combined_mean_target_met": false
+    },
+    {
+      "variant": "amp_margin",
+      "baseline": "mlp_half",
+      "ppl_change_percent_mean": 0.49288060282176954,
+      "inference_ratio_mean": 1.3989748809320757,
+      "bf16_flip_ratio_mean": 1.0632456850515208,
+      "ppl_pass_seeds": 2,
+      "latency_pass_seeds": 0,
+      "bf16_pass_seeds": 0,
+      "combined_mean_target_met": false
+    },
+    {
+      "variant": "born_lite",
+      "baseline": "mlp_half",
+      "ppl_change_percent_mean": 1.1346731043276732,
+      "inference_ratio_mean": 1.0687784354029288,
+      "bf16_flip_ratio_mean": 1.4337801267213233,
+      "ppl_pass_seeds": 1,
+      "latency_pass_seeds": 0,
+      "bf16_pass_seeds": 0,
+      "combined_mean_target_met": false
+    },
+    {
+      "variant": "born_lite_margin",
+      "baseline": "mlp_half",
+      "ppl_change_percent_mean": 1.119332720836641,
+      "inference_ratio_mean": 1.0342968264448513,
+      "bf16_flip_ratio_mean": 1.3039667879147234,
+      "ppl_pass_seeds": 1,
+      "latency_pass_seeds": 3,
+      "bf16_pass_seeds": 0,
+      "combined_mean_target_met": false
+    }
+  ],
+  "all_combined_targets_met": false,
+  "all_54_generations_read": true,
+  "generation_quality": "All method families show substantial repetition and topic drift; no generation-quality win inferred.",
+  "limitations": [
+    "Only input rounding in FP32, not native mixed precision or cross engine/RL",
+    "Three seeds on one small corpus/model",
+    "No no-U/no-CRY/classical orthogonal controls",
+    "Timing measured serially without randomized interleaved repeats",
+    "No KV-cache decoding or isolated inference memory peak"
+  ],
+  "conclusion": "Feasible training; cached shared Born improves forward latency relative to original Born, but no candidate meets the combined half-MLP quality/latency/50%-flip-reduction target. Margin effects are modest and condition dependent; output error tails must be assessed separately."
+}

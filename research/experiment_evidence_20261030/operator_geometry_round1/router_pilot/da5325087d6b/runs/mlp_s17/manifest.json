@@ -1,0 +1,10 @@
+{
+  "config_hash": "da5325087d6b2220e5d0518437784272f9f2245b080ef9fcd3abbdcbec772995",
+  "method": "mlp",
+  "seed": 17,
+  "initial_router_hash": "c055f4abdd74f68c9ce78f543e44d247aa57b8f3f7aa083de2769a867a1d5d1f",
+  "router_parameters": 10384,
+  "expert_pool_sha256": "836ba64d37ed1a45789baab905427bd8996d5656630c567d810be145ee820714",
+  "initialization_seed": 900017,
+  "sampling_seed": 910017
+}

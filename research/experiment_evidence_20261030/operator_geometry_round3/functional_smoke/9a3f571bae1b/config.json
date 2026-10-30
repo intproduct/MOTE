@@ -1,0 +1,30 @@
+{
+  "output_root": "outputs/operator_geometry_round3/functional_smoke",
+  "data_group": "outputs/operator_geometry_round2/data/86a2ba9f5aa2",
+  "capacity_group": "outputs/operator_geometry_round3/capacity/481aeb0bc8dd",
+  "reference_group": "outputs/operator_geometry_round2/positive/d4ee19e23787",
+  "geometry_group": "outputs/operator_geometry_round2/utility/3a0386d9a187/geometry",
+  "methods": [
+    "mlp",
+    "affine_born",
+    "reencode_cz",
+    "reencode_product"
+  ],
+  "objectives": [
+    "coefficient",
+    "output",
+    "fisher"
+  ],
+  "seeds": [
+    17
+  ],
+  "steps": 4,
+  "eval_every": 2,
+  "batch_size": 256,
+  "lr": 0.0003,
+  "device": "cuda",
+  "selection": "Common minimum exact internal-dev output KL including checkpoint0; no target labels, no validation selection",
+  "scope": "Frozen final-expert-bank adaptation from per-method score-fit checkpoint, fixed per-method calibration power. Three losses receive the same original teacher and samples. Geometry precomputation is training-only overhead. FP16/BF16 roundtrip is gate-input perturbation with FP32 kernels.",
+  "smoke": true,
+  "smoke_tokens": 64
+}

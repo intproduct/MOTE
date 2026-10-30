@@ -1,0 +1,489 @@
+{
+  "passed": true,
+  "kind": "positive",
+  "expected": 9,
+  "verified": 9,
+  "missing": [],
+  "checks": [
+    {
+      "seed": 17,
+      "method": "mlp",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 4.76837158203125e-06,
+        "dev": 4.291534423828125e-06,
+        "validation": 3.814697265625e-06
+      }
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 4.601478576660156e-05,
+        "dev": 3.820657730102539e-05,
+        "validation": 2.8431415557861328e-05
+      }
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 3.0994415283203125e-06,
+        "dev": 2.384185791015625e-06,
+        "validation": 2.1010637283325195e-06
+      }
+    },
+    {
+      "seed": 29,
+      "method": "mlp",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 3.814697265625e-06,
+        "dev": 3.337860107421875e-06,
+        "validation": 3.6507844924926758e-06
+      }
+    },
+    {
+      "seed": 29,
+      "method": "angle_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 2.384185791015625e-06,
+        "dev": 1.9073486328125e-06,
+        "validation": 2.2649765014648438e-06
+      }
+    },
+    {
+      "seed": 29,
+      "method": "product_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 2.5033950805664062e-06,
+        "dev": 2.2649765014648438e-06,
+        "validation": 2.2649765014648438e-06
+      }
+    },
+    {
+      "seed": 43,
+      "method": "mlp",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 4.76837158203125e-06,
+        "dev": 3.814697265625e-06,
+        "validation": 4.76837158203125e-06
+      }
+    },
+    {
+      "seed": 43,
+      "method": "angle_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 3.0994415283203125e-05,
+        "dev": 3.147125244140625e-05,
+        "validation": 2.193450927734375e-05
+      }
+    },
+    {
+      "seed": 43,
+      "method": "product_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 2.86102294921875e-06,
+        "dev": 2.2649765014648438e-06,
+        "validation": 2.6226043701171875e-06
+      }
+    }
+  ],
+  "rows": [
+    {
+      "seed": 17,
+      "method": "mlp",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4000,
+      "tokens": 32768,
+      "mse": 0.03005201369524002,
+      "constant_mse": 1.375916838645935,
+      "r2_vs_constant": 0.9781585537358386,
+      "within_token_rho": 0.8831688589429304,
+      "top4_set_agreement": 0.421478271484375
+    },
+    {
+      "seed": 17,
+      "method": "mlp",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 0.03416711091995239,
+      "constant_mse": 1.400138020515442,
+      "r2_vs_constant": 0.975597326535441,
+      "within_token_rho": 0.8785202827485523,
+      "top4_set_agreement": 0.41748046875
+    },
+    {
+      "seed": 17,
+      "method": "mlp",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 0.03227556496858597,
+      "constant_mse": 1.3494915962219238,
+      "r2_vs_constant": 0.9760831671283129,
+      "within_token_rho": 0.8780107334773546,
+      "top4_set_agreement": 0.398681640625
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 32768,
+      "mse": 0.8395397067070007,
+      "constant_mse": 1.375916838645935,
+      "r2_vs_constant": 0.389832522485002,
+      "within_token_rho": 0.30214247679703,
+      "top4_set_agreement": 0.0147705078125
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 0.8658550977706909,
+      "constant_mse": 1.400138020515442,
+      "r2_vs_constant": 0.38159303934055155,
+      "within_token_rho": 0.2954867677990368,
+      "top4_set_agreement": 0.016845703125
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 0.8302451372146606,
+      "constant_mse": 1.3494915962219238,
+      "r2_vs_constant": 0.38477191000000355,
+      "within_token_rho": 0.28120542619275884,
+      "top4_set_agreement": 0.01513671875
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 32768,
+      "mse": 1.0544002056121826,
+      "constant_mse": 1.375916838645935,
+      "r2_vs_constant": 0.23367446636539668,
+      "within_token_rho": 0.46663125843464176,
+      "top4_set_agreement": 0.01971435546875
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 1.0635168552398682,
+      "constant_mse": 1.400138020515442,
+      "r2_vs_constant": 0.24041998741784842,
+      "within_token_rho": 0.46530317337791194,
+      "top4_set_agreement": 0.023193359375
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 1.0386022329330444,
+      "constant_mse": 1.3494915962219238,
+      "r2_vs_constant": 0.23037517548034714,
+      "within_token_rho": 0.4666313821031761,
+      "top4_set_agreement": 0.015625
+    },
+    {
+      "seed": 29,
+      "method": "mlp",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 3800,
+      "tokens": 32768,
+      "mse": 0.01665329933166504,
+      "constant_mse": 1.4960901737213135,
+      "r2_vs_constant": 0.9888687863711836,
+      "within_token_rho": 0.9264806380516835,
+      "top4_set_agreement": 0.490234375
+    },
+    {
+      "seed": 29,
+      "method": "mlp",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 3800,
+      "tokens": 4096,
+      "mse": 0.019554713740944862,
+      "constant_mse": 1.5164207220077515,
+      "r2_vs_constant": 0.9871046910285859,
+      "within_token_rho": 0.925322741310939,
+      "top4_set_agreement": 0.484375
+    },
+    {
+      "seed": 29,
+      "method": "mlp",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 3800,
+      "tokens": 4096,
+      "mse": 0.01821279525756836,
+      "constant_mse": 1.484382152557373,
+      "r2_vs_constant": 0.9877303865273572,
+      "within_token_rho": 0.9240289042228588,
+      "top4_set_agreement": 0.46923828125
+    },
+    {
+      "seed": 29,
+      "method": "angle_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 3600,
+      "tokens": 32768,
+      "mse": 1.0308951139450073,
+      "constant_mse": 1.4960901737213135,
+      "r2_vs_constant": 0.31094052213390255,
+      "within_token_rho": 0.5513473868352585,
+      "top4_set_agreement": 0.001861572265625
+    },
+    {
+      "seed": 29,
+      "method": "angle_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 3600,
+      "tokens": 4096,
+      "mse": 1.059880018234253,
+      "constant_mse": 1.5164207220077515,
+      "r2_vs_constant": 0.3010646696841728,
+      "within_token_rho": 0.5445567299214535,
+      "top4_set_agreement": 0.001220703125
+    },
+    {
+      "seed": 29,
+      "method": "angle_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 3600,
+      "tokens": 4096,
+      "mse": 1.0339961051940918,
+      "constant_mse": 1.484382152557373,
+      "r2_vs_constant": 0.30341650671785025,
+      "within_token_rho": 0.5448852151887289,
+      "top4_set_agreement": 0.001708984375
+    },
+    {
+      "seed": 29,
+      "method": "product_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 32768,
+      "mse": 1.0390621423721313,
+      "constant_mse": 1.4960901737213135,
+      "r2_vs_constant": 0.30548160757742915,
+      "within_token_rho": 0.5413286657192915,
+      "top4_set_agreement": 0.00140380859375
+    },
+    {
+      "seed": 29,
+      "method": "product_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 1.065887451171875,
+      "constant_mse": 1.5164207220077515,
+      "r2_vs_constant": 0.29710308247395045,
+      "within_token_rho": 0.5311110715154888,
+      "top4_set_agreement": 0.0009765625
+    },
+    {
+      "seed": 29,
+      "method": "product_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 1.0404919385910034,
+      "constant_mse": 1.484382152557373,
+      "r2_vs_constant": 0.29904038741075656,
+      "within_token_rho": 0.5395502759383906,
+      "top4_set_agreement": 0.001220703125
+    },
+    {
+      "seed": 43,
+      "method": "mlp",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4000,
+      "tokens": 32768,
+      "mse": 0.030019821599125862,
+      "constant_mse": 2.108215808868408,
+      "r2_vs_constant": 0.9857605556922376,
+      "within_token_rho": 0.9137472588161941,
+      "top4_set_agreement": 0.49566650390625
+    },
+    {
+      "seed": 43,
+      "method": "mlp",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 0.03414001315832138,
+      "constant_mse": 2.1459221839904785,
+      "r2_vs_constant": 0.9840907496958553,
+      "within_token_rho": 0.9130191618230138,
+      "top4_set_agreement": 0.494384765625
+    },
+    {
+      "seed": 43,
+      "method": "mlp",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 0.032959576696157455,
+      "constant_mse": 2.1225836277008057,
+      "r2_vs_constant": 0.9844719537708583,
+      "within_token_rho": 0.9076986127250057,
+      "top4_set_agreement": 0.47998046875
+    },
+    {
+      "seed": 43,
+      "method": "angle_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 32768,
+      "mse": 1.224035382270813,
+      "constant_mse": 2.108215808868408,
+      "r2_vs_constant": 0.41939749378512725,
+      "within_token_rho": 0.4471644269594297,
+      "top4_set_agreement": 0.0716552734375
+    },
+    {
+      "seed": 43,
+      "method": "angle_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 1.2499011754989624,
+      "constant_mse": 2.1459221839904785,
+      "r2_vs_constant": 0.4175458994628166,
+      "within_token_rho": 0.44914256751666437,
+      "top4_set_agreement": 0.075439453125
+    },
+    {
+      "seed": 43,
+      "method": "angle_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4000,
+      "tokens": 4096,
+      "mse": 1.2274398803710938,
+      "constant_mse": 2.1225836277008057,
+      "r2_vs_constant": 0.4217236652764238,
+      "within_token_rho": 0.4355313826496576,
+      "top4_set_agreement": 0.0732421875
+    },
+    {
+      "seed": 43,
+      "method": "product_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 3800,
+      "tokens": 32768,
+      "mse": 1.7046056985855103,
+      "constant_mse": 2.108215808868408,
+      "r2_vs_constant": 0.1914462971888713,
+      "within_token_rho": 0.46391072572540143,
+      "top4_set_agreement": 0.000518798828125
+    },
+    {
+      "seed": 43,
+      "method": "product_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 3800,
+      "tokens": 4096,
+      "mse": 1.7264583110809326,
+      "constant_mse": 2.1459221839904785,
+      "r2_vs_constant": 0.19547021603995263,
+      "within_token_rho": 0.463697290436056,
+      "top4_set_agreement": 0.000244140625
+    },
+    {
+      "seed": 43,
+      "method": "product_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 3800,
+      "tokens": 4096,
+      "mse": 1.7041572332382202,
+      "constant_mse": 2.1225836277008057,
+      "r2_vs_constant": 0.19713069911682457,
+      "within_token_rho": 0.45902427744867347,
+      "top4_set_agreement": 0.000244140625
+    }
+  ],
+  "scope": "Input-only prediction diagnostics. Rank/top4 target agreement for utility concerns realized-label first-order costs, not expert identity labels or deployed routing."
+}

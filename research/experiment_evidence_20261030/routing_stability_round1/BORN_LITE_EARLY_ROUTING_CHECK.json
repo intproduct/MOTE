@@ -1,0 +1,115 @@
+{
+  "observations": [
+    {
+      "seed": 17,
+      "step": 100,
+      "max_cv": 1.5564,
+      "unused": [
+        0,
+        2,
+        5,
+        4
+      ]
+    },
+    {
+      "seed": 17,
+      "step": 200,
+      "max_cv": 0.8913,
+      "unused": [
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "seed": 17,
+      "step": 300,
+      "max_cv": 0.829,
+      "unused": [
+        3,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "seed": 17,
+      "step": 500,
+      "max_cv": 0.7647,
+      "unused": [
+        2,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "seed": 29,
+      "step": 100,
+      "max_cv": 1.5474,
+      "unused": [
+        5,
+        3,
+        4,
+        1
+      ]
+    },
+    {
+      "seed": 29,
+      "step": 200,
+      "max_cv": 0.9412,
+      "unused": [
+        4,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "seed": 29,
+      "step": 300,
+      "max_cv": 0.9858,
+      "unused": [
+        1,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "seed": 29,
+      "step": 500,
+      "max_cv": 0.7955,
+      "unused": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "seed": 43,
+      "step": 100,
+      "max_cv": 1.7173,
+      "unused": [
+        8,
+        8,
+        11,
+        10
+      ]
+    },
+    {
+      "seed": 43,
+      "step": 200,
+      "max_cv": 1.0685,
+      "unused": [
+        2,
+        0,
+        3,
+        2
+      ]
+    }
+  ],
+  "interpretation": "Seed43 baseline has strongly concentrated routing at step100 before any margin exists (maxCV1.7173, unused8/8/11/10); by step200 maxCV is1.0685 and unused2/0/3/2. It is recovering; retain this early-training concentration in final report and continue monitoring. This is not evidence of stability improvement."
+}

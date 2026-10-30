@@ -1,0 +1,656 @@
+{
+  "router_update_audit": {
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.005014002323150635
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.residual_scale": {
+      "changed": true,
+      "l2_delta": 0.0005013484926322229
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.027438428823571493
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.04619872550105979
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.14027833639474963
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.029363185118155742
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.0": {
+      "changed": true,
+      "l2_delta": 0.0013857496432613675
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.1": {
+      "changed": true,
+      "l2_delta": 0.0027962878126092943
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.2": {
+      "changed": true,
+      "l2_delta": 0.004826744800797565
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.3": {
+      "changed": true,
+      "l2_delta": 0.003479388402054554
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.0": {
+      "changed": true,
+      "l2_delta": 0.0033639010269409953
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.1": {
+      "changed": true,
+      "l2_delta": 0.004115080238040781
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.2": {
+      "changed": true,
+      "l2_delta": 0.0036618302098770025
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.3": {
+      "changed": true,
+      "l2_delta": 0.003003628059269531
+    },
+    "bert.encoder.layer.0.intermediate.dense.mote.core.gate.router.structured.readout.weight": {
+      "changed": true,
+      "l2_delta": 0.023588926684214605
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.0055100321769714355
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.residual_scale": {
+      "changed": true,
+      "l2_delta": 0.0007576298328370982
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.039830113256497233
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.02810004540284383
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.2193172418997012
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.023554492784391968
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.0.cores.0": {
+      "changed": true,
+      "l2_delta": 0.0024071067124138965
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.0.cores.1": {
+      "changed": true,
+      "l2_delta": 0.0027648741017837044
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.0.cores.2": {
+      "changed": true,
+      "l2_delta": 0.003801651069597377
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.0.cores.3": {
+      "changed": true,
+      "l2_delta": 0.0030084498897429064
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.1.cores.0": {
+      "changed": true,
+      "l2_delta": 0.002005845875152579
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.1.cores.1": {
+      "changed": true,
+      "l2_delta": 0.003968681306096291
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.1.cores.2": {
+      "changed": true,
+      "l2_delta": 0.0028929677064254544
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.operators.1.cores.3": {
+      "changed": true,
+      "l2_delta": 0.002362148121693068
+    },
+    "bert.encoder.layer.0.output.dense.mote.core.gate.router.structured.readout.weight": {
+      "changed": true,
+      "l2_delta": 0.02331680713370694
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.0031894445419311523
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.residual_scale": {
+      "changed": true,
+      "l2_delta": 0.0017263938056627493
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.038948570880649916
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.05654149151319425
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.204476177190894
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.041703315228514
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.0": {
+      "changed": true,
+      "l2_delta": 0.004902708288145238
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.1": {
+      "changed": true,
+      "l2_delta": 0.010622337481544432
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.2": {
+      "changed": true,
+      "l2_delta": 0.007839642932299365
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.3": {
+      "changed": true,
+      "l2_delta": 0.004886183799109819
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.0": {
+      "changed": true,
+      "l2_delta": 0.0058871502203860365
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.1": {
+      "changed": true,
+      "l2_delta": 0.004488564716115024
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.2": {
+      "changed": true,
+      "l2_delta": 0.005463796867462832
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.3": {
+      "changed": true,
+      "l2_delta": 0.0051845444960686585
+    },
+    "bert.encoder.layer.1.intermediate.dense.mote.core.gate.router.structured.readout.weight": {
+      "changed": true,
+      "l2_delta": 0.021360814839833972
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.0042060017585754395
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.residual_scale": {
+      "changed": true,
+      "l2_delta": 0.0014610919610383215
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.03906269493219517
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.029579704036801446
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.2135923106924849
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.023410844595953436
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.0.cores.0": {
+      "changed": true,
+      "l2_delta": 0.003755592540934693
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.0.cores.1": {
+      "changed": true,
+      "l2_delta": 0.005611392073534048
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.0.cores.2": {
+      "changed": true,
+      "l2_delta": 0.0051390750737545276
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.0.cores.3": {
+      "changed": true,
+      "l2_delta": 0.0034138760508388225
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.1.cores.0": {
+      "changed": true,
+      "l2_delta": 0.002807393753940224
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.1.cores.1": {
+      "changed": true,
+      "l2_delta": 0.0037263051149427095
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.1.cores.2": {
+      "changed": true,
+      "l2_delta": 0.00329229907298367
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.operators.1.cores.3": {
+      "changed": true,
+      "l2_delta": 0.003055023191397005
+    },
+    "bert.encoder.layer.1.output.dense.mote.core.gate.router.structured.readout.weight": {
+      "changed": true,
+      "l2_delta": 0.020445887119516927
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.0005791783332824707
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.residual_scale": {
+      "changed": true,
+      "l2_delta": 0.0009594914773843026
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.027349692507554643
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.029243575854693882
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.1619082280557746
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.03626446003889253
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.0": {
+      "changed": true,
+      "l2_delta": 0.0036304944690271966
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.1": {
+      "changed": true,
+      "l2_delta": 0.00720936322380017
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.2": {
+      "changed": true,
+      "l2_delta": 0.005778264484745645
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.0.cores.3": {
+      "changed": true,
+      "l2_delta": 0.002681115520848036
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.0": {
+      "changed": true,
+      "l2_delta": 0.0036269591353158344
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.1": {
+      "changed": true,
+      "l2_delta": 0.004133752064898263
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.2": {
+      "changed": true,
+      "l2_delta": 0.005161549556902353
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.operators.1.cores.3": {
+      "changed": true,
+      "l2_delta": 0.0067070119347115865
+    },
+    "bert.encoder.layer.2.intermediate.dense.mote.core.gate.router.structured.readout.weight": {
+      "changed": true,
+      "l2_delta": 0.020141572159310162
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.004854559898376465
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.residual_scale": {
+      "changed": true,
+      "l2_delta": 0.002834484248545195
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.03380742906211514
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.025442684868396008
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.189550527601901
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.02102284825222175
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.0.cores.0": {
+      "changed": true,
+      "l2_delta": 0.002529621759313216
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.0.cores.1": {
+      "changed": true,
+      "l2_delta": 0.004535369095861284
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.0.cores.2": {
+      "changed": true,
+      "l2_delta": 0.004120508904317054
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.0.cores.3": {
+      "changed": true,
+      "l2_delta": 0.004817439250975078
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.1.cores.0": {
+      "changed": true,
+      "l2_delta": 0.004152891500480238
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.1.cores.1": {
+      "changed": true,
+      "l2_delta": 0.004783681013507034
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.1.cores.2": {
+      "changed": true,
+      "l2_delta": 0.003250898011565445
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.operators.1.cores.3": {
+      "changed": true,
+      "l2_delta": 0.0019073582925567326
+    },
+    "bert.encoder.layer.2.output.dense.mote.core.gate.router.structured.readout.weight": {
+      "changed": true,
+      "l2_delta": 0.01809900534516744
+    }
+  },
+  "stage": "bert",
+  "task": "mrpc",
+  "gate": "mpo_c2_full",
+  "seed": 17,
+  "best_step": 600,
+  "best_dev": {
+    "accuracy": 0.7290909290313721,
+    "ce": 0.5997563004493713,
+    "f1": 0.8219832735961768,
+    "score": 0.7755371013137744
+  },
+  "final": {
+    "accuracy": 0.7450980544090271,
+    "ce": 0.5734415054321289,
+    "f1": 0.8338658146964856,
+    "score": 0.7894819345527564
+  },
+  "final_routing": {
+    "bert.encoder.layer.0.intermediate.dense": {
+      "tokens": 21723,
+      "H_tok": 2.7725868528347912,
+      "H_dataset": 2.7725887298583984,
+      "drop_rate": 6.8459047421902875e-09,
+      "importance": [
+        0.06249300763010979,
+        0.06248737871646881,
+        0.06248113140463829,
+        0.0624673068523407,
+        0.06250769644975662,
+        0.06250420957803726,
+        0.06250707060098648,
+        0.06250005960464478,
+        0.06250733882188797,
+        0.0624532587826252,
+        0.06252769380807877,
+        0.06250282377004623,
+        0.06250231713056564,
+        0.06250716745853424,
+        0.06255222856998444,
+        0.06249932572245598
+      ],
+      "load": [
+        0.10887078195810318,
+        0.28780555725097656,
+        0.2975648045539856,
+        0.11075818538665771,
+        0.06826865673065186,
+        0.08410440385341644,
+        0.38240575790405273,
+        0.33789071440696716,
+        0.22929613292217255,
+        0.1516365110874176,
+        0.41090089082717896,
+        0.3484325408935547,
+        0.280440092086792,
+        0.2558578550815582,
+        0.4911844730377197,
+        0.1545826941728592
+      ],
+      "load_cv": 0.4926646947860718,
+      "unused_experts": 0
+    },
+    "bert.encoder.layer.0.output.dense": {
+      "tokens": 21723,
+      "H_tok": 2.772586944918384,
+      "H_dataset": 2.7725887298583984,
+      "drop_rate": 6.8459047421902875e-09,
+      "importance": [
+        0.06251879036426544,
+        0.06250594556331635,
+        0.0624975822865963,
+        0.06246025487780571,
+        0.06251750141382217,
+        0.06250717490911484,
+        0.06257925182580948,
+        0.06250064820051193,
+        0.06248072534799576,
+        0.06244245171546936,
+        0.06251635402441025,
+        0.06246630474925041,
+        0.062494680285453796,
+        0.06250713020563126,
+        0.06251785159111023,
+        0.06248731538653374
+      ],
+      "load": [
+        0.2261197865009308,
+        0.1230032667517662,
+        0.24131105840206146,
+        0.15771302580833435,
+        0.3842010796070099,
+        0.3023983836174011,
+        0.5422824025154114,
+        0.29848548769950867,
+        0.3655112087726593,
+        0.14077244699001312,
+        0.2831560969352722,
+        0.08972056955099106,
+        0.30009666085243225,
+        0.07950098812580109,
+        0.1630069464445114,
+        0.3027206063270569
+      ],
+      "load_cv": 0.4773000478744507,
+      "unused_experts": 0
+    },
+    "bert.encoder.layer.1.intermediate.dense": {
+      "tokens": 21723,
+      "H_tok": 2.772587090989961,
+      "H_dataset": 2.7725887298583984,
+      "drop_rate": 6.8459047421902875e-09,
+      "importance": [
+        0.06250118464231491,
+        0.06252812594175339,
+        0.0625070109963417,
+        0.06241052970290184,
+        0.06251433491706848,
+        0.06248953193426132,
+        0.062486469745635986,
+        0.0625026747584343,
+        0.06248563155531883,
+        0.06254676729440689,
+        0.06253474205732346,
+        0.0625089481472969,
+        0.062482770532369614,
+        0.06250808387994766,
+        0.0624828040599823,
+        0.06251037120819092
+      ],
+      "load": [
+        0.09970998764038086,
+        0.3085209131240845,
+        0.18008562922477722,
+        0.24476361274719238,
+        0.36569535732269287,
+        0.278828889131546,
+        0.1194586381316185,
+        0.28937071561813354,
+        0.08341389149427414,
+        0.4748423397541046,
+        0.3821295499801636,
+        0.2160843312740326,
+        0.17474566400051117,
+        0.273166686296463,
+        0.1265939325094223,
+        0.3825898766517639
+      ],
+      "load_cv": 0.4468304216861725,
+      "unused_experts": 0
+    },
+    "bert.encoder.layer.1.output.dense": {
+      "tokens": 21723,
+      "H_tok": 2.772586574290156,
+      "H_dataset": 2.7725884914398193,
+      "drop_rate": 6.8459047421902875e-09,
+      "importance": [
+        0.06249094009399414,
+        0.06249513849616051,
+        0.06249485909938812,
+        0.06253308057785034,
+        0.06250613927841187,
+        0.06250394135713577,
+        0.062475234270095825,
+        0.06247902289032936,
+        0.06246115267276764,
+        0.06251204013824463,
+        0.06255131959915161,
+        0.06251260638237,
+        0.062486883252859116,
+        0.06252811849117279,
+        0.06247102469205856,
+        0.062498483806848526
+      ],
+      "load": [
+        0.19918979704380035,
+        0.22229894995689392,
+        0.32808545231819153,
+        0.2967822253704071,
+        0.3298807740211487,
+        0.16475625336170197,
+        0.24370482563972473,
+        0.15467476844787598,
+        0.2605533301830292,
+        0.07811996340751648,
+        0.42876213788986206,
+        0.16194815933704376,
+        0.30865901708602905,
+        0.2318280190229416,
+        0.3116972744464874,
+        0.2790590524673462
+      ],
+      "load_cv": 0.3349539339542389,
+      "unused_experts": 0
+    },
+    "bert.encoder.layer.2.intermediate.dense": {
+      "tokens": 21723,
+      "H_tok": 2.772586718715423,
+      "H_dataset": 2.772588014602661,
+      "drop_rate": 6.8459047421902875e-09,
+      "importance": [
+        0.062411293387413025,
+        0.06253037601709366,
+        0.06252468377351761,
+        0.06253979355096817,
+        0.06252561509609222,
+        0.0625283345580101,
+        0.06251367926597595,
+        0.06251981109380722,
+        0.06253538280725479,
+        0.06243591755628586,
+        0.06253613531589508,
+        0.06252443045377731,
+        0.06252770125865936,
+        0.062333278357982635,
+        0.06251072883605957,
+        0.06250280886888504
+      ],
+      "load": [
+        0.14399483799934387,
+        0.25125443935394287,
+        0.24232380092144012,
+        0.3041476905345917,
+        0.29512497782707214,
+        0.29079777002334595,
+        0.18689867854118347,
+        0.23905538022518158,
+        0.24701929092407227,
+        0.2210099846124649,
+        0.2623946964740753,
+        0.3332872986793518,
+        0.241771399974823,
+        0.25636422634124756,
+        0.24126501381397247,
+        0.24329052865505219
+      ],
+      "load_cv": 0.17378459870815277,
+      "unused_experts": 0
+    },
+    "bert.encoder.layer.2.output.dense": {
+      "tokens": 21723,
+      "H_tok": 2.7725874549122205,
+      "H_dataset": 2.7725884914398193,
+      "drop_rate": 6.8459047421902875e-09,
+      "importance": [
+        0.06251796334981918,
+        0.06252054870128632,
+        0.06252625584602356,
+        0.06246891990303993,
+        0.06248083338141441,
+        0.06245339661836624,
+        0.06251060217618942,
+        0.06252164393663406,
+        0.06251607090234756,
+        0.06243777647614479,
+        0.06249137967824936,
+        0.06247610226273537,
+        0.06252182275056839,
+        0.06251663714647293,
+        0.06253153830766678,
+        0.0625084713101387
+      ],
+      "load": [
+        0.2224830836057663,
+        0.21295401453971863,
+        0.317497581243515,
+        0.20287252962589264,
+        0.1286654770374298,
+        0.24273811280727386,
+        0.2653869092464447,
+        0.2718777358531952,
+        0.2733508348464966,
+        0.28633245825767517,
+        0.21875432133674622,
+        0.3234359920024872,
+        0.2597247064113617,
+        0.22280532121658325,
+        0.28633245825767517,
+        0.2647884786128998
+      ],
+      "load_cv": 0.187093585729599,
+      "unused_experts": 0
+    }
+  },
+  "training_seconds": 443.0430883999761,
+  "wall_seconds": 523.3494680999975,
+  "examples_per_second": 21.65477862356044,
+  "amp_skipped_steps": 0,
+  "peak_cuda_bytes": 538883072,
+  "shared_state_sha256": "e80c70a4dd74de2cc3362e736cb6ef965fd3875e823135e9d41515bf186054cd",
+  "data_sha256": "39832f5f512dbabda371e31b779dd2ceefc336b97bb9b5d658f56a26b1c44ca7",
+  "router_parameters": 77538,
+  "total_parameters": 8938212
+}

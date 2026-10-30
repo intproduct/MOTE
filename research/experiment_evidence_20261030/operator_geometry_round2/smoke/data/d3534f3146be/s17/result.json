@@ -1,0 +1,58 @@
+{
+  "seed": 17,
+  "config_hash": "d3534f3146bee47795783184df611dcfd05aeab1e863035351baf90fe6a8802e",
+  "checkpoint_sha256": "836ba64d37ed1a45789baab905427bd8996d5656630c567d810be145ee820714",
+  "backbone_state_hash": "940a8705f0cd71f8429f11395099450f124f02b4a7bb87de3d5c0b98507a8ded",
+  "frozen_state_unchanged": true,
+  "disjoint_train_dev": true,
+  "identity_checks": {
+    "train": {
+      "mixture_max_abs_error": 1.1920928955078125e-07,
+      "head_max_abs_error": 8.58306884765625e-06,
+      "forced_replay_max_abs_error": 7.62939453125e-06
+    },
+    "dev": {
+      "mixture_max_abs_error": 8.940696716308594e-08,
+      "head_max_abs_error": 7.62939453125e-06,
+      "forced_replay_max_abs_error": 7.62939453125e-06
+    },
+    "validation": {
+      "mixture_max_abs_error": 5.960464477539063e-08,
+      "head_max_abs_error": 7.62939453125e-06,
+      "forced_replay_max_abs_error": 6.67572021484375e-06
+    }
+  },
+  "windows": {
+    "train": [
+      132352,
+      454528,
+      479488,
+      594816,
+      1077376,
+      1097728,
+      1417344,
+      1762176
+    ],
+    "dev": [
+      2586112,
+      2752768,
+      2992384,
+      3047296
+    ],
+    "validation": [
+      114304,
+      184192,
+      284288,
+      307328
+    ]
+  },
+  "files": {
+    "dev.pt": "50b9abc42ba2f8c80d976b63494eb52fb0de9581f5aba1a5328b706bb7980184",
+    "dev_exact.npz": "682412e81bf16d8eccab7b26ab3bf98e65c5da010769bfb9ddf316e9cd5af749",
+    "train.pt": "e4ab10bb5f3ffe12a8271dfaf748c84b13709abd981012bbccb1dc48902fc195",
+    "train_exact.npz": "97a5f14e7f357ccbcdcdf504d136b004c28d6062e0f98b2b787bc546924dd7b5",
+    "train_pair_distance.npy": "cb4f6eb4d300f54e884f1f26e26fe4487be6fe469a5d500ea224100b5f06f8d8",
+    "validation.pt": "d13c180e406476b2117abb8d9870a2e14425ebbaf9d8bb362b3a6c64d093ad3d",
+    "validation_exact.npz": "a8c69c860b08c478891094cb3a3ad6e61a720075fb885210356a66a2ba802695"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "kind": "audited_historical_control",
+  "source_run": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433\\bert_mrpc_mlp_seed29",
+  "source_group": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433",
+  "reason": "same protocol; four repeated pilot trajectories exactly match",
+  "protocol_sha256": "7452d979cbc8ae0a7aaa9528b00bd1cf3ffa810e24ed9cc468e8722d149ae6b8",
+  "files_sha256": {
+    "manifest.json": "7b9e4ee5d4b45d05b67b94c920e9131b5f9d8c5e92f9b8df65e7e6618dfb9c09",
+    "initial_dev.json": "6fc6e5be56f3ca3adadea5f16dfbbb30ec7db89998cf04cc68e6b296ae33dade",
+    "curves.jsonl": "d941cf1c5d0a1f120bdb679c55fde734ae9b90ca53329bb4aa7604e5cbe1ef3b",
+    "best.pt": "5b320b597a62969d2fa1fae595a55e316a3cca60d3a9583d108bc8e3ebaf6dae",
+    "result.json": "bfa5638df1cfec5cb6b5bfe388559fcb8c9a29df4e693c643aa81bcb4b4f74d2"
+  }
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "seed": 17,
+    "source": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional\\50b8c7704256\\geometry_s17.pt",
+    "sha256": "10b828c72ddd5aecf60be6288e2965ac376975cfeb6702157cf9a8af48b4db4e",
+    "checks": {
+      "output": {
+        "same_trace_normalizer": 0.022014375776052475,
+        "off_diagonal_zero": true
+      },
+      "fisher": {
+        "same_trace_normalizer": 0.06431664526462555,
+        "off_diagonal_zero": true
+      }
+    }
+  },
+  {
+    "seed": 29,
+    "source": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional\\50b8c7704256\\geometry_s29.pt",
+    "sha256": "351046286a5dc4eea910f42068d70a2645e27f257ea6c8a5877f8a7f1a4f8e8f",
+    "checks": {
+      "output": {
+        "same_trace_normalizer": 0.017049910500645638,
+        "off_diagonal_zero": true
+      },
+      "fisher": {
+        "same_trace_normalizer": 0.0541197769343853,
+        "off_diagonal_zero": true
+      }
+    }
+  },
+  {
+    "seed": 43,
+    "source": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional\\50b8c7704256\\geometry_s43.pt",
+    "sha256": "57d32f97ef0eaea7c0428b98456ef3328f78b70c04e81d26a59845e5c9b4023b",
+    "checks": {
+      "output": {
+        "same_trace_normalizer": 0.01881357468664646,
+        "off_diagonal_zero": true
+      },
+      "fisher": {
+        "same_trace_normalizer": 0.051055654883384705,
+        "off_diagonal_zero": true
+      }
+    }
+  }
+]

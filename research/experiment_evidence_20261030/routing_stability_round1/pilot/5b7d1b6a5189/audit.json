@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "expected": 6,
+  "complete": 6,
+  "problems": [],
+  "runs": [
+    "mlp_half_s17",
+    "mlp_margin_s17",
+    "amp_half_s17",
+    "amp_margin_s17",
+    "born_lite_s17",
+    "born_lite_margin_s17"
+  ],
+  "time": "2026-10-28T22:58:26.892776+08:00"
+}

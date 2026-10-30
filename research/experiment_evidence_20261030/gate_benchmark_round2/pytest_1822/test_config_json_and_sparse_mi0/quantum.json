@@ -1,0 +1,1 @@
+{"runtime": {"dev_mode": true}, "model": {"model_path": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\pytest_1822\\test_config_json_and_sparse_mi0\\model", "gate_arch": "quantum", "gate_quantum": {"rank": 3, "depth": 2, "block_size": 2}}}

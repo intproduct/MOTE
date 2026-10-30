@@ -1,0 +1,581 @@
+{
+  "variant": "amp_margin",
+  "seed": 17,
+  "phase": "pilot",
+  "config_hash": "5b7d1b6a51891759acba5dbac621540e7b75f95d26ed565014aa885fbc07e0fd",
+  "steps": 120,
+  "best_step": 120,
+  "initial_validation": {
+    "ce": 8.358578026294708,
+    "ppl": 4266.623424454263,
+    "nll_sum": 68473.47119140625,
+    "tokens": 8192,
+    "next_token_accuracy": 0.00146484375
+  },
+  "best_validation": {
+    "ce": 6.860218286514282,
+    "ppl": 953.5751973803256,
+    "nll_sum": 56198.908203125,
+    "tokens": 8192,
+    "next_token_accuracy": 0.0379638671875,
+    "routing": {
+      "blocks.0.up": {
+        "entropy": 2.772476686267402,
+        "load": [
+          0.00018454725051108073,
+          0.9984005971217719,
+          0.0004921259842519685,
+          0.0003075787401574803,
+          0.0007997047574090676,
+          0.9996924212598425,
+          0.0007381889827945453,
+          0.00024606299212598425,
+          0.9990772684728066,
+          0.9985851443658663,
+          0.0003075787401574803,
+          0.0,
+          0.0004921259934185292,
+          0.0004306102490536575,
+          0.00024606299212598425,
+          0.0
+        ],
+        "load_cv": 1.7296006854962138,
+        "unused_experts": 2,
+        "routed_tokens_with_window_overlap": 16256
+      },
+      "blocks.0.down": {
+        "entropy": 2.7720164689492055,
+        "load": [
+          0.9986466582365862,
+          6.151575123979233e-05,
+          0.0008612204816075056,
+          0.00036909450468878576,
+          0.9990157527247752,
+          0.9990772684728066,
+          0.9993848462743083,
+          0.00018454724409448819,
+          0.0,
+          0.00012303149606299212,
+          0.0007381889855445135,
+          0.00036909449460556894,
+          0.00018454724409448819,
+          0.0003075787401574803,
+          0.0004921260007517779,
+          0.00018454724409448819
+        ],
+        "load_cv": 1.7298135919200919,
+        "unused_experts": 1,
+        "routed_tokens_with_window_overlap": 16256
+      },
+      "blocks.1.up": {
+        "entropy": 2.7724737257469356,
+        "load": [
+          1.0,
+          0.9999384842519685,
+          0.0,
+          0.0,
+          6.151574803149606e-05,
+          0.999876968503937,
+          0.0,
+          0.0,
+          0.00012303149606299212,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "load_cv": 1.731944266815097,
+        "unused_experts": 10,
+        "routed_tokens_with_window_overlap": 16256
+      },
+      "blocks.1.down": {
+        "entropy": 2.770086789694358,
+        "load": [
+          0.0,
+          0.9999384842519685,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          6.151574803149606e-05
+        ],
+        "load_cv": 1.7320152932558972,
+        "unused_experts": 11,
+        "routed_tokens_with_window_overlap": 16256
+      }
+    }
+  },
+  "last_validation": {
+    "ce": 6.860218286514282,
+    "ppl": 953.5751973803256,
+    "nll_sum": 56198.908203125,
+    "tokens": 8192,
+    "next_token_accuracy": 0.0379638671875
+  },
+  "first_train_ce": 8.367206573486328,
+  "last_train_ce": 6.922306060791016,
+  "training_seconds": 28.586108000017703,
+  "wall_seconds": 32.868724599989946,
+  "tokens_seen": 491520,
+  "training_tokens_per_second": 17194.365878688193,
+  "peak_allocated_mb": 1001.58837890625,
+  "peak_reserved_mb": 1084.0,
+  "parameters": {
+    "total": 1671804,
+    "router_total": 24188,
+    "routers": {
+      "blocks.0.up": 2729,
+      "blocks.0.down": 9365,
+      "blocks.1.up": 2729,
+      "blocks.1.down": 9365
+    },
+    "positions": {
+      "blocks.0.up": [
+        [
+          0,
+          1,
+          4,
+          5
+        ],
+        [
+          1,
+          2,
+          3,
+          6
+        ],
+        [
+          0,
+          4,
+          6,
+          7
+        ],
+        [
+          2,
+          3,
+          5,
+          7
+        ],
+        [
+          0,
+          1,
+          3,
+          5
+        ],
+        [
+          2,
+          4,
+          6,
+          7
+        ],
+        [
+          1,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          2,
+          3,
+          7
+        ],
+        [
+          1,
+          3,
+          4,
+          5
+        ],
+        [
+          0,
+          2,
+          6,
+          7
+        ],
+        [
+          0,
+          1,
+          4,
+          7
+        ],
+        [
+          2,
+          3,
+          5,
+          6
+        ],
+        [
+          3,
+          4,
+          5,
+          7
+        ],
+        [
+          0,
+          1,
+          2,
+          6
+        ],
+        [
+          2,
+          4,
+          5,
+          6
+        ],
+        [
+          0,
+          1,
+          3,
+          7
+        ]
+      ],
+      "blocks.0.down": [
+        [
+          1,
+          3,
+          4,
+          6
+        ],
+        [
+          1,
+          4,
+          5,
+          7
+        ],
+        [
+          2,
+          3,
+          8,
+          9
+        ],
+        [
+          0,
+          1,
+          3,
+          9
+        ],
+        [
+          2,
+          5,
+          7,
+          8
+        ],
+        [
+          0,
+          5,
+          6,
+          9
+        ],
+        [
+          2,
+          4,
+          6,
+          7
+        ],
+        [
+          0,
+          2,
+          6,
+          8
+        ],
+        [
+          0,
+          1,
+          7,
+          8
+        ],
+        [
+          3,
+          4,
+          5,
+          9
+        ],
+        [
+          3,
+          5,
+          6,
+          9
+        ],
+        [
+          0,
+          4,
+          7,
+          8
+        ],
+        [
+          1,
+          2,
+          3,
+          6
+        ],
+        [
+          1,
+          7,
+          8,
+          9
+        ],
+        [
+          0,
+          2,
+          4,
+          5
+        ],
+        [
+          2,
+          5,
+          6,
+          7
+        ]
+      ],
+      "blocks.1.up": [
+        [
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          0,
+          4,
+          5,
+          7
+        ],
+        [
+          1,
+          2,
+          3,
+          4
+        ],
+        [
+          0,
+          1,
+          4,
+          6
+        ],
+        [
+          1,
+          2,
+          6,
+          7
+        ],
+        [
+          3,
+          5,
+          6,
+          7
+        ],
+        [
+          0,
+          2,
+          6,
+          7
+        ],
+        [
+          0,
+          1,
+          3,
+          5
+        ],
+        [
+          0,
+          3,
+          4,
+          7
+        ],
+        [
+          1,
+          2,
+          5,
+          6
+        ],
+        [
+          2,
+          5,
+          6,
+          7
+        ],
+        [
+          0,
+          1,
+          3,
+          4
+        ],
+        [
+          0,
+          3,
+          5,
+          7
+        ],
+        [
+          1,
+          2,
+          4,
+          6
+        ],
+        [
+          0,
+          4,
+          6,
+          7
+        ],
+        [
+          1,
+          2,
+          3,
+          5
+        ]
+      ],
+      "blocks.1.down": [
+        [
+          1,
+          2,
+          6,
+          9
+        ],
+        [
+          4,
+          7,
+          8,
+          9
+        ],
+        [
+          0,
+          1,
+          4,
+          9
+        ],
+        [
+          0,
+          3,
+          4,
+          5
+        ],
+        [
+          2,
+          6,
+          7,
+          8
+        ],
+        [
+          0,
+          1,
+          3,
+          5
+        ],
+        [
+          2,
+          3,
+          5,
+          7
+        ],
+        [
+          3,
+          6,
+          7,
+          8
+        ],
+        [
+          2,
+          6,
+          8,
+          9
+        ],
+        [
+          0,
+          1,
+          4,
+          5
+        ],
+        [
+          2,
+          6,
+          7,
+          9
+        ],
+        [
+          1,
+          3,
+          4,
+          8
+        ],
+        [
+          0,
+          5,
+          6,
+          9
+        ],
+        [
+          0,
+          3,
+          5,
+          8
+        ],
+        [
+          1,
+          2,
+          4,
+          7
+        ],
+        [
+          2,
+          4,
+          7,
+          8
+        ]
+      ]
+    }
+  },
+  "shared_init_hash": "cc052f71d22db34fe51285be055d264e7c422a366804896411931bddf600d4dc",
+  "batch_order_sha256": "8deb8a8fad43110b2b6dfae02e959e41c878f6bf73e032a0f8159b6487bf6e1a",
+  "data_manifest_sha256": "2bfd87f0b578160ca83760ef9821d3b9582b6774bd2ee8fd1a227d608e6a9bb4",
+  "finite_steps": 120,
+  "nonzero_router_grad_steps": 120,
+  "shared_parameters_updated": true,
+  "router_parameter_max_changes": {
+    "blocks.0.up.mote.core.gate.router.raw_gain": 0.03473430871963501,
+    "blocks.0.up.mote.core.gate.router.structured.rotation": 0.003710957942530513,
+    "blocks.0.up.mote.core.gate.router.structured.coupling": 0.005410538520663977,
+    "blocks.0.up.mote.core.gate.router.structured.norm.weight": 0.009280979633331299,
+    "blocks.0.up.mote.core.gate.router.structured.norm.bias": 0.010829524137079716,
+    "blocks.0.up.mote.core.gate.router.structured.input_proj.weight": 0.01081584021449089,
+    "blocks.0.up.mote.core.gate.router.structured.amplitude_proj.weight": 0.013477281667292118,
+    "blocks.0.up.mote.core.gate.router.structured.angle_proj.weight": 0.0036313459277153015,
+    "blocks.0.down.mote.core.gate.router.raw_gain": 0.04016166925430298,
+    "blocks.0.down.mote.core.gate.router.structured.rotation": 0.006399428006261587,
+    "blocks.0.down.mote.core.gate.router.structured.coupling": 0.004783811047673225,
+    "blocks.0.down.mote.core.gate.router.structured.norm.weight": 0.01242208480834961,
+    "blocks.0.down.mote.core.gate.router.structured.norm.bias": 0.011372778564691544,
+    "blocks.0.down.mote.core.gate.router.structured.input_proj.weight": 0.011034014634788036,
+    "blocks.0.down.mote.core.gate.router.structured.amplitude_proj.weight": 0.014083173125982285,
+    "blocks.0.down.mote.core.gate.router.structured.angle_proj.weight": 0.007952641695737839,
+    "blocks.1.up.mote.core.gate.router.raw_gain": 0.04148203134536743,
+    "blocks.1.up.mote.core.gate.router.structured.rotation": 0.004063049331307411,
+    "blocks.1.up.mote.core.gate.router.structured.coupling": 0.0032469204161316156,
+    "blocks.1.up.mote.core.gate.router.structured.norm.weight": 0.008429229259490967,
+    "blocks.1.up.mote.core.gate.router.structured.norm.bias": 0.006892731413245201,
+    "blocks.1.up.mote.core.gate.router.structured.input_proj.weight": 0.012801418080925941,
+    "blocks.1.up.mote.core.gate.router.structured.amplitude_proj.weight": 0.01930016651749611,
+    "blocks.1.up.mote.core.gate.router.structured.angle_proj.weight": 0.004972649272531271,
+    "blocks.1.down.mote.core.gate.router.raw_gain": 0.04573476314544678,
+    "blocks.1.down.mote.core.gate.router.structured.rotation": 0.004917884711176157,
+    "blocks.1.down.mote.core.gate.router.structured.coupling": 0.0030682117212563753,
+    "blocks.1.down.mote.core.gate.router.structured.norm.weight": 0.011799395084381104,
+    "blocks.1.down.mote.core.gate.router.structured.norm.bias": 0.009473668411374092,
+    "blocks.1.down.mote.core.gate.router.structured.input_proj.weight": 0.013177789747714996,
+    "blocks.1.down.mote.core.gate.router.structured.amplitude_proj.weight": 0.020499205216765404,
+    "blocks.1.down.mote.core.gate.router.structured.angle_proj.weight": 0.0084160678088665
+  },
+  "checkpoint_sha256": "2c63bfbef012a03d9155077b65ee21bcc1bd07362de39f754c00c11826d290da",
+  "completed_at": "2026-10-28T22:57:08.717015+08:00"
+}

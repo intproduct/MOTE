@@ -1,0 +1,117 @@
+{
+  "selected_config_hash": "9b3af7494afc",
+  "selected_tokens_per_run": 16384000,
+  "sampled_corpus_token_multiples": 5.313063442854734,
+  "reason": "batch32 improves token throughput with ample memory; 4000 steps across18runs fits approximately5-6h including full-dev/test reevaluation; no gate ranking or held-out test selection",
+  "pilots": [
+    {
+      "pilot": "782e3576b60e",
+      "variant": "amp_d1_full",
+      "step_seconds": 0.26922234333311884,
+      "tokens_per_second": 3803.547607982026,
+      "peak_allocated_mb": 279.21826171875,
+      "router_params": 51140,
+      "total_params": 1698756
+    },
+    {
+      "pilot": "782e3576b60e",
+      "variant": "amp_d1_half",
+      "step_seconds": 0.2762019516663713,
+      "tokens_per_second": 3707.4321662900693,
+      "peak_allocated_mb": 278.3583984375,
+      "router_params": 24188,
+      "total_params": 1671804
+    },
+    {
+      "pilot": "782e3576b60e",
+      "variant": "mlp_half",
+      "step_seconds": 0.17172242499958276,
+      "tokens_per_second": 5963.111690290234,
+      "peak_allocated_mb": 274.57177734375,
+      "router_params": 26758,
+      "total_params": 1674374
+    },
+    {
+      "pilot": "782e3576b60e",
+      "variant": "mlp",
+      "step_seconds": 0.17054899333343201,
+      "tokens_per_second": 6004.139807486448,
+      "peak_allocated_mb": 276.21533203125,
+      "router_params": 50956,
+      "total_params": 1698572
+    },
+    {
+      "pilot": "782e3576b60e",
+      "variant": "mpo_c1_half",
+      "step_seconds": 0.20511147999956544,
+      "tokens_per_second": 4992.407055919881,
+      "peak_allocated_mb": 277.349609375,
+      "router_params": 25196,
+      "total_params": 1672812
+    },
+    {
+      "pilot": "782e3576b60e",
+      "variant": "mpo_c2_full",
+      "step_seconds": 0.19694330166615448,
+      "tokens_per_second": 5199.465995222414,
+      "peak_allocated_mb": 276.09228515625,
+      "router_params": 51692,
+      "total_params": 1699308
+    },
+    {
+      "pilot": "72a93c68e9ab",
+      "variant": "amp_d1_full",
+      "step_seconds": 0.2734243549999519,
+      "tokens_per_second": 14980.377296677614,
+      "peak_allocated_mb": 997.974609375,
+      "router_params": 51140,
+      "total_params": 1698756
+    },
+    {
+      "pilot": "72a93c68e9ab",
+      "variant": "amp_d1_half",
+      "step_seconds": 0.27140429000010047,
+      "tokens_per_second": 15091.876403274555,
+      "peak_allocated_mb": 997.02978515625,
+      "router_params": 24188,
+      "total_params": 1671804
+    },
+    {
+      "pilot": "72a93c68e9ab",
+      "variant": "mlp_half",
+      "step_seconds": 0.15434909250016063,
+      "tokens_per_second": 26537.247052461535,
+      "peak_allocated_mb": 981.86767578125,
+      "router_params": 26758,
+      "total_params": 1674374
+    },
+    {
+      "pilot": "72a93c68e9ab",
+      "variant": "mlp",
+      "step_seconds": 0.1704845824988297,
+      "tokens_per_second": 24025.63293386437,
+      "peak_allocated_mb": 987.15087890625,
+      "router_params": 50956,
+      "total_params": 1698572
+    },
+    {
+      "pilot": "72a93c68e9ab",
+      "variant": "mpo_c1_half",
+      "step_seconds": 0.2164729250001983,
+      "tokens_per_second": 18921.5348755335,
+      "peak_allocated_mb": 986.77978515625,
+      "router_params": 25196,
+      "total_params": 1672812
+    },
+    {
+      "pilot": "72a93c68e9ab",
+      "variant": "mpo_c2_full",
+      "step_seconds": 0.2112560025007042,
+      "tokens_per_second": 19388.79819514878,
+      "peak_allocated_mb": 988.32470703125,
+      "router_params": 51692,
+      "total_params": 1699308
+    }
+  ],
+  "created": "2026-10-28T12:45:15.011351+08:00"
+}

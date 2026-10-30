@@ -1,0 +1,10 @@
+{
+  "stage": "Matched diagonal functional-metric controls",
+  "reason": "All36 functional adaptations completed. CZ output geometry improves internal-dev KL over coefficient geometry across3seeds, while Fisher has no consistent extra gain. Distinguish expert-specific scale from pair compatibility before attributing the improvement to functional families.",
+  "design": "4methods x diagonal-output/diagonal-Fisher x3seeds =24new runs. Retain every off-diagonal-deleted metric in the same centered-expert gauge. Same per-seed training trace normalizer as the full metric, same warm start, 2000steps, samples, fixed calibration power and common internal-dev exact-KL checkpoint rule including0.",
+  "comparisons": "Predefined full output versus diagonal output; full Fisher versus diagonal Fisher for every method and seed. Compare all with coefficient control. Report dev and previously observed validation separately, no validation selection, test reserved.",
+  "interpretation": "Deleting cross terms is a gauge-dependent intervention on the objective; the centered-expert gauge is fixed in advance. This tests added value of compatibility terms under this training protocol. Training dynamics and finite budget are part of the effect.",
+  "geometry": "Reuse audited training-only full Gram tensors from functional/50b8c7704256, verify hashes, extract exact diagonals. No new teacher or labels.",
+  "budget": "Expected15-25min single-GPU plus audit/report. Stop adding training after this mechanism control; reserve the remaining active-work allowance for synthesis and delivery.",
+  "resources": "CPU1, CUDA35%, serial GPU, Hidden background process; preserve all frozen results."
+}

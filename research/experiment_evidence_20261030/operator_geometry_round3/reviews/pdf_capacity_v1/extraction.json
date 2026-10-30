@@ -1,0 +1,84 @@
+[
+  {
+    "name": "CAPACITY_GEOMETRY_REVIEW_20261030_zh",
+    "pages": 4,
+    "chinese_fonts": {
+      "WCQGYE+KaiTi": 2033
+    },
+    "latin_fonts": {
+      "QJACPW+TimesNewRomanPS-BoldMT": 23,
+      "NYMFIX+TimesNewRomanPSMT": 265,
+      "HABJOZ+NewCMMath-Book": 14
+    },
+    "pages_text": [
+      {
+        "page": 1,
+        "chars": 633,
+        "text_start": "QuantumGate：状态自由度增加后，功能保真仍是关键\n阶段审校报告｜2026­10­30。覆盖新增线路校准、冻结专家稀疏重放与量子几何核验。后续功能度量适配\n已按独立方案启动"
+      },
+      {
+        "page": 2,
+        "chars": 684,
+        "text_start": "几何解释：第二次编码是否提供新的有效方向\n考虑四量子比特实态线路，先分别施加 RY(a)，经过固定 CZ 链，再施加 RY(b)。两组角度都由输入特征\n产生。把 CZ 去掉时，同一"
+      },
+      {
+        "page": 3,
+        "chars": 618,
+        "text_start": "稀疏重放揭示：选哪些专家和怎样混合，必须分别核验\n对相同 top­4 集合，只改变混合权重的校准幂，就显著降低了 MLP 与经典幅度 gate 的输出偏移。校准后\n的结果对应“分数"
+      },
+      {
+        "page": 4,
+        "chars": 788,
+        "text_start": "已启动的下一轮：让功能几何进入训练目标\n下一轮把同一组冻结专家当作算子基底，并用原模型的稀疏权重作为功能参照。每种架构从本轮已核验\ncheckpoint 出发，三个损失使用相同初始"
+      }
+    ]
+  },
+  {
+    "name": "CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh",
+    "pages": 7,
+    "chinese_fonts": {
+      "JWFVGU+KaiTi": 990
+    },
+    "latin_fonts": {
+      "WMDPFT+TimesNewRomanPS-BoldMT": 157,
+      "CLIKAG+TimesNewRomanPSMT": 1558
+    },
+    "pages_text": [
+      {
+        "page": 1,
+        "chars": 879,
+        "text_start": "QuantumGate 线路校准与重放：补充数据\n对应 CAPACITY_GEOMETRY_REVIEW_20261030_zh。所有表均保留三个种子；区间为按窗口配对的\n2,00"
+      },
+      {
+        "page": 2,
+        "chars": 841,
+        "text_start": "B｜集合保真与校准系数\n方法 seed dev top­4 validation top­4 校准幂\nMLP 17 41.77% 39.87% 3.2022\nMLP 29 48.4"
+      },
+      {
+        "page": 3,
+        "chars": 948,
+        "text_start": "C｜dev：校准权重下的模型效果\n方法 seed CE PPL ΔCE KL\noriginal 17 4.0954 60.060 ­0.00000 0.00000\nMLP 17 4"
+      },
+      {
+        "page": 4,
+        "chars": 955,
+        "text_start": "C｜validation：校准权重下的模型效果\n方法 seed CE PPL ΔCE KL\noriginal 17 4.3481 77.328 ­0.00000 0.00000\nM"
+      },
+      {
+        "page": 5,
+        "chars": 856,
+        "text_start": "D｜关键配对差：交错 CZ 对不同对照\n对照／dev seed ΔKL 95% 窗口区间\nFour­angle 17 ­0.01925 [­0.02043, ­0.01809]\nP"
+      },
+      {
+        "page": 6,
+        "chars": 539,
+        "text_start": "E｜输入 BF16 舍入与专家利用\n方法 seed 切换数 有害数 未用专家 集合数\noriginal 17 14 3 0 162\nMLP 17 8 0 0 221\nFour­an"
+      },
+      {
+        "page": 7,
+        "chars": 1071,
+        "text_start": "F｜执行开销与可核验范围\n方法 1 行 median ms 4096 行 median ms 训练秒／run\nMLP 0.959 ± 0.085 0.935 ± 0.102 31."
+      }
+    ]
+  }
+]

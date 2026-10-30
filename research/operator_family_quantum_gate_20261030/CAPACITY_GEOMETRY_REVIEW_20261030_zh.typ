@@ -1,0 +1,126 @@
+#set page(paper: "a4", margin: (x: 22mm, y: 19mm), numbering: "1")
+
+#set text(font: ("Times New Roman", "KaiTi"), size: 10.5pt, lang: "zh")
+
+#set par(justify: true, leading: 0.65em)
+
+#set heading(numbering: none)
+
+#show heading.where(level: 1): set text(size: 19pt, fill: rgb("17365d"))
+
+#show heading.where(level: 2): set text(size: 13pt, fill: rgb("17365d"))
+
+#show math.equation: set text(font: "New Computer Modern Math", size: 10.5pt)
+
+#heading(level: 1)[#text("QuantumGate：状态自由度增加后，功能保真仍是关键")]
+
+#text("阶段审校报告｜2026-10-30。覆盖新增线路校准、冻结专家稀疏重放与量子几何核验。后续功能度量适配已按独立方案启动，其结果另行审校。")
+
+#heading(level: 2)[#text("主要结论：交错编码解除一部分表达约束，功能训练目标值得直接检验")]
+
+#text("本轮找到了一条可解释的线路改进：把第二次数据编码放在 CZ 之后，能让原先重合的状态变化方向分开。新增线路在三个种子上都更好地拟合原 gate 的分数，接回同一组冻结专家后，模型输出偏移也小于旧角编码。量子几何因此已经给出了一个可验证的结构设计依据。")
+
+#text("当前最清楚的实际差距在专家组合的功能保真。校准后的 MLP 与经典幅度 gate 都能较好地保持原模型输出，交错 CZ 的偏移仍明显更大。下一轮把训练目标从“复现分数”移到“保持专家组合功能”，直接比较权重、专家输出和模型 Fisher 三种几何。")
+
+#figure(image("capacity_figures/fidelity.png", width: 100%, height: 64mm, fit: "contain"), caption: [#text("同一内部 dev 上的三层证据：分数拟合、离散集合、最终输出。点为三个种子；右图使用预先规定的校准权重。")])
+
+#text("分数与集合指标给出了不同判断。交错 CZ 的分数拟合在三个种子上均改善；相对旧角编码的 top-4 集合一致率在 seed43 下降。预先写下的“每个种子两项均改善”标准未全部满足，本轮保留全部对照，并转入独立的功能目标检验。")
+
+#block(width: 100%)[#set text(size: 9pt)
+#table(columns: 5, inset: 5pt, stroke: 0.35pt + rgb("aebdcb"), [#strong[#text("内部 dev／均值")]],
+[#strong[#text("旧角编码")]],
+[#strong[#text("交错 CZ")]],
+[#strong[#text("MLP")]],
+[#strong[#text("经典幅度")]],
+[#text("相对原模型 KL")],
+[#text("0.0432")],
+[#text("0.0260")],
+[#text("0.0022")],
+[#text("0.0022")],
+[#text("主要解释")],
+[#text("分数拟合受限")],
+[#text("改善且仍有差距")],
+[#text("功能保真较好")],
+[#text("功能保真较好")])]
+
+#pagebreak()
+
+#heading(level: 2)[#text("几何解释：第二次编码是否提供新的有效方向")]
+
+#text("考虑四量子比特实态线路，先分别施加 RY(a)，经过固定 CZ 链，再施加 RY(b)。两组角度都由输入特征产生。把 CZ 去掉时，同一比特上的两次旋转合并成 RY(a+b)；八个名义角度只对应四个独立方向。交错 CZ 改变了这种重合关系。")
+
+$ |psi(a,b) angle.r = R_(y) (b) "CZ"_"chain" R_(y) (a) |0 angle.r, quad F_"product" = mat(I,I; I,I) $
+
+#text("对乘积对照，(δa,−δa) 是 QFI 的零方向。对交错 CZ，解析式和独立自动微分一致，一般非退化角度处可出现八个独立方向。在第一组角度为 π/2 的工作点，八维角坐标 QFI 为单位矩阵；这为避免局部冗余提供了明确的初始化依据。")
+
+#block(width: 100%)[#set text(size: 9pt)
+#table(columns: 3, inset: 5pt, stroke: 0.35pt + rgb("aebdcb"), [#strong[#text("设计问题")]],
+[#strong[#text("本轮答案")]],
+[#strong[#text("与训练结果的联系")]],
+[#text("增加名义参数是否增加方向")],
+[#text("无 CZ 时两次 RY 合并")],
+[#text("乘积对照的拟合接近旧乘积模型")],
+[#text("CZ 放在哪里有意义")],
+[#text("放在两次数据编码之间")],
+[#text("新增可达方向伴随更好的分数与功能拟合")],
+[#text("什么量决定专家组合风险")],
+[#text("专家输出及其到模型分布的映射")],
+[#text("下一轮直接训练这一映射的局部代价")])]
+
+#text("这里的 QFI 描述量子态对角度变化的敏感性。完整、无概率地板的实态计算基测量在一般点保留该局部信息；实际路由还包含概率地板、输入网络和 top-4 选择，它们各自改变后续几何。训练中的参数方向由输入网络雅可比继续拉回，专家功能风险则由专家输出和语言模型头决定。")
+
+#text("经典幅度对照使用同一低秩输入特征生成十六个实幅度，再平方归一化。它表现接近 MLP，说明本轮观察到的主要瓶颈落在具体角编码流形和训练方式。线路的额外方向与实际训练收益有对应关系，量子和经典结构的工程价值还需在相同功能目标下继续比较。")
+
+#pagebreak()
+
+#heading(level: 2)[#text("稀疏重放揭示：选哪些专家和怎样混合，必须分别核验")]
+
+#text("对相同 top-4 集合，只改变混合权重的校准幂，就显著降低了 MLP 与经典幅度 gate 的输出偏移。校准后的结果对应“分数学习器加固定幂”的部署形式；原生概率的结果完整保留在补充材料。由此可见，集合一致率偏低时仍可能保住大部分功能，而权重形状改变也能影响模型输出。")
+
+#figure(image("capacity_figures/calibration_time.png", width: 100%, height: 63mm, fit: "contain"), caption: [#text("左：原生与校准概率产生不同的专家混合权重；右：共享 TITAN V 上的串行 router+top-4 计时。")])
+
+#text("当前 Python 状态向量实现的执行开销明显高于 MLP 和经典幅度对照。该实现含大量小算子调用，后续工程评估应进一步区分调度与计算成本，同时保留等价计算形式的对照。当前计时覆盖 router 与选择步骤；整模型与独占 GPU 的成本需要单独测量。")
+
+#text("输入舍入造成的集合变化数量较少，各模型的有害切换呈混合结果。部分拟合较弱的模型也有较低切换率，解释时需要同时看原模型保真、专家利用和事件后果。后续以同等功能质量下的误差尾部为比较对象更有意义。")
+
+#heading(level: 2)[#text("核验中发现并修正了一个选择器协议错误")]
+
+#text("原始 gate 在 softmax 前按 logits 选择专家，第一次重放却按 softmax 后概率选择。一个临界样本中的不同 logits 被 FP32 舍入为相同概率，换掉了边界专家。修正后的独立重放完整复现原选择顺序，六个拆分的原始 logits 与缓存逐位相同。这次失败及定位记录保留，用于约束后续稳定性测量的算子顺序。")
+
+#pagebreak()
+
+#heading(level: 2)[#text("已启动的下一轮：让功能几何进入训练目标")]
+
+#text("下一轮把同一组冻结专家当作算子基底，并用原模型的稀疏权重作为功能参照。每种架构从本轮已核验 checkpoint 出发，三个损失使用相同初始化、相同采样流和相同训练预算。内部 dev 的真实模型输出 KL 统一用于 checkpoint 选择，包含零步起点。")
+
+#block(width: 100%)[#set text(size: 9pt)
+#table(columns: 3, inset: 5pt, stroke: 0.35pt + rgb("aebdcb"), [#strong[#text("损失")]],
+[#strong[#text("让 gate 学习的内容")]],
+[#strong[#text("需要回答的问题")]],
+[#text("权重欧氏误差")],
+[#text("复现原混合系数")],
+[#text("权重目标能否弥补分数目标的不足")],
+[#text("条件专家输出距离")],
+[#text("复现当前输入上的专家组合输出")],
+[#text("专家之间的功能替代性是否有帮助")],
+[#text("模型输出 Fisher")],
+[#text("降低会被模型头放大的组合误差")],
+[#text("功能方向的重要性加权是否进一步有效")])]
+
+#text("Fisher 使用原模型自己的输出分布生成无标签局部代价。几何矩阵在训练期预计算，推理仍只执行 gate、固定幂和 top-4 混合。实际 KL 会另外检验有限幅度替换的效果，区分局部训练近似与完整输出变化。")
+
+#text("这一阶段固定专家来识别 gate 的学习目标效应。之后若出现跨种子一致、与经典对照相比有实际价值的结果，再进入 gate 与专家联合训练，检验选择与反向优化的共同演化。当前 MLP 来源的教师和已有 checkpoint 起点也使结论具有明确条件：它测量的是对该专家系统的适配能力。")
+
+#block(width: 100%)[#set text(size: 9pt)
+#table(columns: 2, inset: 5pt, stroke: 0.35pt + rgb("aebdcb"), [#strong[#text("状态")]],
+[#strong[#text("交付内容")]],
+[#text("本阶段已完成")],
+[#text("9 项新增校准、21 模型重放、78 质量记录、156 舍入记录、78 计时记录及独立审计")],
+[#text("运行中")],
+[#text("36 项功能度量适配；四种架构、三种损失、三个种子")],
+[#text("后续审校")],
+[#text("适配的配对结果、checkpoint 核验、功能保真与切换风险；联合训练尚待该阶段判断")])]
+
+#text("数据使用 train-only 内部分割，validation 仅作报告且已在此前研究中观察；test 保留。这里的 CE/PPL 来自最终专家模块的固定抽样位置，指标对应所记录的 BPE 协议。逐种子区间、实际参数、原始数组与执行范围见配套补充材料。")
+
+#link("D:/files/MOTE/research/operator_family_quantum_gate_20261030/CAPACITY_GEOMETRY_SUPPLEMENT_20261030_zh.pdf")[#text("本阶段数值补充（本地）")]

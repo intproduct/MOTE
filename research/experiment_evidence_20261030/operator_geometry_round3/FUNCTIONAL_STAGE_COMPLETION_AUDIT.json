@@ -1,0 +1,42 @@
+{
+  "stage": "functional_geometry_objectives_diagonal_controls_and_sparse_tangent",
+  "stage_complete": true,
+  "completed_local": "2026-10-30T13:05:39.981567+08:00",
+  "counts": {
+    "training_runs": 60,
+    "quality_rows": 120,
+    "input_roundtrip_records": 240,
+    "paired_statistic_rows": 1092,
+    "timed_checkpoints": 60,
+    "timing_groups": 180,
+    "mixture_decompositions": 96,
+    "sparse_jacobians": 3072
+  },
+  "final_source_hash_checks": 53,
+  "final_raw_files_verified": 600,
+  "independent_audits": {
+    "reviews/functional_v1/AUDIT.json": "ff9ac718f5397d235b1428abfbf180b7489cb3b850d9fbbb58b95f485d463590",
+    "reviews/functional_diagonal_v1/AUDIT.json": "cd7470d11f7e41a6d83f58a8cbfbcc307158188f02620dae5432d0f318e3929a",
+    "reviews/functional_mechanism_v1/AUDIT.json": "de7239b29e7e90fc3b8642e476964b5965b25cc8732aa59be66b4f07a9cfd432",
+    "theory/sparse_tangent_v1/AUDIT.json": "acaf04e773b7362462bc3fbe077acabd66f54c177283695df7294419c84becd8",
+    "timing/functional_v1/AUDIT.json": "fca2cc115509f5200caa1e51058cccdbca45de5dcbc1f8a0e6a8a127b72df200"
+  },
+  "pdf_qa": "reviews/pdf_functional_v1/PDF_QA.json",
+  "pdf_qa_sha256": "c69057bcc2cd84c8c825913e93d163ca653ccd2f11115a89905dca9e361e55fe",
+  "files": {
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.md": "e6f9b414777b06f9bb891ea167f5478ca1c3d28864469136e0896ccf07348681",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.typ": "4357275f70c1e76e737161984661b2e1186684142daaea316de4697708c77e33",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.pdf": "fbd999e412b303e34c75f63d40ab48ff9fef37b578097d1900bb4ad744831e04",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh.md": "5e92b23ffc5cfb3375e411ca9176150e19b7effdd232e141cf60b22cf0518962",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh.typ": "cbed1768f31895e0370e1f7b88ff34abff16e1b490ea4d9bcd1a7c738c72ea15",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh.pdf": "1581e6cb57aa563b2e8ae57ab22b86eac83f3a2772208c10139c20936de22cfe",
+    "research/operator_family_quantum_gate_20261030/functional_figures/cost_and_tangent.png": "ab61cb1626b6dca8f64c3f5b779efe2e3f7205d1b6f2e3945417bff72b660a59",
+    "research/operator_family_quantum_gate_20261030/functional_figures/cross_terms.png": "4720d7badadc39356698f4815a85a52255d87ea4fa26093d10e6e40d2b9dcb9e",
+    "research/operator_family_quantum_gate_20261030/functional_figures/functional_kl.png": "0aee7144fd9180d9e4e565317223fcc30fc618926a8164d95d11b025a9d7ea30"
+  },
+  "missing": [],
+  "failed_current_formal_groups": [],
+  "prior_failure_preserved": "replay/0f6a8f7407c8",
+  "next_research_not_started": "Task-driven joint gate/expert adaptation and independent task evaluation",
+  "interpretation": "Teacher retention is one diagnostic axis. Different high-performing expert organization is a valid future outcome."
+}

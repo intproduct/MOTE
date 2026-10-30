@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-10-28T19:06:29.108169+08:00",
+  "training_complete": 18,
+  "expected": 18,
+  "audit_passed": true,
+  "problems": [],
+  "frozen_sources_unchanged": true,
+  "stage": "evaluate",
+  "evaluation_pid": 44116,
+  "experiment_complete": false,
+  "report_review_pending": true
+}

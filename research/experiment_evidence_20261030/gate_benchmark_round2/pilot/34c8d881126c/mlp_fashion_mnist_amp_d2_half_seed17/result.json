@@ -1,0 +1,638 @@
+{
+  "router_update_audit": {
+    "blocks.0.up.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.03491276502609253
+    },
+    "blocks.0.up.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.009093310698368958
+    },
+    "blocks.0.up.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.005641809310631642
+    },
+    "blocks.0.up.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.1572851567634465
+    },
+    "blocks.0.up.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.11813008860358189
+    },
+    "blocks.0.up.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.42898562527133033
+    },
+    "blocks.0.up.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.06621423493568575
+    },
+    "blocks.0.up.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.015584690479869831
+    },
+    "blocks.0.down.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.02864140272140503
+    },
+    "blocks.0.down.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.003004030096122184
+    },
+    "blocks.0.down.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.005898676987750138
+    },
+    "blocks.0.down.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.268369751687977
+    },
+    "blocks.0.down.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.1495603642594475
+    },
+    "blocks.0.down.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.7242359197006986
+    },
+    "blocks.0.down.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.06032133108917029
+    },
+    "blocks.0.down.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.022625007375313977
+    },
+    "blocks.1.up.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.04563546180725098
+    },
+    "blocks.1.up.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.006067470327533196
+    },
+    "blocks.1.up.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.0043087462777512365
+    },
+    "blocks.1.up.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.16187710389155877
+    },
+    "blocks.1.up.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.10089145935559586
+    },
+    "blocks.1.up.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.44032731310218026
+    },
+    "blocks.1.up.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.06024234749339364
+    },
+    "blocks.1.up.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.017335950106740366
+    },
+    "blocks.1.down.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.04324188828468323
+    },
+    "blocks.1.down.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.00625181148204353
+    },
+    "blocks.1.down.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.010872562084771428
+    },
+    "blocks.1.down.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.2703180227357203
+    },
+    "blocks.1.down.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.1762911267060571
+    },
+    "blocks.1.down.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.7762062015642425
+    },
+    "blocks.1.down.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.05994438442913501
+    },
+    "blocks.1.down.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.02056486464739399
+    },
+    "blocks.2.up.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.0341913104057312
+    },
+    "blocks.2.up.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.00786434528438816
+    },
+    "blocks.2.up.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.009174857043490284
+    },
+    "blocks.2.up.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.16328788696963698
+    },
+    "blocks.2.up.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.1144236664834824
+    },
+    "blocks.2.up.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.4358230172909458
+    },
+    "blocks.2.up.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.06555185016120128
+    },
+    "blocks.2.up.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.016338128327801137
+    },
+    "blocks.2.down.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.038362085819244385
+    },
+    "blocks.2.down.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.01009624675429578
+    },
+    "blocks.2.down.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.006912230213044692
+    },
+    "blocks.2.down.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.31057075391750955
+    },
+    "blocks.2.down.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.29412249910876426
+    },
+    "blocks.2.down.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.8307681828092617
+    },
+    "blocks.2.down.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.06374121476602175
+    },
+    "blocks.2.down.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.022319788809342468
+    },
+    "blocks.3.up.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.04137367010116577
+    },
+    "blocks.3.up.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.006519949920415265
+    },
+    "blocks.3.up.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.005970990710611183
+    },
+    "blocks.3.up.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.1805011544843898
+    },
+    "blocks.3.up.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.12140017742057754
+    },
+    "blocks.3.up.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.4652963966753445
+    },
+    "blocks.3.up.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.07928317727465797
+    },
+    "blocks.3.up.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.018190911562076292
+    },
+    "blocks.3.down.mote.core.gate.router.raw_gain": {
+      "changed": true,
+      "l2_delta": 0.036636531352996826
+    },
+    "blocks.3.down.mote.core.gate.router.structured.rotation": {
+      "changed": true,
+      "l2_delta": 0.013784656410065847
+    },
+    "blocks.3.down.mote.core.gate.router.structured.coupling": {
+      "changed": true,
+      "l2_delta": 0.010133046587073577
+    },
+    "blocks.3.down.mote.core.gate.router.structured.norm.weight": {
+      "changed": true,
+      "l2_delta": 0.28134270658223126
+    },
+    "blocks.3.down.mote.core.gate.router.structured.norm.bias": {
+      "changed": true,
+      "l2_delta": 0.19975744639319065
+    },
+    "blocks.3.down.mote.core.gate.router.structured.input_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.7704695629763657
+    },
+    "blocks.3.down.mote.core.gate.router.structured.amplitude_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.0664981494201701
+    },
+    "blocks.3.down.mote.core.gate.router.structured.angle_proj.weight": {
+      "changed": true,
+      "l2_delta": 0.02058936019802742
+    }
+  },
+  "stage": "mlp",
+  "task": "fashion_mnist",
+  "gate": "amp_d2_half",
+  "seed": 17,
+  "best_step": 75,
+  "best_dev": {
+    "accuracy": 0.78125,
+    "ce": 0.5754032731056213,
+    "score": 0.78125
+  },
+  "final": {
+    "accuracy": 0.822265625,
+    "ce": 0.4714806079864502,
+    "score": 0.822265625
+  },
+  "final_routing": {
+    "blocks.0.up": {
+      "tokens": 512,
+      "H_tok": 2.771588683128357,
+      "H_dataset": 2.772496223449707,
+      "drop_rate": 0.0,
+      "importance": [
+        0.062428370118141174,
+        0.06319460272789001,
+        0.0625726506114006,
+        0.06349150091409683,
+        0.06280482560396194,
+        0.06405254453420639,
+        0.06324498355388641,
+        0.0637582540512085,
+        0.061592042446136475,
+        0.061596229672431946,
+        0.060903437435626984,
+        0.06183261424303055,
+        0.061854712665081024,
+        0.06225303187966347,
+        0.0619015172123909,
+        0.06251868605613708
+      ],
+      "load": [
+        0.06640625,
+        0.0859375,
+        0.296875,
+        0.40234375,
+        0.134765625,
+        0.39453125,
+        0.595703125,
+        0.556640625,
+        0.267578125,
+        0.330078125,
+        0.021484375,
+        0.0625,
+        0.310546875,
+        0.298828125,
+        0.14453125,
+        0.03125
+      ],
+      "load_cv": 0.7020390629768372,
+      "unused_experts": 0
+    },
+    "blocks.0.down": {
+      "tokens": 512,
+      "H_tok": 2.7694913148880005,
+      "H_dataset": 2.7725412845611572,
+      "drop_rate": 0.0,
+      "importance": [
+        0.062347277998924255,
+        0.061420466750860214,
+        0.0625472292304039,
+        0.061909984797239304,
+        0.06264045834541321,
+        0.061669375747442245,
+        0.062288593500852585,
+        0.062047023326158524,
+        0.06288914382457733,
+        0.06183062493801117,
+        0.06353964656591415,
+        0.06269752234220505,
+        0.06355453282594681,
+        0.06267405301332474,
+        0.06319724023342133,
+        0.0627468079328537
+      ],
+      "load": [
+        0.076171875,
+        0.322265625,
+        0.396484375,
+        0.330078125,
+        0.13671875,
+        0.388671875,
+        0.064453125,
+        0.2890625,
+        0.330078125,
+        0.033203125,
+        0.39453125,
+        0.005859375,
+        0.326171875,
+        0.251953125,
+        0.375,
+        0.279296875
+      ],
+      "load_cv": 0.5362101793289185,
+      "unused_experts": 0
+    },
+    "blocks.1.up": {
+      "tokens": 512,
+      "H_tok": 2.770511746406555,
+      "H_dataset": 2.772186040878296,
+      "drop_rate": 0.0,
+      "importance": [
+        0.06356614083051682,
+        0.06271681189537048,
+        0.06437914073467255,
+        0.06423479318618774,
+        0.06081270053982735,
+        0.05903218686580658,
+        0.06176850199699402,
+        0.06117180362343788,
+        0.06308074295520782,
+        0.062437765300273895,
+        0.06544950604438782,
+        0.06558976322412491,
+        0.06163536012172699,
+        0.06013423204421997,
+        0.062024399638175964,
+        0.0619661770761013
+      ],
+      "load": [
+        0.564453125,
+        0.0,
+        0.201171875,
+        0.427734375,
+        0.435546875,
+        0.0390625,
+        0.01953125,
+        0.005859375,
+        0.48046875,
+        0.0,
+        0.58203125,
+        0.4609375,
+        0.46875,
+        0.0,
+        0.0,
+        0.314453125
+      ],
+      "load_cv": 0.9134321212768555,
+      "unused_experts": 4
+    },
+    "blocks.1.down": {
+      "tokens": 512,
+      "H_tok": 2.7696592807769775,
+      "H_dataset": 2.772291898727417,
+      "drop_rate": 0.0,
+      "importance": [
+        0.0635773241519928,
+        0.063435859978199,
+        0.06429591774940491,
+        0.06567459553480148,
+        0.06164245679974556,
+        0.06094751134514809,
+        0.06232958659529686,
+        0.06318995356559753,
+        0.06076110154390335,
+        0.06156747043132782,
+        0.063907690346241,
+        0.06332223117351532,
+        0.06023440510034561,
+        0.06072593852877617,
+        0.06093074381351471,
+        0.06345722079277039
+      ],
+      "load": [
+        0.494140625,
+        0.10546875,
+        0.505859375,
+        0.51953125,
+        0.005859375,
+        0.36328125,
+        0.06640625,
+        0.462890625,
+        0.408203125,
+        0.0,
+        0.5,
+        0.080078125,
+        0.015625,
+        0.041015625,
+        0.001953125,
+        0.4296875
+      ],
+      "load_cv": 0.8610424399375916,
+      "unused_experts": 1
+    },
+    "blocks.2.up": {
+      "tokens": 512,
+      "H_tok": 2.7718383073806763,
+      "H_dataset": 2.772348403930664,
+      "drop_rate": 0.0,
+      "importance": [
+        0.06417180597782135,
+        0.06167217344045639,
+        0.06251421570777893,
+        0.06042344123125076,
+        0.0644010528922081,
+        0.06176622584462166,
+        0.06319363415241241,
+        0.06108328700065613,
+        0.06423412263393402,
+        0.0615374818444252,
+        0.06268761307001114,
+        0.06048647686839104,
+        0.06467411667108536,
+        0.061192773282527924,
+        0.0635899156332016,
+        0.06237165629863739
+      ],
+      "load": [
+        0.751953125,
+        0.0,
+        0.1640625,
+        0.080078125,
+        0.689453125,
+        0.0,
+        0.267578125,
+        0.228515625,
+        0.66015625,
+        0.001953125,
+        0.015625,
+        0.0,
+        0.666015625,
+        0.0,
+        0.3125,
+        0.162109375
+      ],
+      "load_cv": 1.0961260795593262,
+      "unused_experts": 4
+    },
+    "blocks.2.down": {
+      "tokens": 512,
+      "H_tok": 2.769317090511322,
+      "H_dataset": 2.771078109741211,
+      "drop_rate": 0.0,
+      "importance": [
+        0.059046175330877304,
+        0.06276145577430725,
+        0.06032363325357437,
+        0.06464598327875137,
+        0.05675191432237625,
+        0.06140981614589691,
+        0.056557949632406235,
+        0.06124027073383331,
+        0.0639881044626236,
+        0.06772710382938385,
+        0.06433858722448349,
+        0.06906836479902267,
+        0.06114410236477852,
+        0.06519267708063126,
+        0.0605819970369339,
+        0.0652218759059906
+      ],
+      "load": [
+        0.0,
+        0.078125,
+        0.236328125,
+        0.11328125,
+        0.0,
+        0.046875,
+        0.0,
+        0.0,
+        0.25390625,
+        0.73046875,
+        0.328125,
+        0.830078125,
+        0.01953125,
+        0.658203125,
+        0.001953125,
+        0.703125
+      ],
+      "load_cv": 1.1831037998199463,
+      "unused_experts": 4
+    },
+    "blocks.3.up": {
+      "tokens": 512,
+      "H_tok": 2.7709057927131653,
+      "H_dataset": 2.771747589111328,
+      "drop_rate": 0.0,
+      "importance": [
+        0.06592749059200287,
+        0.0673775002360344,
+        0.06516735255718231,
+        0.06341571360826492,
+        0.06403356790542603,
+        0.06384404003620148,
+        0.061943843960762024,
+        0.062226276844739914,
+        0.06336987018585205,
+        0.061023321002721786,
+        0.06067168712615967,
+        0.05904007330536842,
+        0.06078512221574783,
+        0.06422965228557587,
+        0.05800950527191162,
+        0.058934979140758514
+      ],
+      "load": [
+        0.685546875,
+        0.904296875,
+        0.66796875,
+        0.099609375,
+        0.42578125,
+        0.03125,
+        0.25390625,
+        0.0,
+        0.31640625,
+        0.2890625,
+        0.0,
+        0.0,
+        0.0,
+        0.326171875,
+        0.0,
+        0.0
+      ],
+      "load_cv": 1.131646752357483,
+      "unused_experts": 6
+    },
+    "blocks.3.down": {
+      "tokens": 512,
+      "H_tok": 2.771665334701538,
+      "H_dataset": 2.7722883224487305,
+      "drop_rate": 0.0,
+      "importance": [
+        0.06239891052246094,
+        0.06252116709947586,
+        0.061844244599342346,
+        0.06038147211074829,
+        0.06334005296230316,
+        0.0624881274998188,
+        0.061863869428634644,
+        0.05942061170935631,
+        0.06260408461093903,
+        0.06461100280284882,
+        0.0625842809677124,
+        0.06100644916296005,
+        0.06492431461811066,
+        0.06480428576469421,
+        0.0640232115983963,
+        0.061183903366327286
+      ],
+      "load": [
+        0.291015625,
+        0.0703125,
+        0.302734375,
+        0.177734375,
+        0.22265625,
+        0.046875,
+        0.072265625,
+        0.0,
+        0.03515625,
+        0.5859375,
+        0.244140625,
+        0.0,
+        0.673828125,
+        0.603515625,
+        0.61328125,
+        0.060546875
+      ],
+      "load_cv": 0.9338552355766296,
+      "unused_experts": 2
+    }
+  },
+  "training_seconds": 92.76775999990059,
+  "wall_seconds": 97.43623539997498,
+  "examples_per_second": 137.97897028034004,
+  "amp_skipped_steps": 0,
+  "peak_cuda_bytes": 236801024,
+  "shared_state_sha256": "393ada1d924de8391ee7470760b3187beab318973e269b12d105c35857804e4b",
+  "data_sha256": "981a769eb00526a4110e30c2b9f39478cf3d004513e028927a74f4d3c801199c",
+  "router_parameters": 112056,
+  "total_parameters": 5188034
+}

@@ -1,0 +1,46 @@
+{
+  "seed": 43,
+  "method": "affine_born",
+  "parameters": 10385,
+  "selected_step": 3800,
+  "seconds_shared_gpu": 35.57694860000629,
+  "initial_parameter_hash": "96c8136d6ad2c72129c0d02f2d0af8c2f27ca88cebc90f0189f90daeb1333fdb",
+  "parameter_changed": true,
+  "shared_encoder_initial_hash": "a0396d74504f2c8af8eaded4baddfdc83d7ed9380beb564f820a2ebd18d116e0",
+  "splits": {
+    "train": {
+      "mse": 0.028985407203435898,
+      "constant_mse": 2.108215808868408,
+      "r2_vs_constant": 0.986251214376865,
+      "within_token_rho": 0.9215125078249479,
+      "top4_set_agreement": 0.51556396484375
+    },
+    "dev": {
+      "mse": 0.032876722514629364,
+      "constant_mse": 2.1459221839904785,
+      "r2_vs_constant": 0.9846794432902068,
+      "within_token_rho": 0.9215652526278897,
+      "top4_set_agreement": 0.5146484375
+    },
+    "validation": {
+      "mse": 0.03207668662071228,
+      "constant_mse": 2.1225836277008057,
+      "r2_vs_constant": 0.9848879044377357,
+      "within_token_rho": 0.9155098666244692,
+      "top4_set_agreement": 0.489013671875
+    }
+  },
+  "replay": {
+    "dev": 5.7220458984375e-06,
+    "validation": 5.245208740234375e-06
+  },
+  "files": {
+    "best_dev.pt": "0836b1f8c845531e644cb7cffcd0249ce38c515e92af32b5c93ed06baf711dbd",
+    "curves.jsonl": "23c073223726927ca7b67242095c23472de7e721aaa01877c6d118e14c39e216",
+    "dev_predictions.npz": "77940b8de4b5f46ef5c1154fead3fb443f952ca9f5d5be1ec4bde7d223136a13",
+    "last.pt": "981922d7ed2d7eabebf8a5b4d7d8502c33c57f09dc2d9140f87b939e83f01015",
+    "sample_indices.npy": "be67854355b6e51a971887ea63d863e7c7eaddb6a61153815e62c073c78591c3",
+    "train_predictions.npz": "188c4ab56d11bcbf9a8d552290409cabd1ebcd4ae5610a51dd75e209214b4369",
+    "validation_predictions.npz": "a9f45106b2010f098a89407cfa73f64121b1eaf4d5fdc017c829347739a411eb"
+  }
+}

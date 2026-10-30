@@ -1,0 +1,461 @@
+[
+  {
+    "seed": 17,
+    "rank": 8,
+    "ridge": 0.0001,
+    "parameters_factorized": 9344,
+    "normalization_statistics": 2048,
+    "sketch_matrix_values": 2048,
+    "anchor_train_p95": 3.983929465278208,
+    "selection_candidates": [
+      {
+        "ridge": 0.0001,
+        "internal_dev_sketch_mse": 0.6465081434414778
+      },
+      {
+        "ridge": 0.001,
+        "internal_dev_sketch_mse": 0.6465089254127854
+      },
+      {
+        "ridge": 0.01,
+        "internal_dev_sketch_mse": 0.6465167466053907
+      },
+      {
+        "ridge": 0.1,
+        "internal_dev_sketch_mse": 0.6465950997261071
+      },
+      {
+        "ridge": 1.0,
+        "internal_dev_sketch_mse": 0.6473874142345559
+      }
+    ],
+    "splits": {
+      "dev": {
+        "sketch_mse": 0.6465081434414778,
+        "sketch_r2_vs_constant": 0.09533978401489707,
+        "geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4519230769230769,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.14357517482517484,
+            "nearest_target_agreement": 0.140625,
+            "relative_mse": 0.6511801416977298
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.026660839160839153,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.032670454545454544,
+            "nearest_target_agreement": 0.0625
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4435096153846154,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.14160839160839161,
+            "nearest_target_agreement": 0.140625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4519230769230769,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.14357517482517484,
+            "nearest_target_agreement": 0.140625
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8993662587412586,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.2197333916083916,
+            "nearest_target_agreement": 0.65625
+          }
+        },
+        "oracle_sketch_geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.41531905594405594,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10861013986013987,
+            "nearest_target_agreement": 0.171875,
+            "relative_mse": 0.3098820987737137
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.05310314685314686,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.028190559440559433,
+            "nearest_target_agreement": 0.046875
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.36505681818181823,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10467657342657342,
+            "nearest_target_agreement": 0.15625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.40898164335664333,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10642482517482518,
+            "nearest_target_agreement": 0.171875
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8993662587412586,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.2197333916083916,
+            "nearest_target_agreement": 0.65625
+          }
+        }
+      },
+      "validation": {
+        "sketch_mse": 0.5663385976512839,
+        "sketch_r2_vs_constant": 0.17266843567174983,
+        "geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4053758741258741,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.028846153846153848,
+            "nearest_target_agreement": 0.125,
+            "relative_mse": 0.5775389083378077
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.052119755244755255,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.015078671328671332,
+            "nearest_target_agreement": 0.09375
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4018793706293706,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.02939248251748252,
+            "nearest_target_agreement": 0.125
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.40493881118881114,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.029611013986013988,
+            "nearest_target_agreement": 0.125
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8919361888111887,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.09986888111888112,
+            "nearest_target_agreement": 0.625
+          }
+        },
+        "oracle_sketch_geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4832823426573427,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.11899038461538461,
+            "nearest_target_agreement": 0.140625,
+            "relative_mse": 0.21183335819990268
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.02436625874125874,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.057364510489510495,
+            "nearest_target_agreement": 0.09375
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4515952797202797,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10871940559440559,
+            "nearest_target_agreement": 0.140625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4802229020979021,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.11604020979020978,
+            "nearest_target_agreement": 0.140625
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8919361888111887,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.09986888111888112,
+            "nearest_target_agreement": 0.625
+          }
+        }
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "rank": 16,
+    "ridge": 1.0,
+    "parameters_factorized": 18560,
+    "normalization_statistics": 2048,
+    "sketch_matrix_values": 2048,
+    "anchor_train_p95": 3.983929465278208,
+    "selection_candidates": [
+      {
+        "ridge": 0.0001,
+        "internal_dev_sketch_mse": 0.6149851485409025
+      },
+      {
+        "ridge": 0.001,
+        "internal_dev_sketch_mse": 0.6149851434926628
+      },
+      {
+        "ridge": 0.01,
+        "internal_dev_sketch_mse": 0.614985093267798
+      },
+      {
+        "ridge": 0.1,
+        "internal_dev_sketch_mse": 0.6149846110054779
+      },
+      {
+        "ridge": 1.0,
+        "internal_dev_sketch_mse": 0.6149842636962635
+      }
+    ],
+    "splits": {
+      "dev": {
+        "sketch_mse": 0.6149842636962635,
+        "sketch_r2_vs_constant": 0.13945121578617448,
+        "geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.43837412587412583,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.14750874125874125,
+            "nearest_target_agreement": 0.078125,
+            "relative_mse": 0.6152762626527336
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.017482517482517487,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.01092657342657342,
+            "nearest_target_agreement": 0.015625
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4228583916083916,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.1428103146853147,
+            "nearest_target_agreement": 0.078125
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4369536713286713,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.14630681818181818,
+            "nearest_target_agreement": 0.078125
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8993662587412586,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.2197333916083916,
+            "nearest_target_agreement": 0.65625
+          }
+        },
+        "oracle_sketch_geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.41531905594405594,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10861013986013987,
+            "nearest_target_agreement": 0.171875,
+            "relative_mse": 0.3098820987737137
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.05310314685314686,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.028190559440559433,
+            "nearest_target_agreement": 0.046875
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.36505681818181823,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10467657342657342,
+            "nearest_target_agreement": 0.15625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.40898164335664333,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10642482517482518,
+            "nearest_target_agreement": 0.171875
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8993662587412586,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.2197333916083916,
+            "nearest_target_agreement": 0.65625
+          }
+        }
+      },
+      "validation": {
+        "sketch_mse": 0.5492818092870169,
+        "sketch_r2_vs_constant": 0.197585719180853,
+        "geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.3990384615384615,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.03594842657342656,
+            "nearest_target_agreement": 0.125,
+            "relative_mse": 0.5418064375436106
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.04916958041958043,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.00043706293706293614,
+            "nearest_target_agreement": 0.140625
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.3817744755244755,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.040646853146853144,
+            "nearest_target_agreement": 0.125
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.39827360139860135,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.036385489510489505,
+            "nearest_target_agreement": 0.125
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8919361888111887,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.09986888111888112,
+            "nearest_target_agreement": 0.625
+          }
+        },
+        "oracle_sketch_geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4832823426573427,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.11899038461538461,
+            "nearest_target_agreement": 0.140625,
+            "relative_mse": 0.21183335819990268
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.02436625874125874,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.057364510489510495,
+            "nearest_target_agreement": 0.09375
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4515952797202797,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10871940559440559,
+            "nearest_target_agreement": 0.140625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4802229020979021,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.11604020979020978,
+            "nearest_target_agreement": 0.140625
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8919361888111887,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.09986888111888112,
+            "nearest_target_agreement": 0.625
+          }
+        }
+      }
+    }
+  },
+  {
+    "seed": 17,
+    "rank": 32,
+    "ridge": 1.0,
+    "parameters_factorized": 36992,
+    "normalization_statistics": 2048,
+    "sketch_matrix_values": 2048,
+    "anchor_train_p95": 3.983929465278208,
+    "selection_candidates": [
+      {
+        "ridge": 0.0001,
+        "internal_dev_sketch_mse": 0.6032166413950447
+      },
+      {
+        "ridge": 0.001,
+        "internal_dev_sketch_mse": 0.6032160602085048
+      },
+      {
+        "ridge": 0.01,
+        "internal_dev_sketch_mse": 0.6032102645300281
+      },
+      {
+        "ridge": 0.1,
+        "internal_dev_sketch_mse": 0.6031539079722523
+      },
+      {
+        "ridge": 1.0,
+        "internal_dev_sketch_mse": 0.6027366187382335
+      }
+    ],
+    "splits": {
+      "dev": {
+        "sketch_mse": 0.6027366187382335,
+        "sketch_r2_vs_constant": 0.15658937134607154,
+        "geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.38188374125874125,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10358391608391608,
+            "nearest_target_agreement": 0.03125,
+            "relative_mse": 0.5854534806914886
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.026770104895104892,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.0012019230769230787,
+            "nearest_target_agreement": 0.015625
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.3664772727272727,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10085227272727272,
+            "nearest_target_agreement": 0.03125
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.37784090909090906,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10347465034965035,
+            "nearest_target_agreement": 0.03125
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8993662587412586,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.2197333916083916,
+            "nearest_target_agreement": 0.65625
+          }
+        },
+        "oracle_sketch_geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.41531905594405594,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10861013986013987,
+            "nearest_target_agreement": 0.171875,
+            "relative_mse": 0.3098820987737137
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.05310314685314686,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.028190559440559433,
+            "nearest_target_agreement": 0.046875
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.36505681818181823,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10467657342657342,
+            "nearest_target_agreement": 0.15625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.40898164335664333,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10642482517482518,
+            "nearest_target_agreement": 0.171875
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8993662587412586,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.2197333916083916,
+            "nearest_target_agreement": 0.65625
+          }
+        }
+      },
+      "validation": {
+        "sketch_mse": 0.5273756333290476,
+        "sketch_r2_vs_constant": 0.22958719479794676,
+        "geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.3846153846153846,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.026223776223776217,
+            "nearest_target_agreement": 0.109375,
+            "relative_mse": 0.5214421498347223
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.028736888111888112,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.009724650349650352,
+            "nearest_target_agreement": 0.078125
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.37565559440559443,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.022399475524475517,
+            "nearest_target_agreement": 0.109375
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.3846153846153846,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.027316433566433568,
+            "nearest_target_agreement": 0.109375
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8919361888111887,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.09986888111888112,
+            "nearest_target_agreement": 0.625
+          }
+        },
+        "oracle_sketch_geometry": {
+          "predicted_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4832823426573427,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.11899038461538461,
+            "nearest_target_agreement": 0.140625,
+            "relative_mse": 0.21183335819990268
+          },
+          "unanchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": -0.02436625874125874,
+            "within_token_fixed_source_rho_vs_abs_nll": -0.057364510489510495,
+            "nearest_target_agreement": 0.09375
+          },
+          "anchored_ray": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4515952797202797,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.10871940559440559,
+            "nearest_target_agreement": 0.140625
+          },
+          "anchored_ray_x4": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.4802229020979021,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.11604020979020978,
+            "nearest_target_agreement": 0.140625
+          },
+          "train_global_euclidean": {
+            "within_token_fixed_source_rho_vs_true_output_distance": 0.8919361888111887,
+            "within_token_fixed_source_rho_vs_abs_nll": 0.09986888111888112,
+            "nearest_target_agreement": 0.625
+          }
+        }
+      }
+    }
+  }
+]

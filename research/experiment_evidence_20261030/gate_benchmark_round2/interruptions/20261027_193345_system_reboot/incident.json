@@ -1,0 +1,89 @@
+{
+  "time": "2026-10-27T19:46:08.7467343+08:00",
+  "cause": "System reboot after Windows bugcheck 0x00000133; precise driver cause not established",
+  "prior_workers": 6,
+  "recovery_workers": 3,
+  "completed_preserved": 40,
+  "completed_new_preserved": 4,
+  "historical_preserved": 36,
+  "archived_incomplete": [
+    {
+      "run": "mlp_mnist_amp_d1_full_seed17",
+      "source": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\formal\\20c0fefebf11\\mlp_mnist_amp_d1_full_seed17",
+      "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\mlp_mnist_amp_d1_full_seed17",
+      "reason": "Windows bugcheck 0x00000133 and reboot at 2026-10-27 19:33:45 +08:00",
+      "files_sha256": {
+        "best.pt": "F3C8C2E2E002FEC0F0E11E30AD12D3C90FEAD73B2D28E3F498C334042CBC53CC",
+        "manifest.json": "6A485B213B265910F9F0D2C723AF28CF8145E1EBAD60223BB84C1FB6484D2516",
+        "curves.jsonl": "9CBC9E5F68D3D635B688FE2B53C30F210739FB41B6722FDE31670413B2E41FAD",
+        "initial_dev.json": "C5C77EBD9F1621228D2FD03045CD2CD794F57B48DD3E6C11CBC4025174D15EF4"
+      },
+      "recovery": "restart from same seed and frozen training config; no optimizer/RNG resume"
+    },
+    {
+      "run": "mlp_mnist_amp_d1_full_seed29",
+      "source": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\formal\\20c0fefebf11\\mlp_mnist_amp_d1_full_seed29",
+      "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\mlp_mnist_amp_d1_full_seed29",
+      "reason": "Windows bugcheck 0x00000133 and reboot at 2026-10-27 19:33:45 +08:00",
+      "files_sha256": {
+        "manifest.json": "3BB144C437169BA6166A07EB6B52AA154056AB43CF29A2F59676EF4D10F29380",
+        "curves.jsonl": "76EB1D17ACB42F774D9456510AB576FF47CDA3B1578F552A6E9BCE8C1FA7D09B",
+        "initial_dev.json": "EB29F771E3A4325AEA0DC04A02BC3AE59B7950EAB3422B4B3DEE2C2EE6B5C95A"
+      },
+      "recovery": "restart from same seed and frozen training config; no optimizer/RNG resume"
+    },
+    {
+      "run": "mlp_mnist_amp_d1_half_seed17",
+      "source": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\formal\\20c0fefebf11\\mlp_mnist_amp_d1_half_seed17",
+      "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\mlp_mnist_amp_d1_half_seed17",
+      "reason": "Windows bugcheck 0x00000133 and reboot at 2026-10-27 19:33:45 +08:00",
+      "files_sha256": {
+        "best.pt": "117510211F684D9D6C67FA6C878E324C7BE90704F75BC41032D4167DF5BC1821",
+        "manifest.json": "8B7519AD869FF2DCD584F37BD935858632F7F718177FB75711EE36407F1FE60C",
+        "curves.jsonl": "A2F47B77D0B8E23F9A342A50C7E4E49658599E8732FD6ADA336C35CEBA34E0FD",
+        "initial_dev.json": "75F6C5CA4103995DB0D9006C2C6F5F642CE22EF9D77AECD5860DA5D6E88C5D94"
+      },
+      "recovery": "restart from same seed and frozen training config; no optimizer/RNG resume"
+    },
+    {
+      "run": "mlp_mnist_amp_d1_half_seed29",
+      "source": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\formal\\20c0fefebf11\\mlp_mnist_amp_d1_half_seed29",
+      "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\mlp_mnist_amp_d1_half_seed29",
+      "reason": "Windows bugcheck 0x00000133 and reboot at 2026-10-27 19:33:45 +08:00",
+      "files_sha256": {
+        "manifest.json": "53DC7CB0B1714A7FB1C4980C7DCD9BABB006478CE48F97EBFC5B4DCEC765434E",
+        "curves.jsonl": "588838633EE9580E789899429ED77BF0DD7DD3512CDF02E2E41104D2984A3DD2",
+        "initial_dev.json": "FE0EBFD582CA8F77495473C09E71702F4768F63BDA17D2D03958984CB1D0F35D"
+      },
+      "recovery": "restart from same seed and frozen training config; no optimizer/RNG resume"
+    },
+    {
+      "run": "mlp_mnist_mpo_c1_half_seed29",
+      "source": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\formal\\20c0fefebf11\\mlp_mnist_mpo_c1_half_seed29",
+      "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\mlp_mnist_mpo_c1_half_seed29",
+      "reason": "Windows bugcheck 0x00000133 and reboot at 2026-10-27 19:33:45 +08:00",
+      "files_sha256": {
+        "best.pt": "9B99EE0A7BBA3A39A30F9D8C03734F27B788A206D983523E672C4DF05361F173",
+        "manifest.json": "3D7EC9EFF8454CF088DF280E64998AD8F07E54EE1ACECC188068AF91BD82B0FC",
+        "curves.jsonl": "1FBB6447ECA7B919E21F6281CD130C8DE0739AC3A072B7C2F53B0FE4DB657B35",
+        "initial_dev.json": "EEEF58D8B79A8524DC6A4256E8F5B50FE583E7C391522A5BF1A9DDA9CBD4C927"
+      },
+      "recovery": "restart from same seed and frozen training config; no optimizer/RNG resume"
+    },
+    {
+      "run": "mlp_mnist_mpo_c2_full_seed29",
+      "source": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\formal\\20c0fefebf11\\mlp_mnist_mpo_c2_full_seed29",
+      "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\interruptions\\20261027_193345_system_reboot\\mlp_mnist_mpo_c2_full_seed29",
+      "reason": "Windows bugcheck 0x00000133 and reboot at 2026-10-27 19:33:45 +08:00",
+      "files_sha256": {
+        "best.pt": "5338E4388A1AED855D9FF68AE4F882EBFD3DEA140E9EE728E3BE81F955503346",
+        "manifest.json": "DAA68F63B9BE76001282C028B7E079A1133D9C1711105764E15A9380C7F6C923",
+        "curves.jsonl": "611E3F9B006DCD4FA89005E2EF7FD1A76E38B703BE3A5CFFA99E1C34E373608B",
+        "initial_dev.json": "BC317ABF8C3361F5246EBE1AF172FDD4C6D41E7F6A0C7D238DD81C265742B1AF"
+      },
+      "recovery": "restart from same seed and frozen training config; no optimizer/RNG resume"
+    }
+  ],
+  "completed_files_unchanged": true,
+  "frozen_training_config_unchanged": true
+}

@@ -16,3 +16,9 @@ checkpoints/
 
 # Local experiment environments
 .venv/
+.venv-*/
+tmp/
+
+# Downloaded model/data assets and machine-local training products
+models/
+datasets_local/

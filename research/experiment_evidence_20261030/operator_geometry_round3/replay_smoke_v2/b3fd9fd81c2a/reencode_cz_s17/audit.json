@@ -1,0 +1,32 @@
+{
+  "checkpoint_sha256": "11e898cf7debc307b259ebe7dfb7ec0f6a265861bd4c2803d1263f9096a039fb",
+  "selected_step": 3000,
+  "parameter_count_with_calibration_scalar": 10313,
+  "effective_calibration_power": 1.0255416631698608,
+  "samples_verified": true,
+  "curves_verified": true,
+  "finite_weights": true,
+  "result_path": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\capacity\\481aeb0bc8dd\\runs\\reencode_cz_s17\\result.json",
+  "seed": 17,
+  "method": "reencode_cz",
+  "dev_score_replay_max_abs": 9.059906005859375e-06,
+  "dev_native_full_model_max_abs": 7.62939453125e-06,
+  "validation_score_replay_max_abs": 1.5735626220703125e-05,
+  "validation_native_full_model_max_abs": 7.62939453125e-06,
+  "dev_calibrated_full_model_max_abs": 7.62939453125e-06,
+  "validation_calibrated_full_model_max_abs": 7.62939453125e-06,
+  "files": {
+    "dev_calibrated_bf16_input_roundtrip.npz": "4fe90001c41aeff5693079cb83fab69eb959a052346b94e00572df02df21b84a",
+    "dev_calibrated_clean.npz": "c41b6c4cbea06240a932c1b1bafba76857639b6eaf5a22530e3a97fa9b61d02c",
+    "dev_calibrated_fp16_input_roundtrip.npz": "77ab287b70e300d69a0e693eb917255319d1ddddcb5ee3873a54554ddc85bbb2",
+    "dev_native_bf16_input_roundtrip.npz": "a79c79a0d85d37e02c3b81c16292f0e546e3e2be2a52f2a7d2c4695a617c9142",
+    "dev_native_clean.npz": "170f063767b0ee00decc80ebf1db9a3456cc4831d806c49894e92be14564f89b",
+    "dev_native_fp16_input_roundtrip.npz": "c9ad0c434b2be54a5d1fc23b93422ecd8fb921250facb47a30de4d0bfa8b895a",
+    "validation_calibrated_bf16_input_roundtrip.npz": "e47f5312fd38251eadd4e34e591e9430722779f6f760c4522de2afd73f11b7da",
+    "validation_calibrated_clean.npz": "888338114c3891f0134bcc91f0a39598f5d5b21d58a6d605dd7d5820d871210a",
+    "validation_calibrated_fp16_input_roundtrip.npz": "4e6bd23bbfa4a98460a00df0d45a5d274efc4e1e369220cf38c47b6e3f619118",
+    "validation_native_bf16_input_roundtrip.npz": "0bef9444117d65d239e8b86d45b2976e6a99bc01c223e4fd18bafc24a78cbe68",
+    "validation_native_clean.npz": "9e9aa49eb01f36065705e3f92d6bfb76d88e5692f91818d98aefb1848649594a",
+    "validation_native_fp16_input_roundtrip.npz": "35a7491eaa64e8d9ab43f21a3a1807deee04bd33e1a6b6d684716fed0ce8a3b2"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "config": {
+    "name": "function_geometry_diagnostic_v1",
+    "stage": "diagnostic",
+    "source_config": "experiments/routing_stability/configs/titan_v.json",
+    "source_group": "outputs/routing_stability_round1/formal/756b04397b2d",
+    "data_root": "outputs/autoregressive_gate/data",
+    "variants": [
+      "mlp_half",
+      "amp_half",
+      "born_lite"
+    ],
+    "seeds": [
+      17,
+      29,
+      43
+    ],
+    "module": "blocks.1.down",
+    "splits": [
+      "train",
+      "validation"
+    ],
+    "windows_per_split": 64,
+    "positions": [
+      31,
+      63,
+      95,
+      127
+    ],
+    "context": 128,
+    "window_batch": 2,
+    "intervention_batch": 256,
+    "sampling_seed": 20261030,
+    "device": "cuda",
+    "memory_fraction": 0.35,
+    "bootstrap_repeats": 1000,
+    "identity_atol": 5e-05,
+    "pilot_decision": {
+      "oracle_mean_nll_gain_floor": 0.02,
+      "required_seeds_with_window_ci_gain": 2,
+      "scope": "Signal sufficiency for a small router-only pilot, not evidence of deployable or quantum advantage; no label-oracle at inference."
+    },
+    "protocol": "All 4x12 single substitutions in final down module; selected mass held fixed; earlier routes and all weights frozen. Train-only global geometry; held-out validation check. No test split access."
+  },
+  "checkpoint": "D:\\files\\MOTE\\outputs\\routing_stability_round1\\formal\\756b04397b2d\\runs\\born_lite_s29\\best.pt",
+  "checkpoint_sha256": "fa2e24607b1c31836f69b6b8dd67ab43966b2d3a513a7ba676dc213f783186ee",
+  "variant": "born_lite",
+  "seed": 29,
+  "initial_state_hash": "708a28f37389955411302f4d42f62d5c25131c358b6bbf9870a94493fc0f9f7b",
+  "started": "2026-10-30T02:21:25.893475+08:00",
+  "source_hashes": {
+    "ADTN.py": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+    "advanced_routers.py": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+    "experiments/autoregressive_gate/data.py": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a",
+    "experiments/autoregressive_gate/model.py": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb",
+    "experiments/autoregressive_gate/runner.py": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102",
+    "experiments/gate_benchmark/models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+    "experiments/operator_geometry/metrics.py": "658a0daa228e83a1bc37c7a419aef450fdd6ce4fd7606cbb1b5c718265bfd900",
+    "experiments/operator_geometry/runner.py": "b6c934c47c0efb8489483ab6b24c05956be2b719fcad39e59442bbe8672e6ba2",
+    "experiments/routing_stability/configs/titan_v.json": "66ef7e040b365e8e942f6d40959ce508ae8713f85ea314aad0bc46149af85719",
+    "experiments/routing_stability/model.py": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270",
+    "experiments/routing_stability/probe.py": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e",
+    "experiments/routing_stability/routers.py": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1",
+    "experiments/routing_stability/runner.py": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94",
+    "gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+    "losses.py": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+    "quantum_gate.py": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+    "sparse_mixt.py": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+    "structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee"
+  }
+}

@@ -1,0 +1,218 @@
+[
+  {
+    "method": "mlp",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.397585868835449,
+    "rounding_flips": 2,
+    "rounding_harm": 0
+  },
+  {
+    "method": "spectral_functional",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.411154747009277,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "spectral_random",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.416044235229492,
+    "rounding_flips": 1,
+    "rounding_harm": 0
+  },
+  {
+    "method": "shared_born",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.406615257263184,
+    "rounding_flips": 1,
+    "rounding_harm": 1
+  },
+  {
+    "method": "angle_natural",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.393004417419434,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_random",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.4142656326293945,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_functional",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.40619421005249,
+    "rounding_flips": 1,
+    "rounding_harm": 0
+  },
+  {
+    "method": "product_functional",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.406957626342773,
+    "rounding_flips": 3,
+    "rounding_harm": 0
+  },
+  {
+    "method": "exp_adapter",
+    "seed": 17,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.387162685394287,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "mlp",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.429664134979248,
+    "rounding_flips": 3,
+    "rounding_harm": 0
+  },
+  {
+    "method": "spectral_functional",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.443305492401123,
+    "rounding_flips": 1,
+    "rounding_harm": 1
+  },
+  {
+    "method": "spectral_random",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.494113922119141,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "shared_born",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.444913864135742,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_natural",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.442829132080078,
+    "rounding_flips": 3,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_random",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.442243576049805,
+    "rounding_flips": 2,
+    "rounding_harm": 1
+  },
+  {
+    "method": "angle_functional",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.439435958862305,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "product_functional",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.4454545974731445,
+    "rounding_flips": 1,
+    "rounding_harm": 0
+  },
+  {
+    "method": "exp_adapter",
+    "seed": 29,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.4437575340271,
+    "rounding_flips": 2,
+    "rounding_harm": 1
+  },
+  {
+    "method": "mlp",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.359847068786621,
+    "rounding_flips": 2,
+    "rounding_harm": 1
+  },
+  {
+    "method": "spectral_functional",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.37255859375,
+    "rounding_flips": 1,
+    "rounding_harm": 0
+  },
+  {
+    "method": "spectral_random",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.393606185913086,
+    "rounding_flips": 1,
+    "rounding_harm": 1
+  },
+  {
+    "method": "shared_born",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.389824867248535,
+    "rounding_flips": 2,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_natural",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.371655464172363,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_random",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.3542046546936035,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  },
+  {
+    "method": "angle_functional",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.368257522583008,
+    "rounding_flips": 4,
+    "rounding_harm": 0
+  },
+  {
+    "method": "product_functional",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.366939544677734,
+    "rounding_flips": 1,
+    "rounding_harm": 0
+  },
+  {
+    "method": "exp_adapter",
+    "seed": 43,
+    "max_abs_nll_error": 0.0,
+    "ce": 4.367403030395508,
+    "rounding_flips": 0,
+    "rounding_harm": 0
+  }
+]

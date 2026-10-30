@@ -1,0 +1,1303 @@
+{
+  "product_boundary": {
+    "samples": 100000,
+    "seed": 20261030,
+    "hamming_one": 0,
+    "hamming_two": 25003,
+    "hamming_three": 74997,
+    "exact_case_formula_agrees": true,
+    "conditions": "four independent nondegenerate Bernoulli bits; distinct subset costs; top4 selection; monotone probability floor preserves ranks",
+    "reason": "sort modal-bit flip costs a<b<c<d; top3 are empty,a,b; fourth/fifth are ab,c or c,min(ab,d)",
+    "implication": "Hypercube Hamming-one edges exclude every generic fourth/fifth boundary of a four-bit product router."
+  },
+  "real_fisher": {
+    "rows": [
+      {
+        "method": "angle_natural",
+        "sample": 0,
+        "minimum_probability": 5.7397408393408595e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 4.440892098500626e-16,
+        "smooth_cfi_min_eigenvalue": 0.9993205736769009,
+        "smooth_cfi_max_eigenvalue": 0.99997441847924,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 1,
+        "minimum_probability": 0.0007905904060580508,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9998454180916438,
+        "smooth_cfi_max_eigenvalue": 0.9999752500727678,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 2,
+        "minimum_probability": 8.629337950852214e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9907472143597683,
+        "smooth_cfi_max_eigenvalue": 0.9999728482083005,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 3,
+        "minimum_probability": 0.00020487887690534616,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9995512251096891,
+        "smooth_cfi_max_eigenvalue": 0.9999734289190989,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 4,
+        "minimum_probability": 0.00026423527088884763,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 7.311831652399204e-17,
+        "smooth_cfi_min_eigenvalue": 0.9998544660354862,
+        "smooth_cfi_max_eigenvalue": 0.9999710614160026,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 5,
+        "minimum_probability": 0.00010374474065168931,
+        "qfi_identity_max_abs": 7.174101551613976e-17,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9957228594185694,
+        "smooth_cfi_max_eigenvalue": 0.9999704003875406,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 6,
+        "minimum_probability": 5.1549133581084e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 6.650831983100058e-17,
+        "smooth_cfi_min_eigenvalue": 0.9995179842916071,
+        "smooth_cfi_max_eigenvalue": 0.9999715163989926,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 7,
+        "minimum_probability": 2.496228836172159e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 3.3306690738754696e-16,
+        "smooth_cfi_min_eigenvalue": 0.9992773795363915,
+        "smooth_cfi_max_eigenvalue": 0.9999641036883002,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 8,
+        "minimum_probability": 1.463311891852337e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.988614549486513,
+        "smooth_cfi_max_eigenvalue": 0.999975276045381,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 9,
+        "minimum_probability": 4.504115072115025e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.938944163110505e-17,
+        "smooth_cfi_min_eigenvalue": 0.999267552336083,
+        "smooth_cfi_max_eigenvalue": 0.9999565938285838,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 10,
+        "minimum_probability": 4.4429442777345575e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 5.359391562099356e-17,
+        "smooth_cfi_min_eigenvalue": 0.9945869895437525,
+        "smooth_cfi_max_eigenvalue": 0.999972018198805,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 11,
+        "minimum_probability": 3.8040134087859465e-07,
+        "qfi_identity_max_abs": 1.2965603756437952e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9346880421901352,
+        "smooth_cfi_max_eigenvalue": 0.9999727759552917,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 12,
+        "minimum_probability": 4.379919366320197e-07,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.996378695139499,
+        "smooth_cfi_max_eigenvalue": 0.9998519575947388,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 13,
+        "minimum_probability": 5.555467258014906e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.998268991970402,
+        "smooth_cfi_max_eigenvalue": 0.9999700498810858,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 14,
+        "minimum_probability": 0.00039470181628726447,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9995656379730455,
+        "smooth_cfi_max_eigenvalue": 0.9999723517088684,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 15,
+        "minimum_probability": 0.00012657545739753809,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9996638238122003,
+        "smooth_cfi_max_eigenvalue": 0.9999710833699677,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 16,
+        "minimum_probability": 0.0003730384691137151,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9988553854123657,
+        "smooth_cfi_max_eigenvalue": 0.9999668043226765,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 17,
+        "minimum_probability": 3.8393359424861574e-05,
+        "qfi_identity_max_abs": 6.661338147750939e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9993930202456409,
+        "smooth_cfi_max_eigenvalue": 0.9999688573923535,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 18,
+        "minimum_probability": 0.0005752432421564389,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999065067277069,
+        "smooth_cfi_max_eigenvalue": 0.9999685442914654,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 19,
+        "minimum_probability": 1.7525506307184803e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9921468394008557,
+        "smooth_cfi_max_eigenvalue": 0.9999694290605622,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 20,
+        "minimum_probability": 4.909639770655981e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9905532420682642,
+        "smooth_cfi_max_eigenvalue": 0.9999709374526324,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 21,
+        "minimum_probability": 2.9966736637492865e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.940127204550614,
+        "smooth_cfi_max_eigenvalue": 0.999971128953457,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 22,
+        "minimum_probability": 1.2499138744927642e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9972061123036301,
+        "smooth_cfi_max_eigenvalue": 0.9999470532787229,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 23,
+        "minimum_probability": 8.761075855594867e-07,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9884238106264229,
+        "smooth_cfi_max_eigenvalue": 0.999929491491078,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 24,
+        "minimum_probability": 3.7982838204517284e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9901994384371657,
+        "smooth_cfi_max_eigenvalue": 0.9999696030590269,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 25,
+        "minimum_probability": 6.147071874775883e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9980950402900917,
+        "smooth_cfi_max_eigenvalue": 0.9999693441899155,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 26,
+        "minimum_probability": 1.779736532438434e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9943291614998088,
+        "smooth_cfi_max_eigenvalue": 0.9999749900551756,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 27,
+        "minimum_probability": 2.5059554089349117e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9729496680850285,
+        "smooth_cfi_max_eigenvalue": 0.9999633083520443,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 28,
+        "minimum_probability": 0.0005055041231529207,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.999623313322651,
+        "smooth_cfi_max_eigenvalue": 0.9999743547761779,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 29,
+        "minimum_probability": 1.9053078806717434e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 5.2428357749595414e-17,
+        "smooth_cfi_min_eigenvalue": 0.9969892306285605,
+        "smooth_cfi_max_eigenvalue": 0.9999726935085266,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 30,
+        "minimum_probability": 1.6943057514692116e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.58340754781203e-17,
+        "smooth_cfi_min_eigenvalue": 0.9993552654572847,
+        "smooth_cfi_max_eigenvalue": 0.9999662760788767,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 31,
+        "minimum_probability": 1.7391931927765748e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9995838971853014,
+        "smooth_cfi_max_eigenvalue": 0.9999454658132889,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 32,
+        "minimum_probability": 0.0001920798761288847,
+        "qfi_identity_max_abs": 3.3306690738754696e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9997298100265511,
+        "smooth_cfi_max_eigenvalue": 0.9999498756638551,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 33,
+        "minimum_probability": 0.0007134015017240481,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.999805644381197,
+        "smooth_cfi_max_eigenvalue": 0.9999701852344762,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 34,
+        "minimum_probability": 0.0005747919245233482,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9995227606377602,
+        "smooth_cfi_max_eigenvalue": 0.9999751318990795,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 35,
+        "minimum_probability": 1.173774774743238e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9665517279703496,
+        "smooth_cfi_max_eigenvalue": 0.999953200652049,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 36,
+        "minimum_probability": 2.7475179559808644e-12,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9962069605343502,
+        "smooth_cfi_max_eigenvalue": 0.999945989948247,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 37,
+        "minimum_probability": 4.312931158525049e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9170412330455008,
+        "smooth_cfi_max_eigenvalue": 0.9999597734560782,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 38,
+        "minimum_probability": 8.811129144520159e-05,
+        "qfi_identity_max_abs": 8.881784197001252e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9996573047490057,
+        "smooth_cfi_max_eigenvalue": 0.9999662568858064,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 39,
+        "minimum_probability": 7.473944904747466e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.8496405089571477,
+        "smooth_cfi_max_eigenvalue": 0.9999624512529439,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 40,
+        "minimum_probability": 7.993267834103676e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9990111240124014,
+        "smooth_cfi_max_eigenvalue": 0.9999734814496609,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 41,
+        "minimum_probability": 6.052765882144923e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9962706480147664,
+        "smooth_cfi_max_eigenvalue": 0.999965208480892,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 42,
+        "minimum_probability": 2.580217248271579e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 3.286743142734785e-17,
+        "smooth_cfi_min_eigenvalue": 0.9856245442573198,
+        "smooth_cfi_max_eigenvalue": 0.9999741882890252,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 43,
+        "minimum_probability": 4.551187029940782e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9897841567978842,
+        "smooth_cfi_max_eigenvalue": 0.9999733113735347,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 44,
+        "minimum_probability": 1.017406406686959e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 7.596873889844289e-17,
+        "smooth_cfi_min_eigenvalue": 0.9952834789662531,
+        "smooth_cfi_max_eigenvalue": 0.9999663574961793,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 45,
+        "minimum_probability": 3.241601284837552e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9989511599443084,
+        "smooth_cfi_max_eigenvalue": 0.9999720416453878,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 46,
+        "minimum_probability": 0.0005593559053681855,
+        "qfi_identity_max_abs": 6.661338147750939e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9997755158156436,
+        "smooth_cfi_max_eigenvalue": 0.9999723369164172,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 47,
+        "minimum_probability": 3.308668934615917e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.9949319973733282e-17,
+        "smooth_cfi_min_eigenvalue": 0.999440525543792,
+        "smooth_cfi_max_eigenvalue": 0.999964457851089,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 48,
+        "minimum_probability": 0.00014644084738203806,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9998592162081198,
+        "smooth_cfi_max_eigenvalue": 0.9999749439333208,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 49,
+        "minimum_probability": 1.8596680129903835e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9991519535153348,
+        "smooth_cfi_max_eigenvalue": 0.9999675075268887,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 50,
+        "minimum_probability": 1.4853866255730243e-05,
+        "qfi_identity_max_abs": 1.4453684588804663e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9979840646090907,
+        "smooth_cfi_max_eigenvalue": 0.9999602899299407,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 51,
+        "minimum_probability": 0.00013257530151158326,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9971176395306315,
+        "smooth_cfi_max_eigenvalue": 0.9999705586527099,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 52,
+        "minimum_probability": 4.869349576305814e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9851406094748808,
+        "smooth_cfi_max_eigenvalue": 0.999955110191346,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 53,
+        "minimum_probability": 5.47024662046093e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9978164492712847,
+        "smooth_cfi_max_eigenvalue": 0.9999625555756844,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 54,
+        "minimum_probability": 3.520854183850301e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.997963843040367,
+        "smooth_cfi_max_eigenvalue": 0.999976233636676,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 55,
+        "minimum_probability": 3.5089037279442825e-09,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 8.281836206027062e-17,
+        "smooth_cfi_min_eigenvalue": 0.9793950029330186,
+        "smooth_cfi_max_eigenvalue": 0.9999717295049274,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 56,
+        "minimum_probability": 2.3770387677075095e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9988327098141343,
+        "smooth_cfi_max_eigenvalue": 0.9999690699301921,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 57,
+        "minimum_probability": 6.82723180662215e-07,
+        "qfi_identity_max_abs": 6.661338147750939e-16,
+        "cfi_qfi_max_abs": 1.387778780781446e-17,
+        "smooth_cfi_min_eigenvalue": 0.9927223942569215,
+        "smooth_cfi_max_eigenvalue": 0.99987080502663,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 58,
+        "minimum_probability": 7.737371287420677e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9723179920356796,
+        "smooth_cfi_max_eigenvalue": 0.9999604977063885,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 59,
+        "minimum_probability": 7.802527648950761e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9875996663472981,
+        "smooth_cfi_max_eigenvalue": 0.9999682391284017,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 60,
+        "minimum_probability": 0.0001022285028765651,
+        "qfi_identity_max_abs": 3.3306690738754696e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9987596960253474,
+        "smooth_cfi_max_eigenvalue": 0.9999686425783081,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 61,
+        "minimum_probability": 6.349718591120453e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9989655757881909,
+        "smooth_cfi_max_eigenvalue": 0.9999655576445465,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 62,
+        "minimum_probability": 0.0010177468687770912,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 6.484495237031268e-17,
+        "smooth_cfi_min_eigenvalue": 0.9998489322034267,
+        "smooth_cfi_max_eigenvalue": 0.9999711980124415,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "angle_natural",
+        "sample": 63,
+        "minimum_probability": 3.97175102525299e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9740343745550487,
+        "smooth_cfi_max_eigenvalue": 0.9999597643144869,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 0,
+        "minimum_probability": 1.161435142308092e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9994807556122031,
+        "smooth_cfi_max_eigenvalue": 0.9999617086685083,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 1,
+        "minimum_probability": 0.00014455850420225992,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9997520379803643,
+        "smooth_cfi_max_eigenvalue": 0.9999671393325748,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 2,
+        "minimum_probability": 0.004517581989106988,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 8.298926458504568e-17,
+        "smooth_cfi_min_eigenvalue": 0.9999398856153007,
+        "smooth_cfi_max_eigenvalue": 0.9999657564393094,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 3,
+        "minimum_probability": 7.52559360350378e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.998026263676208,
+        "smooth_cfi_max_eigenvalue": 0.9999661238211965,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 4,
+        "minimum_probability": 0.0030542436269846997,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999259694861327,
+        "smooth_cfi_max_eigenvalue": 0.9999674316798379,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 5,
+        "minimum_probability": 2.8374356151932284e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9822873805771751,
+        "smooth_cfi_max_eigenvalue": 0.9999678728216537,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 6,
+        "minimum_probability": 0.002369297749109686,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 5.381204540539443e-17,
+        "smooth_cfi_min_eigenvalue": 0.999913666670882,
+        "smooth_cfi_max_eigenvalue": 0.9999664743947048,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 7,
+        "minimum_probability": 0.00127384997426325,
+        "qfi_identity_max_abs": 3.3306690738754696e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9998840121263438,
+        "smooth_cfi_max_eigenvalue": 0.9999645525434846,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 8,
+        "minimum_probability": 0.00012282936000933002,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 3.169742935912637e-17,
+        "smooth_cfi_min_eigenvalue": 0.9990354913795334,
+        "smooth_cfi_max_eigenvalue": 0.9999667761154003,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 9,
+        "minimum_probability": 0.00813479895374283,
+        "qfi_identity_max_abs": 1.1471805379088972e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.999946260677262,
+        "smooth_cfi_max_eigenvalue": 0.9999669324879016,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 10,
+        "minimum_probability": 8.319067460769507e-07,
+        "qfi_identity_max_abs": 1.1102230246251565e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9772447226062836,
+        "smooth_cfi_max_eigenvalue": 0.999968872742463,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 11,
+        "minimum_probability": 0.004134723366242374,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9998828534296652,
+        "smooth_cfi_max_eigenvalue": 0.9999677713021705,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 12,
+        "minimum_probability": 1.3026340431564912e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9977649532071362,
+        "smooth_cfi_max_eigenvalue": 0.9999669907459314,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 13,
+        "minimum_probability": 1.9342487844954502e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 4.7010312926716025e-17,
+        "smooth_cfi_min_eigenvalue": 0.9995532883928068,
+        "smooth_cfi_max_eigenvalue": 0.9999507912816422,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 14,
+        "minimum_probability": 5.8600648488394184e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.053402100292185e-17,
+        "smooth_cfi_min_eigenvalue": 0.99951450645729,
+        "smooth_cfi_max_eigenvalue": 0.9999661703728314,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 15,
+        "minimum_probability": 1.2555784531417016e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9996180607981422,
+        "smooth_cfi_max_eigenvalue": 0.9999473281443901,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 16,
+        "minimum_probability": 6.379662087824008e-06,
+        "qfi_identity_max_abs": 1.1102230246251565e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9883376505273301,
+        "smooth_cfi_max_eigenvalue": 0.9999685531387816,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 17,
+        "minimum_probability": 0.0002039961000099708,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9990407570956593,
+        "smooth_cfi_max_eigenvalue": 0.9999665364033464,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 18,
+        "minimum_probability": 5.6478101934326225e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.976718698180035,
+        "smooth_cfi_max_eigenvalue": 0.9999685111726223,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 19,
+        "minimum_probability": 2.6549136663951264e-08,
+        "qfi_identity_max_abs": 1.1102230246251565e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9741886106047627,
+        "smooth_cfi_max_eigenvalue": 0.9999662724417792,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 20,
+        "minimum_probability": 0.005259012532565022,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999211915343831,
+        "smooth_cfi_max_eigenvalue": 0.9999670399267236,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 21,
+        "minimum_probability": 0.0006042312181283731,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9997090846043327,
+        "smooth_cfi_max_eigenvalue": 0.9999680048490516,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 22,
+        "minimum_probability": 0.01061659548215503,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999346282160053,
+        "smooth_cfi_max_eigenvalue": 0.9999679318567574,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 23,
+        "minimum_probability": 2.233432082942031e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 5.170731067252771e-17,
+        "smooth_cfi_min_eigenvalue": 0.9964202560769702,
+        "smooth_cfi_max_eigenvalue": 0.9999654528274664,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 24,
+        "minimum_probability": 0.00022811892152173934,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.9063117390599e-17,
+        "smooth_cfi_min_eigenvalue": 0.999585114932501,
+        "smooth_cfi_max_eigenvalue": 0.9999659218272285,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 25,
+        "minimum_probability": 2.0553328777904693e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.999556896774355,
+        "smooth_cfi_max_eigenvalue": 0.999967117766403,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 26,
+        "minimum_probability": 1.4868175184343735e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9994789429207696,
+        "smooth_cfi_max_eigenvalue": 0.9999662534992022,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 27,
+        "minimum_probability": 0.0011592180139636912,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9998726812828147,
+        "smooth_cfi_max_eigenvalue": 0.9999679965574303,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 28,
+        "minimum_probability": 0.000308817736418637,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 3.87544999983411e-17,
+        "smooth_cfi_min_eigenvalue": 0.9998504401809399,
+        "smooth_cfi_max_eigenvalue": 0.9999598539748163,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 29,
+        "minimum_probability": 6.136081480843861e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.92628800178903e-17,
+        "smooth_cfi_min_eigenvalue": 0.9996972304761779,
+        "smooth_cfi_max_eigenvalue": 0.9999605603692088,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 30,
+        "minimum_probability": 5.212585805590223e-06,
+        "qfi_identity_max_abs": 1.1102230246251565e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9993524984298404,
+        "smooth_cfi_max_eigenvalue": 0.9999508702647061,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 31,
+        "minimum_probability": 1.2900619075768232e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9976912351822511,
+        "smooth_cfi_max_eigenvalue": 0.9999676685403422,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 32,
+        "minimum_probability": 2.221044695553599e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9619505880880234,
+        "smooth_cfi_max_eigenvalue": 0.9999663673636796,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 33,
+        "minimum_probability": 0.0016659283647446888,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 4.991646138702412e-17,
+        "smooth_cfi_min_eigenvalue": 0.9998830254164759,
+        "smooth_cfi_max_eigenvalue": 0.9999676210205652,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 34,
+        "minimum_probability": 0.00012615129440279047,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.743039489711586e-17,
+        "smooth_cfi_min_eigenvalue": 0.9997617751141581,
+        "smooth_cfi_max_eigenvalue": 0.9999629176441163,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 35,
+        "minimum_probability": 1.1521354314656919e-07,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 4.2994378697932084e-17,
+        "smooth_cfi_min_eigenvalue": 0.9585234086126053,
+        "smooth_cfi_max_eigenvalue": 0.9999702139594655,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 36,
+        "minimum_probability": 5.391894439483906e-07,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.979007869958972e-17,
+        "smooth_cfi_min_eigenvalue": 0.8791480118958739,
+        "smooth_cfi_max_eigenvalue": 0.9999647751110047,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 37,
+        "minimum_probability": 0.0031678109349552908,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999205784831603,
+        "smooth_cfi_max_eigenvalue": 0.9999679991699792,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 38,
+        "minimum_probability": 0.0004677841149171083,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9995857009194219,
+        "smooth_cfi_max_eigenvalue": 0.9999664609410817,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 39,
+        "minimum_probability": 6.048484818071887e-11,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 5.152655097433221e-17,
+        "smooth_cfi_min_eigenvalue": 0.000714563367814106,
+        "smooth_cfi_max_eigenvalue": 0.9999757438133674,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 40,
+        "minimum_probability": 0.0003244763278795538,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9997743613494271,
+        "smooth_cfi_max_eigenvalue": 0.999960877399711,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 41,
+        "minimum_probability": 4.563985599306306e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.0439467510683368e-16,
+        "smooth_cfi_min_eigenvalue": 0.9988501210182991,
+        "smooth_cfi_max_eigenvalue": 0.999966170140771,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 42,
+        "minimum_probability": 0.008702841476471204,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999218601492218,
+        "smooth_cfi_max_eigenvalue": 0.9999679997242594,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 43,
+        "minimum_probability": 0.0012872423945270149,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9998378706154849,
+        "smooth_cfi_max_eigenvalue": 0.9999661381565609,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 44,
+        "minimum_probability": 0.004237476458042961,
+        "qfi_identity_max_abs": 1.5567999945225633e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999413995480168,
+        "smooth_cfi_max_eigenvalue": 0.9999645188307988,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 45,
+        "minimum_probability": 3.5110522979903795e-06,
+        "qfi_identity_max_abs": 6.722278202925746e-17,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9988754028160983,
+        "smooth_cfi_max_eigenvalue": 0.999963146400987,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 46,
+        "minimum_probability": 4.6302908491525825e-06,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9987230864497576,
+        "smooth_cfi_max_eigenvalue": 0.9999679736691224,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 47,
+        "minimum_probability": 0.0009631031298503864,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9996711343813315,
+        "smooth_cfi_max_eigenvalue": 0.9999676576185235,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 48,
+        "minimum_probability": 2.199786399123943e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9560147472871402,
+        "smooth_cfi_max_eigenvalue": 0.999968992151409,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 49,
+        "minimum_probability": 0.002760578008245303,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999015226783983,
+        "smooth_cfi_max_eigenvalue": 0.9999669546586566,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 50,
+        "minimum_probability": 0.00011661737518769986,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9994194650801421,
+        "smooth_cfi_max_eigenvalue": 0.9999679094724788,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 51,
+        "minimum_probability": 1.1621584154943656e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9991010587312433,
+        "smooth_cfi_max_eigenvalue": 0.9999639901373202,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 52,
+        "minimum_probability": 0.0007221174250497971,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 3.323112498376171e-17,
+        "smooth_cfi_min_eigenvalue": 0.999804225244903,
+        "smooth_cfi_max_eigenvalue": 0.9999651888514816,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 53,
+        "minimum_probability": 3.670016542909959e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9991405805648925,
+        "smooth_cfi_max_eigenvalue": 0.9999680273310925,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 54,
+        "minimum_probability": 1.0578775043300722e-05,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9962143335203204,
+        "smooth_cfi_max_eigenvalue": 0.9999656025446944,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 55,
+        "minimum_probability": 0.005536291610936418,
+        "qfi_identity_max_abs": 1.0926972253532473e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999447172098526,
+        "smooth_cfi_max_eigenvalue": 0.9999659765881208,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 56,
+        "minimum_probability": 0.0013143597724632704,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 4.7291086369346707e-17,
+        "smooth_cfi_min_eigenvalue": 0.9997539038700497,
+        "smooth_cfi_max_eigenvalue": 0.9999678785498776,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 57,
+        "minimum_probability": 8.925864172656382e-08,
+        "qfi_identity_max_abs": 1.1102230246251565e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9882101232108174,
+        "smooth_cfi_max_eigenvalue": 0.9999715254639909,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 58,
+        "minimum_probability": 1.4439742541198063e-05,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9947705488045439,
+        "smooth_cfi_max_eigenvalue": 0.9999676651160222,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 59,
+        "minimum_probability": 0.002838457383572284,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9999032926131006,
+        "smooth_cfi_max_eigenvalue": 0.9999679996727295,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 60,
+        "minimum_probability": 4.778701326933281e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9970602978409585,
+        "smooth_cfi_max_eigenvalue": 0.9999672331362246,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 61,
+        "minimum_probability": 1.5812604427181051e-07,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.9848555894882365,
+        "smooth_cfi_max_eigenvalue": 0.9999700851525894,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 62,
+        "minimum_probability": 3.125452601329366e-06,
+        "qfi_identity_max_abs": 2.220446049250313e-16,
+        "cfi_qfi_max_abs": 1.1102230246251565e-16,
+        "smooth_cfi_min_eigenvalue": 0.9982200622658903,
+        "smooth_cfi_max_eigenvalue": 0.9999676177270437,
+        "probability_floor": 1e-06
+      },
+      {
+        "method": "product_functional",
+        "sample": 63,
+        "minimum_probability": 1.7644280755586766e-09,
+        "qfi_identity_max_abs": 4.440892098500626e-16,
+        "cfi_qfi_max_abs": 2.220446049250313e-16,
+        "smooth_cfi_min_eigenvalue": 0.7984884268044486,
+        "smooth_cfi_max_eigenvalue": 0.9999721517842354,
+        "probability_floor": 1e-06
+      }
+    ],
+    "passed": true,
+    "equation": "real normalized psi: dp=2 psi dpsi, hence CFI=sum(dp dp^T/p)=4 Jpsi^T Jpsi=QFI away from zero amplitudes; a fixed real orthogonal U preserves the input-angle QFI=I",
+    "coordinate": "four encoding angles before the fixed trained real circuit, not encoder weights and not all trainable circuit parameters jointly",
+    "scope": "RY/CZ real-state ansatz only; generic complex-state measurements need not saturate QFI; hard top-k and sparse renormalization are outside this smooth metric",
+    "implication": "A fixed entangling readout changes top-k boundaries without changing the unsmoothed local full-probability Fisher metric in these angle coordinates."
+  },
+  "source_sha256": "5e62ffd94a6177919f357fce29590c370429df741895272b161defa31a9da0a8"
+}

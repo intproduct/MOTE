@@ -1,0 +1,29 @@
+{
+  "stage": "mlp",
+  "task": "mnist",
+  "gate": "compact_born",
+  "seed": 17,
+  "source_checkpoint_step": 900,
+  "warmup_steps": 3,
+  "measured_steps": 10,
+  "final_reevaluation_matches": true,
+  "routing_reevaluation_matches": true,
+  "training_seconds": 12.748823800000537,
+  "seconds_per_step": 1.2748823800000537,
+  "step_time_sample_std": 0.025923873693354794,
+  "examples_per_second": 100.40141899207565,
+  "peak_cuda_mib": 228.89697265625,
+  "step_seconds": [
+    1.2599739999968733,
+    1.28351389999807,
+    1.2995536999987962,
+    1.2524459000014758,
+    1.2351008000005095,
+    1.2770484000029683,
+    1.2955249000006006,
+    1.322530800000095,
+    1.2623315999990155,
+    1.2607998000021325
+  ],
+  "protocol": "serial selected-checkpoint continuation with fresh AdamW; includes data fetch, transfer, forward/backward, clipping and optimizer; 3 warmup + 10 measured; weights discarded"
+}

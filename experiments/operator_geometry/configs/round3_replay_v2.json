@@ -1,0 +1,29 @@
+{
+  "capacity_group": "outputs/operator_geometry_round3/capacity/481aeb0bc8dd",
+  "reference_group": "outputs/operator_geometry_round2/positive/d4ee19e23787",
+  "data_group": "outputs/operator_geometry_round2/data/86a2ba9f5aa2",
+  "geometry_group": "outputs/operator_geometry_round2/utility/3a0386d9a187/geometry",
+  "output_root": "outputs/operator_geometry_round3/replay_v2",
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "new_methods": [
+    "reencode_cz",
+    "reencode_product",
+    "affine_born"
+  ],
+  "old_methods": [
+    "mlp",
+    "angle_functional",
+    "product_functional"
+  ],
+  "timing_rows": [
+    1,
+    4096
+  ],
+  "device": "cuda",
+  "scope": "No training, no validation selection. Frozen original experts/upstream; actual top4 renormalized mixtures through final down module, sampled dev/validation positions. Native probabilities and scalar-calibrated probabilities reported separately with same native top4 indices. Rounding affects only gate inputs with experts/hidden fixed and FP32 kernels. Serial router+topk timing on shared GPU, not end-to-end throughput. Test remains reserved.",
+  "selector_protocol": "Originalgate top4 on logits before softmax; probability-output candidates top4 on native probability. Indices computed on the inference device and carried through calibration and CPU storage. v1 retained as protocol-failure evidence; no retraining."
+}

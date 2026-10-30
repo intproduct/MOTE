@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-30",
+  "sources": [
+    {
+      "title": "Balanced Knowledge Distillation for Large Language Models with Mix-of-Experts",
+      "url": "https://ojs.aaai.org/index.php/AAAI/article/download/39543/43504",
+      "checked": "Full method, equations 9-13 and discussion of expert coverage",
+      "finding": "B-Distill aligns teacher and student gate distributions with KL and an entropy term, jointly with expert exploration and model distillation.",
+      "relevance": "Router distillation, expert coverage and output preservation are established questions. Our current experiment isolates three coefficient-space losses with identical frozen experts and warm starts; novelty needs to be assessed at the specific geometry-to-circuit design level."
+    },
+    {
+      "title": "Knowledge Distillation for Mixture of Experts Models in Speech Recognition",
+      "url": "https://www.microsoft.com/en-us/research/uploads/prod/2022/05/MainzSpeech_Interspeech2022_KD_MoE_Network.pdf",
+      "checked": "Section 3.1 and equation 2",
+      "finding": "The work matches MoE teacher and dense student layer outputs by MSE, with normalization and supervised loss.",
+      "relevance": "Matching expert-layer outputs is established. Here only the gate changes; squared mixture-output error is exactly a Gram quadratic in the gate coefficient difference."
+    },
+    {
+      "title": "On the Expressive Power and Capacity of Quantum Data Reuploaders",
+      "url": "https://arxiv.org/html/2610.09947v1",
+      "checked": "Theorem 2.1, experimental setup and input-scale experiments; preprint v1",
+      "finding": "Repeated encoding expands the available Fourier spectrum within the span of encoding directions; reported task fit depends on input scale and target structure.",
+      "relevance": "Re-uploading expressivity is established. Our interleaved RY-CZ-RY calculation concerns redundancy of eight independently encoded angle coordinates and its functional consequences; Fourier input-frequency span and angle-space QFI rank are distinct objects."
+    }
+  ],
+  "next_interpretation": "Use the current matched experiment to decide whether model Fisher supplies value beyond layer-output matching, and whether any effect is shared by classical routers. Generic distillation and re-uploading are prior art."
+}

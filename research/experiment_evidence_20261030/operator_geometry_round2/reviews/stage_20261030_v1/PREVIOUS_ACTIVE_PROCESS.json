@@ -1,0 +1,15 @@
+{
+  "state": "positive_ready_for_review",
+  "pid": 42428,
+  "stage": "positive",
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round2\\positive\\d4ee19e23787",
+  "completed": 9,
+  "total": 9,
+  "started": "2026-10-30T04:46:40.056857+08:00",
+  "log": "logs/positive_v1.log",
+  "err": "logs/positive_v1.err",
+  "running_started": "2026-10-30T05:13:20.355437+08:00",
+  "current": null,
+  "finished": "2026-10-30T05:30:52.477102+08:00",
+  "active": false
+}

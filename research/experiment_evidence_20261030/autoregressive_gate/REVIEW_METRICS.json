@@ -1,0 +1,139 @@
+{
+  "variances": [
+    {
+      "variant": "mlp",
+      "test_ce_sample_variance": 0.0006963858484292798,
+      "test_ppl_sample_variance": 4.532258062733839
+    },
+    {
+      "variant": "mlp_half",
+      "test_ce_sample_variance": 0.0006153762347625442,
+      "test_ppl_sample_variance": 3.939333992680094
+    },
+    {
+      "variant": "mpo_c2_full",
+      "test_ce_sample_variance": 4.990401054995008e-05,
+      "test_ppl_sample_variance": 0.33026209451186794
+    },
+    {
+      "variant": "mpo_c1_half",
+      "test_ce_sample_variance": 7.96859604780654e-05,
+      "test_ppl_sample_variance": 0.5242799056519861
+    },
+    {
+      "variant": "amp_d1_full",
+      "test_ce_sample_variance": 0.00016967944803892473,
+      "test_ppl_sample_variance": 1.1401130778310025
+    },
+    {
+      "variant": "amp_d1_half",
+      "test_ce_sample_variance": 0.00013475737773584773,
+      "test_ppl_sample_variance": 0.8564456875608183
+    }
+  ],
+  "derived": [
+    {
+      "variant": "mlp",
+      "router_reduction_vs_full_mlp_percent": 0.0,
+      "total_reduction_vs_full_mlp_percent": 0.0,
+      "first_observed_ppl90_seconds_mean": 559.6522092666128,
+      "first_observed_ppl90_seconds_std": 58.51729677635541,
+      "first_observed_ppl90_steps": [
+        3000,
+        2500,
+        2500
+      ],
+      "test_ppl_by_seed": [
+        82.81369390447837,
+        80.62636458297324,
+        78.55641311377823
+      ]
+    },
+    {
+      "variant": "mlp_half",
+      "router_reduction_vs_full_mlp_percent": 47.48802888766779,
+      "total_reduction_vs_full_mlp_percent": 1.424608435791952,
+      "first_observed_ppl90_seconds_mean": 524.7146408669165,
+      "first_observed_ppl90_seconds_std": 2.010818091873298,
+      "first_observed_ppl90_steps": [
+        2500,
+        2500,
+        2500
+      ],
+      "test_ppl_by_seed": [
+        81.75994237665788,
+        78.11706256224393,
+        78.57282609074991
+      ]
+    },
+    {
+      "variant": "mpo_c2_full",
+      "router_reduction_vs_full_mlp_percent": -1.4443833895910307,
+      "total_reduction_vs_full_mlp_percent": -0.04333051527989351,
+      "first_observed_ppl90_seconds_mean": 596.2868855330817,
+      "first_observed_ppl90_seconds_std": 4.502319153540648,
+      "first_observed_ppl90_steps": [
+        2500,
+        2500,
+        2500
+      ],
+      "test_ppl_by_seed": [
+        81.87520115544503,
+        80.76582760260419,
+        81.06021834807412
+      ]
+    },
+    {
+      "variant": "mpo_c1_half",
+      "router_reduction_vs_full_mlp_percent": 50.55341863568569,
+      "total_reduction_vs_full_mlp_percent": 1.516568034796284,
+      "first_observed_ppl90_seconds_mean": 594.6779234667434,
+      "first_observed_ppl90_seconds_std": 1.647307077544522,
+      "first_observed_ppl90_steps": [
+        2500,
+        2500,
+        2500
+      ],
+      "test_ppl_by_seed": [
+        81.2442843408541,
+        80.41209278591346,
+        81.8545572246698
+      ]
+    },
+    {
+      "variant": "amp_d1_full",
+      "router_reduction_vs_full_mlp_percent": -0.36109584739776324,
+      "total_reduction_vs_full_mlp_percent": -0.010832628819978929,
+      "first_observed_ppl90_seconds_mean": 799.7435415000413,
+      "first_observed_ppl90_seconds_std": 76.29188988643531,
+      "first_observed_ppl90_steps": [
+        2500,
+        2500,
+        3000
+      ],
+      "test_ppl_by_seed": [
+        82.44660585168229,
+        80.99024708798117,
+        83.07105487299212
+      ]
+    },
+    {
+      "variant": "amp_d1_half",
+      "router_reduction_vs_full_mlp_percent": 52.53159588664731,
+      "total_reduction_vs_full_mlp_percent": 1.575912001375268,
+      "first_observed_ppl90_seconds_mean": 757.2717378332067,
+      "first_observed_ppl90_seconds_std": 10.786543329445262,
+      "first_observed_ppl90_steps": [
+        2500,
+        2500,
+        2500
+      ],
+      "test_ppl_by_seed": [
+        80.67650526727518,
+        80.00669902023373,
+        78.84732748484778
+      ]
+    }
+  ],
+  "threshold_note": "Post-hoc descriptive PPL90 milestone, evaluated every 500 steps; no interpolation, not exact first passage; excludes eval/checkpoint time."
+}

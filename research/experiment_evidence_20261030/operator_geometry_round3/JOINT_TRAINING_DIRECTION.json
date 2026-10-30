@@ -1,0 +1,45 @@
+{
+  "date_local": "2026-10-30",
+  "status": "research_direction_proposed_not_launched",
+  "user_steering": "Return to task-driven joint gate/expert training; gate-mediated expert differentiation is the central research question.",
+  "primary_question": "Does QuantumGate induce a more useful and efficient co-evolution of routing and expert function under matched task training?",
+  "interpretation": {
+    "coupling": "Gate changes expert exposure and gradient weighting; developing expert functions change task feedback to the gate. Treat specialization as a coupled process.",
+    "prior_frozen_study": "Completed mechanism diagnosis and architecture calibration. Teacher retention is not the primary selection rule for the next stage.",
+    "existing_joint_training": "Earlier autoregressive and routing-stability experiments already trained full models jointly. Next work would evaluate the newly diagnosed reencoding structures and the formation of specialization."
+  },
+  "proposed_first_comparison": {
+    "initialization": "Train from scratch; share non-router initial weights and data streams across methods within each seed. Experts remain distinct within a model.",
+    "candidates": ["MLP", "classical affine-amplitude Born", "reencoded CZ", "matched product-state control"],
+    "replication": "At least three independent training seeds for a formal comparison; smoke tests precede formal allocation.",
+    "objective": "Task next-token cross-entropy with a common expert-load rule. No imitation teacher objective in the primary comparison.",
+    "scope": "Jointly train gate, experts and backbone in every routed module of the same causal LM.",
+    "fairness": ["Same expert count, top-k and backbone", "Actual router parameters and active computation recorded", "Initial load/entropy and gradient health checked", "Equal-token and equal-time comparisons reported separately"],
+    "selection": "Predeclared train-only internal development policy; previously observed validation is exploratory; choose independent held-out evaluation before final selection."
+  },
+  "mechanism_measurements": [
+    "Measure early, middle and late checkpoints on fixed token windows: routing exposure, expert update magnitude, usage and functional differences.",
+    "Separate descriptive activation specialization from causal usefulness using controlled expert replacement or suppression and resulting task-loss changes.",
+    "Track how one input update changes preferences for several experts, testing architecture-induced coupling against functional complementarity.",
+    "Do not assume expert identities align across runs or that each expert represents one semantic task; compare functional behavior and controlled interventions."
+  ],
+  "geometry_role": {
+    "first_step": "Use functional geometry and sparse tangent directions as diagnostics during joint training; do not immediately add all prior auxiliary losses.",
+    "moving_target": "Expert outputs and their geometry evolve. Any later geometry-based objective must use current or lagged online estimates, not the old frozen teacher Gram.",
+    "collapse_risk": "A direct penalty making expert outputs similar can erase specialization. Evaluate any delayed weak router-only or detached-statistic intervention separately, with matched classical controls.",
+    "next_decision": "Add a low-cost intervention only after observing a reproducible joint-training failure or useful geometry-task association."
+  },
+  "literature_checked": [
+    {
+      "url": "https://arxiv.org/html/2605.12476v1",
+      "finding": "For the studied linear-router/SwiGLU MoE, router and expert input-side gradients accumulate shared routed-token directions. Architecture-specific derivation; extension to nonlinear QuantumGate and MoTE tensor experts requires a separate check."
+    },
+    {
+      "url": "https://arxiv.org/html/2202.08906v2",
+      "finding": "Sections7.1-7.3 report specialization dependent on model component and training setup, including multilingual experts that do not divide by language."
+    }
+  ],
+  "new_training_started": false,
+  "automation_created": false,
+  "old_sources_configs_results_modified": false
+}

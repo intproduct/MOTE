@@ -1,0 +1,16 @@
+{
+  "data_group": "outputs/operator_geometry_round2/data/86a2ba9f5aa2",
+  "reference_group": "outputs/operator_geometry_round2/positive/d4ee19e23787",
+  "geometry_group": "outputs/operator_geometry_round2/utility/3a0386d9a187/geometry",
+  "output_root": "outputs/operator_geometry_round3/capacity",
+  "seeds": [17, 29, 43],
+  "methods": ["reencode_cz", "reencode_product", "affine_born"],
+  "steps": 4000,
+  "eval_every": 200,
+  "batch_size": 256,
+  "device": "cuda",
+  "target": "Same centered negative log original-router probability teacher as round2 positive calibration; no next-token supervision",
+  "selection": "Minimum train-only internal-dev MSE; validation only after selection; report all methods/seeds",
+  "protocol": "Same input encoder initialization, exact minibatches, AdamW .001/weight_decay .0001/clip1, actual parameter counts. Prior MLP/angle/product are reference-only with no new training. Re-encoding uses RY(a), CZ chain, RY(b); remove CZ for the paired product control; affine Born has classical 16 amplitudes from the same rank8 hidden features.",
+  "scope": "Architecture calibration before costly functional-boundary adaptation. Quantum states simulated classically. A better teacher score is not itself a deployed LM improvement."
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "seed": 17,
+    "kind": "constant_train_mean",
+    "split": "dev",
+    "action": {
+      "tokens": 16,
+      "threshold": 0.1,
+      "changed": 2,
+      "mean_delta_ce": -0.02549503743648529,
+      "delta_ce_ci95_windows": [
+        -0.07648511230945587,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.21661536395549774,
+      "label_oracle_mean_delta_ce": -0.24211041629314423,
+      "harm_gt_01": 1,
+      "benefit_lt_minus_01": 1,
+      "predicted_vs_actual_selected_candidate_rho": -0.09705882352941177
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 17,
+    "kind": "constant_train_mean",
+    "split": "validation",
+    "action": {
+      "tokens": 16,
+      "threshold": 0.1,
+      "changed": 2,
+      "mean_delta_ce": -0.002342715859413147,
+      "delta_ce_ci95_windows": [
+        -0.010949358344078064,
+        0.003921210765838623
+      ],
+      "regret_to_label_oracle": 0.3644803762435913,
+      "label_oracle_mean_delta_ce": -0.36682310700416565,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.1647058823529412
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 17,
+    "kind": "true_first_order_label_oracle",
+    "split": "dev",
+    "action": {
+      "tokens": 16,
+      "threshold": 0.0,
+      "changed": 16,
+      "mean_delta_ce": -0.2411474883556366,
+      "delta_ce_ci95_windows": [
+        -0.3524673879146576,
+        -0.16044723987579346
+      ],
+      "regret_to_label_oracle": 0.0009629186242818832,
+      "label_oracle_mean_delta_ce": -0.24211041629314423,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 14,
+      "predicted_vs_actual_selected_candidate_rho": 0.9588235294117649
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 17,
+    "kind": "true_first_order_label_oracle",
+    "split": "validation",
+    "action": {
+      "tokens": 16,
+      "threshold": 0.0,
+      "changed": 16,
+      "mean_delta_ce": -0.3394234776496887,
+      "delta_ce_ci95_windows": [
+        -0.47409898042678833,
+        -0.17018502950668335
+      ],
+      "regret_to_label_oracle": 0.027399636805057526,
+      "label_oracle_mean_delta_ce": -0.36682310700416565,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 13,
+      "predicted_vs_actual_selected_candidate_rho": 0.8323529411764706
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  }
+]

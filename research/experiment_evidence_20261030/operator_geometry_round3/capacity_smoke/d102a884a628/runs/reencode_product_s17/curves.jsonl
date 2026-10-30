@@ -1,0 +1,2 @@
+{"step": 2, "loss": 1.5324125289916992, "gradient_norm": 4.4704670906066895, "mse": 2.7022600173950195, "constant_mse": 1.6269501447677612, "r2_vs_constant": -0.6609359703402302, "within_token_rho": 0.06976102941176471, "top4_set_agreement": 0.0}
+{"step": 4, "loss": 1.5131537914276123, "gradient_norm": 5.113840579986572, "mse": 2.5114293098449707, "constant_mse": 1.6269501447677612, "r2_vs_constant": -0.5436424514430738, "within_token_rho": 0.0798483455882353, "top4_set_agreement": 0.0}

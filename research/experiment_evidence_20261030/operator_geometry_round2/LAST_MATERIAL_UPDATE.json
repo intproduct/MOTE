@@ -1,0 +1,7 @@
+{
+  "time_local": "2026-10-30T04:54:00+08:00",
+  "stage": "boundary_gradient",
+  "finding": "24 frozen-checkpoint/split CPU replays,4096tokens each;295BF16 input-roundtrip set flips,293explained by fixed4/5pair first-order crossing. Both remaining flips need other near-boundary pairs. No native GPU precision claim.",
+  "counts_are_pooled_correlated_replays_not_independent_trials": true,
+  "notification": "material mechanism finding; utility and risk/positive stages still pending"
+}

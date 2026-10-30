@@ -1,0 +1,51 @@
+{
+  "time": "2026-10-28T03:17:44.449872+08:00",
+  "passed": true,
+  "expected": 126,
+  "completed": 126,
+  "new_training": 90,
+  "reused_historical": 36,
+  "pilot_audited": 26,
+  "formal_checkpoint_audited": 126,
+  "final_predictions_and_routing_reevaluated": 126,
+  "serial_measurements": 126,
+  "failed_runs": [],
+  "missing_files": [],
+  "unfinished_runs": [],
+  "issues": [],
+  "interrupted_attempts_retained": 6,
+  "interrupted_runs_recovered": 6,
+  "recovered_curve_rows_exact": 105,
+  "new_training_source_hash_sets": 1,
+  "frozen_source_files_unchanged": 11,
+  "manifest_git_commit_counts": {
+    "807366cb8afc58b1fc37086f998ae791e8bb16a6": 107,
+    "c7d6690dfb13f2bf0a00ae145020ba7b0bb222fd": 19
+  },
+  "csv_row_counts": {
+    "formal_runs.csv": 126,
+    "formal_aggregate.csv": 42,
+    "formal_paired_deltas.csv": 378,
+    "formal_curves.csv": 5166,
+    "formal_routing.csv": 882,
+    "formal/runs.csv": 126,
+    "formal/serial_efficiency_runs.csv": 126,
+    "formal/serial_efficiency_summary.csv": 42
+  },
+  "figures_visually_reviewed": [
+    "parameter_accuracy.png",
+    "half_budget_paired.png",
+    "mlp_dev_step.png",
+    "mlp_dev_training_seconds.png",
+    "bert_dev_step.png",
+    "bert_dev_training_seconds.png",
+    "serial_efficiency.png"
+  ],
+  "figure_review": "All seven PNGs individually viewed; axes, legends and Chinese labels readable; no clipping. Concurrent-time curves explicitly distinguished from independent serial timing.",
+  "report_sha256": "a15055e456c1f68e19cd3e015c391a5616cc961ab9f843c3bce6ae562e7fb2eb",
+  "unresolved_limits": [
+    "Windows bugcheck 0x00000133 precise driver cause unknown",
+    "Three seeds, short classification runs and limited structure search; no general quantum/entanglement advantage established",
+    "Serial efficiency is short continuation with fresh AdamW, not full equal-wallclock retraining or isolated inference benchmark"
+  ]
+}

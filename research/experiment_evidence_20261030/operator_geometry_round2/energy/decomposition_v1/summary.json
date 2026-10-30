@@ -1,0 +1,667 @@
+{
+  "rows": [
+    {
+      "seed": 17,
+      "split": "dev",
+      "gauge": "raw",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.14096660499289843,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.9077391724486451,
+          "rho_vs_abs_delta_nll": 0.13605630177038225,
+          "nearest_target_agreement_with_full_distance": 0.6903076171875
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.9077391724486451,
+          "rho_vs_abs_delta_nll": 0.13605630177038225,
+          "nearest_target_agreement_with_full_distance": 0.6903076171875
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.27741844337303323,
+          "rho_vs_abs_delta_nll": 0.03953899608988255,
+          "nearest_target_agreement_with_full_distance": 0.13409423828125
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.3744869632320804,
+          "rho_vs_abs_delta_nll": 0.054898598902308304,
+          "nearest_target_agreement_with_full_distance": 0.2869873046875
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8915597342111014,
+          "rho_vs_abs_delta_nll": 0.1323606674932732,
+          "nearest_target_agreement_with_full_distance": 0.6884765625
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8824975073754371,
+          "rho_vs_abs_delta_nll": 0.1330688710426161,
+          "nearest_target_agreement_with_full_distance": 0.6881103515625
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.13552194875437062,
+          "rho_vs_abs_delta_nll": 0.011791115657403942,
+          "nearest_target_agreement_with_full_distance": 0.1021728515625
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.36864892919580416,
+          "rho_vs_abs_delta_nll": 0.050241584926514905,
+          "nearest_target_agreement_with_full_distance": 0.15850830078125
+        }
+      },
+      "cross_abs_over_energy_mean": 0.05566968396306038,
+      "global_energy_cv": 0.4968182705689269
+    },
+    {
+      "seed": 17,
+      "split": "dev",
+      "gauge": "centered",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.14096660499289843,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.9139096986997377,
+          "rho_vs_abs_delta_nll": 0.1357179239145468,
+          "nearest_target_agreement_with_full_distance": 0.693603515625
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.9139096986997377,
+          "rho_vs_abs_delta_nll": 0.1357179239145468,
+          "nearest_target_agreement_with_full_distance": 0.693603515625
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.6288810676628058,
+          "rho_vs_abs_delta_nll": 0.09644615048436422,
+          "nearest_target_agreement_with_full_distance": 0.28369140625
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.48707164417613635,
+          "rho_vs_abs_delta_nll": 0.07761687304938707,
+          "nearest_target_agreement_with_full_distance": 0.31341552734375
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8915597342111014,
+          "rho_vs_abs_delta_nll": 0.1323606674932732,
+          "nearest_target_agreement_with_full_distance": 0.6884765625
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8827151852054196,
+          "rho_vs_abs_delta_nll": 0.13280787996730933,
+          "nearest_target_agreement_with_full_distance": 0.6881103515625
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.7629642086429196,
+          "rho_vs_abs_delta_nll": 0.11255068963083383,
+          "nearest_target_agreement_with_full_distance": 0.28485107421875
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.5996571787587412,
+          "rho_vs_abs_delta_nll": 0.09130631798927702,
+          "nearest_target_agreement_with_full_distance": 0.2669677734375
+        }
+      },
+      "cross_abs_over_energy_mean": 0.07727789133787155,
+      "global_energy_cv": 0.4737355071285992
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "gauge": "raw",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.14791460925255828,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.9109151346700174,
+          "rho_vs_abs_delta_nll": 0.14411697533600384,
+          "nearest_target_agreement_with_full_distance": 0.7042236328125
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.9109151346700174,
+          "rho_vs_abs_delta_nll": 0.14411697533600384,
+          "nearest_target_agreement_with_full_distance": 0.7042236328125
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.27830323972902093,
+          "rho_vs_abs_delta_nll": 0.040111235586126864,
+          "nearest_target_agreement_with_full_distance": 0.12890625
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.38056425004582645,
+          "rho_vs_abs_delta_nll": 0.056932012364440975,
+          "nearest_target_agreement_with_full_distance": 0.29010009765625
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8937591339324737,
+          "rho_vs_abs_delta_nll": 0.1402955237162934,
+          "nearest_target_agreement_with_full_distance": 0.70245361328125
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8849734859866696,
+          "rho_vs_abs_delta_nll": 0.14015935613845132,
+          "nearest_target_agreement_with_full_distance": 0.7022705078125
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.13835901647180943,
+          "rho_vs_abs_delta_nll": 0.01780202240868315,
+          "nearest_target_agreement_with_full_distance": 0.09521484375
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.37441995260598776,
+          "rho_vs_abs_delta_nll": 0.057667063698577214,
+          "nearest_target_agreement_with_full_distance": 0.14678955078125
+        }
+      },
+      "cross_abs_over_energy_mean": 0.05627714470028877,
+      "global_energy_cv": 0.4968182705689269
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "gauge": "centered",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.14791460925255828,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.9167809119591346,
+          "rho_vs_abs_delta_nll": 0.1451884063109281,
+          "nearest_target_agreement_with_full_distance": 0.70947265625
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.9167809119591346,
+          "rho_vs_abs_delta_nll": 0.1451884063109281,
+          "nearest_target_agreement_with_full_distance": 0.70947265625
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.633264928430944,
+          "rho_vs_abs_delta_nll": 0.09917808088270391,
+          "nearest_target_agreement_with_full_distance": 0.2841796875
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.4954017235206668,
+          "rho_vs_abs_delta_nll": 0.08020485955278421,
+          "nearest_target_agreement_with_full_distance": 0.31585693359375
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8937591339324737,
+          "rho_vs_abs_delta_nll": 0.1402955237162934,
+          "nearest_target_agreement_with_full_distance": 0.70245361328125
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8853123804906031,
+          "rho_vs_abs_delta_nll": 0.14049723784172788,
+          "nearest_target_agreement_with_full_distance": 0.7022705078125
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.7698906318291084,
+          "rho_vs_abs_delta_nll": 0.12050319036489458,
+          "nearest_target_agreement_with_full_distance": 0.2943115234375
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.6154879056490384,
+          "rho_vs_abs_delta_nll": 0.10038679292246169,
+          "nearest_target_agreement_with_full_distance": 0.2733154296875
+        }
+      },
+      "cross_abs_over_energy_mean": 0.07672113180160522,
+      "global_energy_cv": 0.4737355071285992
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "gauge": "raw",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.12724125288968455,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.8853234777917395,
+          "rho_vs_abs_delta_nll": 0.11809791753206667,
+          "nearest_target_agreement_with_full_distance": 0.5765380859375
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.8853234777917395,
+          "rho_vs_abs_delta_nll": 0.11809791753206667,
+          "nearest_target_agreement_with_full_distance": 0.5765380859375
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.3111794211647727,
+          "rho_vs_abs_delta_nll": 0.044782880801950004,
+          "nearest_target_agreement_with_full_distance": 0.17523193359375
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.4182679503114074,
+          "rho_vs_abs_delta_nll": 0.06064160659975058,
+          "nearest_target_agreement_with_full_distance": 0.31585693359375
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8682724745957169,
+          "rho_vs_abs_delta_nll": 0.11495275302306077,
+          "nearest_target_agreement_with_full_distance": 0.529296875
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8526239995356206,
+          "rho_vs_abs_delta_nll": 0.1140615949481032,
+          "nearest_target_agreement_with_full_distance": 0.52886962890625
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.18269870998142484,
+          "rho_vs_abs_delta_nll": 0.03401936349256375,
+          "nearest_target_agreement_with_full_distance": 0.06561279296875
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.43655929031905594,
+          "rho_vs_abs_delta_nll": 0.06839240155011943,
+          "nearest_target_agreement_with_full_distance": 0.17132568359375
+        }
+      },
+      "cross_abs_over_energy_mean": 0.06365331262350082,
+      "global_energy_cv": 0.4037685280405448
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "gauge": "centered",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.12724125288968455,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.8949324601180071,
+          "rho_vs_abs_delta_nll": 0.11859596786998142,
+          "nearest_target_agreement_with_full_distance": 0.5946044921875
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.8949324601180071,
+          "rho_vs_abs_delta_nll": 0.11859596786998142,
+          "nearest_target_agreement_with_full_distance": 0.5946044921875
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.5994356595552885,
+          "rho_vs_abs_delta_nll": 0.08548255532191884,
+          "nearest_target_agreement_with_full_distance": 0.3157958984375
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.4832425229628098,
+          "rho_vs_abs_delta_nll": 0.07052647025905648,
+          "nearest_target_agreement_with_full_distance": 0.341552734375
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8682724745957169,
+          "rho_vs_abs_delta_nll": 0.11495275302306077,
+          "nearest_target_agreement_with_full_distance": 0.529296875
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8539582365876311,
+          "rho_vs_abs_delta_nll": 0.11364330118133129,
+          "nearest_target_agreement_with_full_distance": 0.52886962890625
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.7115572415865384,
+          "rho_vs_abs_delta_nll": 0.0991659019353805,
+          "nearest_target_agreement_with_full_distance": 0.28265380859375
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.5612861259833916,
+          "rho_vs_abs_delta_nll": 0.08640885890795014,
+          "nearest_target_agreement_with_full_distance": 0.2452392578125
+        }
+      },
+      "cross_abs_over_energy_mean": 0.07654367387294769,
+      "global_energy_cv": 0.3976201905089713
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "gauge": "raw",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.12464367431939485,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.8880320729075611,
+          "rho_vs_abs_delta_nll": 0.11763301756974942,
+          "nearest_target_agreement_with_full_distance": 0.56781005859375
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.8880320729075611,
+          "rho_vs_abs_delta_nll": 0.11763301756974942,
+          "nearest_target_agreement_with_full_distance": 0.56781005859375
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.299446586128715,
+          "rho_vs_abs_delta_nll": 0.03920293499411963,
+          "nearest_target_agreement_with_full_distance": 0.17041015625
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.40913401783763115,
+          "rho_vs_abs_delta_nll": 0.05526587354751433,
+          "nearest_target_agreement_with_full_distance": 0.30804443359375
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.873534302611451,
+          "rho_vs_abs_delta_nll": 0.11435127469392108,
+          "nearest_target_agreement_with_full_distance": 0.52691650390625
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8587646484375,
+          "rho_vs_abs_delta_nll": 0.1142802478065523,
+          "nearest_target_agreement_with_full_distance": 0.52630615234375
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.186384294416521,
+          "rho_vs_abs_delta_nll": 0.032128062313578856,
+          "nearest_target_agreement_with_full_distance": 0.062255859375
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.44208702674278844,
+          "rho_vs_abs_delta_nll": 0.06750693944412073,
+          "nearest_target_agreement_with_full_distance": 0.1810302734375
+        }
+      },
+      "cross_abs_over_energy_mean": 0.06367892771959305,
+      "global_energy_cv": 0.4037685280405448
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "gauge": "centered",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.12464367431939485,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.8973977682473776,
+          "rho_vs_abs_delta_nll": 0.11741363457964724,
+          "nearest_target_agreement_with_full_distance": 0.5897216796875
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.8973977682473776,
+          "rho_vs_abs_delta_nll": 0.11741363457964724,
+          "nearest_target_agreement_with_full_distance": 0.5897216796875
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.5961013473830856,
+          "rho_vs_abs_delta_nll": 0.08071067409106003,
+          "nearest_target_agreement_with_full_distance": 0.3111572265625
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.4788229348776224,
+          "rho_vs_abs_delta_nll": 0.06574366094368334,
+          "nearest_target_agreement_with_full_distance": 0.336669921875
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.873534302611451,
+          "rho_vs_abs_delta_nll": 0.11435127469392108,
+          "nearest_target_agreement_with_full_distance": 0.52691650390625
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8600502280922202,
+          "rho_vs_abs_delta_nll": 0.11421813400579037,
+          "nearest_target_agreement_with_full_distance": 0.52630615234375
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.7124006364729021,
+          "rho_vs_abs_delta_nll": 0.09816703222260816,
+          "nearest_target_agreement_with_full_distance": 0.28076171875
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.5673930561625874,
+          "rho_vs_abs_delta_nll": 0.08618297632176107,
+          "nearest_target_agreement_with_full_distance": 0.2479248046875
+        }
+      },
+      "cross_abs_over_energy_mean": 0.07667821645736694,
+      "global_energy_cv": 0.3976201905089713
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "gauge": "raw",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.1248034053963775,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.890492259205638,
+          "rho_vs_abs_delta_nll": 0.11882137259954412,
+          "nearest_target_agreement_with_full_distance": 0.5506591796875
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.890492259205638,
+          "rho_vs_abs_delta_nll": 0.11882137259954412,
+          "nearest_target_agreement_with_full_distance": 0.5506591796875
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.3159495533763112,
+          "rho_vs_abs_delta_nll": 0.03291746320136829,
+          "nearest_target_agreement_with_full_distance": 0.1737060546875
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.41096976753715037,
+          "rho_vs_abs_delta_nll": 0.04693954004940025,
+          "nearest_target_agreement_with_full_distance": 0.31817626953125
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8672720102163461,
+          "rho_vs_abs_delta_nll": 0.11523993431187013,
+          "nearest_target_agreement_with_full_distance": 0.53106689453125
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8539932357681381,
+          "rho_vs_abs_delta_nll": 0.1155389395433164,
+          "nearest_target_agreement_with_full_distance": 0.46240234375
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.10817307692307693,
+          "rho_vs_abs_delta_nll": 0.0069675293237455105,
+          "nearest_target_agreement_with_full_distance": 0.08209228515625
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.35203541575611885,
+          "rho_vs_abs_delta_nll": 0.0412130158218191,
+          "nearest_target_agreement_with_full_distance": 0.2059326171875
+        }
+      },
+      "cross_abs_over_energy_mean": 0.05990247800946236,
+      "global_energy_cv": 0.42900491582253836
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "gauge": "centered",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.1248034053963775,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.8984789014696242,
+          "rho_vs_abs_delta_nll": 0.11924861270809375,
+          "nearest_target_agreement_with_full_distance": 0.5728759765625
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.8984789014696242,
+          "rho_vs_abs_delta_nll": 0.11924861270809375,
+          "nearest_target_agreement_with_full_distance": 0.5728759765625
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.5889960869208917,
+          "rho_vs_abs_delta_nll": 0.07720988077177329,
+          "nearest_target_agreement_with_full_distance": 0.29095458984375
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.45975777152534963,
+          "rho_vs_abs_delta_nll": 0.05966181024534652,
+          "nearest_target_agreement_with_full_distance": 0.31793212890625
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8672720102163461,
+          "rho_vs_abs_delta_nll": 0.11523993431187013,
+          "nearest_target_agreement_with_full_distance": 0.53106689453125
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8558580091783217,
+          "rho_vs_abs_delta_nll": 0.11588318387710683,
+          "nearest_target_agreement_with_full_distance": 0.445556640625
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.6979920714051573,
+          "rho_vs_abs_delta_nll": 0.09519767914376644,
+          "nearest_target_agreement_with_full_distance": 0.31756591796875
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.4536986451048951,
+          "rho_vs_abs_delta_nll": 0.06643956135531032,
+          "nearest_target_agreement_with_full_distance": 0.20562744140625
+        }
+      },
+      "cross_abs_over_energy_mean": 0.07685458660125732,
+      "global_energy_cv": 0.4178121229889387
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "gauge": "raw",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.12805780118285603,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.8950920905266608,
+          "rho_vs_abs_delta_nll": 0.12264024025753686,
+          "nearest_target_agreement_with_full_distance": 0.5592041015625
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.8950920905266608,
+          "rho_vs_abs_delta_nll": 0.12264024025753686,
+          "nearest_target_agreement_with_full_distance": 0.5592041015625
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.3024620643028846,
+          "rho_vs_abs_delta_nll": 0.03570706015688108,
+          "nearest_target_agreement_with_full_distance": 0.1685791015625
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.40339244495738635,
+          "rho_vs_abs_delta_nll": 0.05098256923794032,
+          "nearest_target_agreement_with_full_distance": 0.31524658203125
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8718590369591346,
+          "rho_vs_abs_delta_nll": 0.119209991435547,
+          "nearest_target_agreement_with_full_distance": 0.53125
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8592379910128933,
+          "rho_vs_abs_delta_nll": 0.11922944618226633,
+          "nearest_target_agreement_with_full_distance": 0.46246337890625
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.1034755039881993,
+          "rho_vs_abs_delta_nll": 0.008163625739761666,
+          "nearest_target_agreement_with_full_distance": 0.083984375
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.3497130920836975,
+          "rho_vs_abs_delta_nll": 0.043202905276268314,
+          "nearest_target_agreement_with_full_distance": 0.20751953125
+        }
+      },
+      "cross_abs_over_energy_mean": 0.0603046715259552,
+      "global_energy_cv": 0.42900491582253836
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "gauge": "centered",
+      "tokens": 4096,
+      "estimates": {
+        "local_full_distance": {
+          "rho_vs_local_full_distance": 1.0,
+          "rho_vs_abs_delta_nll": 0.12805780118285603,
+          "nearest_target_agreement_with_full_distance": 1.0
+        },
+        "local_energy_only": {
+          "rho_vs_local_full_distance": 0.903084281441215,
+          "rho_vs_abs_delta_nll": 0.1225755924745298,
+          "nearest_target_agreement_with_full_distance": 0.58038330078125
+        },
+        "local_target_energy": {
+          "rho_vs_local_full_distance": 0.903084281441215,
+          "rho_vs_abs_delta_nll": 0.1225755924745298,
+          "nearest_target_agreement_with_full_distance": 0.58038330078125
+        },
+        "local_cross_inner": {
+          "rho_vs_local_full_distance": 0.5872055800644667,
+          "rho_vs_abs_delta_nll": 0.08116826912747259,
+          "nearest_target_agreement_with_full_distance": 0.28875732421875
+        },
+        "local_cosine_distance": {
+          "rho_vs_local_full_distance": 0.45716697852928323,
+          "rho_vs_abs_delta_nll": 0.06464357720364523,
+          "nearest_target_agreement_with_full_distance": 0.31707763671875
+        },
+        "global_full_distance": {
+          "rho_vs_local_full_distance": 0.8718590369591346,
+          "rho_vs_abs_delta_nll": 0.119209991435547,
+          "nearest_target_agreement_with_full_distance": 0.53125
+        },
+        "global_energy_only": {
+          "rho_vs_local_full_distance": 0.8620029262729458,
+          "rho_vs_abs_delta_nll": 0.11986818152911005,
+          "nearest_target_agreement_with_full_distance": 0.4560546875
+        },
+        "global_cross_inner": {
+          "rho_vs_local_full_distance": 0.7001218995847902,
+          "rho_vs_abs_delta_nll": 0.09854325235429169,
+          "nearest_target_agreement_with_full_distance": 0.32049560546875
+        },
+        "global_cosine_distance": {
+          "rho_vs_local_full_distance": 0.4580620185478584,
+          "rho_vs_abs_delta_nll": 0.06919524810794359,
+          "nearest_target_agreement_with_full_distance": 0.209228515625
+        }
+      },
+      "cross_abs_over_energy_mean": 0.07638195902109146,
+      "global_energy_cv": 0.4178121229889387
+    }
+  ],
+  "full_distance_common_shift_invariance_passed": true,
+  "identity": "D_ij=E_i+E_j-2 inner_ij. On a regular basis graph the total node-energy term is assignment-invariant.",
+  "scope": "Report both raw and centered gauges; pair distance is invariant to common shifts, energy and cross terms separately are not. Expert-family compatibility requires evidence beyond per-expert magnitude."
+}

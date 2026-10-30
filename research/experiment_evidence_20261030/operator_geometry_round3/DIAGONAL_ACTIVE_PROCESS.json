@@ -1,0 +1,12 @@
+{
+  "pid": 37440,
+  "started_local": "2026-10-30T12:38:26.5321527+08:00",
+  "stage": "functional_diagonal",
+  "active": false,
+  "logs": [
+    "outputs/operator_geometry_round3/logs/functional_diagonal_v1.log",
+    "outputs/operator_geometry_round3/logs/functional_diagonal_v1.err"
+  ],
+  "final_verified_local": "2026-10-30T13:05:39.981567+08:00",
+  "completion_audit": "outputs/operator_geometry_round3/COMPLETION_AUDIT.json"
+}

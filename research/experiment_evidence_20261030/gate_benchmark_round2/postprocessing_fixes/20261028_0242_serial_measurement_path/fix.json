@@ -1,0 +1,10 @@
+{
+  "time": "2026-10-28T02:41:21.598440+08:00",
+  "reason": "Analysis used round2/serial_efficiency while the measurement script writes config output_dir/serial_efficiency = round2/formal/serial_efficiency. Detected before analysis phase launched.",
+  "fix": "Resolve measurements via GROUP.parent, matching config output_dir; correct report artifact path.",
+  "training_files_changed": false,
+  "measurements_already_verified": 22,
+  "before_sha256": "244bb9e1c9483d0039389100757bfd7d16caac02ba57fd4bc3ca0992d3b0630c",
+  "after_sha256": "c088beeee22c6cfe28d3505b77c0086a09464c25803c78e20cadd9806f4d86de",
+  "validation": "AST parse passed; existing independently verified measurement paths resolved; full analysis waits for all 126 measurements."
+}

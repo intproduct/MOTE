@@ -1,0 +1,43 @@
+{
+  "checked_at_local": "2026-10-30T05:00:00+08:00",
+  "sources": [
+    {
+      "title": "On the Adversarial Robustness of Mixture of Experts",
+      "authors": "Puigcerver, Jenatton, Riquelme, Awasthi, Bhojanapalli",
+      "year": 2022,
+      "url": "https://papers.nips.cc/paper_files/paper/2022/file/3effb91593c4fb42b1da1528328eff49-Paper-Conference.pdf",
+      "read": "Abstract and introduction pp1-2",
+      "finding": "Already relates routing sensitivity to differences between highly weighted expert functions; theoretical treatment emphasizes smooth MoE, with ImageNet adversarial experiments.",
+      "overlap": "Function-sensitive routing stability is an established motivation. Our specific sparse top4 numerical boundary and quantum-readout mechanisms need their own empirical contribution."
+    },
+    {
+      "title": "ProbMoE: Differentiable Probabilistic Routing for Mixture-of-Experts",
+      "authors": "Heng Zhao, Zilei Shao, Guy Van den Broeck, Zhe Zeng",
+      "year": 2026,
+      "url": "https://arxiv.org/html/2606.01509v1",
+      "read": "Abstract and introduction",
+      "finding": "Models cardinality-constrained expert subsets and propagates gradients through exact selection marginals using a surrogate estimator.",
+      "overlap": "Selection geometry and backward treatment of discrete subsets are studied beyond quantum architectures. Our dense offline counterfactual estimator is a distinct protocol, with its cost recorded."
+    },
+    {
+      "title": "Evidence for Shared Routing Geometry and Dynamics in Sparse Mixture-of-Experts",
+      "authors": "Kirill Labzin, Stepan Kulibaba, Artem Dzhalilov, Artem Gorokhov",
+      "year": 2026,
+      "url": "https://arxiv.org/html/2609.02404v1",
+      "read": "Abstract and introduction",
+      "finding": "Separates generic representation predictability from preserving expert decisions through matched-rank controls and causal transport.",
+      "overlap": "High feature R2 alone is insufficient for a routing claim; decisions and downstream NLL must be measured separately in our geometry experiments."
+    },
+    {
+      "title": "Router Drift Control: Mitigating Off-Policy Degradation in Mixture-of-Experts Reinforcement Learning",
+      "authors": "Liangyao Jin and colleagues",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2610.21682",
+      "read": "Abstract only; v2 October16",
+      "finding": "Uses rollout/training disagreement to reject stale responses; identifies gradient support bias from replayed routes.",
+      "overlap": "Off-policy RL drift is separate from our frozen CPU input-roundtrip probe. Do not present current numerical mechanism as an RL mismatch fix."
+    }
+  ],
+  "primary_sources_only": true,
+  "limits": "All report paraphrases must stay compact and distinguish abstract-only reading from full-method verification."
+}

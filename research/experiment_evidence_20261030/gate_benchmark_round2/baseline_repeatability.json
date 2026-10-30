@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "run": "mlp_fashion_mnist_mlp_seed17",
+      "result_differences": [],
+      "non_timing_trajectory_exact": true
+    },
+    {
+      "run": "mlp_fashion_mnist_compact_born_seed17",
+      "result_differences": [],
+      "non_timing_trajectory_exact": true
+    },
+    {
+      "run": "bert_sst2_mlp_seed17",
+      "result_differences": [],
+      "non_timing_trajectory_exact": true
+    },
+    {
+      "run": "bert_sst2_compact_born_seed17",
+      "result_differences": [],
+      "non_timing_trajectory_exact": true
+    }
+  ],
+  "passed": true
+}

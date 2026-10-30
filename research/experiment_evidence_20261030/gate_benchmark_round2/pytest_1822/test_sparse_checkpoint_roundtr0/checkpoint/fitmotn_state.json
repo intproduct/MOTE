@@ -1,0 +1,75 @@
+{
+  "base_model_path": "fake-base",
+  "layers_to_patch": [
+    0
+  ],
+  "patch_backend": "sparse_mixt",
+  "patch_cfg": {
+    "E": 1,
+    "d": 2,
+    "k_in": 2,
+    "topk": 1,
+    "gate_type": "topk",
+    "capacity_factor": 100.0,
+    "min_capacity": 1,
+    "drop_tokens": false,
+    "pos_strategy": "sliding",
+    "global_expert_enabled": false,
+    "dtype": "torch.float32",
+    "patch_backend": "sparse_mixt",
+    "sparse_mixt": {
+      "hidden_main": 4,
+      "intermediate_main": 8,
+      "router_input_policy": "main",
+      "gate_ranks": {
+        "01": 2,
+        "10": 2,
+        "11": 2
+      },
+      "up_ranks": {
+        "01": 2,
+        "10": 2,
+        "11": 2
+      },
+      "down_ranks": {
+        "01": 2,
+        "10": 2,
+        "11": 2
+      }
+    }
+  },
+  "motn_cfg": {
+    "E": 1,
+    "d": 2,
+    "k_in": 2,
+    "topk": 1,
+    "gate_type": "topk",
+    "capacity_factor": 100.0,
+    "min_capacity": 1,
+    "drop_tokens": false,
+    "pos_strategy": "sliding",
+    "global_expert_enabled": false,
+    "dtype": "torch.float32",
+    "patch_backend": "sparse_mixt",
+    "sparse_mixt": {
+      "hidden_main": 4,
+      "intermediate_main": 8,
+      "router_input_policy": "main",
+      "gate_ranks": {
+        "01": 2,
+        "10": 2,
+        "11": 2
+      },
+      "up_ranks": {
+        "01": 2,
+        "10": 2,
+        "11": 2
+      },
+      "down_ranks": {
+        "01": 2,
+        "10": 2,
+        "11": 2
+      }
+    }
+  }
+}

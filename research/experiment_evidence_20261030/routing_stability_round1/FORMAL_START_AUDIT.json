@@ -1,0 +1,17 @@
+{
+  "time": "2026-10-28T23:42:26.844599+08:00",
+  "active": {
+    "pid": 42008,
+    "started": "2026-10-28T23:41:20.466142+08:00",
+    "config": "D:\\files\\MOTE\\experiments\\routing_stability\\configs\\titan_v.json",
+    "config_hash": "756b04397b2d8392d676c2c07833d28a9825a510da312c39c11604243f6f7296",
+    "group": "D:\\files\\MOTE\\outputs\\routing_stability_round1\\formal\\756b04397b2d",
+    "state": "running"
+  },
+  "training_sources_and_snapshots_verified": true,
+  "old_frozen_sources_unchanged": true,
+  "config_verified": true,
+  "pilot_selection": "FORMAL_SELECTION.json",
+  "test_used_for_selection": false,
+  "supporting_analysis_may_be_revised_with_preserved_history": true
+}

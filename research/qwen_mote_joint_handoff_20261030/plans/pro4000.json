@@ -1,0 +1,16 @@
+{
+  "machine": "pro4000",
+  "status": "integration_owner_then_0.6B_pilot",
+  "training_cli_ready": false,
+  "common_protocol": "../COMMON_PROTOCOL.json",
+  "hardware": "Owned NVIDIA RTX PRO 4000 Blackwell, verify actual device and VRAM",
+  "model": "Qwen/Qwen3-0.6B-Base",
+  "output_prefix": "outputs/qwen_joint/pro4000",
+  "precision_cohort": "bf16_experts_fp32_router",
+  "initial_microbatch_sequences": 1,
+  "sequence_length": 1024,
+  "execution": "Single GPU; gradient accumulation to common supervised-token budget",
+  "owns": ["new four-router Qwen integration", "deterministic data release", "checkpoint resume acceptance", "0.6B all-method pilot", "integration release publication"],
+  "after_pilot": "Run the 0.6B 15-run matrix only after measured budget and all-method acceptance are recorded; can hand replicas to a matching BF16 worker.",
+  "must_not": ["modify frozen operator_geometry source", "launch old scratch pipelines", "exclude a quantum method because teacher fidelity is lower"]
+}

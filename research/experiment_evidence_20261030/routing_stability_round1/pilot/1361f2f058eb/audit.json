@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "expected": 3,
+  "complete": 3,
+  "problems": [],
+  "runs": [
+    "mlp_margin_s17",
+    "amp_margin_s17",
+    "born_lite_margin_s17"
+  ],
+  "time": "2026-10-28T23:33:40.342960+08:00"
+}

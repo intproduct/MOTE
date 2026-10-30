@@ -1,0 +1,17 @@
+{
+  "expected": 18,
+  "training": 18,
+  "reevaluations": 18,
+  "serial_benchmarks": 18,
+  "stability_probes": 18,
+  "figures": [
+    "boundary_margin.png",
+    "efficiency.png",
+    "expert_load.png",
+    "learning_steps.png",
+    "learning_time.png",
+    "quality_stability.png"
+  ],
+  "review_pending": true,
+  "time": "2026-10-29T06:52:58.442889+08:00"
+}

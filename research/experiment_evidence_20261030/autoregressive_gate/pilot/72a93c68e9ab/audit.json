@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "expected": 6,
+  "complete": 6,
+  "problems": [],
+  "runs": [
+    "mlp_s17",
+    "mlp_half_s17",
+    "mpo_c2_full_s17",
+    "mpo_c1_half_s17",
+    "amp_d1_full_s17",
+    "amp_d1_half_s17"
+  ],
+  "time": "2026-10-28T12:43:59.561081+08:00"
+}

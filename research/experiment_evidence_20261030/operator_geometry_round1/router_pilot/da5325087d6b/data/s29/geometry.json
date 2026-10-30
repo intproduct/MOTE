@@ -1,0 +1,57 @@
+{
+  "identity_cost": 9.390280468147264,
+  "functional_cost": 9.166060445580289,
+  "random_mean_cost": 9.354552881738856,
+  "random_sd_cost": 0.04170952484438295,
+  "expert_for_basis": [
+    4,
+    2,
+    14,
+    15,
+    6,
+    7,
+    5,
+    12,
+    9,
+    10,
+    3,
+    0,
+    11,
+    8,
+    1,
+    13
+  ],
+  "objective": "mean train output squared distance along hypercube edges",
+  "random_expert_for_basis": [
+    7,
+    1,
+    4,
+    14,
+    11,
+    8,
+    15,
+    5,
+    3,
+    2,
+    10,
+    9,
+    0,
+    12,
+    13,
+    6
+  ],
+  "identity_checks": {
+    "train": {
+      "mixture_max_abs_error": 1.7881393432617188e-07,
+      "head_max_abs_error": 1.33514404296875e-05,
+      "forced_replay_max_abs_error": 6.67572021484375e-06
+    },
+    "validation": {
+      "mixture_max_abs_error": 1.1920928955078125e-07,
+      "head_max_abs_error": 1.049041748046875e-05,
+      "forced_replay_max_abs_error": 7.62939453125e-06
+    }
+  },
+  "checkpoint_sha256": "ed93399bd8998fbe44d4161b82641cdeaa00ff250fd0dad4b85df7db7ddf5865",
+  "frozen_state_hash": "5fcbb1cfbbdee41664a9c8b129ceaeb871df5e2f119917cc5e21bf202c25db9d"
+}

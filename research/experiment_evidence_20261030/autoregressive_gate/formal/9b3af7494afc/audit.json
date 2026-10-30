@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "expected": 18,
+  "complete": 18,
+  "problems": [],
+  "runs": [
+    "mlp_s17",
+    "mlp_half_s17",
+    "mpo_c2_full_s17",
+    "mpo_c1_half_s17",
+    "amp_d1_full_s17",
+    "amp_d1_half_s17",
+    "mlp_s29",
+    "mlp_half_s29",
+    "mpo_c2_full_s29",
+    "mpo_c1_half_s29",
+    "amp_d1_full_s29",
+    "amp_d1_half_s29",
+    "mlp_s43",
+    "mlp_half_s43",
+    "mpo_c2_full_s43",
+    "mpo_c1_half_s43",
+    "amp_d1_full_s43",
+    "amp_d1_half_s43"
+  ],
+  "time": "2026-10-28T19:27:04.032228+08:00"
+}

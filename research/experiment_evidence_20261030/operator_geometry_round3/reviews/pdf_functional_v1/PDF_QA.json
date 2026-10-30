@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "completed_local": "2026-10-30T13:05:39.981567+08:00",
+  "pages_visually_inspected": {
+    "FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "final_changed_pages_reinspected": {
+    "main": [
+      2,
+      3,
+      4
+    ],
+    "supplement": [
+      1
+    ]
+  },
+  "render_width_px": 1600,
+  "figures_visually_inspected": [
+    "functional_kl.png",
+    "cross_terms.png",
+    "cost_and_tangent.png"
+  ],
+  "font_script_checks": {
+    "FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh": {
+      "Latin_Times": 385,
+      "Chinese_KaiTi": 2283,
+      "Math_NewCM": 4
+    },
+    "FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh": {
+      "Chinese_KaiTi": 1484,
+      "Latin_Times": 2871
+    }
+  },
+  "font_preference": "Times New Roman, KaiTi; New Computer Modern Math",
+  "issues_fixed": [
+    "Product tangent bar legend colors matched",
+    "Mean-expert mathematical overline corrected"
+  ],
+  "issues_remaining": [],
+  "files": {
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.md": "e6f9b414777b06f9bb891ea167f5478ca1c3d28864469136e0896ccf07348681",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.typ": "4357275f70c1e76e737161984661b2e1186684142daaea316de4697708c77e33",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.pdf": "fbd999e412b303e34c75f63d40ab48ff9fef37b578097d1900bb4ad744831e04",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh.md": "5e92b23ffc5cfb3375e411ca9176150e19b7effdd232e141cf60b22cf0518962",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh.typ": "cbed1768f31895e0370e1f7b88ff34abff16e1b490ea4d9bcd1a7c738c72ea15",
+    "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_SUPPLEMENT_20261030_zh.pdf": "1581e6cb57aa563b2e8ae57ab22b86eac83f3a2772208c10139c20936de22cfe",
+    "research/operator_family_quantum_gate_20261030/functional_figures/cost_and_tangent.png": "ab61cb1626b6dca8f64c3f5b779efe2e3f7205d1b6f2e3945417bff72b660a59",
+    "research/operator_family_quantum_gate_20261030/functional_figures/cross_terms.png": "4720d7badadc39356698f4815a85a52255d87ea4fa26093d10e6e40d2b9dcb9e",
+    "research/operator_family_quantum_gate_20261030/functional_figures/functional_kl.png": "0aee7144fd9180d9e4e565317223fcc30fc618926a8164d95d11b025a9d7ea30"
+  }
+}

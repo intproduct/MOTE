@@ -1,0 +1,43 @@
+{
+  "identity_cost": 10.261753027431403,
+  "functional_cost": 10.047974981749396,
+  "random_mean_cost": 10.277441427628052,
+  "random_sd_cost": 0.043638377075577495,
+  "expert_for_basis": [
+    11,
+    0,
+    3,
+    15,
+    13,
+    8,
+    5,
+    12,
+    4,
+    2,
+    14,
+    7,
+    9,
+    10,
+    1,
+    6
+  ],
+  "objective": "mean train output squared distance along hypercube edges",
+  "random_expert_for_basis": [
+    15,
+    14,
+    7,
+    2,
+    3,
+    13,
+    9,
+    11,
+    0,
+    10,
+    1,
+    5,
+    12,
+    8,
+    4,
+    6
+  ]
+}

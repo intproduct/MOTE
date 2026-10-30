@@ -1,0 +1,8 @@
+{
+  "question": "How many state-angle directions remain visible after top4 selection and renormalization?",
+  "scope": "CPU-only local within-support Jacobians, separate from discrete boundary crossings and model task quality.",
+  "derivation": "For an unfloored product distribution, selected log-probabilities are affine in four bit logits; selected-weight Jacobian rank equals affine rank of the selected bit codes at nondegenerate angles. Four vertices have rank at most3. For product top4, a parallelogram support has rank2 and a simplex support rank3. Fixed positive calibration power preserves this rank. A probability floor can lift the rank2 direction weakly; measure both floor0 and deployed1e-6.",
+  "sample": "All CZ/product initial checkpoints and coefficient/output/Fisher adaptations, seeds17/29/43, both saved splits, predetermined positions0,128,...3968:24checkpoints x2splits x32positions. No tuning or selection.",
+  "checks": "Analytic softmax-chain Jacobian versus independent autodiff on generic points, product bit-rank equality without floor, recorded singular spectra with floor, source/checkpoint hashes. Independent finite difference on random direction.",
+  "interpretation": "QFI state rank8vs4 and sparse selected-weight rank answer different questions. Local weights have at most3 directions regardless of state dimension; boundaries and global input mapping remain distinct."
+}

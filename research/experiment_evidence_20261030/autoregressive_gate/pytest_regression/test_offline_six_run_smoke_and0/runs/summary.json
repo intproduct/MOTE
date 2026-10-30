@@ -1,0 +1,84 @@
+{
+  "groups": [
+    {
+      "experiment": ".",
+      "stage": "bert",
+      "task": "synthetic",
+      "gate": "compact_born",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 45.27201691447503
+    },
+    {
+      "experiment": ".",
+      "stage": "bert",
+      "task": "synthetic",
+      "gate": "mlp",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 101.90303926072261
+    },
+    {
+      "experiment": ".",
+      "stage": "bert",
+      "task": "synthetic",
+      "gate": "mps",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 78.78024545876347
+    },
+    {
+      "experiment": ".",
+      "stage": "mlp",
+      "task": "synthetic",
+      "gate": "compact_born",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 49.14297719079657
+    },
+    {
+      "experiment": ".",
+      "stage": "mlp",
+      "task": "synthetic",
+      "gate": "mlp",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 136.07224077302325
+    },
+    {
+      "experiment": ".",
+      "stage": "mlp",
+      "task": "synthetic",
+      "gate": "mps",
+      "n": 1,
+      "mean_score": 0.5,
+      "std_score": null,
+      "paired_n": 1,
+      "paired_delta_vs_mlp": 0.0,
+      "paired_delta_std": null,
+      "mean_examples_per_second": 96.6821116307869
+    }
+  ],
+  "incomplete_runs": [],
+  "missing_runs": []
+}

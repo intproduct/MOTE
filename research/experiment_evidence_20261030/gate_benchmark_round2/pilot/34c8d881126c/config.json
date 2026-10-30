@@ -1,0 +1,137 @@
+{
+  "cache_dir": "outputs/gate_cache",
+  "output_dir": "outputs/gate_benchmark_round2/pilot",
+  "device": "cuda",
+  "precision": "fp32",
+  "seeds": [
+    17
+  ],
+  "gates": [
+    "mlp",
+    "compact_born",
+    "mlp_half",
+    "mpo_c1_full",
+    "mpo_c1_half",
+    "mpo_c2_full",
+    "mpo_c2_half",
+    "mpo_c4_full",
+    "mpo_c4_half",
+    "amp_d1_full",
+    "amp_d1_half",
+    "amp_d2_full",
+    "amp_d2_half"
+  ],
+  "data_seed": 20261027,
+  "deterministic": true,
+  "experts": 16,
+  "topk": 4,
+  "k_in": 4,
+  "drop_tokens": false,
+  "aux_coeff": 0.01,
+  "temperature": 1.0,
+  "norm": "layernorm",
+  "budget": "matched",
+  "rank": 16,
+  "sites": 16,
+  "bond_dim": 8,
+  "depth": 2,
+  "quantum_entangle": true,
+  "learnable_gain": true,
+  "output_init_std": 0.001,
+  "bert_model": "google/bert_uncased_L-4_H-256_A-4",
+  "bert_revision": "main",
+  "bert_layers": 3,
+  "max_length": 128,
+  "train_limit": 2048,
+  "dev_limit": 256,
+  "test_limit": 512,
+  "dev_fraction": 0.15,
+  "eval_every": 25,
+  "log_every": 10,
+  "mlp": {
+    "tasks": [
+      "fashion_mnist"
+    ],
+    "width": 1024,
+    "layers": 4,
+    "expansion": 2,
+    "batch_size": 128,
+    "steps": 100,
+    "lr": 0.001,
+    "weight_decay": 0.01,
+    "warm_init_steps": 0
+  },
+  "bert": {
+    "tasks": [
+      "sst2"
+    ],
+    "batch_size": 16,
+    "steps": 100,
+    "lr": 0.0001,
+    "weight_decay": 0.01,
+    "warm_init_steps": 20
+  },
+  "variants": {
+    "mlp_half": {
+      "arch": "mlp",
+      "fraction": 0.5
+    },
+    "mpo_c1_full": {
+      "arch": "residual_mpo",
+      "fraction": 1.0,
+      "depth": 2,
+      "bond_dim": 1
+    },
+    "mpo_c1_half": {
+      "arch": "residual_mpo",
+      "fraction": 0.5,
+      "depth": 2,
+      "bond_dim": 1
+    },
+    "mpo_c2_full": {
+      "arch": "residual_mpo",
+      "fraction": 1.0,
+      "depth": 2,
+      "bond_dim": 2
+    },
+    "mpo_c2_half": {
+      "arch": "residual_mpo",
+      "fraction": 0.5,
+      "depth": 2,
+      "bond_dim": 2
+    },
+    "mpo_c4_full": {
+      "arch": "residual_mpo",
+      "fraction": 1.0,
+      "depth": 2,
+      "bond_dim": 4
+    },
+    "mpo_c4_half": {
+      "arch": "residual_mpo",
+      "fraction": 0.5,
+      "depth": 2,
+      "bond_dim": 4
+    },
+    "amp_d1_full": {
+      "arch": "amplitude_born",
+      "fraction": 1.0,
+      "depth": 1
+    },
+    "amp_d1_half": {
+      "arch": "amplitude_born",
+      "fraction": 0.5,
+      "depth": 1
+    },
+    "amp_d2_full": {
+      "arch": "amplitude_born",
+      "fraction": 1.0,
+      "depth": 2
+    },
+    "amp_d2_half": {
+      "arch": "amplitude_born",
+      "fraction": 0.5,
+      "depth": 2
+    }
+  },
+  "study_protocol": "pareto_v1_legacy_hard_plus_soft_ste"
+}

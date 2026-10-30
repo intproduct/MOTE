@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-29T18:02:32.216728+00:00",
+  "document": "NOVELTY_REVIEW_zh",
+  "pages": 3,
+  "visually_reviewed_pages": [
+    1,
+    2,
+    3
+  ],
+  "render_dpi": 130,
+  "fonts": [
+    "KaiTi",
+    "Times New Roman"
+  ],
+  "latin_font_check": "pass",
+  "visual_check": "pass",
+  "evidence_scope": "papers, publisher listing, and read-only public source inspection; no independent reproduction",
+  "training_started": false,
+  "sha256": {
+    "NOVELTY_REVIEW_zh.md": "ba98fbdb8f3ab9cae04d04cf9ddd10318b1748b1f4252a45b6ee7fc255e57ce0",
+    "NOVELTY_REVIEW_zh.typ": "75860dc98e99a93b12b781a14d7561b5689ee3616ecd8ab6a1cf305446b4d913",
+    "NOVELTY_REVIEW_zh.pdf": "4b02553775ef41bc03f97e41406b879decea93ba214f86a72f3dcc0a8f10bf1b"
+  }
+}

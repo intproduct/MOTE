@@ -1,0 +1,122 @@
+[
+  {
+    "method": "reencode_cz",
+    "point": 0,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 1,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 2,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 3,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 4,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 5,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 6,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 7,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 8,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 9,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 10,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_cz",
+    "point": 11,
+    "probability_jacobian_rank": 8
+  },
+  {
+    "method": "reencode_product",
+    "point": 0,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 1,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 2,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 3,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 4,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 5,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 6,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 7,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 8,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 9,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 10,
+    "probability_jacobian_rank": 4
+  },
+  {
+    "method": "reencode_product",
+    "point": 11,
+    "probability_jacobian_rank": 4
+  }
+]

@@ -1,0 +1,183 @@
+// Generated from the matching Markdown report. Edit the Markdown and rerun.
+#set page(paper: "a4", margin: (x: 23mm, y: 22mm), numbering: "1")
+#set text(font: ("Times New Roman", "KaiTi"), size: 11pt, lang: "zh")
+#show math.equation: set text(font: "New Computer Modern Math")
+#set par(justify: true, leading: 0.75em)
+#set heading(numbering: none)
+#show heading.where(level: 1): set text(size: 19pt, fill: rgb("17365d"))
+#show heading.where(level: 2): set text(size: 14pt, fill: rgb("17365d"))
+#show heading.where(level: 3): set text(size: 12pt)
+#show link: set text(fill: rgb("24578a"))
+
+#heading(level: 1)[#text("从稀疏算子族到 QuantumGate：证据判断与下一步方案")]
+
+#text("2026-10-30｜检索截至当日｜研究补充报告")
+
+#heading(level: 2)[#text("1. 判断：研究方向成立，核心假设需要从“任务独占”转向“组合复用”")]
+
+#strong[#text("最有希望的课题是：学习与算子实际效用相匹配的路由几何，使输入能够选择可复用的稀疏算子组合；再检验量子态编码和线路结构能否提供更有效的归纳偏置。")]#text(" 这把 MoTE 的结构特点、gate 与 expert 的共同学习，以及 QuantumGate 的几何设计放到了同一个可检验的问题中。")
+
+#text("现有证据对三个命题的支持强度不同。“同一模型对不同输入存在不同的有效计算子集”有较强经验支持；“训练能够形成可复用的专家分工”有经验与特定条件下的理论支持；“每类任务天然对应独特、互不重叠的神经元或专家集合”缺少一般性支持。建议保留前两个命题，把第三个作为待检验的特殊情况。")
+
+#text("QuantumGate 值得继续研究的理由是结构约束可能恰好匹配算子组合中的因子、交互和对称性。优先寻找的收益是小样本泛化、组合泛化、参数效率，以及对有害路由切换的抑制。当前小状态空间在经典 GPU 上模拟，评估应落在实际质量、训练成本与推理成本上。量子硬件计算加速是另一项需要专门资源与复杂度论证的研究问题。")
+
+#text("本轮完成文献检索、代码结构核对和方案设计。以下新实验均为计划，未启动新的 GPU 训练，也未修改已冻结的训练代码、配置或历史结果。")
+
+#heading(level: 2)[#text("2. 稀疏激活文献究竟支持什么")]
+
+#heading(level: 3)[#text("2.1 有效稀疏计算有直接证据，精确零激活需要区分架构")]
+
+#text("Geva 等把 Transformer FFN 解释为键值记忆，观察到神经元与文本模式及词汇输出方向的联系，多个记忆共同组成输出。这支持功能性结构与组合计算的研究，也提示一个输入通常由多个成分共同处理。")#link("https://aclanthology.org/2021.emnlp-main.446/")[#text("Transformer Feed-Forward Layers Are Key-Value Memories，EMNLP 2021")]#text("。")
+
+#text("MoEfication 更直接地把稠密 FFN 按共同激活或参数相似性划成专家，再学习选择专家。在其测试条件下，使用约 10% 至 30% 的 FFN 参数可以保留超过 95% 的原模型性能。这是从稠密层提取可选择计算子结构的证据，其自然稀疏性主要依赖 ReLU。")#link("https://aclanthology.org/2022.findings-acl.71/")[#text("MoEfication，Findings of ACL 2022")]#text("。")
+
+#text("非 ReLU 模型也能进行条件计算。G-MoEfication 专门研究天然零激活假设失效时如何保留未选部分的信息，覆盖多个稠密预训练模型；Deja Vu 则研究输入相关的有效稀疏子集及其低成本预测。两类结果共同支持“许多计算可以近似替代或省略”，而精确零值、激活幅度小、对损失贡献小是三种不同性质。")#link("https://aclanthology.org/2024.emnlp-main.563/")[#text("G-MoEfication，EMNLP 2024")]#text("，")#link("https://proceedings.mlr.press/v202/liu23am.html")[#text("Deja Vu，ICML 2023")]#text("。")
+
+#text("当前自回归 MoTE 使用 GELU。对它应直接测量省略或替换某个算子的影响，不能把 ReLU 的零激活比例当作现成的稀疏率依据。激活很大的分量可能冗余，激活较小的分量也可能沿下游敏感方向产生较大影响。")
+
+#heading(level: 3)[#text("2.2 专家分工更可能是多对多关系")]
+
+#text("Mixtral 的路由分析没有观察到明显的主题级专家分派，反而发现语法模式和位置邻近性等现象。其不同领域的边际路由统计会遗漏更细的条件结构，适合用来否定过于简单的“一个主题对应一个专家”解释。")#link("https://arxiv.org/html/2401.04088v1")[#text("Mixtral of Experts，第 5 节，2024")]#text("。")
+
+#text("特征叠加的玩具模型说明，多个稀疏特征可能共享较少的神经元，因此神经元、功能和任务之间存在多对多映射的机制。这里的 superposition 是经典表征叠加。")#link("https://transformer-circuits.pub/2022/toy_model/index.html")[#text("Toy Models of Superposition，2022")]#text("。DeepSeekMoE 通过更细粒度专家与共享专家分别支持组合调用和公共知识，其结构启发更接近“公共原语加条件组合”。")#link("https://arxiv.org/abs/2401.06066")[#text("DeepSeekMoE，2024")]#text("。")
+
+#text("理论工作也为路由形成分工提供了条件性支持。例如，在簇结构分类数据和非线性专家的设定中，路由可以学习簇相关结构；该结论的专家与数据假设需要逐项核对，当前 MoTE 的单个结构化线性算子不直接满足同一模型设定。")#link("https://proceedings.neurips.cc/paper_files/paper/2022/hash/91edff07232fb1b55a505a9e9f6c0ff3-Abstract-Conference.html")[#text("Towards Understanding the Mixture-of-Experts Layer in Deep Learning，NeurIPS 2022")]#text("。")
+
+#strong[#text("对本项目的判断：先用“计算需要”定义算子族，再观察它与任务标签的关系。")]#text(" 同一个问答任务可能同时需要复制、关系组合和知识检索；不同领域可能共享同一种操作。上述操作名称只是实验设计中的候选解释，真实模型是否形成相应功能，需要干预证据。")
+
+#heading(level: 2)[#text("3. gate 能在多大程度上构成算子族")]
+
+#heading(level: 3)[#text("3.1 MoTE 的结构解释")]
+
+#text("当前 MoTE 更准确地说是“输入决定的结构化算子稀疏组合”。ADTN 中不同块作用于指定张量位置，hard dispatch 执行选中的块并加权组合；部分外围分支还包含独立的低秩或尾部计算。它与把一个固定 Dense 权重矩阵中的部分元素设为零有不同的参数组织与计算语义。")
+
+#text("对单个门控线性模块，固定其他分支，把专家记为线性算子，推理时可写成：")
+
+$ T_x = sum_(e in S(x)) w_e (x) T_e, quad abs(S(x)) = k, quad w_e (x) >= 0, quad sum_(e in S(x)) w_e (x) = 1. $
+
+#text("固定专家字典时，gate 学习输入到可用算子组合的映射。上述非负归一化权重使可达集合成为各个至多 k 个专家所张成凸包的并；它比专家线性张成空间更受限制。若有效计算不在字典覆盖范围内，仅改 gate 很难解决问题。层间复合、激活函数和共同训练会进一步改变整体模型的表达能力。")
+
+#text("共同训练时，gate 还会改变各专家接收的数据和梯度，使专家逐渐分化。因此 gate 可以参与算子族的形成。形成过程也依赖专家容量、初始化、负载控制和反向信用分配：前向很少选中的专家可能缺少展示自身潜在效用的机会。")
+
+#text("稀疏反传的反馈不足已有专门研究，密集反馈近似可以改变路由学习。我们的下一轮应把前向选择规则和反向更新规则分开控制。当前代码中 hard 归一化分支仍可微，与 soft 分支同时贡献梯度；将其统一称为“纯 soft STE”会掩盖更新差异。")#link("https://proceedings.mlr.press/v262/panda24a.html")[#text("Dense Backpropagation Improves Routing for Sparsely-Gated Mixture-of-Experts，NeurIPS ENLSP Workshop 2024")]#text("。")
+
+#heading(level: 3)[#text("3.2 真正有用的几何来自算子后果")]
+
+#text("建议把“两个专家是否接近”定义为它们在相关输入上的作用是否可替代，把“两个专家是否互补”定义为共同调用是否产生额外收益。参数向量距离、专家编号、共同被选择次数都只能作为候选代理量。路由策略本身会制造共同调用相关性，因而不能单凭相关性给专家赋予功能解释。")
+
+#text("在固定专家及当前输入、局部平滑的近似下，令 B 的列为各专家输出，F_y 为后续预测分布对混合输出 y 的 Fisher 信息矩阵，则权重扰动诱导的预测分布 KL 二阶项为：")
+
+$ D_("KL")(P(dot.c | y) parallel P(dot.c | y + B delta w)) approx 1/2 delta w^top G_w delta w, quad G_w = B^top F_y B. $
+
+#text("这里权重扰动应满足归一化切空间约束。这个度量回答“权重变化会多大程度改变最终预测”，它不直接等同于真实标签损失的变化，也不等同于 gate 输出概率自身的 Fisher。对跨越 top-k 边界的离散替换，直接测量替换后的损失和目标 logprob 更可靠。可先用少量替换实验构造任务效用信号，再把局部度量用于解释和低成本近似。")
+
+#text("由此得到设计顺序：")#strong[#text("算子作用与相互关系 → 需要保持或区分的输入关系 → 编码与路由边界 → 量子线路约束。")]#text(" 训练时可用下游损失教会 gate 预测组合效用；推理时把这种选择能力压缩到一次前向计算中。")
+
+#heading(level: 2)[#text("4. QuantumGate 的外部证据及其强度")]
+
+#heading(level: 3)[#text("4.1 已存在量子路由先例，当前直接证据规模有限")]
+
+#text("QMoE 研究量子路由与量子专家，通过条件量子操作组织专家计算，实验覆盖缩小后的 MNIST、Fashion-MNIST 二分类与四分类。它提供模块化量子路由的可行性证据，主要对照是单量子网络。经典 MoTE 中“只替换 gate”的收益需要另外验证。")#link("https://arxiv.org/html/2507.05190v1")[#text("QMoE，2025-07 预印本 v1")]#text("。")
+
+#text("另一项 Hybrid QMoE 工作采用量子路由与经典线性专家，更接近我们要隔离的部件。其 Two Moons 主表给出的准确率约为量子路由 94%、深层经典路由 93%，对应路由参数 24 与 240；还包括小规模二分类图像实验。主表没有多种子误差条，且缺少与相同周期或二次特征族匹配的经典对照。其证据适合作为参数效率候选线索，下一步需要独立复现与更强基线。")#link("https://arxiv.org/html/2512.22296v1")[#text("Hybrid Quantum-Classical Mixture of Experts，2025-12 预印本 v1")]#text("。")
+
+#text("因此研究新意应放在“算子效用驱动的量子路由几何、可复用组合结构、机制对照和实际效率”，单纯把 MoE 的 router 换成量子线路已有先例。")
+
+#heading(level: 3)[#text("4.2 最有价值的间接证据是编码、对称性与任务几何的匹配")]
+
+#text("量子模型的可表达函数可按 Fourier 成分分析，数据编码门决定可用频率，重复编码会改变频率集合。这为匹配任务交互结构提供设计工具，也直接提示需要周期特征经典基线。")#link("https://arxiv.org/abs/2008.08605")[#text("The effect of data encoding on the expressive power of variational quantum machine learning models，PRA 2021")]#text("。")
+
+#text("对称性约束可以进入量子线路设计。已有工作构造等变线路，并在特定置换等变模型下获得可训练性和泛化方面的理论结果。迁移到 MoTE 前应先识别真实的变换关系：自然语言词序通常有语义作用，任意 hidden 维度或张量位的交换也未必保持任务。")#link("https://arxiv.org/abs/2205.06217")[#text("Exploiting symmetry in variational quantum machine learning，PRX Quantum 2023")]#text("，")#link("https://www.nature.com/articles/s41534-024-00804-1")[#text("Theoretical guarantees for permutation-equivariant quantum neural networks，npj Quantum Information 2024")]#text("。")
+
+#text("一份 2026 年 10 月的新预印本在共同输入表征上比较量子分类头，覆盖 70 个数据集与特征组合。经典模型在多数设置领先，少数设置出现量子收益；核与目标的对齐变化同准确率变化呈中等相关。这支持把“给定表征是否适合特定量子结构”作为筛选问题，相关性距离因果机制仍有实验环节需要补齐。")#link("https://arxiv.org/html/2610.17722v1")[#text("Representation Geometry and Inductive Biases in Quantum Classifiers across Classical Visual Benchmarks，2026-10-13 预印本 v1")]#text("。")
+
+#text("Huang 等从数据与核几何角度分析量子模型和经典模型的可比较性，为寻找与任务相关的几何差异提供方法论。该理论针对相应核学习设定；在训练中的稀疏 MoTE 上，核对齐更适合作为诊断指标，而不是直接的性能保证。")#link("https://www.nature.com/articles/s41467-021-22539-9")[#text("Power of data in quantum machine learning，Nature Communications 2021")]#text("。")
+
+#heading(level: 3)[#text("4.3 负面结果决定我们必须设置哪些对照")]
+
+#text("Bowles 等比较 12 种量子模型与经典模型，覆盖 160 个小型数据集，整体上经典模型更强，去掉纠缠操作的模型常常相当或更好。它说明增加纠缠门并不是普遍有效的性能策略，特定结构的收益必须在匹配基线上辨认。")#link("https://arxiv.org/abs/2403.07059")[#text("Better than classical? The subtle art of benchmarking quantum machine learning models，2024 预印本")]#text("。")
+
+#text("本项目目前的语言实验也尚未给出几何优势的因果解释：单一语料、少量种子的 CE/PPL 只能评价相应预算下的结果。需要新增“同一专家字典、同一输入表征、相同反馈规则”的实验，把编码、线路耦合、读出、共同适应和训练更新方式逐项分离。")
+
+#heading(level: 2)[#text("5. 对当前 QuantumGate 的两项关键修正")]
+
+#heading(level: 3)[#text("5.1 共享 U 改变读出边界，输入编码决定其保持的态几何")]
+
+#text("当前 SharedBornRouter 先产生实值归一化幅度，再应用与输入无关的共享 RY/CRY 变换，最后平方读出。固定编码器时，同一幺正 U 保持任意两输入态的内积：")
+
+$ angle.l U psi(x), U psi(x') angle.r = angle.l psi(x), psi(x') angle.r. $
+
+#text("因此共享 U 保持完整态的 fidelity 核和 Fubini-Study 距离。它可以改变各测量坐标的概率、top-k 次序及分区形状。设计和解释时应分别观察完整态几何、测量后的概率几何、以及离散路由边界；编码器共同训练造成的态几何变化应单独归因。")
+
+#text("对非零实幅度，平方归一化概率可以写成幅度绝对值对数的 softmax。这意味着 Born 读出与 softmax 都可表示同一概率单纯形上的分布，研究差异落在输入到幅度的受限映射、参数共享、优化路径及允许的交互结构。概率地板和 top-k 截断还会进一步改变实际输出映射。")
+
+#heading(level: 3)[#text("5.2 专家编号不是功能几何，去掉 CRY 也不自动得到可分态")]
+
+#text("把 16 个专家标成 4 个比特的计算基态，并未自然赋予它们任务相似性。不同计算基态相互正交；比特编码与线路邻接规定了模型偏好的参数化结构。专家编号的排列若能显著改变效果，就需要解释这种结构与专家功能的关系。")
+
+#text("当前幅度编码器可以直接输出联合幅度，所准备的态可能已经不可分。只删除 CRY 衡量的是受控门的增量作用。若要考察可分态与耦合态，应加入“乘积态编码加局部门”的明确可分对照，并把编码器容量、线路门数和优化预算一并记录。")
+
+#heading(level: 2)[#text("6. 两个建议保留的设计")]
+
+#heading(level: 3)[#text("设计 A：算子效用对齐的编码与读出")]
+
+#text("先固定专家，在训练子集上对少量候选路由组合进行替换，得到相对损失或效用排序。训练 gate 预测这些组合的优劣，并保留最终任务损失。它相当于在训练阶段提供额外选择反馈，再把反馈压缩进推理阶段的一次路由前向。")
+
+#text("QuantumGate 分支使用归一化幅度与浅层受限读出；经典分支使用相同编码器和平方读出、结构化正交读出或低秩二次特征。共享 U 在推理时可缓存。主要待测假设是：受限读出能否以较少可训练自由度改善有限监督下的选择，而不是单凭参数少就认定高效率。")
+
+#text("效用目标来自训练样本的标签与下游反馈，验证集和测试集用于独立评估。候选组合评分、教师构造和任何额外前向的成本计入训练总成本。替换探针只给出候选集内最优选择，报告应称“候选集遗憾”，不称全局最优路由差距。")
+
+#heading(level: 3)[#text("设计 B：与算子交互匹配的因子化浅线路")]
+
+#text("如果替换和配对实验显示可重复的互补关系，再将输入因素编码为乘积态，用少量受控门表达必要的耦合。线路连接图由训练子集发现的算子关系提出，并用验证集冻结；专家标签的比特映射也属于待控制的设计参数。")
+
+#text("这个方案要比较局部门、关系图耦合、相同门数及度分布的随机图耦合，以及经典低秩双线性或周期特征。只有关系图优于随机图、且收益随已知交互结构变化，才有依据把结果解释为几何匹配。若经典匹配特征达到相同结果，结论应归为对应函数偏置有效。")
+
+#text("优先 A，条件满足后推进 B。A 先回答是否有可学习的路由选择空间；B 才回答哪一种结构最适合利用它。任意 hidden 坐标分组或专家编号的二进制展开不应被当作已经发现的任务因子。")
+
+#pagebreak()
+#heading(level: 2)[#text("7. 建议执行顺序与推进条件")]
+
+#heading(level: 3)[#text("阶段一：已有 checkpoint 的算子效用地图")]
+
+#text("抽取分层采样的 token 与上下文，记录当前路由、专家输出、预测与损失。对选中专家做移除、单项替换与少量成对替换，其他层和模型参数保持不变。使用小规模候选集合控制成本，并区分替换后权重重归一化与权重重新优化两种条件。探针应同时覆盖“同类操作、不同表面内容”和“相近词汇、不同操作”的样本。")
+
+#text("产物应包含候选集遗憾、专家可替代性、组合互补性、跨条件复用，以及切换后 logprob 误差尾部。若多数失败样本不能被候选替换改善，先检查字典容量或探针覆盖；若存在稳定的可改善空间，进入阶段二。已有 checkpoint 的字典已经共同适应原路由，后续应在多种来源的字典上交叉验证。")
+
+#heading(level: 3)[#text("阶段二：受控组合任务与固定字典路由比较")]
+
+#text("先构造具有已知稀疏算子组合的任务，包含可分组合、真实交互和不具有可利用稀疏结构的对照；保留未见过的组合用于测试。生成机制至少包含经典线性或分段结构，避免只用量子线路生成标签。在真实数据上，再用共同冻结的主干与专家，复用同一批表征检验相同假设。")
+
+#text("第一轮只比较 MLP、同编码器平方读出、设计 A 和一个能力匹配的经典二次或周期基线。只有出现稳定效应后才加入设计 B 及其局部、随机图、标签重排对照。探索使用三个种子，确认阶段建议至少五个预先固定种子；种子数量不是显著性的保证，应报告配对差、置信区间和最差种子，并预先设定有实际意义的改善幅度。")
+
+#text("各组固定数据划分、专家字典、采样顺序、top-k、反向规则和调参预算，同时报告等 token 与等时间结果。router 参数、总参数、前向延迟、训练步时和峰值显存分别统计。一次性探针和监督生成成本应另外计入总投入。")
+
+#heading(level: 3)[#text("阶段三：共同训练检验算子族是否形成")]
+
+#text("只有固定字典阶段得到可复现的机制证据，才恢复 expert 与 gate 的共同训练。观察新专家是否具有跨任务复用、能否在未见组合上保持作用、是否出现负载塌缩，以及 gate 的额外反馈是否改变分工。将“替换 gate”“改变反馈”“改变编码或耦合”拆成独立对照。")
+
+#text("语言任务报告 CE/PPL、组合外推、路由与误差尾部；稳定性同时测切换频率和切换代价。交换等效专家可能无害，固定错误路由也可能几乎不切换，因此不能单独优化切换率。已有的 FP16/BF16 输入舍入探针可用于衔接历史结果；原生低精度、跨引擎和带 KV cache 推理需要独立的协议与实测。")
+
+#heading(level: 3)[#text("继续或转向的判据")]
+
+- #text("有候选改进空间、所有 gate 都同样选不好：优先检查可观测输入特征与信用分配，扩大反馈质量诊断。")
+- #text("量子分支只赢线性 gate，匹配的非线性经典基线消除差距：记录该特征族有效，转向更便宜的实现。")
+- #text("关系图线路优于随机图并在未见组合上复现：扩大几何匹配研究，进一步区分编码和耦合贡献。")
+- #text("稳定性改善伴随预测变差或专家闲置：判为负面结果，检查过强约束与固定路由退化。")
+- #text("等 token 收益被训练或推理成本抵消：报告准确的质量成本折中，依据应用预算决定是否推进。")
+
+#pagebreak()
+#heading(level: 2)[#text("8. 下一步最合适的具体工作")]
+
+#strong[#text("建议下一项工作是“算子效用地图加固定字典路由试验”，并以设计 A 为首个候选。")]#text(" 它直接检验用户提出的第一条假设，也为第二条的量子几何设计提供任务结构依据。先验固定一套更复杂的量子线路再比较最终分数，容易把编码、训练反馈、字典共同适应和线路结构混在一起。")
+
+#text("可争取的研究贡献包括：发现 MoTE 中可复用的稀疏算子组合；建立与预测后果相关的路由几何；证明某种受限量子参数化在这一结构上具有可重复的质量或资源收益。三者可以分别得到正面或负面结果，实验设计应允许它们被独立判断。")
+
+#heading(level: 2)[#text("附：本地核对范围与复现边界")]
+
+#text("实际仓库为 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "D:/files/MOTE")#text("，分支为 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "mote-quantum")#text("，本轮开始时工作区干净。结构核对涉及 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "ADTN.py")#text(" 中的 TensorBlock、GatedADTNLayer 与 hard dispatch，")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "sparse_mixt.py")#text(" 的层包装，")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "experiments/autoregressi​ve_gate/model.py")#text(" 的 GELU 前馈结构，")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "experiments/routing_stab​ility/routers.py")#text(" 的 SharedBornRouter，以及 ")#text(font: ("Times New Roman", "KaiTi"), size: 8.5pt, "gate.py")#text(" 的 hard/soft 梯度组合。")
+
+#text("ADTN 块中名为 U 的一般实值可训练张量与路由器中的幺正 U 含义不同；本报告的态几何推导针对后者。正文中核几何保持与局部预测 KL 度量为基于明确条件的数学推导；提出的算子效用目标、线路构造和推进判据属于本项目方案，尚待上述实验检验。")
+
+#text("引用的 2025 年两项 QMoE 工作、2026 年表征几何工作均按所查预印本版本评价。已发表文献的实验结论同样保留原模型、数据和协议范围。本轮交付为 Markdown、对应 Typst 源文件和经过逐页渲染检查的 PDF。")
+

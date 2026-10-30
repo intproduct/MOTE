@@ -1,0 +1,15 @@
+{
+  "decision_basis": "Round2 utility did not generalize; deterministic original-router teacher is highly learnable by MLP but poorly fit by the current four-angle Born ansatz. Local pair-specific risk beyond expert energy is small and consistent; train-global pair structure is weak. First address the representation bottleneck before function-weighted boundary adaptation.",
+  "frozen_before_formal_training": true,
+  "target": "Centered negative log teacher probabilities, same as round2 positive controls. Frozen original experts and same cached pre-expert input.",
+  "new_models": "RY(a), CZ chain, RY(b) with eight data angles; paired no-CZ product version; classical affine-amplitude Born. Three seeds and 4000 steps each.",
+  "reference_models": "Read-only round2 MLP, four-angle entangled Born and four-angle product Born positive controls; all three seeds retained.",
+  "fairness": "Exact same minibatches, initial LayerNorm and input projection, optimizer, steps, teacher and internal-dev checkpoint selection. Actual trainable counts:10313 for either re-encoding model,10385 for affine Born/MLP; counts alone do not match representable manifolds. Same train-only functional expert assignment for the paired re-encoding models.",
+  "mechanism": "Two product RY encodings collapse to four summed angles when CZ is removed. Interleaving CZ can expose additional probability directions. Twelve prespecified random-point Jacobian checks have rank8 with CZ and rank4 without, with normalization and exact product-collapse checks.",
+  "selection_policy": "All new methods and all seeds reported. No search over architectures or coefficients after validation. This is an adaptive research round informed by prior observations, not a fresh confirmatory holdout. Test remains reserved.",
+  "provisional_progress_criterion": "On internal-dev, re-encoding improves score R2 and top4 agreement over the old four-angle model in all3seeds and also improves over no-CZ paired control. Inspect the absolute gap to MLP and affine Born before proceeding. Full sparse reweighting CE/KL and measured overhead are separate acceptance requirements for any deployment candidate.",
+  "planned_followup": "Replay each frozen new and reference checkpoint, sparse reweighting through the same expert bank, utilization and BF16/FP16 input-roundtrip at original FP32 arithmetic. Time each sequentially if GPU sharing permits interpretable measurements. Retain negative runs and avoid training a nominal winner.",
+  "source": "experiments/operator_geometry/round3_capacity.py",
+  "config": "experiments/operator_geometry/configs/round3_capacity_v1.json",
+  "smoke": "All3methods, seed17,4steps, CPU; finite probabilities/gradients, nonzero parameter updates, saved checkpoint replay passed. Formal configuration separate."
+}

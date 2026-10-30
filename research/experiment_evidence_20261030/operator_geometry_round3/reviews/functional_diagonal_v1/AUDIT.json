@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "runs": 24,
+  "cpu_checkpoint_split_replays": 48,
+  "quality_rows": 48,
+  "roundtrip_records": 96,
+  "paired_rows": 192,
+  "same_warm_start_samples_and_trace_normalizer": true,
+  "missing": [],
+  "failed": [],
+  "completed": "2026-10-30T12:55:19.638221+08:00"
+}

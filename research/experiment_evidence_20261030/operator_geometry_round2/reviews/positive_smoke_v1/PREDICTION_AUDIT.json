@@ -1,0 +1,171 @@
+{
+  "passed": true,
+  "kind": "positive",
+  "expected": 3,
+  "verified": 3,
+  "missing": [],
+  "checks": [
+    {
+      "seed": 17,
+      "method": "mlp",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 0.0,
+        "dev": 0.0,
+        "validation": 0.0
+      }
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 0.0,
+        "dev": 0.0,
+        "validation": 0.0
+      }
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "initial_and_sampling_match": true,
+      "files_verified": 7,
+      "replays": {
+        "train": 0.0,
+        "dev": 0.0,
+        "validation": 0.0
+      }
+    }
+  ],
+  "rows": [
+    {
+      "seed": 17,
+      "method": "mlp",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4,
+      "tokens": 32,
+      "mse": 1.5423310995101929,
+      "constant_mse": 1.4343786239624023,
+      "r2_vs_constant": -0.07526079498422589,
+      "within_token_rho": 0.15431985294117645,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "mlp",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4,
+      "tokens": 16,
+      "mse": 0.7852710485458374,
+      "constant_mse": 0.7138755321502686,
+      "r2_vs_constant": -0.10001115485849188,
+      "within_token_rho": -0.0645220588235294,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "mlp",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10385,
+      "selected_step": 4,
+      "tokens": 16,
+      "mse": 1.4984707832336426,
+      "constant_mse": 1.3454277515411377,
+      "r2_vs_constant": -0.11375046450260884,
+      "within_token_rho": -0.0610294117647059,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4,
+      "tokens": 32,
+      "mse": 1.5060012340545654,
+      "constant_mse": 1.4343786239624023,
+      "r2_vs_constant": -0.04993284820036492,
+      "within_token_rho": 0.18161764705882352,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4,
+      "tokens": 16,
+      "mse": 0.7464374303817749,
+      "constant_mse": 0.7138755321502686,
+      "r2_vs_constant": -0.04561285093134715,
+      "within_token_rho": 0.07794117647058825,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "angle_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4,
+      "tokens": 16,
+      "mse": 1.4679418802261353,
+      "constant_mse": 1.3454277515411377,
+      "r2_vs_constant": -0.09105961174404364,
+      "within_token_rho": 0.1375,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "split": "train",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4,
+      "tokens": 32,
+      "mse": 1.506957769393921,
+      "constant_mse": 1.4343786239624023,
+      "r2_vs_constant": -0.050599712111591755,
+      "within_token_rho": 0.16075367647058822,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "split": "dev",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4,
+      "tokens": 16,
+      "mse": 0.7467939853668213,
+      "constant_mse": 0.7138755321502686,
+      "r2_vs_constant": -0.04611231472999067,
+      "within_token_rho": 0.07518382352941178,
+      "top4_set_agreement": 0.0
+    },
+    {
+      "seed": 17,
+      "method": "product_functional",
+      "split": "validation",
+      "target_kind": "positive",
+      "parameters": 10285,
+      "selected_step": 4,
+      "tokens": 16,
+      "mse": 1.4691715240478516,
+      "constant_mse": 1.3454277515411377,
+      "r2_vs_constant": -0.09197355440674526,
+      "within_token_rho": 0.13235294117647056,
+      "top4_set_agreement": 0.0
+    }
+  ],
+  "scope": "Input-only prediction diagnostics. Rank/top4 target agreement for utility concerns realized-label first-order costs, not expert identity labels or deployed routing."
+}

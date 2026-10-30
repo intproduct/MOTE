@@ -1,0 +1,17 @@
+{
+  "machine": "a800",
+  "status": "prepare_1.7B_then_formal_joint_matrix",
+  "training_cli_ready": false,
+  "common_protocol": "../COMMON_PROTOCOL.json",
+  "hardware": "Lab rental NVIDIA A800 80GB, verify full device allocation",
+  "model": "Qwen/Qwen3-1.7B-Base",
+  "output_prefix": "outputs/qwen_joint/a800",
+  "precision_cohort": "bf16_experts_fp32_router",
+  "initial_microbatch_sequences": 2,
+  "sequence_length": 1024,
+  "execution": "Single GPU serial matrix; tune only microbatch while preserving supervised-token updates",
+  "owns": ["model/data revision preparation", "1.7B all-method resource pilot", "15-run formal joint matrix", "functional specialization and stability analysis"],
+  "dependency": "Shared integration/data release; immediately available work is environment/model preparation and existing tests",
+  "scale_followup": {"model": "Qwen/Qwen3-4B-Base", "first_action": "all-method memory/throughput probe at fixed trainable scope", "formal_launch": "separate budget and full-matrix decision after 1.7B review"},
+  "spending": "Use only existing user-authorized lab allocation; record rate and estimated run budget before reserving long sessions. No new personal rentals."
+}

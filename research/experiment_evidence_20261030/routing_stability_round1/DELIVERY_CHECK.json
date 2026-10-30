@@ -1,0 +1,24 @@
+{
+  "expected": 18,
+  "training": 18,
+  "reevaluations": 18,
+  "serial_benchmarks": 18,
+  "stability_probes": 18,
+  "figures": [
+    "boundary_margin.png",
+    "efficiency.png",
+    "expert_load.png",
+    "learning_steps.png",
+    "learning_time.png",
+    "quality_stability.png"
+  ],
+  "review_pending": false,
+  "time": "2026-10-29T06:52:58.442889+08:00",
+  "review_finished": "2026-10-29T07:11:53.596485+08:00",
+  "task_complete": true,
+  "generation_samples": 54,
+  "report_sha256": "924e19efb492d7b89b187ee0388d2bfad29e4881a62020022147705720c1f14e",
+  "missing": [],
+  "failed": [],
+  "unfinished": []
+}

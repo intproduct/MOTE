@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-10-28T17:06:18.68296+08:00",
+  "completed": 12,
+  "expected": 18,
+  "completed_seeds": [
+    17,
+    29
+  ],
+  "active_run": "mlp_s43",
+  "frozen_sources_unchanged": true,
+  "shared_initialization_consistent": true,
+  "completed_batch_orders_consistent": true,
+  "problems": [],
+  "test_evaluated": false
+}

@@ -1,0 +1,177 @@
+{
+  "seed": 29,
+  "method": "mlp",
+  "objective": "fisher_diag",
+  "prior": {
+    "checkpoint_sha256": "41ca6c818712603f00315fafdbd698c5be313f2e8f107534257d7c10f475fcc5",
+    "selected_step": 3800,
+    "parameter_count_with_calibration_scalar": 10385,
+    "effective_calibration_power": 3.0562968254089355,
+    "samples_verified": true,
+    "curves_verified": true,
+    "finite_weights": true,
+    "result_path": "D:\\files\\MOTE\\outputs\\operator_geometry_round2\\positive\\d4ee19e23787\\runs\\mlp_s29\\result.json"
+  },
+  "beta_fixed": 3.0562968254089355,
+  "normalizer_train_only": 0.05411999300122261,
+  "initial_state_hash": "9ef8b69f8b9853913889e6319a7acd54154a0ea35a0a75228728c6802e921517",
+  "parameters_total": 10385,
+  "parameters_updated": 10384,
+  "parameter_changed": true,
+  "selected_step": 1200,
+  "initial_dev_kl": 0.001836211257308828,
+  "selected_dev_kl": 0.0013476138445359697,
+  "seconds_including_checks": 18.20849580000504,
+  "rows": [
+    {
+      "seed": 29,
+      "method": "mlp",
+      "objective": "fisher_diag",
+      "split": "dev",
+      "quality": {
+        "tokens": 4096,
+        "mean_delta_ce": 0.0009341494815691903,
+        "ci95_windows": [
+          -0.0005878545024825206,
+          0.0024723279671504768
+        ],
+        "sampled_ce": 4.066075827338015,
+        "sampled_ppl": 58.32762523411484,
+        "mean_kl": 0.00134761384453597,
+        "kl_p99": 0.014131657579655137,
+        "absolute_target_logprob_error_p99": 0.1885336726842527,
+        "absolute_target_logprob_error_max": 0.647631663884229,
+        "harm_gt_01": 121,
+        "benefit_lt_minus_01": 112,
+        "argmax_changed": 102
+      },
+      "routing": {
+        "load_cv": 0.702670156955719,
+        "unused_experts": 0,
+        "load_entropy": 2.438096761703491,
+        "mean_probability_entropy": 2.637404203414917,
+        "unique_top4_sets": 107,
+        "selection_frequency": [
+          0.0078125,
+          0.4150390625,
+          0.297607421875,
+          0.30322265625,
+          0.5966796875,
+          0.00048828125,
+          0.47802734375,
+          0.4013671875,
+          0.30615234375,
+          0.278564453125,
+          0.149169921875,
+          0.00244140625,
+          0.00048828125,
+          0.21484375,
+          0.222412109375,
+          0.32568359375
+        ]
+      },
+      "top4_set_agreement_original": 0.41064453125,
+      "roundtrip": {
+        "fp16": {
+          "flip_count": 2,
+          "harmful_flip_gt_01": 0,
+          "mean_kl": 1.4387486404563366e-06,
+          "absolute_logprob_p99": 0.00011543137012877168,
+          "absolute_logprob_max": 0.050323240733295194
+        },
+        "bf16": {
+          "flip_count": 7,
+          "harmful_flip_gt_01": 0,
+          "mean_kl": 2.757662105444193e-06,
+          "absolute_logprob_p99": 0.0008913358786649452,
+          "absolute_logprob_max": 0.06434933742213289
+        }
+      }
+    },
+    {
+      "seed": 29,
+      "method": "mlp",
+      "objective": "fisher_diag",
+      "split": "validation",
+      "quality": {
+        "tokens": 4096,
+        "mean_delta_ce": -0.0009021186339099203,
+        "ci95_windows": [
+          -0.0024265662228991334,
+          0.0006811053623552128
+        ],
+        "sampled_ce": 4.326885280658082,
+        "sampled_ppl": 75.70810943458565,
+        "mean_kl": 0.0013145196985504212,
+        "kl_p99": 0.013939418800248434,
+        "absolute_target_logprob_error_p99": 0.2047527570108448,
+        "absolute_target_logprob_error_max": 0.8099189866633973,
+        "harm_gt_01": 114,
+        "benefit_lt_minus_01": 121,
+        "argmax_changed": 84
+      },
+      "routing": {
+        "load_cv": 0.7299060225486755,
+        "unused_experts": 1,
+        "load_entropy": 2.424751043319702,
+        "mean_probability_entropy": 2.6394245624542236,
+        "unique_top4_sets": 118,
+        "selection_frequency": [
+          0.005859375,
+          0.455322265625,
+          0.297607421875,
+          0.302978515625,
+          0.630126953125,
+          0.000244140625,
+          0.515869140625,
+          0.371337890625,
+          0.2666015625,
+          0.255859375,
+          0.188720703125,
+          0.002197265625,
+          0.0,
+          0.188720703125,
+          0.229736328125,
+          0.288818359375
+        ]
+      },
+      "top4_set_agreement_original": 0.3798828125,
+      "roundtrip": {
+        "fp16": {
+          "flip_count": 2,
+          "harmful_flip_gt_01": 0,
+          "mean_kl": 4.366002059362867e-07,
+          "absolute_logprob_p99": 0.00010192305602767536,
+          "absolute_logprob_max": 0.013953701996719747
+        },
+        "bf16": {
+          "flip_count": 6,
+          "harmful_flip_gt_01": 0,
+          "mean_kl": 1.365914904779034e-06,
+          "absolute_logprob_p99": 0.0008910392638237015,
+          "absolute_logprob_max": 0.05219443626935227
+        }
+      }
+    }
+  ],
+  "checks": {
+    "dev_full_model_max_abs": 7.62939453125e-06,
+    "validation_full_model_max_abs": 8.58306884765625e-06,
+    "dev_cpu_gpu_set_changes": 0,
+    "dev_same_set_weight_error": 4.76837158203125e-07,
+    "validation_cpu_gpu_set_changes": 0,
+    "validation_same_set_weight_error": 6.258487701416016e-07
+  },
+  "files": {
+    "best_dev.pt": "bda42919f80455f303d5fbf7dd9726df56eb42fea7ad831b84ced069a2a774c1",
+    "curves.jsonl": "7ed444fbc6966f6cba5d2928321c04e9df1a78db7b885b6d658dda128151dbb1",
+    "dev_bf16.npz": "193dfd177a73beb3702bb1db2eb3a958cc2ffe8eca5d4e7d28ba905983ea8ff6",
+    "dev_clean.npz": "ddbfa44097a91522eb969db3551a03e22ca41676ff5b9ff91014f2c171d5e512",
+    "dev_fp16.npz": "da72ee849464f4214b0da607fbc5fa09079f6be97a77eb12a23cdbe68b00f9b9",
+    "last.pt": "93335461e3b5a20fa60d6119599f966eaf5a531b8e3f52c748c7c272119db8f0",
+    "sample_indices.npy": "0c9cd29473e328face7582d95b0857fa1e0ea5044369237d449f3074c268a318",
+    "validation_bf16.npz": "00fe47c52c9083a33a166849dfef7ef6aad71f1c6357989c4d2e870a21f4d343",
+    "validation_clean.npz": "a17ab480cee05788022a6023566bb49d1160e6a31059b36c5420e33594346278",
+    "validation_fp16.npz": "7b218d6474ed3a9245d622d4394ee0bf59eceadec2196d19b4142924b5c8a62f"
+  }
+}

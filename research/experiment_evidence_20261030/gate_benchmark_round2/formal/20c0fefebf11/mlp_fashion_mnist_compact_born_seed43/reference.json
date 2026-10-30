@@ -1,0 +1,14 @@
+{
+  "kind": "audited_historical_control",
+  "source_run": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433\\mlp_fashion_mnist_compact_born_seed43",
+  "source_group": "D:\\files\\MOTE\\outputs\\gate_benchmark\\45c21049b433",
+  "reason": "same protocol; four repeated pilot trajectories exactly match",
+  "protocol_sha256": "7452d979cbc8ae0a7aaa9528b00bd1cf3ffa810e24ed9cc468e8722d149ae6b8",
+  "files_sha256": {
+    "manifest.json": "07f06abd87e713b0614e73813b6b4b93cf6ea924f93b919cadc24db678d2b155",
+    "initial_dev.json": "7f71f65f1c546d77fbf62e3e94c9628ebe8a571ddf6836fc75e689a7e68882b3",
+    "curves.jsonl": "0ba89d6000978e28da91a8f958d1e9828e4f2135eab00071d966c260288ad93e",
+    "best.pt": "e0c775f7a772f7d3bfaef6a9150f568032fc23d03b8d1dfad769aaa34eeccad0",
+    "result.json": "76a0234508d0ca4e5755d1e792dd556ad5863287d5210dc17779c39d8052be95"
+  }
+}

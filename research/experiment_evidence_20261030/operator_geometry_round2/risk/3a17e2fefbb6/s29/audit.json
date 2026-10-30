@@ -1,0 +1,9 @@
+{
+  "seed": 29,
+  "frozen_backbone_unchanged": true,
+  "checkpoint_sha256": "ed93399bd8998fbe44d4161b82641cdeaa00ff250fd0dad4b85df7db7ddf5865",
+  "files": {
+    "dev_risk.npz": "f1fc04c61fe50d9ed3d9d3a2106c9614c82c2a412411052870a868a3079d0690",
+    "validation_risk.npz": "9a3553a66661a7d8e88da1e9cb23c96daa19c01cb2909b28f2548c207b0b4226"
+  }
+}

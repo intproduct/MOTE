@@ -1,0 +1,65 @@
+{
+  "time": "2026-10-28T23:39:31.798601+08:00",
+  "accepted_candidate": "pilot_v3",
+  "pilot_group": "1361f2f058eb",
+  "formal_group": "outputs\\routing_stability_round1\\formal\\756b04397b2d",
+  "formal_config_hash": "756b04397b2d8392d676c2c07833d28a9825a510da312c39c11604243f6f7296",
+  "margin": {
+    "threshold": 0.05,
+    "weight": 0.01,
+    "eps": 1e-06,
+    "start_fraction": 0.5,
+    "full_fraction": 0.75
+  },
+  "validation_pairs": [
+    {
+      "variant": "mlp_margin",
+      "baseline": "mlp_half",
+      "validation_ppl_change_percent": -0.1472163307812746,
+      "bf16_flip_ratio": 0.8,
+      "max_load_cv": 0.6188943699317498,
+      "unused_experts_by_module": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "variant": "amp_margin",
+      "baseline": "amp_half",
+      "validation_ppl_change_percent": -0.20324171776054945,
+      "bf16_flip_ratio": 1.0864197530864197,
+      "max_load_cv": 0.676664503592324,
+      "unused_experts_by_module": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "variant": "born_lite_margin",
+      "baseline": "born_lite",
+      "validation_ppl_change_percent": -0.07233982134758898,
+      "bf16_flip_ratio": 0.7191011235955056,
+      "max_load_cv": 0.6952811642959428,
+      "unused_experts_by_module": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "reason": "All three architectures pass finite/update/full-initialization/data-order/checkpoint audits and avoid constant expert collapse. Moderate later regularizer is active without severe load concentration. Selection is procedural/gradient-calibrated, not a gate ranking requirement. BF16 flips decrease in MLP/shared Born but increase in original Born; report mixed evidence, not a confirmed advantage.",
+  "test_used_for_candidate_selection": false,
+  "pilots_preserved": [
+    "5b7d1b6a5189",
+    "2c58817d07ec",
+    "1361f2f058eb"
+  ],
+  "formal_runs": 18,
+  "steps_each": 4000,
+  "training_tokens_each": 16384000
+}

@@ -1,0 +1,12 @@
+{
+  "data_group": "outputs/operator_geometry_round2/data/86a2ba9f5aa2",
+  "energy_group": "outputs/operator_geometry_round2/energy/decomposition_v1",
+  "geometry_group": "outputs/operator_geometry_round2/geometry/input_geometry_v1",
+  "seeds": [17, 29, 43],
+  "geometry_ranks": [8, 16, 32],
+  "batch": 256,
+  "device": "cuda",
+  "wait_for_utility": true,
+  "latest_start": "2026-10-30T06:45:00+08:00",
+  "scope": "Predeclared label-free risk diagnostics, 4096 internal-dev and4096 validation tokens per seed, all48 fixed-mass substitutions. Compare energy/compatibility and classical/quantum-state geometries on identical information. No checkpoint or hyperparameter selection from these metrics."
+}

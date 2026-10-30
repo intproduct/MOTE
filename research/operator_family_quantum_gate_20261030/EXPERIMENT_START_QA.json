@@ -1,0 +1,29 @@
+{
+  "verified_at": "2026-10-30T02:57:34.196852+08:00",
+  "pdf_pages": 7,
+  "visually_checked_pages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "figures_checked": [
+    "validation_ce",
+    "curves",
+    "paired_ce"
+  ],
+  "fonts": [
+    "KaiTi",
+    "TimesNewRomanPSMT",
+    "TimesNewRomanPS-BoldMT"
+  ],
+  "report_hashes": {
+    "EXPERIMENT_START_zh.md": "b6a2877a4e77e22cbc09d6a2cf1ee759e463d147e8cafd6c7d630e799306014e",
+    "EXPERIMENT_START_zh.typ": "20e81172c35379b67ddb7fd08740ac41655b205aa23ce1d71a17d366f95b64f4",
+    "EXPERIMENT_START_zh.pdf": "7f04e128b7e225a6dba201ed1da2acc2e05261ef5c8f5c1e479f5b03d9224da7"
+  },
+  "notes": "No clipping; all three landscape figures checked. Latin plot text uses Times New Roman."
+}

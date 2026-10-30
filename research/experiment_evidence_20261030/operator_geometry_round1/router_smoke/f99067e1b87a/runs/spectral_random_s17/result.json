@@ -1,0 +1,73 @@
+{
+  "method": "spectral_random",
+  "seed": 17,
+  "validation": {
+    "ce": 3.779322862625122,
+    "ppl": 43.786380767822266,
+    "teacher_kl": 0.7163339257240295,
+    "load": [
+      0.0,
+      0.0625,
+      0.0,
+      0.0625,
+      0.25,
+      0.875,
+      0.1875,
+      0.3125,
+      0.0,
+      0.0625,
+      0.1875,
+      0.5625,
+      0.0,
+      0.0,
+      0.5,
+      0.9375
+    ],
+    "load_cv": 1.2054563760757446,
+    "unused_experts": 5
+  },
+  "train": {
+    "ce": 3.2793118953704834,
+    "ppl": 26.5574893951416,
+    "teacher_kl": 0.70567387342453,
+    "load": [
+      0.0625,
+      0.0625,
+      0.0,
+      0.125,
+      0.0625,
+      0.875,
+      0.03125,
+      0.28125,
+      0.03125,
+      0.4375,
+      0.25,
+      0.34375,
+      0.0625,
+      0.0,
+      0.59375,
+      0.78125
+    ],
+    "load_cv": 1.1013131141662598,
+    "unused_experts": 2
+  },
+  "rounding": {
+    "tokens": 16,
+    "flips": 0,
+    "harm": 0,
+    "abs_gt_01": 0,
+    "delta_ce": 1.2007076293230057e-06,
+    "abs_delta_p99": 1.0836125511559658e-05
+  },
+  "finite_steps": 8,
+  "router_changed": true,
+  "router_parameters": 10276,
+  "seconds": 0.12469689999124967,
+  "files": {
+    "curves.jsonl": "553629f376f5b5e7e4d1c56006bdb71f2aef98e63c53dee184e4a4b106a13177",
+    "final.pt": "cd19d0c04210345ff72a507fb09552c37050bc04165d3f3fc197fcf3564e1229",
+    "manifest.json": "62bd45f8c0f1de86e1548975ca6f39a2ae8e2c98cc51d27a944aeaa18e9171c3",
+    "sample_indices.npy": "b150dd4ac8e8194ec261332cf8bbf6e6ce88cd333a9d71c577ca180a3e6155e5",
+    "validation_nll.npy": "33a18305cd79b3c2670a5f25da44504b6444e10ce74160c8e333ae5f198418fc"
+  }
+}

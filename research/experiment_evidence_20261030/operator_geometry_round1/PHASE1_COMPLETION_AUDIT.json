@@ -1,0 +1,22 @@
+{
+  "completed_at": "2026-10-30T02:57:34.196852+08:00",
+  "scope": "First diagnostic and controlled router-only pilot cycle; not completion of the broader research program",
+  "diagnostic_runs": 9,
+  "single_expert_substitutions": 221184,
+  "router_training_runs": 27,
+  "checkpoint_replays": 27,
+  "unit_tests_passed": 17,
+  "router_gpu_smoke_runs": 9,
+  "missing": [],
+  "issues": [],
+  "frozen_source_checks_passed": true,
+  "matched_sampling_and_angle_initialization_checked": true,
+  "large_training_eligible": false,
+  "large_training_started": false,
+  "decision": "Retain negative static-assignment result; investigate mechanism and generalization before expansion",
+  "audit_sha256": "1d88196b2979bbcd56d73435fc66803013b0b9da1ec513cc7b74014c28894011",
+  "data_manifest_sha256": "25996cfd0089527ed5d21a5a3b60077ef558538c617d74aea399ba5fd361f9e9",
+  "report_qa_sha256": "50f227b94607b8945f7ba80f704fe5f46cefc9e0047090632167a7c74184cd1a",
+  "report": "D:\\files\\MOTE\\research\\operator_family_quantum_gate_20261030\\EXPERIMENT_START_zh.pdf",
+  "test_source_sha256": "d86a3268204ff57cf068f9332a4f98db404fca5aaf397c7fc08dab6906b6d684"
+}

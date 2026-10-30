@@ -1,0 +1,12 @@
+{
+  "state": "ready_for_review",
+  "stage": "functional_diagonal_control",
+  "pid": 53280,
+  "active": false,
+  "started": "2026-10-30T12:37:50.738329+08:00",
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional_diagonal_smoke\\8a7a770207be",
+  "completed": 8,
+  "total": 8,
+  "current": null,
+  "finished": "2026-10-30T12:38:02.703313+08:00"
+}

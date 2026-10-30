@@ -1,0 +1,47 @@
+{
+  "scope": "Publish completed research and machine-specific next-stage plans; no new Qwen training launched",
+  "base_commit": "6a1377e5c342f079600f7c87e92fe209a34e927c",
+  "branch": "mote-quantum",
+  "created_local": "2026-10-30T14:42:45.906540+08:00",
+  "evidence_files": 2408,
+  "evidence_bytes": 91742866,
+  "study_counts": {
+    "gate_benchmark_round2": 1232,
+    "autoregressive_gate": 222,
+    "routing_stability_round1": 225,
+    "operator_geometry_round1": 158,
+    "operator_geometry_round2": 256,
+    "operator_geometry_round3": 315
+  },
+  "frozen_source_checks": 53,
+  "frozen_source_unique_files": 27,
+  "historical_capacity_and_functional_report_hash_checks": 15,
+  "cpu_tests": {
+    "passed": 86,
+    "command": "python -m pytest -q tests/test_operator_geometry.py tests/test_operator_geometry_round2.py tests/test_operator_geometry_round3.py tests/test_operator_geometry_functional.py tests/test_gate_router_arch.py tests/test_quantum_gate.py tests/test_sparse_mixt.py tests/test_qwen_handoff.py",
+    "windows_basetemp": "tmp/pytest-handoff-20261030-a1",
+    "initial_attempt": "80 passed; 4 setup errors due to protected Windows default pytest temp directory. Entire selected suite rerun successfully in a new workspace temp directory."
+  },
+  "new_qwen_training_status": "integration and frozen data release required; per-machine implementation tasks supplied",
+  "machine_plans": [
+    "pro4000",
+    "v100_pair",
+    "a800",
+    "bw1000"
+  ],
+  "pdf_qa": "PDF_QA.json",
+  "original_outputs_modified": false,
+  "old_training_restarted": false,
+  "new_gpu_job_started": false,
+  "binary_assets_committed": false,
+  "binary_assets_note": "Model/checkpoint/cache binaries stay local; report PDFs and figures are committed.",
+  "source_line_endings": "Evidence and historical report/source snapshots use -text attributes to preserve byte hashes across platforms.",
+  "independent_checkout": {
+    "method": "git -c core.autocrlf=false checkout-index --all into a new directory",
+    "evidence_hashes_passed": 2408,
+    "frozen_source_hashes_passed": 27,
+    "cpu_tests_passed": 86,
+    "cpu_test_seconds": 4.34,
+    "gpu_training_started": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-10-29T17:39:07.067446+00:00",
+  "pages": 6,
+  "render_dpi": 120,
+  "visually_reviewed_pages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "visual_result": "pass: no clipping, missing glyphs, overlapping text or isolated headings",
+  "fonts": [
+    "KaiTi",
+    "NewCMMath-Book",
+    "TimesNewRomanPS-BoldMT",
+    "TimesNewRomanPSMT"
+  ],
+  "latin_font_check": "pass: Times New Roman; mathematical glyphs use New Computer Modern Math",
+  "pdf_links": 34,
+  "training_launched": false,
+  "frozen_sources_modified": false,
+  "sha256": {
+    "REPORT_zh.md": "e3973aa4512b53d7aa8991c7c3c03656e7e389fc878c495dfc567ede1e2c4b24",
+    "REPORT_zh.typ": "6071786f6a5fedde895668b1ab03821a2cd17aa76625f50043c67f89501ecf7c",
+    "REPORT_zh.pdf": "83722745ce203dfb6fa2b5bfc4c94c6457b25d9636516a167c62cea4b9b5f288"
+  }
+}

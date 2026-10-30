@@ -1,0 +1,4 @@
+amp_skipped_steps,best_step,examples_per_second,experiment,final_accuracy,final_ce,final_score,gate,router_parameters,run_dir,seed,stage,task,total_parameters,training_seconds
+0,1,51.695415777509275,.,0.5,0.7066598534584045,0.5,compact_born,756,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_prepare_cache_and_run_sub0\out\d32904465795\mlp_mnist_compact_born_seed17,17,mlp,mnist,2374,0.15475260000675917
+0,1,130.18544908012473,.,0.5,0.7059616446495056,0.5,mlp,792,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_prepare_cache_and_run_sub0\out\d32904465795\mlp_mnist_mlp_seed17,17,mlp,mnist,2410,0.06145080004353076
+0,1,126.23632700133133,.,0.5,0.706516683101654,0.5,mps,784,D:\files\MOTE\outputs\gate_benchmark_round2\pytest_1822\test_prepare_cache_and_run_sub0\out\d32904465795\mlp_mnist_mps_seed17,17,mlp,mnist,2402,0.06337320001330227

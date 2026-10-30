@@ -1,0 +1,9 @@
+{
+  "state": "complete",
+  "pid": 2980,
+  "device": "cpu",
+  "completed": 24,
+  "total": 24,
+  "started": "2026-10-30T04:48:57.500816+08:00",
+  "finished": "2026-10-30T04:49:17.052415+08:00"
+}

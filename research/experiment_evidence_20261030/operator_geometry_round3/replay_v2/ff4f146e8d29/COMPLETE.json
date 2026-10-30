@@ -1,0 +1,12 @@
+{
+  "state": "ready_for_review",
+  "stage": "sparse_replay",
+  "pid": 48656,
+  "active": false,
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\replay_v2\\ff4f146e8d29",
+  "completed": 21,
+  "total": 21,
+  "started": "2026-10-30T11:59:53.418783+08:00",
+  "current": null,
+  "finished": "2026-10-30T12:01:53.129082+08:00"
+}

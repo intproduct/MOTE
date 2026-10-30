@@ -1,0 +1,4050 @@
+[
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 106,
+    "delta_nll_given_set_flip": 0.05312609672546387
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 162,
+    "delta_nll_given_set_flip": 0.04166746139526367
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 319,
+    "delta_nll_given_set_flip": 0.05253934860229492
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1538,
+    "delta_nll_given_set_flip": -0.07661819458007812
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1722,
+    "delta_nll_given_set_flip": 0.11101150512695312
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2685,
+    "delta_nll_given_set_flip": -0.06868183612823486
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2692,
+    "delta_nll_given_set_flip": 0.03842228651046753
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3088,
+    "delta_nll_given_set_flip": 0.0037560462951660156
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3603,
+    "delta_nll_given_set_flip": 0.0430450439453125
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3718,
+    "delta_nll_given_set_flip": 0.08660387992858887
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 4003,
+    "delta_nll_given_set_flip": -0.11609363555908203
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2208,
+    "delta_nll_given_set_flip": 0.027827024459838867
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 162,
+    "delta_nll_given_set_flip": 0.04149770736694336
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 431,
+    "delta_nll_given_set_flip": 0.0833597183227539
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 662,
+    "delta_nll_given_set_flip": -0.03571605682373047
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1709,
+    "delta_nll_given_set_flip": -0.023186087608337402
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1842,
+    "delta_nll_given_set_flip": 0.05945110321044922
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2685,
+    "delta_nll_given_set_flip": -0.06832659244537354
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2692,
+    "delta_nll_given_set_flip": 0.03841137886047363
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3603,
+    "delta_nll_given_set_flip": 0.0430450439453125
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3772,
+    "delta_nll_given_set_flip": 0.03435325622558594
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 106,
+    "delta_nll_given_set_flip": 0.05304670333862305
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 196,
+    "delta_nll_given_set_flip": -0.09949588775634766
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 319,
+    "delta_nll_given_set_flip": 0.052614688873291016
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1797,
+    "delta_nll_given_set_flip": -0.022761821746826172
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1842,
+    "delta_nll_given_set_flip": 0.059447288513183594
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3772,
+    "delta_nll_given_set_flip": 0.03435182571411133
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 319,
+    "delta_nll_given_set_flip": 0.05204153060913086
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 662,
+    "delta_nll_given_set_flip": -0.03563261032104492
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1601,
+    "delta_nll_given_set_flip": -0.04828643798828125
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3088,
+    "delta_nll_given_set_flip": 0.0036945343017578125
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3772,
+    "delta_nll_given_set_flip": 0.034346580505371094
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 4003,
+    "delta_nll_given_set_flip": -0.11614513397216797
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 4038,
+    "delta_nll_given_set_flip": -0.001981377601623535
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 78,
+    "delta_nll_given_set_flip": 0.05856168270111084
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 174,
+    "delta_nll_given_set_flip": 0.02284419536590576
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 236,
+    "delta_nll_given_set_flip": -0.024988174438476562
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 378,
+    "delta_nll_given_set_flip": -0.05860614776611328
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1676,
+    "delta_nll_given_set_flip": 0.032410621643066406
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1725,
+    "delta_nll_given_set_flip": 0.06329631805419922
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2009,
+    "delta_nll_given_set_flip": -0.024191856384277344
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2086,
+    "delta_nll_given_set_flip": -0.0704965591430664
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2707,
+    "delta_nll_given_set_flip": 0.037514448165893555
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3450,
+    "delta_nll_given_set_flip": -0.03603363037109375
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3813,
+    "delta_nll_given_set_flip": 0.04737424850463867
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 78,
+    "delta_nll_given_set_flip": 0.05864739418029785
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 236,
+    "delta_nll_given_set_flip": -0.025020599365234375
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 1725,
+    "delta_nll_given_set_flip": 0.06324529647827148
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 174,
+    "delta_nll_given_set_flip": 0.02297353744506836
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 236,
+    "delta_nll_given_set_flip": -0.024992942810058594
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 795,
+    "delta_nll_given_set_flip": 0.014621973037719727
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 999,
+    "delta_nll_given_set_flip": 0.1133418083190918
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1639,
+    "delta_nll_given_set_flip": -0.06530487537384033
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1725,
+    "delta_nll_given_set_flip": 0.06319713592529297
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2009,
+    "delta_nll_given_set_flip": -0.024189472198486328
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 569,
+    "delta_nll_given_set_flip": -0.04960203170776367
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 999,
+    "delta_nll_given_set_flip": 0.11334228515625
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1795,
+    "delta_nll_given_set_flip": -0.04080629348754883
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3450,
+    "delta_nll_given_set_flip": -0.03660869598388672
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 78,
+    "delta_nll_given_set_flip": 0.05852150917053223
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 236,
+    "delta_nll_given_set_flip": -0.02499675750732422
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 569,
+    "delta_nll_given_set_flip": -0.04980182647705078
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1725,
+    "delta_nll_given_set_flip": 0.06327247619628906
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2009,
+    "delta_nll_given_set_flip": -0.024242877960205078
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2707,
+    "delta_nll_given_set_flip": 0.03754782676696777
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3588,
+    "delta_nll_given_set_flip": -0.03619474172592163
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 213,
+    "delta_nll_given_set_flip": -0.15384197235107422
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 786,
+    "delta_nll_given_set_flip": 0.008451700210571289
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1132,
+    "delta_nll_given_set_flip": -0.21790051460266113
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1215,
+    "delta_nll_given_set_flip": 0.033759117126464844
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1536,
+    "delta_nll_given_set_flip": 0.21659457683563232
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1679,
+    "delta_nll_given_set_flip": -0.13457584381103516
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1736,
+    "delta_nll_given_set_flip": -0.013698577880859375
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2047,
+    "delta_nll_given_set_flip": 0.027892351150512695
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2126,
+    "delta_nll_given_set_flip": 0.05400043725967407
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2180,
+    "delta_nll_given_set_flip": 0.020379185676574707
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2476,
+    "delta_nll_given_set_flip": -0.039034366607666016
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2610,
+    "delta_nll_given_set_flip": -0.020853132009506226
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3320,
+    "delta_nll_given_set_flip": 0.004041194915771484
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3399,
+    "delta_nll_given_set_flip": -0.023196518421173096
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3552,
+    "delta_nll_given_set_flip": 0.20330381393432617
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3619,
+    "delta_nll_given_set_flip": 0.07385540008544922
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2180,
+    "delta_nll_given_set_flip": 0.020442605018615723
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 29,
+    "delta_nll_given_set_flip": 0.06821966171264648
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 168,
+    "delta_nll_given_set_flip": -0.023470401763916016
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 213,
+    "delta_nll_given_set_flip": -0.15384769439697266
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 939,
+    "delta_nll_given_set_flip": -0.08681678771972656
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1695,
+    "delta_nll_given_set_flip": 0.04083561897277832
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2180,
+    "delta_nll_given_set_flip": 0.020439743995666504
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2341,
+    "delta_nll_given_set_flip": 0.0722162127494812
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2432,
+    "delta_nll_given_set_flip": -0.07070350646972656
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2640,
+    "delta_nll_given_set_flip": -0.0292966365814209
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3652,
+    "delta_nll_given_set_flip": -0.026876449584960938
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3774,
+    "delta_nll_given_set_flip": -0.04043698310852051
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 786,
+    "delta_nll_given_set_flip": 0.008469104766845703
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 800,
+    "delta_nll_given_set_flip": 0.011991024017333984
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1644,
+    "delta_nll_given_set_flip": -0.028323471546173096
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1695,
+    "delta_nll_given_set_flip": 0.04083609580993652
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2126,
+    "delta_nll_given_set_flip": 0.05382430553436279
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2137,
+    "delta_nll_given_set_flip": 0.14208745956420898
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2482,
+    "delta_nll_given_set_flip": 0.004230976104736328
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3068,
+    "delta_nll_given_set_flip": 0.0030381977558135986
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3399,
+    "delta_nll_given_set_flip": -0.023277878761291504
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3506,
+    "delta_nll_given_set_flip": 0.05324077606201172
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3619,
+    "delta_nll_given_set_flip": 0.07466888427734375
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3774,
+    "delta_nll_given_set_flip": -0.04047799110412598
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 4078,
+    "delta_nll_given_set_flip": 0.09789073467254639
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 168,
+    "delta_nll_given_set_flip": -0.023521900177001953
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1132,
+    "delta_nll_given_set_flip": -0.2178351879119873
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1215,
+    "delta_nll_given_set_flip": 0.033782958984375
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1695,
+    "delta_nll_given_set_flip": 0.04083752632141113
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2047,
+    "delta_nll_given_set_flip": 0.0278780460357666
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2137,
+    "delta_nll_given_set_flip": 0.14209651947021484
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2341,
+    "delta_nll_given_set_flip": 0.07221859693527222
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3594,
+    "delta_nll_given_set_flip": 0.1498432159423828
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 87,
+    "delta_nll_given_set_flip": -0.06477415561676025
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 544,
+    "delta_nll_given_set_flip": -0.0011431872844696045
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 871,
+    "delta_nll_given_set_flip": -0.0765533447265625
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1882,
+    "delta_nll_given_set_flip": 0.026720046997070312
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1990,
+    "delta_nll_given_set_flip": 0.2593773603439331
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2232,
+    "delta_nll_given_set_flip": -0.10754609107971191
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2586,
+    "delta_nll_given_set_flip": 0.005626201629638672
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3426,
+    "delta_nll_given_set_flip": -0.005754530429840088
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 544,
+    "delta_nll_given_set_flip": -0.0010926425457000732
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 1352,
+    "delta_nll_given_set_flip": 0.020615577697753906
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 3140,
+    "delta_nll_given_set_flip": -0.0514678955078125
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 949,
+    "delta_nll_given_set_flip": 0.01998448371887207
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1206,
+    "delta_nll_given_set_flip": -0.02034023404121399
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1928,
+    "delta_nll_given_set_flip": -0.05549192428588867
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 4085,
+    "delta_nll_given_set_flip": -0.2464284896850586
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 874,
+    "delta_nll_given_set_flip": 0.002060145139694214
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1352,
+    "delta_nll_given_set_flip": 0.020615577697753906
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1928,
+    "delta_nll_given_set_flip": -0.05549001693725586
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3140,
+    "delta_nll_given_set_flip": -0.051509857177734375
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3263,
+    "delta_nll_given_set_flip": 0.14393234252929688
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3600,
+    "delta_nll_given_set_flip": -0.0014286041259765625
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3628,
+    "delta_nll_given_set_flip": -0.029177188873291016
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3759,
+    "delta_nll_given_set_flip": -0.15324807167053223
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 544,
+    "delta_nll_given_set_flip": -0.001073688268661499
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1352,
+    "delta_nll_given_set_flip": 0.020616531372070312
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1928,
+    "delta_nll_given_set_flip": -0.05549502372741699
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2232,
+    "delta_nll_given_set_flip": -0.10749173164367676
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2299,
+    "delta_nll_given_set_flip": 0.020111083984375
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2586,
+    "delta_nll_given_set_flip": 0.0056133270263671875
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3022,
+    "delta_nll_given_set_flip": 0.1925215721130371
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3665,
+    "delta_nll_given_set_flip": 0.0021860599517822266
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 271,
+    "delta_nll_given_set_flip": -0.14967221021652222
+  },
+  {
+    "seed": 17,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 271,
+    "delta_nll_given_set_flip": -0.14967232942581177
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 457,
+    "delta_nll_given_set_flip": -0.03386104106903076
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 457,
+    "delta_nll_given_set_flip": -0.03386688232421875
+  },
+  {
+    "seed": 17,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 457,
+    "delta_nll_given_set_flip": -0.03386664390563965
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 398,
+    "delta_nll_given_set_flip": -0.07166701555252075
+  },
+  {
+    "seed": 17,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 398,
+    "delta_nll_given_set_flip": -0.07166898250579834
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 292,
+    "delta_nll_given_set_flip": 0.025643348693847656
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 336,
+    "delta_nll_given_set_flip": 0.08044379949569702
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 485,
+    "delta_nll_given_set_flip": 0.018523454666137695
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 336,
+    "delta_nll_given_set_flip": 0.07987445592880249
+  },
+  {
+    "seed": 17,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 336,
+    "delta_nll_given_set_flip": 0.08007955551147461
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 434,
+    "delta_nll_given_set_flip": -0.026356220245361328
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 486,
+    "delta_nll_given_set_flip": -0.011635303497314453
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 837,
+    "delta_nll_given_set_flip": -0.10239887237548828
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 909,
+    "delta_nll_given_set_flip": -0.14613008499145508
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1024,
+    "delta_nll_given_set_flip": -0.005340635776519775
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1076,
+    "delta_nll_given_set_flip": 0.031584739685058594
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1370,
+    "delta_nll_given_set_flip": -0.026627659797668457
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1441,
+    "delta_nll_given_set_flip": -0.06931447982788086
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1598,
+    "delta_nll_given_set_flip": -0.01070404052734375
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2154,
+    "delta_nll_given_set_flip": -0.05394935607910156
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2201,
+    "delta_nll_given_set_flip": 0.0566173791885376
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2363,
+    "delta_nll_given_set_flip": 0.014654159545898438
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2587,
+    "delta_nll_given_set_flip": -0.03476524353027344
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2613,
+    "delta_nll_given_set_flip": 0.04479360580444336
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.18411952257156372
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2686,
+    "delta_nll_given_set_flip": 0.07687783241271973
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2910,
+    "delta_nll_given_set_flip": -0.01877880096435547
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2993,
+    "delta_nll_given_set_flip": -0.04203438758850098
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3321,
+    "delta_nll_given_set_flip": 0.023035645484924316
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3358,
+    "delta_nll_given_set_flip": 0.19278013706207275
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 486,
+    "delta_nll_given_set_flip": -0.01163095235824585
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 859,
+    "delta_nll_given_set_flip": 0.16103219985961914
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 314,
+    "delta_nll_given_set_flip": -0.10829520225524902
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 434,
+    "delta_nll_given_set_flip": -0.026299595832824707
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 859,
+    "delta_nll_given_set_flip": 0.16126298904418945
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1007,
+    "delta_nll_given_set_flip": 0.21545886993408203
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1901,
+    "delta_nll_given_set_flip": 0.011650562286376953
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2105,
+    "delta_nll_given_set_flip": 0.06377887725830078
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2154,
+    "delta_nll_given_set_flip": -0.05379199981689453
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.18411564826965332
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 23,
+    "delta_nll_given_set_flip": 0.037174344062805176
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 314,
+    "delta_nll_given_set_flip": -0.10830020904541016
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 394,
+    "delta_nll_given_set_flip": -0.00892484188079834
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 785,
+    "delta_nll_given_set_flip": -0.09279394149780273
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 859,
+    "delta_nll_given_set_flip": 0.16091203689575195
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1610,
+    "delta_nll_given_set_flip": 0.012826800346374512
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1901,
+    "delta_nll_given_set_flip": 0.011644840240478516
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2105,
+    "delta_nll_given_set_flip": 0.06377887725830078
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2194,
+    "delta_nll_given_set_flip": -0.08322620391845703
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.18413233757019043
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2993,
+    "delta_nll_given_set_flip": -0.042072296142578125
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3049,
+    "delta_nll_given_set_flip": -0.06946086883544922
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3127,
+    "delta_nll_given_set_flip": -0.11016488075256348
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 486,
+    "delta_nll_given_set_flip": -0.01163250207901001
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 837,
+    "delta_nll_given_set_flip": -0.10245037078857422
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 859,
+    "delta_nll_given_set_flip": 0.16097736358642578
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1007,
+    "delta_nll_given_set_flip": 0.21551966667175293
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1076,
+    "delta_nll_given_set_flip": 0.03157234191894531
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1505,
+    "delta_nll_given_set_flip": -0.0029888153076171875
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1901,
+    "delta_nll_given_set_flip": 0.011642932891845703
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2194,
+    "delta_nll_given_set_flip": -0.08306336402893066
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.1841508150100708
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3127,
+    "delta_nll_given_set_flip": -0.11025404930114746
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3358,
+    "delta_nll_given_set_flip": 0.19308513402938843
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3472,
+    "delta_nll_given_set_flip": -0.022923946380615234
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 268,
+    "delta_nll_given_set_flip": 0.01022762805223465
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 323,
+    "delta_nll_given_set_flip": 0.04664421081542969
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 552,
+    "delta_nll_given_set_flip": 0.03881359100341797
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1141,
+    "delta_nll_given_set_flip": 0.08530759811401367
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2141,
+    "delta_nll_given_set_flip": 0.23018288612365723
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2825,
+    "delta_nll_given_set_flip": 0.03676319122314453
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3090,
+    "delta_nll_given_set_flip": 0.0934910774230957
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3140,
+    "delta_nll_given_set_flip": 0.042853355407714844
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3161,
+    "delta_nll_given_set_flip": 0.045760154724121094
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3955,
+    "delta_nll_given_set_flip": -0.03628683090209961
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3969,
+    "delta_nll_given_set_flip": 0.005343914031982422
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 233,
+    "delta_nll_given_set_flip": -0.09494400024414062
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 323,
+    "delta_nll_given_set_flip": 0.046652793884277344
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1340,
+    "delta_nll_given_set_flip": -0.07510709762573242
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2077,
+    "delta_nll_given_set_flip": 0.11197531223297119
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2886,
+    "delta_nll_given_set_flip": 0.04523766040802002
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3342,
+    "delta_nll_given_set_flip": -0.026203632354736328
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 119,
+    "delta_nll_given_set_flip": 0.03529715538024902
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 323,
+    "delta_nll_given_set_flip": 0.04665422439575195
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 784,
+    "delta_nll_given_set_flip": -0.1579732894897461
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1037,
+    "delta_nll_given_set_flip": -0.07357358932495117
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2026,
+    "delta_nll_given_set_flip": 0.00015491247177124023
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2077,
+    "delta_nll_given_set_flip": 0.1120375394821167
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2141,
+    "delta_nll_given_set_flip": 0.23019194602966309
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2831,
+    "delta_nll_given_set_flip": 0.03316450119018555
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2886,
+    "delta_nll_given_set_flip": 0.045237183570861816
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3308,
+    "delta_nll_given_set_flip": 0.09178793430328369
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3312,
+    "delta_nll_given_set_flip": -0.01706850528717041
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 233,
+    "delta_nll_given_set_flip": -0.09501838684082031
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 323,
+    "delta_nll_given_set_flip": 0.046658992767333984
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1037,
+    "delta_nll_given_set_flip": -0.07357311248779297
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1177,
+    "delta_nll_given_set_flip": 0.09712505340576172
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3308,
+    "delta_nll_given_set_flip": 0.09178388118743896
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3312,
+    "delta_nll_given_set_flip": -0.017098188400268555
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3631,
+    "delta_nll_given_set_flip": -0.08065855503082275
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 616,
+    "delta_nll_given_set_flip": 0.05887103080749512
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1389,
+    "delta_nll_given_set_flip": -0.09488630294799805
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1897,
+    "delta_nll_given_set_flip": 0.07613259553909302
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2044,
+    "delta_nll_given_set_flip": 0.2094712257385254
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2137,
+    "delta_nll_given_set_flip": 0.08664846420288086
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2368,
+    "delta_nll_given_set_flip": -0.12561488151550293
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.0921013355255127
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2684,
+    "delta_nll_given_set_flip": -0.11037158966064453
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2719,
+    "delta_nll_given_set_flip": 0.014196395874023438
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3797,
+    "delta_nll_given_set_flip": 0.16683578491210938
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3879,
+    "delta_nll_given_set_flip": -0.003115832805633545
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 1389,
+    "delta_nll_given_set_flip": -0.09485816955566406
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 616,
+    "delta_nll_given_set_flip": 0.0588986873626709
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 955,
+    "delta_nll_given_set_flip": -0.03906196355819702
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1054,
+    "delta_nll_given_set_flip": -0.012231826782226562
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2044,
+    "delta_nll_given_set_flip": 0.20850801467895508
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2137,
+    "delta_nll_given_set_flip": 0.08664846420288086
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2368,
+    "delta_nll_given_set_flip": -0.12563812732696533
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2510,
+    "delta_nll_given_set_flip": -0.06150650978088379
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3218,
+    "delta_nll_given_set_flip": 0.00011801719665527344
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3722,
+    "delta_nll_given_set_flip": -0.09844827651977539
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3797,
+    "delta_nll_given_set_flip": 0.16687631607055664
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3883,
+    "delta_nll_given_set_flip": 0.05128192901611328
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1051,
+    "delta_nll_given_set_flip": 0.008709907531738281
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1054,
+    "delta_nll_given_set_flip": -0.011929035186767578
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1128,
+    "delta_nll_given_set_flip": -0.02050304412841797
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1389,
+    "delta_nll_given_set_flip": -0.08585619926452637
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2137,
+    "delta_nll_given_set_flip": 0.08666086196899414
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2368,
+    "delta_nll_given_set_flip": -0.1256505250930786
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2510,
+    "delta_nll_given_set_flip": -0.061411380767822266
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2684,
+    "delta_nll_given_set_flip": -0.11035680770874023
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3879,
+    "delta_nll_given_set_flip": -0.0032738447189331055
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 955,
+    "delta_nll_given_set_flip": -0.03907792270183563
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1022,
+    "delta_nll_given_set_flip": 0.03501605987548828
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1054,
+    "delta_nll_given_set_flip": -0.011919021606445312
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1188,
+    "delta_nll_given_set_flip": -0.01849043369293213
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2684,
+    "delta_nll_given_set_flip": -0.11037778854370117
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3468,
+    "delta_nll_given_set_flip": 0.026090145111083984
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 67,
+    "delta_nll_given_set_flip": -0.06358528137207031
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 848,
+    "delta_nll_given_set_flip": 0.042212486267089844
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1253,
+    "delta_nll_given_set_flip": 0.024349689483642578
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1475,
+    "delta_nll_given_set_flip": -0.14627933502197266
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1704,
+    "delta_nll_given_set_flip": -0.13140869140625
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1913,
+    "delta_nll_given_set_flip": 0.07429647445678711
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1965,
+    "delta_nll_given_set_flip": -0.03089320659637451
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2455,
+    "delta_nll_given_set_flip": -0.004575967788696289
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2715,
+    "delta_nll_given_set_flip": 0.04648590087890625
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2719,
+    "delta_nll_given_set_flip": 0.03244495391845703
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3113,
+    "delta_nll_given_set_flip": -0.05702567100524902
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 928,
+    "delta_nll_given_set_flip": -0.01339799165725708
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2029,
+    "delta_nll_given_set_flip": -0.10153007507324219
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1163,
+    "delta_nll_given_set_flip": 0.01899433135986328
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1475,
+    "delta_nll_given_set_flip": -0.14635181427001953
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1703,
+    "delta_nll_given_set_flip": 0.01443028450012207
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2715,
+    "delta_nll_given_set_flip": 0.04651355743408203
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1163,
+    "delta_nll_given_set_flip": 0.019005537033081055
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1253,
+    "delta_nll_given_set_flip": 0.0239105224609375
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1475,
+    "delta_nll_given_set_flip": -0.14624595642089844
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1513,
+    "delta_nll_given_set_flip": 0.11541366577148438
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1999,
+    "delta_nll_given_set_flip": -0.0325646698474884
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2455,
+    "delta_nll_given_set_flip": -0.0046765804290771484
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3227,
+    "delta_nll_given_set_flip": -0.25670957565307617
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3537,
+    "delta_nll_given_set_flip": 0.07706594467163086
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3933,
+    "delta_nll_given_set_flip": 0.17994308471679688
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 67,
+    "delta_nll_given_set_flip": -0.06361579895019531
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 444,
+    "delta_nll_given_set_flip": 0.012100934982299805
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 928,
+    "delta_nll_given_set_flip": -0.013425976037979126
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1163,
+    "delta_nll_given_set_flip": 0.018998146057128906
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1253,
+    "delta_nll_given_set_flip": 0.02407550811767578
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1475,
+    "delta_nll_given_set_flip": -0.14621734619140625
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1704,
+    "delta_nll_given_set_flip": -0.13142776489257812
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1965,
+    "delta_nll_given_set_flip": -0.030905604362487793
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2211,
+    "delta_nll_given_set_flip": -0.0015735626220703125
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3537,
+    "delta_nll_given_set_flip": 0.07713985443115234
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 75,
+    "delta_nll_given_set_flip": -0.07582747936248779
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 118,
+    "delta_nll_given_set_flip": -0.12169694900512695
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 232,
+    "delta_nll_given_set_flip": 0.03341245651245117
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 66,
+    "delta_nll_given_set_flip": -0.018056869506835938
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 66,
+    "delta_nll_given_set_flip": -0.017999649047851562
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 75,
+    "delta_nll_given_set_flip": -0.07546079158782959
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 118,
+    "delta_nll_given_set_flip": -0.12166452407836914
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 66,
+    "delta_nll_given_set_flip": -0.01797962188720703
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 66,
+    "delta_nll_given_set_flip": -0.018064498901367188
+  },
+  {
+    "seed": 29,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 232,
+    "delta_nll_given_set_flip": 0.033435821533203125
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 263,
+    "delta_nll_given_set_flip": 0.018008321523666382
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 493,
+    "delta_nll_given_set_flip": 0.1115880012512207
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3,
+    "delta_nll_given_set_flip": -0.075478196144104
+  },
+  {
+    "seed": 29,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 493,
+    "delta_nll_given_set_flip": 0.11161583662033081
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 151,
+    "delta_nll_given_set_flip": -0.011502265930175781
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 401,
+    "delta_nll_given_set_flip": -0.008111715316772461
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 176,
+    "delta_nll_given_set_flip": 0.05885505676269531
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 338,
+    "delta_nll_given_set_flip": 0.025971412658691406
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 401,
+    "delta_nll_given_set_flip": -0.00821840763092041
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 500,
+    "delta_nll_given_set_flip": -0.074249267578125
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 151,
+    "delta_nll_given_set_flip": -0.011560440063476562
+  },
+  {
+    "seed": 29,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 176,
+    "delta_nll_given_set_flip": 0.058693885803222656
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 374,
+    "delta_nll_given_set_flip": -0.03636670112609863
+  },
+  {
+    "seed": 29,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 255,
+    "delta_nll_given_set_flip": 0.0973062515258789
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 745,
+    "delta_nll_given_set_flip": 0.02274799346923828
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 914,
+    "delta_nll_given_set_flip": -0.06391048431396484
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1342,
+    "delta_nll_given_set_flip": 0.0660696029663086
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1711,
+    "delta_nll_given_set_flip": 0.027124881744384766
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2003,
+    "delta_nll_given_set_flip": -0.019597649574279785
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2084,
+    "delta_nll_given_set_flip": -0.04587280750274658
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.005633533000946045
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2642,
+    "delta_nll_given_set_flip": -0.012073040008544922
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2829,
+    "delta_nll_given_set_flip": -0.01662755012512207
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2870,
+    "delta_nll_given_set_flip": -0.34542083740234375
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3439,
+    "delta_nll_given_set_flip": 0.039092421531677246
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3695,
+    "delta_nll_given_set_flip": -0.06901615858078003
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3926,
+    "delta_nll_given_set_flip": 0.012019634246826172
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 1342,
+    "delta_nll_given_set_flip": 0.06598496437072754
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 1512,
+    "delta_nll_given_set_flip": 0.001499176025390625
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 3255,
+    "delta_nll_given_set_flip": 0.1150970458984375
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 44,
+    "delta_nll_given_set_flip": 0.00021056225523352623
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 808,
+    "delta_nll_given_set_flip": 0.07731270790100098
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 809,
+    "delta_nll_given_set_flip": 0.01259922981262207
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 914,
+    "delta_nll_given_set_flip": -0.06388664245605469
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1342,
+    "delta_nll_given_set_flip": 0.06621789932250977
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1512,
+    "delta_nll_given_set_flip": 0.0015125274658203125
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1711,
+    "delta_nll_given_set_flip": 0.027176380157470703
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2120,
+    "delta_nll_given_set_flip": 0.02972888946533203
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2568,
+    "delta_nll_given_set_flip": -0.08472490310668945
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 737,
+    "delta_nll_given_set_flip": -0.044404029846191406
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1512,
+    "delta_nll_given_set_flip": 0.0015478134155273438
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1646,
+    "delta_nll_given_set_flip": -0.03472405672073364
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2618,
+    "delta_nll_given_set_flip": -0.005605041980743408
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3255,
+    "delta_nll_given_set_flip": 0.11472320556640625
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3439,
+    "delta_nll_given_set_flip": 0.038968801498413086
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 808,
+    "delta_nll_given_set_flip": 0.07731175422668457
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 813,
+    "delta_nll_given_set_flip": -0.10288619995117188
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 914,
+    "delta_nll_given_set_flip": -0.06386756896972656
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1285,
+    "delta_nll_given_set_flip": 0.00433802604675293
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1342,
+    "delta_nll_given_set_flip": 0.06601834297180176
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1512,
+    "delta_nll_given_set_flip": 0.0015134811401367188
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1711,
+    "delta_nll_given_set_flip": 0.027199745178222656
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2084,
+    "delta_nll_given_set_flip": -0.04588186740875244
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2568,
+    "delta_nll_given_set_flip": -0.0847012996673584
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2829,
+    "delta_nll_given_set_flip": -0.016594648361206055
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3926,
+    "delta_nll_given_set_flip": 0.011914730072021484
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 443,
+    "delta_nll_given_set_flip": 0.05063056945800781
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 554,
+    "delta_nll_given_set_flip": 0.011164665222167969
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1016,
+    "delta_nll_given_set_flip": -0.09159660339355469
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1098,
+    "delta_nll_given_set_flip": 0.027910172939300537
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1163,
+    "delta_nll_given_set_flip": 0.21205759048461914
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1273,
+    "delta_nll_given_set_flip": -0.05324959754943848
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2482,
+    "delta_nll_given_set_flip": -0.07927322387695312
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2490,
+    "delta_nll_given_set_flip": -0.07912015914916992
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2530,
+    "delta_nll_given_set_flip": -0.0030621886253356934
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2580,
+    "delta_nll_given_set_flip": 0.13085752725601196
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2763,
+    "delta_nll_given_set_flip": 0.20818209648132324
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3185,
+    "delta_nll_given_set_flip": -0.018992066383361816
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3544,
+    "delta_nll_given_set_flip": -0.11545801162719727
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3658,
+    "delta_nll_given_set_flip": 0.004082202911376953
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3900,
+    "delta_nll_given_set_flip": -0.0033105313777923584
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3905,
+    "delta_nll_given_set_flip": -0.005387306213378906
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2763,
+    "delta_nll_given_set_flip": 0.20826148986816406
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2911,
+    "delta_nll_given_set_flip": 0.018131732940673828
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 3185,
+    "delta_nll_given_set_flip": -0.0188601016998291
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 78,
+    "delta_nll_given_set_flip": 0.00482487678527832
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 554,
+    "delta_nll_given_set_flip": 0.011037826538085938
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1349,
+    "delta_nll_given_set_flip": -0.05573844909667969
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2482,
+    "delta_nll_given_set_flip": -0.07901763916015625
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2763,
+    "delta_nll_given_set_flip": 0.2083268165588379
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 2864,
+    "delta_nll_given_set_flip": -0.007074892520904541
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3081,
+    "delta_nll_given_set_flip": -0.03087759017944336
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3750,
+    "delta_nll_given_set_flip": -0.012217521667480469
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3765,
+    "delta_nll_given_set_flip": 0.04429817199707031
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 78,
+    "delta_nll_given_set_flip": 0.004875898361206055
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 904,
+    "delta_nll_given_set_flip": -0.015428781509399414
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1163,
+    "delta_nll_given_set_flip": 0.21206927299499512
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1666,
+    "delta_nll_given_set_flip": 0.020572185516357422
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2482,
+    "delta_nll_given_set_flip": -0.07907485961914062
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2911,
+    "delta_nll_given_set_flip": 0.01817035675048828
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3185,
+    "delta_nll_given_set_flip": -0.018894195556640625
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3750,
+    "delta_nll_given_set_flip": -0.011968612670898438
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 554,
+    "delta_nll_given_set_flip": 0.010962963104248047
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 851,
+    "delta_nll_given_set_flip": 0.10789227485656738
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2482,
+    "delta_nll_given_set_flip": -0.07893848419189453
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2864,
+    "delta_nll_given_set_flip": -0.007073044776916504
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3185,
+    "delta_nll_given_set_flip": -0.018868207931518555
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1264,
+    "delta_nll_given_set_flip": -0.0065631866455078125
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1327,
+    "delta_nll_given_set_flip": 0.042285919189453125
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1406,
+    "delta_nll_given_set_flip": 0.041409969329833984
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2134,
+    "delta_nll_given_set_flip": -0.05545616149902344
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2177,
+    "delta_nll_given_set_flip": -0.14336776733398438
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2636,
+    "delta_nll_given_set_flip": 0.01730632781982422
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3264,
+    "delta_nll_given_set_flip": -0.03559064865112305
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3509,
+    "delta_nll_given_set_flip": 0.14711475372314453
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3630,
+    "delta_nll_given_set_flip": 0.012995891273021698
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3942,
+    "delta_nll_given_set_flip": -0.18572711944580078
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 1264,
+    "delta_nll_given_set_flip": -0.006565093994140625
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2134,
+    "delta_nll_given_set_flip": -0.05543184280395508
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 383,
+    "delta_nll_given_set_flip": 0.19356513023376465
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1264,
+    "delta_nll_given_set_flip": -0.006578922271728516
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1327,
+    "delta_nll_given_set_flip": 0.04235363006591797
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1361,
+    "delta_nll_given_set_flip": -0.09035921096801758
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3931,
+    "delta_nll_given_set_flip": 0.046843528747558594
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 432,
+    "delta_nll_given_set_flip": 0.02876567840576172
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1132,
+    "delta_nll_given_set_flip": -0.008559584617614746
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3264,
+    "delta_nll_given_set_flip": -0.035611867904663086
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3490,
+    "delta_nll_given_set_flip": -0.004761934280395508
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 1132,
+    "delta_nll_given_set_flip": -0.008602499961853027
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2017,
+    "delta_nll_given_set_flip": 0.014556705951690674
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3264,
+    "delta_nll_given_set_flip": -0.03558778762817383
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 549,
+    "delta_nll_given_set_flip": -0.05630683898925781
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1162,
+    "delta_nll_given_set_flip": -0.014046192169189453
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1617,
+    "delta_nll_given_set_flip": -0.05565500259399414
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1803,
+    "delta_nll_given_set_flip": -0.0017892727628350258
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 1840,
+    "delta_nll_given_set_flip": 0.0673065185546875
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2226,
+    "delta_nll_given_set_flip": -0.003811478614807129
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2353,
+    "delta_nll_given_set_flip": 0.013213872909545898
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2476,
+    "delta_nll_given_set_flip": -0.14462566375732422
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 2530,
+    "delta_nll_given_set_flip": -0.033991217613220215
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3383,
+    "delta_nll_given_set_flip": -0.031467437744140625
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 3670,
+    "delta_nll_given_set_flip": -0.07151377201080322
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 4040,
+    "delta_nll_given_set_flip": -0.025569915771484375
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 2530,
+    "delta_nll_given_set_flip": -0.03404724597930908
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "fp16_input_roundtrip",
+    "token_row": 3109,
+    "delta_nll_given_set_flip": 0.06545567512512207
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 111,
+    "delta_nll_given_set_flip": -0.009224891662597656
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1125,
+    "delta_nll_given_set_flip": -0.021451473236083984
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1482,
+    "delta_nll_given_set_flip": -0.11092615127563477
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 1945,
+    "delta_nll_given_set_flip": -0.04427385330200195
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 3109,
+    "delta_nll_given_set_flip": 0.06546640396118164
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 111,
+    "delta_nll_given_set_flip": -0.009240865707397461
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 549,
+    "delta_nll_given_set_flip": -0.05619239807128906
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 852,
+    "delta_nll_given_set_flip": 0.12537527084350586
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 1275,
+    "delta_nll_given_set_flip": 0.027303695678710938
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2367,
+    "delta_nll_given_set_flip": 0.0022149458527565002
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2401,
+    "delta_nll_given_set_flip": -0.0035696029663085938
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2663,
+    "delta_nll_given_set_flip": 0.028527140617370605
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 2713,
+    "delta_nll_given_set_flip": 0.035002708435058594
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3253,
+    "delta_nll_given_set_flip": 0.13618969917297363
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 3670,
+    "delta_nll_given_set_flip": -0.07150214910507202
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 549,
+    "delta_nll_given_set_flip": -0.056331634521484375
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 722,
+    "delta_nll_given_set_flip": -0.028635025024414062
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2226,
+    "delta_nll_given_set_flip": -0.003910541534423828
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2469,
+    "delta_nll_given_set_flip": 0.07429790496826172
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 2663,
+    "delta_nll_given_set_flip": 0.028614163398742676
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3109,
+    "delta_nll_given_set_flip": 0.06551361083984375
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "train",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 3253,
+    "delta_nll_given_set_flip": 0.13618111610412598
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 129,
+    "delta_nll_given_set_flip": 0.1330866813659668
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 132,
+    "delta_nll_given_set_flip": -0.030796051025390625
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 134,
+    "delta_nll_given_set_flip": -0.03334474563598633
+  },
+  {
+    "seed": 43,
+    "method": "angle_natural",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 343,
+    "delta_nll_given_set_flip": -0.009290218353271484
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 237,
+    "delta_nll_given_set_flip": 0.0688169002532959
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 458,
+    "delta_nll_given_set_flip": -0.027369022369384766
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 237,
+    "delta_nll_given_set_flip": 0.06872797012329102
+  },
+  {
+    "seed": 43,
+    "method": "angle_random",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r2",
+    "token_row": 182,
+    "delta_nll_given_set_flip": 0.048323214054107666
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 64,
+    "delta_nll_given_set_flip": -0.013247847557067871
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 86,
+    "delta_nll_given_set_flip": -0.013552725315093994
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 328,
+    "delta_nll_given_set_flip": 0.04555225372314453
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 430,
+    "delta_nll_given_set_flip": -0.17621326446533203
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 86,
+    "delta_nll_given_set_flip": -0.013577282428741455
+  },
+  {
+    "seed": 43,
+    "method": "angle_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 328,
+    "delta_nll_given_set_flip": 0.045879364013671875
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "bf16_input_roundtrip",
+    "token_row": 484,
+    "delta_nll_given_set_flip": -0.10124623775482178
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r0",
+    "token_row": 138,
+    "delta_nll_given_set_flip": -0.040372610092163086
+  },
+  {
+    "seed": 43,
+    "method": "product_functional",
+    "split": "validation",
+    "condition": "gaussian_rms_001_r1",
+    "token_row": 224,
+    "delta_nll_given_set_flip": -0.10071969032287598
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "runs": 3,
+  "cpu_replays": 6,
+  "same_sampling_as_reference": false,
+  "same_encoder_initialization": true,
+  "finite_gradients": true,
+  "sources_unchanged": true,
+  "missing": [],
+  "failed": []
+}

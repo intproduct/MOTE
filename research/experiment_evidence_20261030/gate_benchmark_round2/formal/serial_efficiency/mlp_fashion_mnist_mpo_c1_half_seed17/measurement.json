@@ -1,0 +1,29 @@
+{
+  "stage": "mlp",
+  "task": "fashion_mnist",
+  "gate": "mpo_c1_half",
+  "seed": 17,
+  "source_checkpoint_step": 900,
+  "warmup_steps": 3,
+  "measured_steps": 10,
+  "final_reevaluation_matches": true,
+  "routing_reevaluation_matches": true,
+  "training_seconds": 6.953931000000011,
+  "seconds_per_step": 0.6953931000000011,
+  "step_time_sample_std": 0.03558725097786601,
+  "examples_per_second": 184.06855057952083,
+  "peak_cuda_mib": 223.52392578125,
+  "step_seconds": [
+    0.7094505000022764,
+    0.6941001000013785,
+    0.7829076999987592,
+    0.6643975999977556,
+    0.679357599998184,
+    0.6692069999990053,
+    0.6852512000004936,
+    0.687573600000178,
+    0.6640939999997499,
+    0.7175917000022309
+  ],
+  "protocol": "serial selected-checkpoint continuation with fresh AdamW; includes data fetch, transfer, forward/backward, clipping and optimizer; 3 warmup + 10 measured; weights discarded"
+}

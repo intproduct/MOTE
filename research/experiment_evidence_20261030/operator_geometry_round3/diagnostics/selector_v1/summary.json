@@ -1,0 +1,137 @@
+{
+  "rows": [
+    {
+      "seed": 17,
+      "split": "dev",
+      "cached_logits_selection_changes": 0,
+      "cached_prob_selection_changes": 1,
+      "regenerated_logits_selection_changes": 0,
+      "regenerated_prob_selection_changes": 1,
+      "cached_logits_weight_max_abs": 2.9802322387695312e-08,
+      "regenerated_logits_max_abs": 0.0,
+      "cases": [
+        {
+          "index": 3462,
+          "window": 2958080,
+          "position": 95,
+          "rank3to6": [
+            2,
+            8,
+            7,
+            6
+          ],
+          "cached_logits": [
+            1.0092599391937256,
+            -2.220889091491699,
+            -2.2208895683288574,
+            -2.22115159034729
+          ],
+          "cached_p": [
+            0.1773882955312729,
+            0.0070159900933504105,
+            0.0070159900933504105,
+            0.007014150731265545
+          ],
+          "batch256_logits": [
+            1.0092599391937256,
+            -2.220889091491699,
+            -2.2208895683288574,
+            -2.22115159034729
+          ],
+          "batch256_p": [
+            0.1773882955312729,
+            0.0070159900933504105,
+            0.0070159900933504105,
+            0.007014150731265545
+          ],
+          "batch1_logits": [
+            1.009259819984436,
+            -2.220889091491699,
+            -2.2208895683288574,
+            -2.221151828765869
+          ],
+          "cached_selected": [
+            0,
+            2,
+            8,
+            10
+          ],
+          "batch256_logits_selected": [
+            0,
+            2,
+            8,
+            10
+          ],
+          "batch256_p_selected": [
+            0,
+            2,
+            7,
+            10
+          ],
+          "batch1_actual_gate_selected": [
+            0,
+            2,
+            8,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "cached_logits_selection_changes": 0,
+      "cached_prob_selection_changes": 0,
+      "regenerated_logits_selection_changes": 0,
+      "regenerated_prob_selection_changes": 0,
+      "cached_logits_weight_max_abs": 2.9802322387695312e-08,
+      "regenerated_logits_max_abs": 0.0,
+      "cases": []
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "cached_logits_selection_changes": 0,
+      "cached_prob_selection_changes": 0,
+      "regenerated_logits_selection_changes": 0,
+      "regenerated_prob_selection_changes": 0,
+      "cached_logits_weight_max_abs": 2.9802322387695312e-08,
+      "regenerated_logits_max_abs": 0.0,
+      "cases": []
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "cached_logits_selection_changes": 0,
+      "cached_prob_selection_changes": 0,
+      "regenerated_logits_selection_changes": 0,
+      "regenerated_prob_selection_changes": 0,
+      "cached_logits_weight_max_abs": 2.9802322387695312e-08,
+      "regenerated_logits_max_abs": 0.0,
+      "cases": []
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "cached_logits_selection_changes": 0,
+      "cached_prob_selection_changes": 0,
+      "regenerated_logits_selection_changes": 0,
+      "regenerated_prob_selection_changes": 0,
+      "cached_logits_weight_max_abs": 2.9802322387695312e-08,
+      "regenerated_logits_max_abs": 0.0,
+      "cases": []
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "cached_logits_selection_changes": 0,
+      "cached_prob_selection_changes": 0,
+      "regenerated_logits_selection_changes": 0,
+      "regenerated_prob_selection_changes": 0,
+      "cached_logits_weight_max_abs": 2.9802322387695312e-08,
+      "regenerated_logits_max_abs": 0.0,
+      "cases": []
+    }
+  ],
+  "scope": "Originalgate selects pre-softmax logits. Probability-based surrogate is a different finite-precision selector. Compare native batch1/256 separately."
+}

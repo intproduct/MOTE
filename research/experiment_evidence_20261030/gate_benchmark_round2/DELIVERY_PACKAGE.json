@@ -1,0 +1,8 @@
+{
+  "archive": "D:\\files\\MOTE\\outputs\\gate_benchmark_round2\\gate_benchmark_round2_results.zip",
+  "files": 1277,
+  "bytes": 19191104,
+  "sha256": "bc049d5d8e5169442364971211fc567bd1887661a705bf094c40edfc09bd4bc9",
+  "excluded": "checkpoints, model weights, datasets, Python environment, pycache, pytest temporary directories, smoke outputs",
+  "zip_crc_verified": true
+}

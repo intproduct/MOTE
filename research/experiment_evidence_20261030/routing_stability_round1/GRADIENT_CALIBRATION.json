@@ -1,0 +1,34 @@
+{
+  "split": "train",
+  "threshold": 0.05,
+  "pilot_checkpoint_step": 120,
+  "rows": [
+    {
+      "variant": "mlp_half",
+      "train_task_loss": 6.934764862060547,
+      "raw_margin_loss": 0.00030835327925160527,
+      "task_router_grad_norm": 0.0008139225537888706,
+      "margin_router_grad_norm": 2.3147857189178467,
+      "weighted_ratio_lambda001": 28.439876842610463,
+      "weighted_ratio_lambda01": 284.3987684261046
+    },
+    {
+      "variant": "amp_half",
+      "train_task_loss": 6.9374680519104,
+      "raw_margin_loss": 0.0002331490395590663,
+      "task_router_grad_norm": 0.002853990765288472,
+      "margin_router_grad_norm": 1.878632664680481,
+      "weighted_ratio_lambda001": 6.5824763258846595,
+      "weighted_ratio_lambda01": 65.8247632588466
+    },
+    {
+      "variant": "born_lite",
+      "train_task_loss": 6.930523872375488,
+      "raw_margin_loss": 0.00023346982197836041,
+      "task_router_grad_norm": 0.0020488465670496225,
+      "margin_router_grad_norm": 2.4287965297698975,
+      "weighted_ratio_lambda001": 11.854457863418293,
+      "weighted_ratio_lambda01": 118.54457863418295
+    }
+  ]
+}

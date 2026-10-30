@@ -1,0 +1,53 @@
+{
+  "state": "authorized_research_stage_complete_for_user_review",
+  "completed_local": "2026-10-30T13:05:39.981567+08:00",
+  "authorized_phase_complete": true,
+  "research_program_complete": false,
+  "active": false,
+  "stages": {
+    "round2": {
+      "path": "outputs/operator_geometry_round2/STAGE_COMPLETION_AUDIT.json",
+      "sha256": "d16c4004ce7163b16e6c9076441160f8e99bcc65d050b69e72a39e966d5a15b4"
+    },
+    "capacity_replay": {
+      "path": "outputs/operator_geometry_round3/CAPACITY_STAGE_COMPLETION_AUDIT.json",
+      "sha256": "903d136976c53a0543ce06444dd60fbb55ca895b5e0e59e38411d74c3c5d7dcc"
+    },
+    "functional": {
+      "path": "outputs/operator_geometry_round3/FUNCTIONAL_STAGE_COMPLETION_AUDIT.json",
+      "sha256": "c23d2b334d70e85c1d52331d1c5a392dffc1c999f2785e91fcbd4367df5781cc"
+    }
+  },
+  "work_plan_outcomes": {
+    "A": "Expanded boundary, utility cache and exact replacement diagnostics completed",
+    "B": "All prespecified matched utility, positive and classical controls completed and audited",
+    "C": "Utility extension declined on negative internal-dev evidence; independent capacity and functional controls completed instead",
+    "D": "Checkpoint replay, paired statistics, serial timing, mathematical checks and all stage reports completed"
+  },
+  "budget": {
+    "original_target_hours": [
+      5,
+      6
+    ],
+    "network_outage_excluded": true,
+    "resumed_local": "2026-10-30T11:03:00+08:00",
+    "provisional_review_target": "2026-10-30T14:45:00+08:00",
+    "accounting": "Exact active human/agent time was not metered; background jobs continued until05:31 during the outage.",
+    "decision": "Deliver the completed bounded research stages now for review. Do not repeat training to consume unused budget."
+  },
+  "latest_report": "research/operator_family_quantum_gate_20261030/FUNCTIONAL_GEOMETRY_REVIEW_20261030_zh.pdf",
+  "future_work": [
+    "Joint gate/expert optimization with task CE/PPL as primary outcomes",
+    "Matched prior quantum-router implementations and classical readout controls",
+    "Independent tasks or reserved evaluation splits and expert functional specialization"
+  ],
+  "test_reserved": true,
+  "gpu_lock_present": false,
+  "missing": [],
+  "failed_required_current_groups": [],
+  "automation": {
+    "id": "mote",
+    "status": "deleted",
+    "confirmed_local": "2026-10-30T13:06:16.491257+08:00"
+  }
+}

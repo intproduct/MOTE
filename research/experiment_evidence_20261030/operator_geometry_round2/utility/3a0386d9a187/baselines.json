@@ -1,0 +1,254 @@
+[
+  {
+    "seed": 17,
+    "kind": "constant_train_mean",
+    "split": "dev",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 0,
+      "mean_delta_ce": 0.0,
+      "delta_ce_ci95_windows": [
+        0.0,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.27785512804985046,
+      "label_oracle_mean_delta_ce": -0.27785512804985046,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.16267448715776509
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 17,
+    "kind": "constant_train_mean",
+    "split": "validation",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 0,
+      "mean_delta_ce": 0.0,
+      "delta_ce_ci95_windows": [
+        0.0,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.2845913767814636,
+      "label_oracle_mean_delta_ce": -0.2845913767814636,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.15344125150900823
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 17,
+    "kind": "true_first_order_label_oracle",
+    "split": "dev",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.0,
+      "changed": 4093,
+      "mean_delta_ce": -0.2605733275413513,
+      "delta_ce_ci95_windows": [
+        -0.26948758587241173,
+        -0.2516673564910889
+      ],
+      "regret_to_label_oracle": 0.017281802371144295,
+      "label_oracle_mean_delta_ce": -0.27785512804985046,
+      "harm_gt_01": 104,
+      "benefit_lt_minus_01": 3055,
+      "predicted_vs_actual_selected_candidate_rho": 0.8413072586789223
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 17,
+    "kind": "true_first_order_label_oracle",
+    "split": "validation",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.0,
+      "changed": 4093,
+      "mean_delta_ce": -0.27045872807502747,
+      "delta_ce_ci95_windows": [
+        -0.2807935431599617,
+        -0.25961252227425574
+      ],
+      "regret_to_label_oracle": 0.014132658019661903,
+      "label_oracle_mean_delta_ce": -0.2845913767814636,
+      "harm_gt_01": 95,
+      "benefit_lt_minus_01": 3105,
+      "predicted_vs_actual_selected_candidate_rho": 0.8388745525458458
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 29,
+    "kind": "constant_train_mean",
+    "split": "dev",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 0,
+      "mean_delta_ce": 0.0,
+      "delta_ce_ci95_windows": [
+        0.0,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.27592629194259644,
+      "label_oracle_mean_delta_ce": -0.27592629194259644,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.08701240791483682
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 29,
+    "kind": "constant_train_mean",
+    "split": "validation",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 0,
+      "mean_delta_ce": 0.0,
+      "delta_ce_ci95_windows": [
+        0.0,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.2931159734725952,
+      "label_oracle_mean_delta_ce": -0.2931159734725952,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.08019193117020987
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 29,
+    "kind": "true_first_order_label_oracle",
+    "split": "dev",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 4024,
+      "mean_delta_ce": -0.26488643884658813,
+      "delta_ce_ci95_windows": [
+        -0.27333529219031333,
+        -0.25657309144735335
+      ],
+      "regret_to_label_oracle": 0.01103987731039524,
+      "label_oracle_mean_delta_ce": -0.27592629194259644,
+      "harm_gt_01": 77,
+      "benefit_lt_minus_01": 3010,
+      "predicted_vs_actual_selected_candidate_rho": 0.8934038601981976
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 29,
+    "kind": "true_first_order_label_oracle",
+    "split": "validation",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 4040,
+      "mean_delta_ce": -0.2844029664993286,
+      "delta_ce_ci95_windows": [
+        -0.2937938094139099,
+        -0.2751384757459164
+      ],
+      "regret_to_label_oracle": 0.008712999522686005,
+      "label_oracle_mean_delta_ce": -0.2931159734725952,
+      "harm_gt_01": 51,
+      "benefit_lt_minus_01": 3103,
+      "predicted_vs_actual_selected_candidate_rho": 0.8999398690394179
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 43,
+    "kind": "constant_train_mean",
+    "split": "dev",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 0,
+      "mean_delta_ce": 0.0,
+      "delta_ce_ci95_windows": [
+        0.0,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.2603025734424591,
+      "label_oracle_mean_delta_ce": -0.2603025734424591,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.11361307508751159
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 43,
+    "kind": "constant_train_mean",
+    "split": "validation",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.01,
+      "changed": 0,
+      "mean_delta_ce": 0.0,
+      "delta_ce_ci95_windows": [
+        0.0,
+        0.0
+      ],
+      "regret_to_label_oracle": 0.27312135696411133,
+      "label_oracle_mean_delta_ce": -0.27312135696411133,
+      "harm_gt_01": 0,
+      "benefit_lt_minus_01": 0,
+      "predicted_vs_actual_selected_candidate_rho": -0.09280933511820588
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 43,
+    "kind": "true_first_order_label_oracle",
+    "split": "dev",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.0,
+      "changed": 4093,
+      "mean_delta_ce": -0.2502155303955078,
+      "delta_ce_ci95_windows": [
+        -0.25831916481256484,
+        -0.24190091751515866
+      ],
+      "regret_to_label_oracle": 0.010087069123983383,
+      "label_oracle_mean_delta_ce": -0.2603025734424591,
+      "harm_gt_01": 61,
+      "benefit_lt_minus_01": 2992,
+      "predicted_vs_actual_selected_candidate_rho": 0.8910445212446341
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  },
+  {
+    "seed": 43,
+    "kind": "true_first_order_label_oracle",
+    "split": "validation",
+    "action": {
+      "tokens": 4096,
+      "threshold": 0.0,
+      "changed": 4094,
+      "mean_delta_ce": -0.2635946273803711,
+      "delta_ce_ci95_windows": [
+        -0.2721193186938763,
+        -0.2554841823875904
+      ],
+      "regret_to_label_oracle": 0.009526684880256653,
+      "label_oracle_mean_delta_ce": -0.27312135696411133,
+      "harm_gt_01": 54,
+      "benefit_lt_minus_01": 3111,
+      "predicted_vs_actual_selected_candidate_rho": 0.8966317321181566
+    },
+    "scope": "true_first_order_label_oracle uses realized labels and is diagnostic only"
+  }
+]

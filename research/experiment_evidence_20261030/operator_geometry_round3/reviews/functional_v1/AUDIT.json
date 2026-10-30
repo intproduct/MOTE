@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "runs": 36,
+  "quality_rows": 72,
+  "roundtrip_records": 144,
+  "paired_rows": 900,
+  "all_same_samples_per_seed": true,
+  "all_same_start_per_method_seed": true,
+  "common_dev_kl_checkpoint_selection": true,
+  "no_missing_or_failed": true,
+  "completed": "2026-10-30T12:36:12.577567+08:00",
+  "group": "D:\\files\\MOTE\\outputs\\operator_geometry_round3\\functional\\50b8c7704256",
+  "source_hashes_verified": 26,
+  "checks_sha256": "5344ecb014a1e59d1c58a2a1811af247786517a5516e383894ba99dcdf3accc3"
+}

@@ -2,6 +2,10 @@
 
 [全中文使用说明](./README_ZH.md)
 
+**QuantumGate 跨机器实验入口（2026-10-30）：**
+[Qwen 0.6B–4B 联合训练交接与各机器任务](research/qwen_mote_joint_handoff_20261030/README.md)。
+该入口汇总已完成实验、原始证据、报告，以及 PRO 4000、双 V100、A800 和 BW1000 的后续计划。
+
 FitMoTN 是一个独立可运行的 MOTN 训练与评测仓库，用来在不改写原始方法语义的前提下，把数据、patch、训练、checkpoint、恢复和评测整理成一套更标准的工程化流程。
 
 它的设计目标不是“重新发明一套 MOTN”，而是把旧实验脚本里的关键逻辑拆出来，并用 Hugging Face Trainer 承接通用训练外壳，方便：

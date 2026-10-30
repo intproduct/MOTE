@@ -1,0 +1,20 @@
+{
+  "written_local": "2026-10-30T12:34:00+08:00",
+  "stage": "Post-training descriptive mechanism analysis, specified before all 36 runs completed",
+  "selection": "All four methods, three objectives, three seeds and both recorded splits; include every initial checkpoint. No model or hyperparameter selection.",
+  "inputs": "Frozen expert outputs, original mixture weights, saved candidate weights and exact measured KL/CE",
+  "questions": [
+    "Does function matching improve output fidelity while coefficient error or mask disagreement remains?",
+    "How much original routing mass is omitted by the candidate top4?",
+    "Does coefficient error move toward directions with lower expert-output sensitivity?"
+  ],
+  "metrics": [
+    "coefficient squared L2 and L1; original top1 retained; original routing mass omitted",
+    "centered expert-output squared error, computed directly and by full Gram",
+    "individual centered expert energies and signed cross term; aggregate cancellation fraction",
+    "output-error/coefficient-error Rayleigh quotient, with explicit zero-error handling",
+    "descriptive Spearman correlations with measured exact KL"
+  ],
+  "interpretation": "Output and cross-term decompositions use the explicit centered-expert gauge. Correlations describe observed adapted checkpoints; they are not interventions on expert family structure.",
+  "resources": "CPU-only, one thread; no training, no new label access, no GPU; never overwrite existing output"
+}

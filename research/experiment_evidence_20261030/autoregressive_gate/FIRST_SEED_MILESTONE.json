@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-10-28T14:57:00.623934+08:00",
+  "milestone": "seed17_all_six_training_and_dev_reload_complete",
+  "completed": 6,
+  "expected": 18,
+  "validation_ppl_range": [
+    79.76946169551086,
+    81.4941260062212
+  ],
+  "test_evaluated": false,
+  "seed17_sum_run_wall_seconds": 7550.267305400004,
+  "estimated_total_hours_including_final_reevaluation": [
+    6.5,
+    7.0
+  ],
+  "note": "ETA updated from complete first-seed wall time, not changing frozen configuration; single-seed validation is not final ranking."
+}

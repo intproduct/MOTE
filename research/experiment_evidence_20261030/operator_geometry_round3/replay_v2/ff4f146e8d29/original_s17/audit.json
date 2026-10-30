@@ -1,0 +1,13 @@
+{
+  "seed": 17,
+  "method": "original",
+  "checkpoint_sha256": "836ba64d37ed1a45789baab905427bd8996d5656630c567d810be145ee820714",
+  "files": {
+    "dev_native_bf16_input_roundtrip.npz": "c219be1913f3e82286746c6579e0bd96e7913883eec3dbd04dfedbf77a19d914",
+    "dev_native_clean.npz": "2b23a319499d19efef7521807b39c19b635c48bf5ef7536938ffc6a9e0a7bef4",
+    "dev_native_fp16_input_roundtrip.npz": "2b9e81863832ef7fba057c00672b83a943c0866e248a98c5a677ee2a469dc39a",
+    "validation_native_bf16_input_roundtrip.npz": "56a0707552d2dedf17d8681946116bd9dade90dde34ac1aa8a9644da8d281e63",
+    "validation_native_clean.npz": "d7704fbc7a40f468ec1b4b14d0588c23a3f6b25e2e4c8c8dc86a39bb78d7ca0b",
+    "validation_native_fp16_input_roundtrip.npz": "6fdbb940a9d9d85975f861c95b7a09386ec5e09985fdf1fec482fd94facb89b1"
+  }
+}

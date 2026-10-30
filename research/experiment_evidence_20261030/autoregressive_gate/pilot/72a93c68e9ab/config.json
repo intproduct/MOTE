@@ -1,0 +1,85 @@
+{
+  "name": "wikitext2_causal_pilot_batch32_v1",
+  "phase": "pilot",
+  "device": "cuda",
+  "seeds": [
+    17
+  ],
+  "gates": [
+    "mlp",
+    "mlp_half",
+    "mpo_c2_full",
+    "mpo_c1_half",
+    "amp_d1_full",
+    "amp_d1_half"
+  ],
+  "model": {
+    "dim": 256,
+    "ff_dim": 1024,
+    "layers": 2,
+    "heads": 4,
+    "context": 128,
+    "vocab_size": 4096
+  },
+  "train": {
+    "steps": 40,
+    "batch_size": 32,
+    "lr": 0.0006,
+    "min_lr_ratio": 0.1,
+    "warmup": 10,
+    "weight_decay": 0.01,
+    "grad_clip": 1.0,
+    "eval_every": 20,
+    "log_every": 10
+  },
+  "eval": {
+    "batch_size": 16,
+    "stride": 64,
+    "validation_tokens": 8192
+  },
+  "router": {
+    "experts": 16,
+    "topk": 4,
+    "k_in": 4,
+    "sites": 16,
+    "bond_dim": 8,
+    "depth": 2,
+    "rank": 16,
+    "budget": "matched",
+    "norm": "layernorm",
+    "quantum_entangle": true,
+    "learnable_gain": true,
+    "output_init_std": 0.001,
+    "temperature": 1.0,
+    "aux_coeff": 0.01,
+    "drop_tokens": false,
+    "variants": {
+      "mlp_half": {
+        "arch": "mlp",
+        "fraction": 0.5
+      },
+      "mpo_c2_full": {
+        "arch": "residual_mpo",
+        "fraction": 1.0,
+        "depth": 2,
+        "bond_dim": 2
+      },
+      "mpo_c1_half": {
+        "arch": "residual_mpo",
+        "fraction": 0.5,
+        "depth": 2,
+        "bond_dim": 1
+      },
+      "amp_d1_full": {
+        "arch": "amplitude_born",
+        "fraction": 1.0,
+        "depth": 1
+      },
+      "amp_d1_half": {
+        "arch": "amplitude_born",
+        "fraction": 0.5,
+        "depth": 1
+      }
+    }
+  }
+}

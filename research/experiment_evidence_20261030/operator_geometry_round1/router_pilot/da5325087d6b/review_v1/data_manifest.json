@@ -1,0 +1,20 @@
+{
+  "data/s17/baseline_validation_nll.npy": "cb3dd4ba3559955ca252b2ac7899047ce195b787fc9a8c9773190f774bc46458",
+  "data/s17/codes.npy": "8f48d127523b2cbc6e57bdd05fde7d3f19b4b23369dae795b2ec080cde8f14e5",
+  "data/s17/geometry.json": "0178334cb25d2fbcf96ebc18d9253eac8de16b61259474dffc65f142ec9fed5e",
+  "data/s17/train.pt": "387c330153d813226d7f723629e72b7e3d19572c64b240f7dc9ff85e3cc18786",
+  "data/s17/train_pair_distance.npy": "9161247e698ff11756536841e8eeb6958d878cf60614e94bc08f9b2e33944d62",
+  "data/s17/validation.pt": "1fd22933afe57acc5bfc3b228c9db87d95388bb8b55b8ae53cc3dbc2b8ae7aab",
+  "data/s29/baseline_validation_nll.npy": "01d8e21d9724cbcea755d9244f89d66c8daa52ed5cfd58c851b79e9193894985",
+  "data/s29/codes.npy": "7da4da79bbd71ef20327565a9a6e9b3a906aa3362ee9127737093a54d5ea3dfa",
+  "data/s29/geometry.json": "7baced06499dcf501778cf0101963ad39db74249fa50a5b0b96f1788f45edf37",
+  "data/s29/train.pt": "5106ac1604f143eae45268ecde4c6f96e3fd0fbea3e035416448da0b3bd4b719",
+  "data/s29/train_pair_distance.npy": "df37e5333331a0850420741e6bcfbccf8ce3027dac9e43c0072bcf6fe7bb4b91",
+  "data/s29/validation.pt": "027224d30e9197ec76f68587ffceb54c10e6ba328db31577683c4c6e2604ac33",
+  "data/s43/baseline_validation_nll.npy": "03830442bcefc4685453a8562084ea560035278d617313ef07a15981a179a3cb",
+  "data/s43/codes.npy": "fa47e322a85da38e9bc22e4332c82ecacb2ea096e8d58edec78f930dde78c2d0",
+  "data/s43/geometry.json": "064370c917bc6b71c790ab6268d1e65d265999ae44956de0085f4f486577228c",
+  "data/s43/train.pt": "de2298a8d73bb82259e9420d6777ca84b8230c18d7866f8064acf0a3db14c6d7",
+  "data/s43/train_pair_distance.npy": "d5cf2239d7343509ff1b9fe23541a5aa2098b0024e63e45802c420a736c9024a",
+  "data/s43/validation.pt": "1c015a65eba1603c07a1c6b43b5f394b6eed54f158d4af62b43a04ea3215c2aa"
+}

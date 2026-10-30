@@ -1,0 +1,26 @@
+[
+  {
+    "TimeCreated": "2026-10-27T19:34:01.5059304+08:00",
+    "Id": 1001,
+    "ProviderName": "Microsoft-Windows-WER-SystemErrorReporting",
+    "Message": "计算机已经从检测错误后重新启动。检测错误: 0x00000133 (0x0000000000000001, 0x0000000000001e00, 0xfffff803799c53c8, 0x0000000000000000)。已将转储的数据保存在: C:\\WINDOWS\\Minidump\\102726-12234-01.dmp。报告 ID: 09da9168-655c-42b2-be7e-b7a5492af924。"
+  },
+  {
+    "TimeCreated": "2026-10-27T19:33:50.6570186+08:00",
+    "Id": 41,
+    "ProviderName": "Microsoft-Windows-Kernel-Power",
+    "Message": "系统已在未先正常关机的情况下重新启动。如果系统停止响应、发生崩溃或意外断电，则可能会导致此错误。"
+  },
+  {
+    "TimeCreated": "2026-10-27T19:33:57.7012161+08:00",
+    "Id": 6005,
+    "ProviderName": "EventLog",
+    "Message": "事件日志服务已启动。"
+  },
+  {
+    "TimeCreated": "2026-10-27T19:33:57.7003184+08:00",
+    "Id": 6008,
+    "ProviderName": "EventLog",
+    "Message": "上一次系统的 19:29:00 在 ‎2026/‎10/‎27 上的关闭是意外的。"
+  }
+]

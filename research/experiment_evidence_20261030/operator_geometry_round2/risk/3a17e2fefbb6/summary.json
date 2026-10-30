@@ -1,0 +1,1883 @@
+{
+  "rows": [
+    {
+      "seed": 17,
+      "split": "dev",
+      "tokens": 4096,
+      "replacements": 196608,
+      "mean_kl": 0.023945233568534077,
+      "mean_fisher_kl": 0.022469191228873336,
+      "fisher_kl_rmse": 0.030091263233041766,
+      "rho_fisher_kl_fixed_source": 0.9601636766553758,
+      "exact_nll_replay_max_abs": 1.7753724677049831e-06,
+      "energy_controls": {
+        "raw": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5754283558238638,
+            "rho_abs_nll_fixed_source": 0.14096005313046328,
+            "rho_kl_within_token_mass_weighted": 0.8751710998561659,
+            "nearest_target_agreement_with_minimum_kl": 0.3115234375
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5496267038625438,
+            "rho_abs_nll_fixed_source": 0.13604949737762237,
+            "rho_kl_within_token_mass_weighted": 0.8703124045911583,
+            "nearest_target_agreement_with_minimum_kl": 0.2821044921875
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5496267038625438,
+            "rho_abs_nll_fixed_source": 0.13604949737762237,
+            "rho_kl_within_token_mass_weighted": 0.8326506123975521,
+            "nearest_target_agreement_with_minimum_kl": 0.2821044921875
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.16383927351944932,
+            "rho_abs_nll_fixed_source": 0.03953541575611888,
+            "rho_kl_within_token_mass_weighted": -0.05535676652226715,
+            "nearest_target_agreement_with_minimum_kl": 0.11212158203125
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.2255633160784528,
+            "rho_abs_nll_fixed_source": 0.05489621462521853,
+            "rho_kl_within_token_mass_weighted": 0.7620635204505672,
+            "nearest_target_agreement_with_minimum_kl": 0.1805419921875
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.5299661276223776,
+            "rho_abs_nll_fixed_source": 0.13306133563701922,
+            "rho_kl_within_token_mass_weighted": 0.865474089714842,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.05891429127513112,
+            "rho_abs_nll_fixed_source": 0.011774663324956292,
+            "rho_kl_within_token_mass_weighted": -0.35321341749382595,
+            "nearest_target_agreement_with_minimum_kl": 0.09521484375
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.2089037061571241,
+            "rho_abs_nll_fixed_source": 0.05022168993116259,
+            "rho_kl_within_token_mass_weighted": 0.7582194717148827,
+            "nearest_target_agreement_with_minimum_kl": 0.1204833984375
+          }
+        },
+        "centered": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5754283558238638,
+            "rho_abs_nll_fixed_source": 0.14096005313046328,
+            "rho_kl_within_token_mass_weighted": 0.8751710998561659,
+            "nearest_target_agreement_with_minimum_kl": 0.3115234375
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5496331061516608,
+            "rho_abs_nll_fixed_source": 0.13571017605441432,
+            "rho_kl_within_token_mass_weighted": 0.8705418628555145,
+            "nearest_target_agreement_with_minimum_kl": 0.280517578125
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5496331061516608,
+            "rho_abs_nll_fixed_source": 0.13571017605441432,
+            "rho_kl_within_token_mass_weighted": 0.8351248816930362,
+            "nearest_target_agreement_with_minimum_kl": 0.280517578125
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.3913817505736451,
+            "rho_abs_nll_fixed_source": 0.09644835145323427,
+            "rho_kl_within_token_mass_weighted": 0.6236361306074957,
+            "nearest_target_agreement_with_minimum_kl": 0.1878662109375
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.31011066570148604,
+            "rho_abs_nll_fixed_source": 0.07761708506337413,
+            "rho_kl_within_token_mass_weighted": 0.7829450705855813,
+            "nearest_target_agreement_with_minimum_kl": 0.1995849609375
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.5299853344897291,
+            "rho_abs_nll_fixed_source": 0.13280140269886365,
+            "rho_kl_within_token_mass_weighted": 0.8652838020805065,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.45915211497486885,
+            "rho_abs_nll_fixed_source": 0.11253687718531469,
+            "rho_kl_within_token_mass_weighted": 0.786341227814264,
+            "nearest_target_agreement_with_minimum_kl": 0.1729736328125
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.3725709715089598,
+            "rho_abs_nll_fixed_source": 0.09128511868990384,
+            "rho_kl_within_token_mass_weighted": 0.7915885550945778,
+            "nearest_target_agreement_with_minimum_kl": 0.1661376953125
+          }
+        }
+      },
+      "state_geometry": {
+        "8": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.3079829716182255,
+            "rho_abs_nll_fixed_source": 0.07928765570367133,
+            "rho_kl_within_token_mass_weighted": 0.7484466380468411,
+            "nearest_target_agreement_with_minimum_kl": 0.13079833984375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.023568533517263988,
+            "rho_abs_nll_fixed_source": 0.007213245738636365,
+            "rho_kl_within_token_mass_weighted": 0.7090352597155885,
+            "nearest_target_agreement_with_minimum_kl": 0.08819580078125
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2972979779010052,
+            "rho_abs_nll_fixed_source": 0.07682661576704546,
+            "rho_kl_within_token_mass_weighted": 0.754255313848445,
+            "nearest_target_agreement_with_minimum_kl": 0.130126953125
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.3073094508031032,
+            "rho_abs_nll_fixed_source": 0.07912503756009616,
+            "rho_kl_within_token_mass_weighted": 0.7489870761303191,
+            "nearest_target_agreement_with_minimum_kl": 0.130615234375
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2669635052447552,
+            "rho_abs_nll_fixed_source": 0.06685227614182693,
+            "rho_kl_within_token_mass_weighted": 0.740682505029106,
+            "nearest_target_agreement_with_minimum_kl": 0.12664794921875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.008520593176354896,
+            "rho_abs_nll_fixed_source": -0.0024264675753933565,
+            "rho_kl_within_token_mass_weighted": 0.6981248611271305,
+            "nearest_target_agreement_with_minimum_kl": 0.08233642578125
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.2368185403463724,
+            "rho_abs_nll_fixed_source": 0.05899752103365384,
+            "rho_kl_within_token_mass_weighted": 0.7488296780439236,
+            "nearest_target_agreement_with_minimum_kl": 0.123779296875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2645588054523601,
+            "rho_abs_nll_fixed_source": 0.06604900226726398,
+            "rho_kl_within_token_mass_weighted": 0.7416932026924798,
+            "nearest_target_agreement_with_minimum_kl": 0.12640380859375
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          }
+        },
+        "16": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.3444726050316871,
+            "rho_abs_nll_fixed_source": 0.08905157342657341,
+            "rho_kl_within_token_mass_weighted": 0.7588110860409656,
+            "nearest_target_agreement_with_minimum_kl": 0.13800048828125
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.001726057145979021,
+            "rho_abs_nll_fixed_source": -0.004773119946459791,
+            "rho_kl_within_token_mass_weighted": 0.6993915725158082,
+            "nearest_target_agreement_with_minimum_kl": 0.08648681640625
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.33032738745629375,
+            "rho_abs_nll_fixed_source": 0.08530495383522727,
+            "rho_kl_within_token_mass_weighted": 0.7671570009735942,
+            "nearest_target_agreement_with_minimum_kl": 0.1365966796875
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.3435451267482517,
+            "rho_abs_nll_fixed_source": 0.08888895528299826,
+            "rho_kl_within_token_mass_weighted": 0.759639870846111,
+            "nearest_target_agreement_with_minimum_kl": 0.1376953125
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2669635052447552,
+            "rho_abs_nll_fixed_source": 0.06685227614182693,
+            "rho_kl_within_token_mass_weighted": 0.740682505029106,
+            "nearest_target_agreement_with_minimum_kl": 0.12664794921875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.008520593176354896,
+            "rho_abs_nll_fixed_source": -0.0024264675753933565,
+            "rho_kl_within_token_mass_weighted": 0.6981248611271305,
+            "nearest_target_agreement_with_minimum_kl": 0.08233642578125
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.2368185403463724,
+            "rho_abs_nll_fixed_source": 0.05899752103365384,
+            "rho_kl_within_token_mass_weighted": 0.7488296780439236,
+            "nearest_target_agreement_with_minimum_kl": 0.123779296875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2645588054523601,
+            "rho_abs_nll_fixed_source": 0.06604900226726398,
+            "rho_kl_within_token_mass_weighted": 0.7416932026924798,
+            "nearest_target_agreement_with_minimum_kl": 0.12640380859375
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          }
+        },
+        "32": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.34884152712521854,
+            "rho_abs_nll_fixed_source": 0.08884243198208042,
+            "rho_kl_within_token_mass_weighted": 0.7626263796118513,
+            "nearest_target_agreement_with_minimum_kl": 0.13592529296875
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.005068052065122379,
+            "rho_abs_nll_fixed_source": 0.001087535511363637,
+            "rho_kl_within_token_mass_weighted": 0.6991984756211327,
+            "nearest_target_agreement_with_minimum_kl": 0.08465576171875
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.3286218176354895,
+            "rho_abs_nll_fixed_source": 0.08383242733828672,
+            "rho_kl_within_token_mass_weighted": 0.7714078094045131,
+            "nearest_target_agreement_with_minimum_kl": 0.13421630859375
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.34742704804960667,
+            "rho_abs_nll_fixed_source": 0.08851079340581294,
+            "rho_kl_within_token_mass_weighted": 0.7635917845778604,
+            "nearest_target_agreement_with_minimum_kl": 0.13580322265625
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2669635052447552,
+            "rho_abs_nll_fixed_source": 0.06685227614182693,
+            "rho_kl_within_token_mass_weighted": 0.740682505029106,
+            "nearest_target_agreement_with_minimum_kl": 0.12664794921875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.008520593176354896,
+            "rho_abs_nll_fixed_source": -0.0024264675753933565,
+            "rho_kl_within_token_mass_weighted": 0.6981248611271305,
+            "nearest_target_agreement_with_minimum_kl": 0.08233642578125
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.2368185403463724,
+            "rho_abs_nll_fixed_source": 0.05899752103365384,
+            "rho_kl_within_token_mass_weighted": 0.7488296780439236,
+            "nearest_target_agreement_with_minimum_kl": 0.123779296875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2645588054523601,
+            "rho_abs_nll_fixed_source": 0.06604900226726398,
+            "rho_kl_within_token_mass_weighted": 0.7416932026924798,
+            "nearest_target_agreement_with_minimum_kl": 0.12640380859375
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.528624634642701,
+            "rho_abs_nll_fixed_source": 0.1323558033763112,
+            "rho_kl_within_token_mass_weighted": 0.8653754210710215,
+            "nearest_target_agreement_with_minimum_kl": 0.27911376953125
+          }
+        }
+      }
+    },
+    {
+      "seed": 17,
+      "split": "validation",
+      "tokens": 4096,
+      "replacements": 196608,
+      "mean_kl": 0.02373456137296699,
+      "mean_fisher_kl": 0.022421394084348595,
+      "fisher_kl_rmse": 0.0316582106558194,
+      "rho_fisher_kl_fixed_source": 0.9622311892209354,
+      "exact_nll_replay_max_abs": 1.7603510649166765e-06,
+      "energy_controls": {
+        "raw": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5869802194875438,
+            "rho_abs_nll_fixed_source": 0.14790098817198427,
+            "rho_kl_within_token_mass_weighted": 0.8725157392785905,
+            "nearest_target_agreement_with_minimum_kl": 0.3092041015625
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5626583499508304,
+            "rho_abs_nll_fixed_source": 0.1440988820749563,
+            "rho_kl_within_token_mass_weighted": 0.8679591646789265,
+            "nearest_target_agreement_with_minimum_kl": 0.28289794921875
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5626583499508304,
+            "rho_abs_nll_fixed_source": 0.1440988820749563,
+            "rho_kl_within_token_mass_weighted": 0.8304755334964037,
+            "nearest_target_agreement_with_minimum_kl": 0.28289794921875
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.1680942348666958,
+            "rho_abs_nll_fixed_source": 0.04011887770432693,
+            "rho_kl_within_token_mass_weighted": -0.0510821058809162,
+            "nearest_target_agreement_with_minimum_kl": 0.11224365234375
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.2333952674036684,
+            "rho_abs_nll_fixed_source": 0.056937271129110914,
+            "rho_kl_within_token_mass_weighted": 0.7518322164326744,
+            "nearest_target_agreement_with_minimum_kl": 0.1849365234375
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.5433272781905594,
+            "rho_abs_nll_fixed_source": 0.14014098694274474,
+            "rho_kl_within_token_mass_weighted": 0.8624335954461572,
+            "nearest_target_agreement_with_minimum_kl": 0.28192138671875
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.06681855741914336,
+            "rho_abs_nll_fixed_source": 0.017824399721372376,
+            "rho_kl_within_token_mass_weighted": -0.34874502389885476,
+            "nearest_target_agreement_with_minimum_kl": 0.09405517578125
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.22040904651988635,
+            "rho_abs_nll_fixed_source": 0.05768590540319056,
+            "rho_kl_within_token_mass_weighted": 0.7479983490029989,
+            "nearest_target_agreement_with_minimum_kl": 0.11920166015625
+          }
+        },
+        "centered": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5869802194875438,
+            "rho_abs_nll_fixed_source": 0.14790098817198427,
+            "rho_kl_within_token_mass_weighted": 0.8725157392785905,
+            "nearest_target_agreement_with_minimum_kl": 0.3092041015625
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5633054079709353,
+            "rho_abs_nll_fixed_source": 0.14517019845388987,
+            "rho_kl_within_token_mass_weighted": 0.8683141194060736,
+            "nearest_target_agreement_with_minimum_kl": 0.28680419921875
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5633054079709353,
+            "rho_abs_nll_fixed_source": 0.14517019845388987,
+            "rho_kl_within_token_mass_weighted": 0.8332814288744346,
+            "nearest_target_agreement_with_minimum_kl": 0.28680419921875
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.4009864647071678,
+            "rho_abs_nll_fixed_source": 0.09918255572552448,
+            "rho_kl_within_token_mass_weighted": 0.6120915812510177,
+            "nearest_target_agreement_with_minimum_kl": 0.195068359375
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.31933128812513367,
+            "rho_abs_nll_fixed_source": 0.08021133376188896,
+            "rho_kl_within_token_mass_weighted": 0.7733803932857651,
+            "nearest_target_agreement_with_minimum_kl": 0.20745849609375
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.5437656215854458,
+            "rho_abs_nll_fixed_source": 0.14047988144667833,
+            "rho_kl_within_token_mass_weighted": 0.8624276588960051,
+            "nearest_target_agreement_with_minimum_kl": 0.28192138671875
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.4761984231588724,
+            "rho_abs_nll_fixed_source": 0.12050858077469405,
+            "rho_kl_within_token_mass_weighted": 0.7763694402087631,
+            "nearest_target_agreement_with_minimum_kl": 0.18280029296875
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.3924761151934003,
+            "rho_abs_nll_fixed_source": 0.10040368566979896,
+            "rho_kl_within_token_mass_weighted": 0.7842682587080709,
+            "nearest_target_agreement_with_minimum_kl": 0.1749267578125
+          }
+        }
+      },
+      "state_geometry": {
+        "8": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.322771832659528,
+            "rho_abs_nll_fixed_source": 0.08407400704763987,
+            "rho_kl_within_token_mass_weighted": 0.7380976144821293,
+            "nearest_target_agreement_with_minimum_kl": 0.128662109375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.02293769462958916,
+            "rho_abs_nll_fixed_source": 0.005573406086101398,
+            "rho_kl_within_token_mass_weighted": 0.693247004586409,
+            "nearest_target_agreement_with_minimum_kl": 0.08990478515625
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.3110453999125874,
+            "rho_abs_nll_fixed_source": 0.08168851412259615,
+            "rho_kl_within_token_mass_weighted": 0.7437778858842408,
+            "nearest_target_agreement_with_minimum_kl": 0.12799072265625
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.3219583151223776,
+            "rho_abs_nll_fixed_source": 0.08399035046984266,
+            "rho_kl_within_token_mass_weighted": 0.7385741286416494,
+            "nearest_target_agreement_with_minimum_kl": 0.1285400390625
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.28011167299497375,
+            "rho_abs_nll_fixed_source": 0.07723977682473776,
+            "rho_kl_within_token_mass_weighted": 0.7304432016323817,
+            "nearest_target_agreement_with_minimum_kl": 0.13079833984375
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.00986123251748252,
+            "rho_abs_nll_fixed_source": -0.006086016034746502,
+            "rho_kl_within_token_mass_weighted": 0.6820294425324984,
+            "nearest_target_agreement_with_minimum_kl": 0.0772705078125
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.24898331648819932,
+            "rho_abs_nll_fixed_source": 0.06956556626966784,
+            "rho_kl_within_token_mass_weighted": 0.7380313583420401,
+            "nearest_target_agreement_with_minimum_kl": 0.12628173828125
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2778640426955857,
+            "rho_abs_nll_fixed_source": 0.07678179974322552,
+            "rho_kl_within_token_mass_weighted": 0.7314673360409656,
+            "nearest_target_agreement_with_minimum_kl": 0.1304931640625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          }
+        },
+        "16": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.35541923896416083,
+            "rho_abs_nll_fixed_source": 0.09133420290646853,
+            "rho_kl_within_token_mass_weighted": 0.7486017039171055,
+            "nearest_target_agreement_with_minimum_kl": 0.130859375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.00652692034527972,
+            "rho_abs_nll_fixed_source": 0.002805909910402099,
+            "rho_kl_within_token_mass_weighted": 0.6845366808832909,
+            "nearest_target_agreement_with_minimum_kl": 0.0843505859375
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.34059153736888115,
+            "rho_abs_nll_fixed_source": 0.08787867406031469,
+            "rho_kl_within_token_mass_weighted": 0.7568709737468791,
+            "nearest_target_agreement_with_minimum_kl": 0.1300048828125
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.3543129234047203,
+            "rho_abs_nll_fixed_source": 0.09113530512456294,
+            "rho_kl_within_token_mass_weighted": 0.7493847719855895,
+            "nearest_target_agreement_with_minimum_kl": 0.130859375
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.28011167299497375,
+            "rho_abs_nll_fixed_source": 0.07723977682473776,
+            "rho_kl_within_token_mass_weighted": 0.7304432016323817,
+            "nearest_target_agreement_with_minimum_kl": 0.13079833984375
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.00986123251748252,
+            "rho_abs_nll_fixed_source": -0.006086016034746502,
+            "rho_kl_within_token_mass_weighted": 0.6820294425324984,
+            "nearest_target_agreement_with_minimum_kl": 0.0772705078125
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.24898331648819932,
+            "rho_abs_nll_fixed_source": 0.06956556626966784,
+            "rho_kl_within_token_mass_weighted": 0.7380313583420401,
+            "nearest_target_agreement_with_minimum_kl": 0.12628173828125
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2778640426955857,
+            "rho_abs_nll_fixed_source": 0.07678179974322552,
+            "rho_kl_within_token_mass_weighted": 0.7314673360409656,
+            "nearest_target_agreement_with_minimum_kl": 0.1304931640625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          }
+        },
+        "32": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.36429579941542833,
+            "rho_abs_nll_fixed_source": 0.09514356493116259,
+            "rho_kl_within_token_mass_weighted": 0.7536109596348513,
+            "nearest_target_agreement_with_minimum_kl": 0.13299560546875
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.0022536057692307686,
+            "rho_abs_nll_fixed_source": 0.002863530512456294,
+            "rho_kl_within_token_mass_weighted": 0.6828374494121119,
+            "nearest_target_agreement_with_minimum_kl": 0.0819091796875
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.34381487652972026,
+            "rho_abs_nll_fixed_source": 0.09044983336975523,
+            "rho_kl_within_token_mass_weighted": 0.7626391007907485,
+            "nearest_target_agreement_with_minimum_kl": 0.13165283203125
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.362897966291521,
+            "rho_abs_nll_fixed_source": 0.09495661808894232,
+            "rho_kl_within_token_mass_weighted": 0.7545272820522824,
+            "nearest_target_agreement_with_minimum_kl": 0.1328125
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.28011167299497375,
+            "rho_abs_nll_fixed_source": 0.07723977682473776,
+            "rho_kl_within_token_mass_weighted": 0.7304432016323817,
+            "nearest_target_agreement_with_minimum_kl": 0.13079833984375
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.00986123251748252,
+            "rho_abs_nll_fixed_source": -0.006086016034746502,
+            "rho_kl_within_token_mass_weighted": 0.6820294425324984,
+            "nearest_target_agreement_with_minimum_kl": 0.0772705078125
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.24898331648819932,
+            "rho_abs_nll_fixed_source": 0.06956556626966784,
+            "rho_kl_within_token_mass_weighted": 0.7380313583420401,
+            "nearest_target_agreement_with_minimum_kl": 0.12628173828125
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2778640426955857,
+            "rho_abs_nll_fixed_source": 0.07678179974322552,
+            "rho_kl_within_token_mass_weighted": 0.7314673360409656,
+            "nearest_target_agreement_with_minimum_kl": 0.1304931640625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.5433558750819494,
+            "rho_abs_nll_fixed_source": 0.14027842274912586,
+            "rho_kl_within_token_mass_weighted": 0.8624485163289052,
+            "nearest_target_agreement_with_minimum_kl": 0.281982421875
+          }
+        }
+      }
+    },
+    {
+      "seed": 29,
+      "split": "dev",
+      "tokens": 4096,
+      "replacements": 196608,
+      "mean_kl": 0.021586663539042285,
+      "mean_fisher_kl": 0.020679133640473517,
+      "fisher_kl_rmse": 0.023929478468442213,
+      "rho_fisher_kl_fixed_source": 0.9631228146853147,
+      "exact_nll_replay_max_abs": 2.0504397468812385e-06,
+      "energy_controls": {
+        "raw": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5133176150021853,
+            "rho_abs_nll_fixed_source": 0.1272386670946241,
+            "rho_kl_within_token_mass_weighted": 0.8768374947843166,
+            "nearest_target_agreement_with_minimum_kl": 0.264404296875
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.4788784213833042,
+            "rho_abs_nll_fixed_source": 0.1181081491750437,
+            "rho_kl_within_token_mass_weighted": 0.8705778001858988,
+            "nearest_target_agreement_with_minimum_kl": 0.23248291015625
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.4788784213833042,
+            "rho_abs_nll_fixed_source": 0.1181081491750437,
+            "rho_kl_within_token_mass_weighted": 0.8442704462006959,
+            "nearest_target_agreement_with_minimum_kl": 0.23248291015625
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.16629519162478146,
+            "rho_abs_nll_fixed_source": 0.04477462235030595,
+            "rho_kl_within_token_mass_weighted": -0.14112769858608337,
+            "nearest_target_agreement_with_minimum_kl": 0.114013671875
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.2274622350305944,
+            "rho_abs_nll_fixed_source": 0.06062711702360139,
+            "rho_kl_within_token_mass_weighted": 0.7972144699593601,
+            "nearest_target_agreement_with_minimum_kl": 0.1666259765625
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.4607467117843094,
+            "rho_abs_nll_fixed_source": 0.1140661706457605,
+            "rho_kl_within_token_mass_weighted": 0.8664357843370061,
+            "nearest_target_agreement_with_minimum_kl": 0.21929931640625
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.12290815873579546,
+            "rho_abs_nll_fixed_source": 0.03400981342875874,
+            "rho_kl_within_token_mass_weighted": -0.5198307807581144,
+            "nearest_target_agreement_with_minimum_kl": 0.07147216796875
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.26442990603146854,
+            "rho_abs_nll_fixed_source": 0.06838669143356643,
+            "rho_kl_within_token_mass_weighted": 0.8014252331792091,
+            "nearest_target_agreement_with_minimum_kl": 0.12200927734375
+          }
+        },
+        "centered": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5133176150021853,
+            "rho_abs_nll_fixed_source": 0.1272386670946241,
+            "rho_kl_within_token_mass_weighted": 0.8768367792180037,
+            "nearest_target_agreement_with_minimum_kl": 0.264404296875
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.4793577394285402,
+            "rho_abs_nll_fixed_source": 0.11860368635270979,
+            "rho_kl_within_token_mass_weighted": 0.8713122892524696,
+            "nearest_target_agreement_with_minimum_kl": 0.23272705078125
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.4793577394285402,
+            "rho_abs_nll_fixed_source": 0.11860368635270979,
+            "rho_kl_within_token_mass_weighted": 0.845697161947392,
+            "nearest_target_agreement_with_minimum_kl": 0.23272705078125
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.3335153006173514,
+            "rho_abs_nll_fixed_source": 0.08547568154501747,
+            "rho_kl_within_token_mass_weighted": 0.5856926703111431,
+            "nearest_target_agreement_with_minimum_kl": 0.1717529296875
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.27047394209005815,
+            "rho_abs_nll_fixed_source": 0.07051889966373598,
+            "rho_kl_within_token_mass_weighted": 0.8050224567696191,
+            "nearest_target_agreement_with_minimum_kl": 0.17987060546875
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.4598166725852273,
+            "rho_abs_nll_fixed_source": 0.1136474609375,
+            "rho_kl_within_token_mass_weighted": 0.866057594289378,
+            "nearest_target_agreement_with_minimum_kl": 0.21929931640625
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.39611688360467656,
+            "rho_abs_nll_fixed_source": 0.0991646293159965,
+            "rho_kl_within_token_mass_weighted": 0.8033312103099218,
+            "nearest_target_agreement_with_minimum_kl": 0.15484619140625
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.3409722601617133,
+            "rho_abs_nll_fixed_source": 0.08640785484047203,
+            "rho_kl_within_token_mass_weighted": 0.8189337097247475,
+            "nearest_target_agreement_with_minimum_kl": 0.14752197265625
+          }
+        }
+      },
+      "state_geometry": {
+        "8": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.25576504794034094,
+            "rho_abs_nll_fixed_source": 0.060258771989729024,
+            "rho_kl_within_token_mass_weighted": 0.7674182356827373,
+            "nearest_target_agreement_with_minimum_kl": 0.11346435546875
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.004648488718312937,
+            "rho_abs_nll_fixed_source": 0.001131497896634615,
+            "rho_kl_within_token_mass_weighted": 0.7291402348838472,
+            "nearest_target_agreement_with_minimum_kl": 0.08282470703125
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.24551839761800698,
+            "rho_abs_nll_fixed_source": 0.057318414007867136,
+            "rho_kl_within_token_mass_weighted": 0.7717044778973756,
+            "nearest_target_agreement_with_minimum_kl": 0.1131591796875
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2550906734866696,
+            "rho_abs_nll_fixed_source": 0.059987314931162584,
+            "rho_kl_within_token_mass_weighted": 0.7677878919395218,
+            "nearest_target_agreement_with_minimum_kl": 0.1134033203125
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.231794450666521,
+            "rho_abs_nll_fixed_source": 0.053999040510270976,
+            "rho_kl_within_token_mass_weighted": 0.7610600579576912,
+            "nearest_target_agreement_with_minimum_kl": 0.1219482421875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.006180343094405593,
+            "rho_abs_nll_fixed_source": 0.004969456812718532,
+            "rho_kl_within_token_mass_weighted": 0.7313413698674283,
+            "nearest_target_agreement_with_minimum_kl": 0.076904296875
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.20359492802119755,
+            "rho_abs_nll_fixed_source": 0.04791686584899475,
+            "rho_kl_within_token_mass_weighted": 0.7688607378622991,
+            "nearest_target_agreement_with_minimum_kl": 0.11767578125
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.22959633140297203,
+            "rho_abs_nll_fixed_source": 0.053427529501748255,
+            "rho_kl_within_token_mass_weighted": 0.7620300213461382,
+            "nearest_target_agreement_with_minimum_kl": 0.12164306640625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          }
+        },
+        "16": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.28814569219842656,
+            "rho_abs_nll_fixed_source": 0.06956812718531467,
+            "rho_kl_within_token_mass_weighted": 0.7796205229931068,
+            "nearest_target_agreement_with_minimum_kl": 0.119140625
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.002475978611232517,
+            "rho_abs_nll_fixed_source": 0.00485037423513986,
+            "rho_kl_within_token_mass_weighted": 0.7311244472647769,
+            "nearest_target_agreement_with_minimum_kl": 0.08587646484375
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2732787232298951,
+            "rho_abs_nll_fixed_source": 0.06621759588068182,
+            "rho_kl_within_token_mass_weighted": 0.7849239029679358,
+            "nearest_target_agreement_with_minimum_kl": 0.1181640625
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.28703212071131995,
+            "rho_abs_nll_fixed_source": 0.0692676464160839,
+            "rho_kl_within_token_mass_weighted": 0.780115588871852,
+            "nearest_target_agreement_with_minimum_kl": 0.1190185546875
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.231794450666521,
+            "rho_abs_nll_fixed_source": 0.053999040510270976,
+            "rho_kl_within_token_mass_weighted": 0.7610600579576912,
+            "nearest_target_agreement_with_minimum_kl": 0.1219482421875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.006180343094405593,
+            "rho_abs_nll_fixed_source": 0.004969456812718532,
+            "rho_kl_within_token_mass_weighted": 0.7313413698674283,
+            "nearest_target_agreement_with_minimum_kl": 0.076904296875
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.20359492802119755,
+            "rho_abs_nll_fixed_source": 0.04791686584899475,
+            "rho_kl_within_token_mass_weighted": 0.7688607378622991,
+            "nearest_target_agreement_with_minimum_kl": 0.11767578125
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.22959633140297203,
+            "rho_abs_nll_fixed_source": 0.053427529501748255,
+            "rho_kl_within_token_mass_weighted": 0.7620300213461382,
+            "nearest_target_agreement_with_minimum_kl": 0.12164306640625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          }
+        },
+        "32": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2992916507320804,
+            "rho_abs_nll_fixed_source": 0.07091815655048077,
+            "rho_kl_within_token_mass_weighted": 0.7814484503907946,
+            "nearest_target_agreement_with_minimum_kl": 0.1282958984375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.0026330481042395114,
+            "rho_abs_nll_fixed_source": -0.000670106260926573,
+            "rho_kl_within_token_mass_weighted": 0.7314099052187364,
+            "nearest_target_agreement_with_minimum_kl": 0.08319091796875
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.27979881446678323,
+            "rho_abs_nll_fixed_source": 0.06676904638330419,
+            "rho_kl_within_token_mass_weighted": 0.7889673296803761,
+            "nearest_target_agreement_with_minimum_kl": 0.1258544921875
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2980858862816871,
+            "rho_abs_nll_fixed_source": 0.07059889573317307,
+            "rho_kl_within_token_mass_weighted": 0.7822889227790517,
+            "nearest_target_agreement_with_minimum_kl": 0.12841796875
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.231794450666521,
+            "rho_abs_nll_fixed_source": 0.053999040510270976,
+            "rho_kl_within_token_mass_weighted": 0.7610600579576912,
+            "nearest_target_agreement_with_minimum_kl": 0.1219482421875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.006180343094405593,
+            "rho_abs_nll_fixed_source": 0.004969456812718532,
+            "rho_kl_within_token_mass_weighted": 0.7313413698674283,
+            "nearest_target_agreement_with_minimum_kl": 0.076904296875
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.20359492802119755,
+            "rho_abs_nll_fixed_source": 0.04791686584899475,
+            "rho_kl_within_token_mass_weighted": 0.7688607378622991,
+            "nearest_target_agreement_with_minimum_kl": 0.11767578125
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.22959633140297203,
+            "rho_abs_nll_fixed_source": 0.053427529501748255,
+            "rho_kl_within_token_mass_weighted": 0.7620300213461382,
+            "nearest_target_agreement_with_minimum_kl": 0.12164306640625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.46322610494973776,
+            "rho_abs_nll_fixed_source": 0.11496078384506118,
+            "rho_kl_within_token_mass_weighted": 0.8667255091863872,
+            "nearest_target_agreement_with_minimum_kl": 0.2191162109375
+          }
+        }
+      }
+    },
+    {
+      "seed": 29,
+      "split": "validation",
+      "tokens": 4096,
+      "replacements": 196608,
+      "mean_kl": 0.022098256040492415,
+      "mean_fisher_kl": 0.0215789250089172,
+      "fisher_kl_rmse": 0.023381927323845513,
+      "rho_fisher_kl_fixed_source": 0.9648305186024914,
+      "exact_nll_replay_max_abs": 1.9531025721164497e-06,
+      "energy_controls": {
+        "raw": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5215919334571679,
+            "rho_abs_nll_fixed_source": 0.12464189862871504,
+            "rho_kl_within_token_mass_weighted": 0.8810156864856981,
+            "nearest_target_agreement_with_minimum_kl": 0.26458740234375
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.48914683948863635,
+            "rho_abs_nll_fixed_source": 0.11762370929851398,
+            "rho_kl_within_token_mass_weighted": 0.8751601543418231,
+            "nearest_target_agreement_with_minimum_kl": 0.23150634765625
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.48914683948863635,
+            "rho_abs_nll_fixed_source": 0.11762370929851398,
+            "rho_kl_within_token_mass_weighted": 0.8484189376797927,
+            "nearest_target_agreement_with_minimum_kl": 0.23150634765625
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.1583665967821241,
+            "rho_abs_nll_fixed_source": 0.039208899011145104,
+            "rho_kl_within_token_mass_weighted": -0.15525615789866481,
+            "nearest_target_agreement_with_minimum_kl": 0.11285400390625
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.22189693851070805,
+            "rho_abs_nll_fixed_source": 0.05527181558675699,
+            "rho_kl_within_token_mass_weighted": 0.7987456228543612,
+            "nearest_target_agreement_with_minimum_kl": 0.166015625
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.4738837822333916,
+            "rho_abs_nll_fixed_source": 0.11426933662041083,
+            "rho_kl_within_token_mass_weighted": 0.8715637445553355,
+            "nearest_target_agreement_with_minimum_kl": 0.22308349609375
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.12161105496066435,
+            "rho_abs_nll_fixed_source": 0.03210491900677448,
+            "rho_kl_within_token_mass_weighted": -0.5282379693690974,
+            "nearest_target_agreement_with_minimum_kl": 0.06781005859375
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.267551235385708,
+            "rho_abs_nll_fixed_source": 0.06748183457167833,
+            "rho_kl_within_token_mass_weighted": 0.8044915938449848,
+            "nearest_target_agreement_with_minimum_kl": 0.12017822265625
+          }
+        },
+        "centered": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5215919334571679,
+            "rho_abs_nll_fixed_source": 0.12464189862871504,
+            "rho_kl_within_token_mass_weighted": 0.8810156864856981,
+            "nearest_target_agreement_with_minimum_kl": 0.26458740234375
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.4891079989346591,
+            "rho_abs_nll_fixed_source": 0.11740347055288461,
+            "rho_kl_within_token_mass_weighted": 0.8757925029428327,
+            "nearest_target_agreement_with_minimum_kl": 0.23468017578125
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.4891079989346591,
+            "rho_abs_nll_fixed_source": 0.11740347055288461,
+            "rho_kl_within_token_mass_weighted": 0.8498746645849163,
+            "nearest_target_agreement_with_minimum_kl": 0.23468017578125
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.3329228754643794,
+            "rho_abs_nll_fixed_source": 0.08071664663461539,
+            "rho_kl_within_token_mass_weighted": 0.5818453352709102,
+            "nearest_target_agreement_with_minimum_kl": 0.17169189453125
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.26914753947224646,
+            "rho_abs_nll_fixed_source": 0.0657489483173077,
+            "rho_kl_within_token_mass_weighted": 0.8079435652460785,
+            "nearest_target_agreement_with_minimum_kl": 0.1829833984375
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.4732491019722465,
+            "rho_abs_nll_fixed_source": 0.11420787464488637,
+            "rho_kl_within_token_mass_weighted": 0.8713891993798849,
+            "nearest_target_agreement_with_minimum_kl": 0.22308349609375
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.4026493526005245,
+            "rho_abs_nll_fixed_source": 0.09814197033435314,
+            "rho_kl_within_token_mass_weighted": 0.8042136095836273,
+            "nearest_target_agreement_with_minimum_kl": 0.1566162109375
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.346775721836757,
+            "rho_abs_nll_fixed_source": 0.08616029966127622,
+            "rho_kl_within_token_mass_weighted": 0.8221622389190051,
+            "nearest_target_agreement_with_minimum_kl": 0.1483154296875
+          }
+        }
+      },
+      "state_geometry": {
+        "8": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2638238226617133,
+            "rho_abs_nll_fixed_source": 0.06206933935205419,
+            "rho_kl_within_token_mass_weighted": 0.7687857889166304,
+            "nearest_target_agreement_with_minimum_kl": 0.10760498046875
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.006089430588942308,
+            "rho_abs_nll_fixed_source": -0.0017226425917832165,
+            "rho_kl_within_token_mass_weighted": 0.7329319147664052,
+            "nearest_target_agreement_with_minimum_kl": 0.07843017578125
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.252798653982736,
+            "rho_abs_nll_fixed_source": 0.05946403450065559,
+            "rho_kl_within_token_mass_weighted": 0.773617637193674,
+            "nearest_target_agreement_with_minimum_kl": 0.10601806640625
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.26309097396743886,
+            "rho_abs_nll_fixed_source": 0.06194257402753496,
+            "rho_kl_within_token_mass_weighted": 0.7692623825835188,
+            "nearest_target_agreement_with_minimum_kl": 0.1075439453125
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.22505540114182693,
+            "rho_abs_nll_fixed_source": 0.052408711893575176,
+            "rho_kl_within_token_mass_weighted": 0.7607217806088526,
+            "nearest_target_agreement_with_minimum_kl": 0.11798095703125
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.002641584489729021,
+            "rho_abs_nll_fixed_source": 0.0017226425917832176,
+            "rho_kl_within_token_mass_weighted": 0.7373356423686497,
+            "nearest_target_agreement_with_minimum_kl": 0.07781982421875
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.19806591113964161,
+            "rho_abs_nll_fixed_source": 0.04571917340472028,
+            "rho_kl_within_token_mass_weighted": 0.7694070859934732,
+            "nearest_target_agreement_with_minimum_kl": 0.11468505859375
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.22308733746722026,
+            "rho_abs_nll_fixed_source": 0.05180817717438811,
+            "rho_kl_within_token_mass_weighted": 0.7617821703772931,
+            "nearest_target_agreement_with_minimum_kl": 0.1177978515625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          }
+        },
+        "16": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2991563490220717,
+            "rho_abs_nll_fixed_source": 0.07098431353802448,
+            "rho_kl_within_token_mass_weighted": 0.783348968015564,
+            "nearest_target_agreement_with_minimum_kl": 0.12060546875
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": 0.006827827933784964,
+            "rho_abs_nll_fixed_source": 0.004238315395541958,
+            "rho_kl_within_token_mass_weighted": 0.7361196831832799,
+            "nearest_target_agreement_with_minimum_kl": 0.08258056640625
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2847879049661276,
+            "rho_abs_nll_fixed_source": 0.06678355823863635,
+            "rho_kl_within_token_mass_weighted": 0.7894183749796462,
+            "nearest_target_agreement_with_minimum_kl": 0.1195068359375
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.29824850442526224,
+            "rho_abs_nll_fixed_source": 0.07072651469624126,
+            "rho_kl_within_token_mass_weighted": 0.7839186383080492,
+            "nearest_target_agreement_with_minimum_kl": 0.12054443359375
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.22505540114182693,
+            "rho_abs_nll_fixed_source": 0.052408711893575176,
+            "rho_kl_within_token_mass_weighted": 0.7607217806088526,
+            "nearest_target_agreement_with_minimum_kl": 0.11798095703125
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.002641584489729021,
+            "rho_abs_nll_fixed_source": 0.0017226425917832176,
+            "rho_kl_within_token_mass_weighted": 0.7373356423686497,
+            "nearest_target_agreement_with_minimum_kl": 0.07781982421875
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.19806591113964161,
+            "rho_abs_nll_fixed_source": 0.04571917340472028,
+            "rho_kl_within_token_mass_weighted": 0.7694070859934732,
+            "nearest_target_agreement_with_minimum_kl": 0.11468505859375
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.22308733746722026,
+            "rho_abs_nll_fixed_source": 0.05180817717438811,
+            "rho_kl_within_token_mass_weighted": 0.7617821703772931,
+            "nearest_target_agreement_with_minimum_kl": 0.1177978515625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          }
+        },
+        "32": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.3049175555889423,
+            "rho_abs_nll_fixed_source": 0.07400662082058566,
+            "rho_kl_within_token_mass_weighted": 0.7839208380119002,
+            "nearest_target_agreement_with_minimum_kl": 0.12646484375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.0011152787642045453,
+            "rho_abs_nll_fixed_source": 0.003538758604676572,
+            "rho_kl_within_token_mass_weighted": 0.7351056727129016,
+            "nearest_target_agreement_with_minimum_kl": 0.08135986328125
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2856727013221154,
+            "rho_abs_nll_fixed_source": 0.0696394060041521,
+            "rho_kl_within_token_mass_weighted": 0.7918197890234884,
+            "nearest_target_agreement_with_minimum_kl": 0.12396240234375
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.3037420953070367,
+            "rho_abs_nll_fixed_source": 0.07371467643684441,
+            "rho_kl_within_token_mass_weighted": 0.7847881308856655,
+            "nearest_target_agreement_with_minimum_kl": 0.12603759765625
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.22505540114182693,
+            "rho_abs_nll_fixed_source": 0.052408711893575176,
+            "rho_kl_within_token_mass_weighted": 0.7607217806088526,
+            "nearest_target_agreement_with_minimum_kl": 0.11798095703125
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.002641584489729021,
+            "rho_abs_nll_fixed_source": 0.0017226425917832176,
+            "rho_kl_within_token_mass_weighted": 0.7373356423686497,
+            "nearest_target_agreement_with_minimum_kl": 0.07781982421875
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.19806591113964161,
+            "rho_abs_nll_fixed_source": 0.04571917340472028,
+            "rho_kl_within_token_mass_weighted": 0.7694070859934732,
+            "nearest_target_agreement_with_minimum_kl": 0.11468505859375
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.22308733746722026,
+            "rho_abs_nll_fixed_source": 0.05180817717438811,
+            "rho_kl_within_token_mass_weighted": 0.7617821703772931,
+            "nearest_target_agreement_with_minimum_kl": 0.1177978515625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4765910968913899,
+            "rho_abs_nll_fixed_source": 0.11433762770432693,
+            "rho_kl_within_token_mass_weighted": 0.8720080052258603,
+            "nearest_target_agreement_with_minimum_kl": 0.22283935546875
+          }
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "split": "dev",
+      "tokens": 4096,
+      "replacements": 196608,
+      "mean_kl": 0.019498650157669804,
+      "mean_fisher_kl": 0.020543742353288968,
+      "fisher_kl_rmse": 0.027126116794114554,
+      "rho_fisher_kl_fixed_source": 0.9618018090308129,
+      "exact_nll_replay_max_abs": 1.8624188147242648e-06,
+      "energy_controls": {
+        "raw": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5352450284090908,
+            "rho_abs_nll_fixed_source": 0.12480366313374128,
+            "rho_kl_within_token_mass_weighted": 0.8934241134904106,
+            "nearest_target_agreement_with_minimum_kl": 0.255126953125
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5034965034965035,
+            "rho_abs_nll_fixed_source": 0.11882349827906469,
+            "rho_kl_within_token_mass_weighted": 0.8881857139464828,
+            "nearest_target_agreement_with_minimum_kl": 0.2120361328125
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5034965034965035,
+            "rho_abs_nll_fixed_source": 0.11882349827906469,
+            "rho_kl_within_token_mass_weighted": 0.8635398609659954,
+            "nearest_target_agreement_with_minimum_kl": 0.2120361328125
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.1623680274803322,
+            "rho_abs_nll_fixed_source": 0.03291800972465035,
+            "rho_kl_within_token_mass_weighted": -0.11080509903013733,
+            "nearest_target_agreement_with_minimum_kl": 0.1142578125
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.2181362338833042,
+            "rho_abs_nll_fixed_source": 0.046938596071896856,
+            "rho_kl_within_token_mass_weighted": 0.8177532823319802,
+            "nearest_target_agreement_with_minimum_kl": 0.1702880859375
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.48612666630244755,
+            "rho_abs_nll_fixed_source": 0.11554168487762237,
+            "rho_kl_within_token_mass_weighted": 0.8841252991597237,
+            "nearest_target_agreement_with_minimum_kl": 0.200439453125
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.037889600633741256,
+            "rho_abs_nll_fixed_source": 0.006967397836538462,
+            "rho_kl_within_token_mass_weighted": -0.45534858256384336,
+            "nearest_target_agreement_with_minimum_kl": 0.0771484375
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.18023724322552448,
+            "rho_abs_nll_fixed_source": 0.04121409596263112,
+            "rho_kl_within_token_mass_weighted": 0.8114142738835892,
+            "nearest_target_agreement_with_minimum_kl": 0.139892578125
+          }
+        },
+        "centered": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5352450284090908,
+            "rho_abs_nll_fixed_source": 0.12480366313374128,
+            "rho_kl_within_token_mass_weighted": 0.8934241134904106,
+            "nearest_target_agreement_with_minimum_kl": 0.255126953125
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5045742221645542,
+            "rho_abs_nll_fixed_source": 0.11925202483063813,
+            "rho_kl_within_token_mass_weighted": 0.8885562447843167,
+            "nearest_target_agreement_with_minimum_kl": 0.21728515625
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5045742221645542,
+            "rho_abs_nll_fixed_source": 0.11925202483063813,
+            "rho_kl_within_token_mass_weighted": 0.8644592576683267,
+            "nearest_target_agreement_with_minimum_kl": 0.21728515625
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.335658360194493,
+            "rho_abs_nll_fixed_source": 0.07721032629479896,
+            "rho_kl_within_token_mass_weighted": 0.6021048727627686,
+            "nearest_target_agreement_with_minimum_kl": 0.17041015625
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.2617353959517046,
+            "rho_abs_nll_fixed_source": 0.059659944547639863,
+            "rho_kl_within_token_mass_weighted": 0.82574462890625,
+            "nearest_target_agreement_with_minimum_kl": 0.17938232421875
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.48757401046219406,
+            "rho_abs_nll_fixed_source": 0.11588612803212413,
+            "rho_kl_within_token_mass_weighted": 0.8840638664666332,
+            "nearest_target_agreement_with_minimum_kl": 0.18634033203125
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.39802647303868005,
+            "rho_abs_nll_fixed_source": 0.09519990507539336,
+            "rho_kl_within_token_mass_weighted": 0.7828427446028279,
+            "nearest_target_agreement_with_minimum_kl": 0.16448974609375
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.27026964734484266,
+            "rho_abs_nll_fixed_source": 0.06644252963833042,
+            "rho_kl_within_token_mass_weighted": 0.8293506060793665,
+            "nearest_target_agreement_with_minimum_kl": 0.14764404296875
+          }
+        }
+      },
+      "state_geometry": {
+        "8": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.27104859252076047,
+            "rho_abs_nll_fixed_source": 0.07017677147071678,
+            "rho_kl_within_token_mass_weighted": 0.796164257134037,
+            "nearest_target_agreement_with_minimum_kl": 0.12200927734375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.011156202196241258,
+            "rho_abs_nll_fixed_source": -0.004169597492351399,
+            "rho_kl_within_token_mass_weighted": 0.7587084950336518,
+            "nearest_target_agreement_with_minimum_kl": 0.07659912109375
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2591629561844406,
+            "rho_abs_nll_fixed_source": 0.06730982640406469,
+            "rho_kl_within_token_mass_weighted": 0.7994271600137728,
+            "nearest_target_agreement_with_minimum_kl": 0.1202392578125
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.27023422134506114,
+            "rho_abs_nll_fixed_source": 0.06991598489401224,
+            "rho_kl_within_token_mass_weighted": 0.7964808289713824,
+            "nearest_target_agreement_with_minimum_kl": 0.12176513671875
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.23276930588942307,
+            "rho_abs_nll_fixed_source": 0.0530796717930507,
+            "rho_kl_within_token_mass_weighted": 0.7823951711252985,
+            "nearest_target_agreement_with_minimum_kl": 0.1239013671875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.01296805001638986,
+            "rho_abs_nll_fixed_source": -0.001540390761582168,
+            "rho_kl_within_token_mass_weighted": 0.7617054722695261,
+            "nearest_target_agreement_with_minimum_kl": 0.0791015625
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.2062523048240822,
+            "rho_abs_nll_fixed_source": 0.04634531728037587,
+            "rho_kl_within_token_mass_weighted": 0.7911117229055851,
+            "nearest_target_agreement_with_minimum_kl": 0.11932373046875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2308225831785402,
+            "rho_abs_nll_fixed_source": 0.05250047803758741,
+            "rho_kl_within_token_mass_weighted": 0.7833471128436413,
+            "nearest_target_agreement_with_minimum_kl": 0.1234130859375
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          }
+        },
+        "16": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.29663982257976396,
+            "rho_abs_nll_fixed_source": 0.07405143684440559,
+            "rho_kl_within_token_mass_weighted": 0.7962650194718845,
+            "nearest_target_agreement_with_minimum_kl": 0.12359619140625
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.019328510844624128,
+            "rho_abs_nll_fixed_source": -0.00638478952687937,
+            "rho_kl_within_token_mass_weighted": 0.7578311842315051,
+            "nearest_target_agreement_with_minimum_kl": 0.07568359375
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.28123292722902093,
+            "rho_abs_nll_fixed_source": 0.07046956949300699,
+            "rho_kl_within_token_mass_weighted": 0.8016855403023908,
+            "nearest_target_agreement_with_minimum_kl": 0.12109375
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.29556039663461536,
+            "rho_abs_nll_fixed_source": 0.07382692990603147,
+            "rho_kl_within_token_mass_weighted": 0.7967847591371988,
+            "nearest_target_agreement_with_minimum_kl": 0.12359619140625
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.23276930588942307,
+            "rho_abs_nll_fixed_source": 0.0530796717930507,
+            "rho_kl_within_token_mass_weighted": 0.7823951711252985,
+            "nearest_target_agreement_with_minimum_kl": 0.1239013671875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.01296805001638986,
+            "rho_abs_nll_fixed_source": -0.001540390761582168,
+            "rho_kl_within_token_mass_weighted": 0.7617054722695261,
+            "nearest_target_agreement_with_minimum_kl": 0.0791015625
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.2062523048240822,
+            "rho_abs_nll_fixed_source": 0.04634531728037587,
+            "rho_kl_within_token_mass_weighted": 0.7911117229055851,
+            "nearest_target_agreement_with_minimum_kl": 0.11932373046875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2308225831785402,
+            "rho_abs_nll_fixed_source": 0.05250047803758741,
+            "rho_kl_within_token_mass_weighted": 0.7833471128436413,
+            "nearest_target_agreement_with_minimum_kl": 0.1234130859375
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          }
+        },
+        "32": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.3032841182255245,
+            "rho_abs_nll_fixed_source": 0.07304755791083915,
+            "rho_kl_within_token_mass_weighted": 0.7976772028417417,
+            "nearest_target_agreement_with_minimum_kl": 0.1270751953125
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.01060475169361888,
+            "rho_abs_nll_fixed_source": -0.005836753578452797,
+            "rho_kl_within_token_mass_weighted": 0.7605437636116614,
+            "nearest_target_agreement_with_minimum_kl": 0.0775146484375
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2836888453343531,
+            "rho_abs_nll_fixed_source": 0.06807084517045454,
+            "rho_kl_within_token_mass_weighted": 0.8050512992140008,
+            "nearest_target_agreement_with_minimum_kl": 0.12347412109375
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.30195372254698427,
+            "rho_abs_nll_fixed_source": 0.07271890706949302,
+            "rho_kl_within_token_mass_weighted": 0.7984012234381784,
+            "nearest_target_agreement_with_minimum_kl": 0.1270751953125
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.23276930588942307,
+            "rho_abs_nll_fixed_source": 0.0530796717930507,
+            "rho_kl_within_token_mass_weighted": 0.7823951711252985,
+            "nearest_target_agreement_with_minimum_kl": 0.1239013671875
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.01296805001638986,
+            "rho_abs_nll_fixed_source": -0.001540390761582168,
+            "rho_kl_within_token_mass_weighted": 0.7617054722695261,
+            "nearest_target_agreement_with_minimum_kl": 0.0791015625
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.2062523048240822,
+            "rho_abs_nll_fixed_source": 0.04634531728037587,
+            "rho_kl_within_token_mass_weighted": 0.7911117229055851,
+            "nearest_target_agreement_with_minimum_kl": 0.11932373046875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.2308225831785402,
+            "rho_abs_nll_fixed_source": 0.05250047803758741,
+            "rho_kl_within_token_mass_weighted": 0.7833471128436413,
+            "nearest_target_agreement_with_minimum_kl": 0.1234130859375
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.4883491142646416,
+            "rho_abs_nll_fixed_source": 0.11524248456621503,
+            "rho_kl_within_token_mass_weighted": 0.884330878711192,
+            "nearest_target_agreement_with_minimum_kl": 0.2025146484375
+          }
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "split": "validation",
+      "tokens": 4096,
+      "replacements": 196608,
+      "mean_kl": 0.019022265691170378,
+      "mean_fisher_kl": 0.020318996357174098,
+      "fisher_kl_rmse": 0.02707711793923039,
+      "rho_fisher_kl_fixed_source": 0.9647711907233392,
+      "exact_nll_replay_max_abs": 1.7660198192714915e-06,
+      "energy_controls": {
+        "raw": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5408858719405595,
+            "rho_abs_nll_fixed_source": 0.1280637087521853,
+            "rho_kl_within_token_mass_weighted": 0.8928626288655422,
+            "nearest_target_agreement_with_minimum_kl": 0.26019287109375
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5109278538843969,
+            "rho_abs_nll_fixed_source": 0.1226388357736014,
+            "rho_kl_within_token_mass_weighted": 0.8876607002924175,
+            "nearest_target_agreement_with_minimum_kl": 0.21875
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5109278538843969,
+            "rho_abs_nll_fixed_source": 0.1226388357736014,
+            "rho_kl_within_token_mass_weighted": 0.8625506567944665,
+            "nearest_target_agreement_with_minimum_kl": 0.21875
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.15644462958916086,
+            "rho_abs_nll_fixed_source": 0.03571794416520979,
+            "rho_kl_within_token_mass_weighted": -0.12375380151229375,
+            "nearest_target_agreement_with_minimum_kl": 0.11529541015625
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.21691681121612763,
+            "rho_abs_nll_fixed_source": 0.05099465963723776,
+            "rho_kl_within_token_mass_weighted": 0.8160857823016174,
+            "nearest_target_agreement_with_minimum_kl": 0.17510986328125
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.4977715765679632,
+            "rho_abs_nll_fixed_source": 0.11922556203562062,
+            "rho_kl_within_token_mass_weighted": 0.8842458323297737,
+            "nearest_target_agreement_with_minimum_kl": 0.2030029296875
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.031920106260926576,
+            "rho_abs_nll_fixed_source": 0.008170601371284964,
+            "rho_kl_within_token_mass_weighted": -0.45789846336639706,
+            "nearest_target_agreement_with_minimum_kl": 0.076416015625
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.17741810191761365,
+            "rho_abs_nll_fixed_source": 0.04320904925152972,
+            "rho_kl_within_token_mass_weighted": 0.8088423960425262,
+            "nearest_target_agreement_with_minimum_kl": 0.13677978515625
+          }
+        },
+        "centered": {
+          "local_full_distance": {
+            "rho_kl_fixed_source": 0.5408858719405595,
+            "rho_abs_nll_fixed_source": 0.1280637087521853,
+            "rho_kl_within_token_mass_weighted": 0.8928626288655422,
+            "nearest_target_agreement_with_minimum_kl": 0.26019287109375
+          },
+          "local_energy_only": {
+            "rho_kl_fixed_source": 0.5119731342875874,
+            "rho_abs_nll_fixed_source": 0.12257310560533216,
+            "rho_kl_within_token_mass_weighted": 0.8881208889390197,
+            "nearest_target_agreement_with_minimum_kl": 0.22015380859375
+          },
+          "local_target_energy": {
+            "rho_kl_fixed_source": 0.5119731342875874,
+            "rho_abs_nll_fixed_source": 0.12257310560533216,
+            "rho_kl_within_token_mass_weighted": 0.8633851396276595,
+            "nearest_target_agreement_with_minimum_kl": 0.22015380859375
+          },
+          "local_cross_inner": {
+            "rho_kl_fixed_source": 0.3367484566215035,
+            "rho_abs_nll_fixed_source": 0.08118059918597029,
+            "rho_kl_within_token_mass_weighted": 0.5971952397772606,
+            "nearest_target_agreement_with_minimum_kl": 0.17254638671875
+          },
+          "local_cosine_distance": {
+            "rho_kl_fixed_source": 0.2635113909527972,
+            "rho_abs_nll_fixed_source": 0.06465629097465034,
+            "rho_kl_within_token_mass_weighted": 0.8242386798469388,
+            "nearest_target_agreement_with_minimum_kl": 0.18499755859375
+          },
+          "global_full_distance": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          },
+          "global_energy_only": {
+            "rho_kl_fixed_source": 0.4988181374289773,
+            "rho_abs_nll_fixed_source": 0.11986536412805944,
+            "rho_kl_within_token_mass_weighted": 0.8842190118442657,
+            "nearest_target_agreement_with_minimum_kl": 0.1827392578125
+          },
+          "global_cross_inner": {
+            "rho_kl_fixed_source": 0.40154687841455416,
+            "rho_abs_nll_fixed_source": 0.09854360727163461,
+            "rho_kl_within_token_mass_weighted": 0.7768623858910253,
+            "nearest_target_agreement_with_minimum_kl": 0.16400146484375
+          },
+          "global_cosine_distance": {
+            "rho_kl_fixed_source": 0.2714865090963724,
+            "rho_abs_nll_fixed_source": 0.06920106260926573,
+            "rho_kl_within_token_mass_weighted": 0.8272066633959102,
+            "nearest_target_agreement_with_minimum_kl": 0.14642333984375
+          }
+        }
+      },
+      "state_geometry": {
+        "8": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.2777078268411276,
+            "rho_abs_nll_fixed_source": 0.06820315914554195,
+            "rho_kl_within_token_mass_weighted": 0.7894924758467217,
+            "nearest_target_agreement_with_minimum_kl": 0.12506103515625
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.003411566460882867,
+            "rho_abs_nll_fixed_source": 0.00020828780594405588,
+            "rho_kl_within_token_mass_weighted": 0.7589039771493703,
+            "nearest_target_agreement_with_minimum_kl": 0.084228515625
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2658648724322552,
+            "rho_abs_nll_fixed_source": 0.06548517400568182,
+            "rho_kl_within_token_mass_weighted": 0.7931804251163563,
+            "nearest_target_agreement_with_minimum_kl": 0.12335205078125
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.27694382033981646,
+            "rho_abs_nll_fixed_source": 0.06799615179742133,
+            "rho_kl_within_token_mass_weighted": 0.7898384389078105,
+            "nearest_target_agreement_with_minimum_kl": 0.12506103515625
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.23350556913789333,
+            "rho_abs_nll_fixed_source": 0.05605801669034091,
+            "rho_kl_within_token_mass_weighted": 0.7753040149736756,
+            "nearest_target_agreement_with_minimum_kl": 0.12445068359375
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.010292319984702796,
+            "rho_abs_nll_fixed_source": -0.0036586948208041955,
+            "rho_kl_within_token_mass_weighted": 0.7595752578582963,
+            "nearest_target_agreement_with_minimum_kl": 0.0804443359375
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.20821183211319932,
+            "rho_abs_nll_fixed_source": 0.049943403764204544,
+            "rho_kl_within_token_mass_weighted": 0.7851736621136154,
+            "nearest_target_agreement_with_minimum_kl": 0.119873046875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.23163610071569057,
+            "rho_abs_nll_fixed_source": 0.05555052857298951,
+            "rho_kl_within_token_mass_weighted": 0.7763694667112191,
+            "nearest_target_agreement_with_minimum_kl": 0.12408447265625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          }
+        },
+        "16": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.3017339106206294,
+            "rho_abs_nll_fixed_source": 0.07602462235030595,
+            "rho_kl_within_token_mass_weighted": 0.7905671239365095,
+            "nearest_target_agreement_with_minimum_kl": 0.13128662109375
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.013580962494536712,
+            "rho_abs_nll_fixed_source": -0.0002129828179632867,
+            "rho_kl_within_token_mass_weighted": 0.7572225288261913,
+            "nearest_target_agreement_with_minimum_kl": 0.08038330078125
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2862941501857518,
+            "rho_abs_nll_fixed_source": 0.07249013193837413,
+            "rho_kl_within_token_mass_weighted": 0.7964527098655287,
+            "nearest_target_agreement_with_minimum_kl": 0.12933349609375
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.30063613144667833,
+            "rho_abs_nll_fixed_source": 0.07575871394230768,
+            "rho_kl_within_token_mass_weighted": 0.7910772697127388,
+            "nearest_target_agreement_with_minimum_kl": 0.13128662109375
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.23350556913789333,
+            "rho_abs_nll_fixed_source": 0.05605801669034091,
+            "rho_kl_within_token_mass_weighted": 0.7753040149736756,
+            "nearest_target_agreement_with_minimum_kl": 0.12445068359375
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.010292319984702796,
+            "rho_abs_nll_fixed_source": -0.0036586948208041955,
+            "rho_kl_within_token_mass_weighted": 0.7595752578582963,
+            "nearest_target_agreement_with_minimum_kl": 0.0804443359375
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.20821183211319932,
+            "rho_abs_nll_fixed_source": 0.049943403764204544,
+            "rho_kl_within_token_mass_weighted": 0.7851736621136154,
+            "nearest_target_agreement_with_minimum_kl": 0.119873046875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.23163610071569057,
+            "rho_abs_nll_fixed_source": 0.05555052857298951,
+            "rho_kl_within_token_mass_weighted": 0.7763694667112191,
+            "nearest_target_agreement_with_minimum_kl": 0.12408447265625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          }
+        },
+        "32": {
+          "predicted_euclidean": {
+            "rho_kl_fixed_source": 0.3114231349704982,
+            "rho_abs_nll_fixed_source": 0.07993257962740385,
+            "rho_kl_within_token_mass_weighted": 0.7907002457731762,
+            "nearest_target_agreement_with_minimum_kl": 0.1287841796875
+          },
+          "unanchored_ray": {
+            "rho_kl_fixed_source": -0.015035135762674826,
+            "rho_abs_nll_fixed_source": -0.002330433238636364,
+            "rho_kl_within_token_mass_weighted": 0.7585849670860698,
+            "nearest_target_agreement_with_minimum_kl": 0.08099365234375
+          },
+          "anchored_ray": {
+            "rho_kl_fixed_source": 0.2926652814958479,
+            "rho_abs_nll_fixed_source": 0.07595248989291958,
+            "rho_kl_within_token_mass_weighted": 0.799476454581999,
+            "nearest_target_agreement_with_minimum_kl": 0.12701416015625
+          },
+          "anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.3100726787860577,
+            "rho_abs_nll_fixed_source": 0.07965856165319055,
+            "rho_kl_within_token_mass_weighted": 0.7915463366821129,
+            "nearest_target_agreement_with_minimum_kl": 0.129150390625
+          },
+          "train_global_euclidean": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          },
+          "oracle_predicted_euclidean": {
+            "rho_kl_fixed_source": 0.23350556913789333,
+            "rho_abs_nll_fixed_source": 0.05605801669034091,
+            "rho_kl_within_token_mass_weighted": 0.7753040149736756,
+            "nearest_target_agreement_with_minimum_kl": 0.12445068359375
+          },
+          "oracle_unanchored_ray": {
+            "rho_kl_fixed_source": -0.010292319984702796,
+            "rho_abs_nll_fixed_source": -0.0036586948208041955,
+            "rho_kl_within_token_mass_weighted": 0.7595752578582963,
+            "nearest_target_agreement_with_minimum_kl": 0.0804443359375
+          },
+          "oracle_anchored_ray": {
+            "rho_kl_fixed_source": 0.20821183211319932,
+            "rho_abs_nll_fixed_source": 0.049943403764204544,
+            "rho_kl_within_token_mass_weighted": 0.7851736621136154,
+            "nearest_target_agreement_with_minimum_kl": 0.119873046875
+          },
+          "oracle_anchored_ray_x4": {
+            "rho_kl_fixed_source": 0.23163610071569057,
+            "rho_abs_nll_fixed_source": 0.05555052857298951,
+            "rho_kl_within_token_mass_weighted": 0.7763694667112191,
+            "nearest_target_agreement_with_minimum_kl": 0.12408447265625
+          },
+          "oracle_train_global_euclidean": {
+            "rho_kl_fixed_source": 0.49868454299606635,
+            "rho_abs_nll_fixed_source": 0.11920763562609266,
+            "rho_kl_within_token_mass_weighted": 0.8842065556899288,
+            "nearest_target_agreement_with_minimum_kl": 0.1968994140625
+          }
+        }
+      }
+    }
+  ],
+  "scope": "Frozen final-layer single-expert fixed-mass substitutions. KL is model-distribution risk; realized-label CE can have either sign. No new training or test samples."
+}

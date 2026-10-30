@@ -1,0 +1,25 @@
+{
+  "split": "train",
+  "threshold": 0.05,
+  "checkpoint_step": 4000,
+  "rows": [
+    {
+      "variant": "mlp_half",
+      "train_task_loss": 4.209625244140625,
+      "raw_margin_loss": 0.0010733392555266619,
+      "task_router_grad_norm": 0.3166249990463257,
+      "margin_router_grad_norm": 0.07352536916732788,
+      "weighted_ratio_lambda001": 0.0023221593174508094,
+      "weighted_ratio_lambda01": 0.023221593174508094
+    },
+    {
+      "variant": "amp_half",
+      "train_task_loss": 4.198672294616699,
+      "raw_margin_loss": 0.0002573266392573714,
+      "task_router_grad_norm": 0.3422003984451294,
+      "margin_router_grad_norm": 0.010764419101178646,
+      "weighted_ratio_lambda001": 0.000314564774035606,
+      "weighted_ratio_lambda01": 0.0031456477403560596
+    }
+  ]
+}

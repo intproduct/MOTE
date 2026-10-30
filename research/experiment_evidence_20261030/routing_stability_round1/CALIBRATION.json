@@ -1,0 +1,269 @@
+{
+  "time": "2026-10-28T22:51:19.267502+08:00",
+  "split": "train",
+  "window_starts": [
+    0,
+    99470,
+    198941,
+    298412,
+    397882,
+    497353,
+    596824,
+    696294,
+    795765,
+    895236,
+    994706,
+    1094177,
+    1193648,
+    1293118,
+    1392589,
+    1492060,
+    1591530,
+    1691001,
+    1790472,
+    1889942,
+    1989413,
+    2088884,
+    2188354,
+    2287825,
+    2387296,
+    2486766,
+    2586237,
+    2685708,
+    2785178,
+    2884649,
+    2984120,
+    3083591
+  ],
+  "rows": [
+    {
+      "variant": "mlp_half",
+      "module": "blocks.0.up",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.00017756223678588867,
+        "0.95": 0.0005939602851867676,
+        "0.99": 0.00110340747050941,
+        "0.999": 0.002101302845403552,
+        "1.0": 0.0030727535486221313
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.0.up",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.0013762116432189941,
+        "0.95": 0.004675686359405518,
+        "0.99": 0.008310360834002495,
+        "0.999": 0.015074099414050579,
+        "1.0": 0.021562814712524414
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.0.down",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.00014010071754455566,
+        "0.95": 0.0006116144359111786,
+        "0.99": 0.001077181426808238,
+        "0.999": 0.001789730740711093,
+        "1.0": 0.003052353858947754
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.0.down",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.0011038780212402344,
+        "0.95": 0.005048573017120361,
+        "0.99": 0.00901882629841566,
+        "0.999": 0.016360700130462646,
+        "1.0": 0.025489091873168945
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.1.up",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.00022345781326293945,
+        "0.95": 0.0009876489639282227,
+        "0.99": 0.0016868263483047485,
+        "0.999": 0.003042401745915413,
+        "1.0": 0.006277009844779968
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.1.up",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.001770615577697754,
+        "0.95": 0.007922619581222534,
+        "0.99": 0.015189333818852901,
+        "0.999": 0.0286176186054945,
+        "1.0": 0.03905177116394043
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.1.down",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.0002759695053100586,
+        "0.95": 0.0014358162879943848,
+        "0.99": 0.002606398891657591,
+        "0.999": 0.004162356723099947,
+        "1.0": 0.0048596858978271484
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "mlp_half",
+      "module": "blocks.1.down",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.0022291988134384155,
+        "0.95": 0.011621449142694473,
+        "0.99": 0.022448496893048286,
+        "0.999": 0.03215904161334038,
+        "1.0": 0.03873848915100098
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "ed5e58b87ea99dab7c6e659421e1ddab1a521dd55c7ead3bd313046397971ca4"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.0.up",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.0003554821014404297,
+        "0.95": 0.0016728043556213379,
+        "0.99": 0.0029351164121180773,
+        "0.999": 0.006787878926843405,
+        "1.0": 0.00905466079711914
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.0.up",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.002904236316680908,
+        "0.95": 0.013675332069396973,
+        "0.99": 0.025368573144078255,
+        "0.999": 0.048760391771793365,
+        "1.0": 0.06521987915039062
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.0.down",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.00025838613510131836,
+        "0.95": 0.0018654316663742065,
+        "0.99": 0.0038374795112758875,
+        "0.999": 0.006567002274096012,
+        "1.0": 0.007363080978393555
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.0.down",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.002057671546936035,
+        "0.95": 0.015232741832733154,
+        "0.99": 0.030181296169757843,
+        "0.999": 0.06758978962898254,
+        "1.0": 0.11039876937866211
+      },
+      "fraction_below_threshold_01": 0.999755859375,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.1.up",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.0005193948745727539,
+        "0.95": 0.0021986961364746094,
+        "0.99": 0.004183137323707342,
+        "0.999": 0.008563736453652382,
+        "1.0": 0.012880802154541016
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.1.up",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.004183471202850342,
+        "0.95": 0.0168076753616333,
+        "0.99": 0.034568656235933304,
+        "0.999": 0.07144461572170258,
+        "1.0": 0.0953989028930664
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.1.down",
+      "input_roundtrip": "fp16",
+      "twice_error_quantiles": {
+        "0.5": 0.0005485415458679199,
+        "0.95": 0.0031952857971191406,
+        "0.99": 0.0074456557631492615,
+        "0.999": 0.014738892205059528,
+        "1.0": 0.026911020278930664
+      },
+      "fraction_below_threshold_01": 1.0,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    },
+    {
+      "variant": "amp_d1_half",
+      "module": "blocks.1.down",
+      "input_roundtrip": "bf16",
+      "twice_error_quantiles": {
+        "0.5": 0.0044356584548950195,
+        "0.95": 0.025767892599105835,
+        "0.99": 0.056044142693281174,
+        "0.999": 0.10509828478097916,
+        "1.0": 0.2642788887023926
+      },
+      "fraction_below_threshold_01": 0.998046875,
+      "checkpoint_sha256": "974d99f0e756d5684d34f92bf658380207f70f45e3fe7e901d84205dada5de4c"
+    }
+  ],
+  "threshold": 0.1,
+  "weight": 1.0,
+  "schedule": "zero first10%, linear ramp to30%, then full",
+  "selection_rule": "Preselected tau=.1 in centered RMS units; report observed error coverage, not a worst-case guarantee. Same tau/lambda for all arms. Pilot acceptance is numerical/procedural, not a gate ranking.",
+  "limitation": "Calibration uses two previously trained seed17 baselines and train inputs. No final test access. Smooth scale sqrt(RMS^2+1e-12) participates in gradients."
+}

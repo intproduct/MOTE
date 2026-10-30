@@ -1,0 +1,8 @@
+{
+  "time": "2026-10-28T23:00:35.555016+08:00",
+  "pilot_group": "outputs\\routing_stability_round1\\pilot\\5b7d1b6a5189",
+  "numerical_audit_passed": true,
+  "accepted_for_formal": false,
+  "reason": "Margin lambda=1 starts after only12 pilot steps. All margin arms collapse to nearly fixed top4, loadCV~sqrt(3), up to12 unused experts. Reject this candidate despite finite gradients and increased margin. Retain all results.",
+  "next": "Use train-only gradient calibration and a new weaker/later-margin pilot; formal not started."
+}

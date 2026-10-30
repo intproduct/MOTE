@@ -1,0 +1,1 @@
+{"runtime": {"dev_mode": true}, "model": {"model_path": "D:\\files\\MOTE\\outputs\\autoregressive_gate\\pytest_regression\\test_config_json_and_sparse_mi0\\model", "gate_arch": "quantum", "gate_quantum": {"rank": 3, "depth": 2, "block_size": 2}}}

@@ -1,0 +1,40 @@
+{
+  "recorded_at": "2026-10-28T19:44:53.987018+08:00",
+  "reviewer": "Codex agent",
+  "method": "Each final PNG opened with view_image and visually inspected during this review turn.",
+  "passed": true,
+  "figures": [
+    {
+      "file": "figures/learning_steps.png",
+      "sha256": "bd1c93f9d556baa1bff35115b3f077949f22e2b0991ce0059f797950d265e9de",
+      "passed": true,
+      "visual_inspection": "完整轨迹与后期放大面板均已逐张查看；步数/CE坐标、实测点、样本SD及图例可读。"
+    },
+    {
+      "file": "figures/learning_time.png",
+      "sha256": "a596fee61fd4b5cfc6c0f2ad1cd819ec90c74077383e13803ee3e61c0b1e37f9",
+      "passed": true,
+      "visual_inspection": "完整与放大面板已查看；注明同一步的种子平均时间，不伪称固定秒数重评估；训练耗时排除验证保存。"
+    },
+    {
+      "file": "figures/parameter_efficiency.png",
+      "sha256": "f52762bf0c90fa7eef466a9d493d77e7207f7e192bd4fd4dc026cf68b135d449",
+      "passed": true,
+      "visual_inspection": "实际路由参数横轴，测试PPL及样本SD纵轴；full/half标签分列，未断轴。"
+    },
+    {
+      "file": "figures/serial_efficiency.png",
+      "sha256": "069deb6e143546d630aa6d6f7025fb6f0ce7b0668ba3b2f22b5e480606f1f4cd",
+      "passed": true,
+      "visual_inspection": "串行端到端训练计时，5预热+20测量；单位及误差条可读，未解释为推理速度。"
+    },
+    {
+      "file": "figures/paired_differences.png",
+      "sha256": "d3a90f09de517dec88ac39772dc1e8c35f6321d3caa149cbc267c9098be449b5",
+      "passed": true,
+      "visual_inspection": "同种子配对CE差及未校正95% t区间；全部区间跨零，未据小均值差宣称显著优势。"
+    }
+  ],
+  "preserved_originals": "review_history/automatic_20261028_1927/",
+  "changes": "Only plotting colors, label positions and full/late learning-curve panels; no raw measurements changed."
+}
