@@ -15,11 +15,11 @@ import torch
 
 from .acceptance import source_identity, verify_model
 from .data import TargetWindows
-from .model import AdapterConfig, JointProjection, patch_qwen, set_model_precision
 from .resources import GPULease, PRO4000, V100
-from .routers import METHODS
+# Model imports transitively reach legacy losses.py, which queries CUDA at import.
+# Delay them until the owned UUID lease is acquired and physically verified.
+METHODS = ("mlp", "affine_born", "reencode_cz", "reencode_product")
 from .state import MasterAdamW, TokenSchedule, digest, fresh_directory, load_checkpoint, rng_state, restore_rng, save_checkpoint, write_json
-from .task import next_target_loss
 
 
 def seed_everything(seed):
@@ -53,6 +53,7 @@ def verify_data(path):
 
 @torch.no_grad()
 def evaluate(model, data, seed, dtype, target=1_048_576):
+    from .task import next_target_loss
     model.eval()
     # All seeds and methods share one fixed evaluation sample set/order.
     windows = TargetWindows(data, "internal_dev", 17)
@@ -94,15 +95,20 @@ def run(args):
     data_release = verify_data(args.data)
     manifest = verify_model(args.model_manifest)
     common = None if args.method == "dense" else load_common(args.common, args.model_manifest)
-    cfg = AdapterConfig(seed=args.seed)
-    if common is not None and common["adapter"] != asdict(cfg):
-        raise ValueError("Seed/common initialization configuration mismatch")
     identity = {"code": code, "model_manifest_sha256": digest(args.model_manifest),
         "data_sha256": digest(Path(args.data) / "DATA_RELEASE.json"), "common_sha256": None if common is None else digest(args.common),
         "method": args.method, "seed": args.seed, "gpu": args.gpu, "stage": args.stage, "target_tokens": target,
-        "adapter": asdict(cfg), "config_sha256": digest(Path(__file__).parent / "configs" / "integration.json")}
-    write_json(output / "RUN_CONFIG.json", identity)
+        "config_sha256": digest(Path(__file__).parent / "configs" / "integration.json")}
     with GPULease(args.root, args.gpu, args.stage + "_" + args.method, output) as lease:
+        from .model import AdapterConfig, JointProjection, patch_qwen, set_model_precision
+        from .task import next_target_loss
+        cfg = AdapterConfig(seed=args.seed)
+        if common is not None and common["adapter"] != asdict(cfg):
+            raise ValueError("Seed/common initialization configuration mismatch")
+        identity["adapter"] = asdict(cfg)
+        identity["cuda_device"] = lease.record["cuda_device"]
+        write_json(output / "RUN_CONFIG.json", identity)
+        write_json(output / "STATUS.json", {"phase": "loading_model", "stage": args.stage, "pid": os.getpid(), "cuda_device": lease.record["cuda_device"]})
         from transformers import AutoModelForCausalLM
         torch.set_num_threads(8)
         torch.backends.cuda.matmul.allow_tf32 = False
@@ -120,11 +126,13 @@ def run(args):
         if args.stage == "dense-eval":
             if args.method != "dense" or args.resume:
                 raise ValueError("Untouched Dense evaluation requires dense without resume")
+            write_json(output / "STATUS.json", {"phase": "evaluating_dense", "stage": args.stage, "pid": os.getpid(), "cuda_device": lease.record["cuda_device"], "time": time.time()})
             result = evaluate(model, args.data, args.seed, dtype)
             write_json(output / "DENSE_EVALUATION.json", {**result, "identity": identity, "precision": str(dtype), "updates": 0})
             write_json(output / "STATUS.json", {"phase": "complete", "stage": args.stage})
             return
         optimizer = MasterAdamW(model)
+        projections = {n: m for n, m in model.named_modules() if isinstance(m, JointProjection)}
         schedule = TokenSchedule(optimizer, target)
         scaler = torch.amp.GradScaler("cuda", enabled=dtype == torch.float16, init_scale=1024)
         cursor = None
@@ -162,6 +170,10 @@ def run(args):
                         ids, labels, sample = stream.next(update_tokens - total)
                         if not sample["valid_targets"]:
                             continue
+                        # Capture one explicitly identified first window per update.
+                        # Recomputed activation-checkpoint forwards have the same sample.
+                        for module in projections.values():
+                            module.capture_metrics = total == 0
                         with torch.autocast("cuda", dtype=dtype):
                             ce, valid, aux = next_target_loss(model, torch.from_numpy(ids)[None].to("cuda"), torch.from_numpy(labels)[None].to("cuda"))
                             loss = ce / update_tokens + 0.01 * aux * valid / update_tokens
@@ -172,7 +184,7 @@ def run(args):
                         nll += float(ce.detach())
                         balance += float(aux.detach()) * valid
                         samples.append(sample)
-                    update = optimizer.step(scaler)
+                    update = optimizer.step(scaler, capture_stats=True)
                     torch.cuda.synchronize()
                     if update["updated"]:
                         break
@@ -187,6 +199,8 @@ def run(args):
                 row = {"tokens": schedule.tokens, "update_tokens": total, "ce": nll / total, "load_balance": balance / total,
                        "seconds": seconds, "valid_tokens_per_second": total / seconds, "grad_norm": update["grad_norm"],
                        "overflow_retries": attempt, "temperature_c": temperature, "cursor": stream.state_dict(),
+                       "optimizer_update": update, "routing_sample": samples[0],
+                       "routing_first_window": {n: m.last_metrics for n, m in projections.items()},
                        "peak_allocated_bytes": torch.cuda.max_memory_allocated(), "peak_reserved_bytes": torch.cuda.max_memory_reserved()}
                 metrics.write(json.dumps(row) + "\n")
                 metrics.flush()

@@ -58,11 +58,20 @@ class MasterAdamW:
         for p in self.parameters:
             p.grad = None
 
-    def step(self, scaler=None, max_grad_norm=1.0):
+    def step(self, scaler=None, max_grad_norm=1.0, capture_stats=False):
         for p, master in zip(self.parameters, self.masters):
             master.grad = None if p.grad is None else p.grad.detach().float().clone()
-        if scaler is not None and scaler.is_enabled():
+        scaled = scaler is not None and scaler.is_enabled()
+        scale_before = scaler.get_scale() if scaled else 1.0
+        if scaled:
             scaler.unscale_(self.optimizer)
+        groups = {}
+        if capture_stats:
+            for name, master in zip(self.names, self.masters):
+                group = "router" if ".router." in name else "experts" if ".experts." in name else "residual_tail_or_dense"
+                groups.setdefault(group, []).append(master.grad.detach().norm() if master.grad is not None else master.new_zeros(()))
+            grad_groups = {name: float(torch.stack(norms).norm()) for name, norms in groups.items()}
+        if scaler is not None and scaler.is_enabled():
             finite = all(p.grad is None or bool(torch.isfinite(p.grad).all()) for p in self.masters)
             norm = torch.nn.utils.clip_grad_norm_(self.masters, max_grad_norm) if finite else torch.tensor(float("inf"))
             scaler.step(self.optimizer)
@@ -71,10 +80,20 @@ class MasterAdamW:
             norm = torch.nn.utils.clip_grad_norm_(self.masters, max_grad_norm, error_if_nonfinite=True)
             self.optimizer.step()
             finite = True
+        deltas = {}
         with torch.no_grad():
-            for p, master in zip(self.parameters, self.masters):
+            for name, p, master in zip(self.names, self.parameters, self.masters):
+                if capture_stats:
+                    group = "router" if ".router." in name else "experts" if ".experts." in name else "residual_tail_or_dense"
+                    deltas.setdefault(group, []).append((master.to(p.dtype).float() - p.float()).norm())
                 p.copy_(master)
-        return {"updated": finite, "grad_norm": float(norm)}
+        result = {"updated": finite, "grad_norm": float(norm), "scale_before": scale_before,
+                  "scale_after": scaler.get_scale() if scaled else 1.0}
+        if capture_stats:
+            result["groups"] = {name: {"unscaled_grad_norm": grad_groups[name],
+                "model_update_norm": float(torch.stack(values).norm()),
+                "changed_parameter_tensors": int((torch.stack(values) > 0).sum())} for name, values in deltas.items()}
+        return result
 
     def state_dict(self):
         return {"names": self.names, "masters": [p.detach().clone() for p in self.masters],

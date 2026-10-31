@@ -40,6 +40,22 @@ def command(args):
     return subprocess.check_output(args, text=True, encoding="utf8", errors="replace", timeout=25, creationflags=flags).strip()
 
 
+def verify_cuda_device(device_uuid):
+    """Check CUDA's physical UUID, not only the requested mask or NVML label."""
+    import torch
+    if torch.cuda.device_count() != 1:
+        raise RuntimeError("Expected exactly one visible CUDA device; bind UUID before importing model dependencies")
+    properties = torch.cuda.get_device_properties(0)
+    actual = str(properties.uuid)
+    if actual.lower().removeprefix("gpu-") != device_uuid.lower().removeprefix("gpu-"):
+        raise RuntimeError(f"Physical CUDA UUID mismatch: requested {device_uuid}, actual {actual}")
+    capability = (properties.major, properties.minor)
+    expected = (12, 0) if device_uuid == PRO4000 else (7, 0)
+    if capability != expected:
+        raise RuntimeError(f"Unexpected CUDA architecture: {capability}, expected {expected}")
+    return {"uuid": actual, "name": properties.name, "capability": list(capability), "visible_count": 1}
+
+
 def gpu_snapshot(device_uuid):
     if device_uuid not in (PRO4000, *V100):
         raise ValueError("Unknown experiment GPU UUID")
@@ -106,6 +122,11 @@ class GPULease:
             if not second["idle"]:
                 raise RuntimeError(f"Device changed during acquisition: {second}")
             os.environ["CUDA_VISIBLE_DEVICES"] = self.device_uuid
+            self.record["cuda_device"] = verify_cuda_device(self.device_uuid)
+            temporary = self.path.with_name(self.path.name + f".{os.getpid()}.tmp")
+            with temporary.open("x", encoding="utf8") as f:
+                json.dump(self.record, f, indent=2)
+            os.replace(temporary, self.path)
         except BaseException:
             self.__exit__(None, None, None)
             raise

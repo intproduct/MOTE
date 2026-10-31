@@ -314,6 +314,7 @@ def test_gpu_lease_exclusion_ownership_and_stop(monkeypatch, tmp_path):
     import json
     from fitmotn.experiments.qwen_joint import resources
     monkeypatch.setattr(resources, "gpu_snapshot", lambda uuid: {"idle": True, "uuid": uuid})
+    monkeypatch.setattr(resources, "verify_cuda_device", lambda uuid: {"uuid": uuid})
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "")
     with resources.GPULease(tmp_path, resources.PRO4000, "test", tmp_path / "run") as first:
         with pytest.raises(FileExistsError):
@@ -355,3 +356,60 @@ def test_cli_fresh_output_refusal_preserves_existing_evidence(monkeypatch, tmp_p
         module.main()
     assert list(output.iterdir()) == [output / "RESULT.json"]
     assert (output / "RESULT.json").read_text(encoding="utf8") == '{"passed": true}'
+
+
+def test_physical_gpu_identity_guard_rejects_wrong_device_and_architecture(monkeypatch):
+    from types import SimpleNamespace
+    from fitmotn.experiments.qwen_joint.resources import PRO4000, V100, verify_cuda_device
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    props = SimpleNamespace(uuid=PRO4000, name="test", major=12, minor=0)
+    monkeypatch.setattr(torch.cuda, "get_device_properties", lambda index: props)
+    assert verify_cuda_device(PRO4000)["uuid"] == PRO4000
+    with pytest.raises(RuntimeError, match="UUID mismatch"):
+        verify_cuda_device(V100[0])
+    props.major = 7
+    with pytest.raises(RuntimeError, match="architecture"):
+        verify_cuda_device(PRO4000)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 3)
+    with pytest.raises(RuntimeError, match="exactly one"):
+        verify_cuda_device(PRO4000)
+
+
+def test_failed_cuda_identity_releases_only_own_lease(monkeypatch, tmp_path):
+    from fitmotn.experiments.qwen_joint import resources
+    monkeypatch.setattr(resources, "gpu_snapshot", lambda uuid: {"idle": True})
+    def wrong(uuid):
+        raise RuntimeError("Physical CUDA UUID mismatch")
+    monkeypatch.setattr(resources, "verify_cuda_device", wrong)
+    with pytest.raises(RuntimeError, match="UUID mismatch"):
+        with resources.GPULease(tmp_path, resources.PRO4000, "test", tmp_path / "run"):
+            pass
+    assert not list((tmp_path / "locks").glob("*.lock"))
+
+
+def test_train_import_does_not_enumerate_cuda_before_lease():
+    import os, subprocess, sys
+    environment = dict(os.environ, CUDA_VISIBLE_DEVICES="")
+    script = """
+import torch
+def forbidden(*args, **kwargs):
+    raise AssertionError('CUDA queried before owned GPU lease')
+torch.cuda.is_available = forbidden
+torch.cuda.device_count = forbidden
+import fitmotn.experiments.qwen_joint.train
+"""
+    subprocess.run([sys.executable, "-c", script], env=environment, check=True,
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+
+
+def test_update_diagnostics_measure_unscaled_grad_and_actual_rounded_update():
+    model = torch.nn.Linear(5, 3, bias=False).to(torch.bfloat16)
+    optimizer = MasterAdamW(model, expert_lr=0.01)
+    before = model.weight.detach().float().clone()
+    model(torch.ones(4, 5, dtype=torch.bfloat16)).float().square().mean().backward()
+    expected_grad = model.weight.grad.float().norm().item()
+    result = optimizer.step(capture_stats=True)
+    group = result["groups"]["residual_tail_or_dense"]
+    assert group["unscaled_grad_norm"] == pytest.approx(expected_grad)
+    assert group["model_update_norm"] == pytest.approx((model.weight.detach().float() - before).norm().item())
+    assert group["changed_parameter_tensors"] == 1
