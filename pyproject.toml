@@ -43,6 +43,7 @@ packages = [
     "fitmotn.experiments.autoregressive_gate",
     "fitmotn.experiments.routing_stability",
     "fitmotn.experiments.operator_geometry",
+    "fitmotn.experiments.qwen_joint",
     "fitmotn.export",
     "fitmotn.export.remote_code",
     "fitmotn.init",
@@ -65,6 +66,7 @@ fitmotn = "."
 "fitmotn.experiments.autoregressive_gate" = "experiments/autoregressive_gate"
 "fitmotn.experiments.routing_stability" = "experiments/routing_stability"
 "fitmotn.experiments.operator_geometry" = "experiments/operator_geometry"
+"fitmotn.experiments.qwen_joint" = "experiments/qwen_joint"
 "fitmotn.export" = "export"
 "fitmotn.export.remote_code" = "export/remote_code"
 "fitmotn.init" = "init"
@@ -78,3 +80,4 @@ fitmotn = "."
 "fitmotn.experiments.autoregressive_gate" = ["configs/*.json", "README.md"]
 "fitmotn.experiments.routing_stability" = ["configs/*.json", "README.md"]
 "fitmotn.experiments.operator_geometry" = ["configs/*.json", "README.md"]
+"fitmotn.experiments.qwen_joint" = ["configs/*.json", "*.json"]

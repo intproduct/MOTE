@@ -1,0 +1,19 @@
+{
+  "schema": "qwen-joint-protocol-amendment-v1",
+  "date": "2026-10-31",
+  "status": "pre_training_implementation_definition",
+  "frozen_parent_protocol": "research/qwen_mote_joint_handoff_20261030/COMMON_PROTOCOL.json",
+  "authorization": "User local Qwen3-0.6B, approved local data, 15-run 0.6B matrix, independent environment and native V100 tests",
+  "changes": {
+    "model": "Use exact frozen local Qwen/Qwen3-0.6B, whose card states pretraining and post-training. All result labels omit Base. Do not run 1.7B/4B in this authorized first matrix.",
+    "environment": "Independent native Windows Python 3.12.10 environment, torch 2.10.0+cu128 and transformers 4.57.6; runtime, architectures and real device forward/backward must pass before GPU acceptance. Old training environments are unchanged.",
+    "data": "Reuse English documents from approved qualified-v4 allowlist intersected by ID and content SHA256 with curated-final/closed-*.jsonl.gz. No downloading new corpus. A new group split and Qwen tokenization release is mandatory; historical validation is exploratory only.",
+    "tensor_conversion": "For each source projection, use largest power-of-two main dimensions. Choose 16 distinct contraction positions with two untouched input sites using the per-seed position order. Orthogonally project dense main weights onto each tensor-with-identity operator; initialize a rank-64 main residual from dense minus the uniform mean of those operators, and rank-128 real-dimension tails by randomized SVD. No teacher or router warmstart training. Record reconstruction error and actual initial task loss; conversion quality is not a gate selection filter.",
+    "initialization": "All gates use identical per-seed tensor experts, residuals/tails, positions and encoder tensors. CZ/product heads are also identical at initialization. The release must save/hash common converted weights, and every run must verify them before the first update.",
+    "router": "Rank-8 LayerNorm/linear/tanh encoder, 16-output MLP or affine-Born head, or 8-angle RY/CZ/RY and RY/RY heads. Identity expert-to-basis assignment. The quantum/affine probabilities use the frozen epsilon 1e-6 smoothing; logits are centered log probabilities, negative of frozen centered costs. All gates share clamped learnable log scale initialized at zero.",
+    "backward": "Stable descending hard top-k with expert-index tie break; normalize softmax over selected logits. Task gradients pass through selected logits and actually dispatched experts. No STE. Full-softmax load balance remains differentiable for every expert probability. No capacity clipping or dropped tokens.",
+    "precision": "Backbone/experts/residuals BF16 on PRO4000 or FP16 on V100; all router parameters and computations are FP32 outside autocast. AdamW uses explicit FP32 master parameters and moments. V100 uses GradScaler and is reported separately. Disable TF32.",
+    "token_windows": "Fixed 1024-input windows from document-group-safe tokenized streams, with explicit next-token targets and ignored cross-document boundary targets. Exact nonignored target accumulation to 32768 per update and exact final run budget. Record cursor including partially consumed window targets. All methods/seeds use frozen per-seed permutations. No default mixture, KD, margin or gate freeze."
+  },
+  "formal_acceptance": false
+}
