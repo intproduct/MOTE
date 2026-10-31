@@ -186,9 +186,7 @@ class JointProjection(nn.Module):
                                "distinct_expert_hashes": len({tensor_hash({"u": e.u}) for e in self.experts})}
 
     def set_precision(self, dtype, device):
-        self.to(device=device, dtype=dtype)
-        self.router.float()
-        return self
+        return set_model_precision(self, dtype, device)
 
     def forward(self, inputs):
         shape = inputs.shape[:-1]
@@ -264,10 +262,8 @@ def patch_qwen(model, method: str, cfg: AdapterConfig, common=None):
 
 
 def set_model_precision(model, dtype, device):
-    model.to(device=device, dtype=dtype)
-    for module in model.modules():
-        if isinstance(module, JointRouter):
-            module.float()
+    from .precision import set_precision_preserving_routers
+    return set_precision_preserving_routers(model, dtype, device)
 
 
 def auxiliary_loss(model):
