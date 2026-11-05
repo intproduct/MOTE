@@ -1,0 +1,2072 @@
+{
+  "schema": "qwen-integration-acceptance-v3",
+  "formal_approved": true,
+  "code": {
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\draw_direct_mpo.py": "84d0256e50a1c1d80c50a5f24c421e9729a5b4c2956f367b5b01c381ed95364f",
+    "experiments\\operator_geometry\\round3_replay_v2.py": "5cc12e47a5ab5ce0e73ccbea15e48851c19dca26336a09b7041f7ddbf3f9f93b",
+    "tools\\dataset_expansion\\math_download.py": "0d62e0e875d85551f3dad0f95855192a668de370f9d41d17965d8ba75f2ebe75",
+    "archive\\legacy_duplicates\\tasks\\reasoning_specs(1).py": "a35592cd8a22b15a9a87cdac7e754ffa4cdd7d42eedeb8256b8e3c768be21b70",
+    "diagnostics\\prompt_sampling.py": "e1c21281a8266f012949498d1ca55f8218dc29267c2e3d306df9d16c3c44123c",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\formal\\756b04397b2d\\supporting_source_snapshot\\experiments\\routing_stability\\pipeline.py": "83d422a1acc8bcc792b0bafa3c712d2bbf8b9e45ac037f601f2a37a77e36fc38",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\ADTN.py": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+    "tools\\dataset_expansion\\science\\discover.py": "2b27aa6d9a7d3b1b554261fc6431852db1e8ab71f067d4bc682744147bd0e9c6",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\finalize_review.py": "4668f73b85e7ce3fa26958e53ebde51807b85052a3f5aa7af63ea8aa89345054",
+    "tests\\test_export_remote_code.py": "27795479332951bc24182825c64abc5cec61872670ea311d9846f7085690f7a9",
+    "tests\\test_rl_post_update_diagnostics.py": "db76cbf7cfd44e0c4a7c9216e3e8229230bcdf7f5cbde2ef34e0429ba7bfe7a2",
+    "tools\\dataset_expansion\\code\\write_postgate_math_findings.py": "d7760b4539e7b49859c1fb17a4ca03dbf6bde3777741f04380a3fe235319cbbc",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\plot_serial_efficiency.py": "e0013cd03ec769938d933f1bcc5aacc6de574bb8f5964c3b182d58657f5ccb3c",
+    "diagnostics\\config_doctor.py": "d28318b394de65ff33772f730d78e41ecad6280f6da6b7ea9f90849aa239aad0",
+    "tools\\dataset_expansion\\code\\recheck_example_reviews.py": "09d3f410ed640765ae2f231564541acf0ad6e9a6b7cafbd6d78dbd01f529f82c",
+    "tests\\test_gsm8k_custom_metrics.py": "94c915a0d2752f4e7213372756dfb123fad2242150264348bf252bbf2be29ea8",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\validate_parallel_pilot.py": "41b6e80b6079551523fb0a560fabb4ba95655e121a0eea16f97f2557b53d9ff2",
+    "experiments\\qwen_joint\\thermal.py": "fb6cea463eda37697026ea88043e917971655552e6dadf5ff9457bd3568b9c20",
+    "research\\operator_family_quantum_gate_20261030\\build_stage_review.py": "586386cde78d99a158107a591e0b4edc27350477ca506ff45821b61bb6ea010a",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\tests\\test_advanced_routers.py": "88aab93d80e3501e2b7e752aa4b69ecb4a1ec96ff22080f1ff99c9fa29218501",
+    "train\\trainer.py": "33c59eeca465a8ffaa0dcc575994339a3e1fbc6ea3775a796b7e0761b11a0cc4",
+    "cli\\debug_reasoning_sample.py": "3e14974121ac6c85a01c9280ef47a51bf6e3b4f26d7f91156b5d4ca37e1196a8",
+    "experiments\\routing_stability\\calibrate.py": "431b64603384a52450db17aabee895206290e1f8c29a0dc7c26d094bb270868b",
+    "ADTN.py": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+    "experiments\\operator_geometry\\review_pilot.py": "a68ad4f0921acfb65b6eec7745a290c9eaeebcbbbfc8d7b06d50c1ea0e1487ea",
+    "archive\\ADTN_reference\\mmlu.py": "b0c2c608158fdc1e690ef55e241e082d07ad889f27fa2452ba7bdef4b55732c2",
+    "tools\\dataset_expansion\\science\\process.py": "bc5d26ee283220389c5856c49a545f28eacfaa0ad4d35508aba40ce3706a9c63",
+    "archive\\legacy_duplicates\\cli\\train(1).py": "1e42d039c74efd11d7861dc41dbee8b65a00d2556b0712cb53c6f7e4ea8508b8",
+    "audit.py": "4feadcec54b4dc04aefe2b53ac792705b4d10d49d10429e93a5790eab8153f39",
+    "tests\\test_export_format.py": "5c6d5b4a2a17a7f237b17e62f1ebc409352bc8815471f4fd5334f688bfce8dbb",
+    "tools\\dataset_expansion\\math_symbolic_audit.py": "46a0eefeb8fa7b263247d183005f9f83a3577b8b449bbb3925541dc147e1d30a",
+    "experiments\\gate_benchmark\\data.py": "3470ac90269b3b4baf403a6bc3afd0aed3ed0e623ec5e1dfbe43c38d49e1f7b9",
+    "archive\\ADTN_reference\\download_mmlu.py": "a7c51d50793daa3a3d5fd77017ac63e62f2c889cebb90eb9795af8ebaf62627a",
+    "experiments\\qwen_joint\\state.py": "570d3b57175a3f206c5e1c4f0bc8fd93347d901231089abc89dd3710fb437f37",
+    "scripts\\validate_stage5b_multigpu.py": "9a14b43ac8cfdab3950254687bdaba2fe93cb713908be7267940bdcc48f043be",
+    "data\\text_normalization.py": "d484e51ed98fc71fcb18bb25cf756d63caabbeac520fa36109d54b6421be9220",
+    "tests\\test_lm_eval_gsm8k_protocol.py": "3f1d928432f1445af1f1e65fb52e79d038f9ef9f866b4f8b5a4d7191ecbbbd69",
+    "archive\\ADTN_reference\\configuration_qwen3.py": "bfcad59dd05512f48b2e5887d5d8328571642a3ff4437344b06dc2555a399eab",
+    "cli\\bind_training_release.py": "6d0e8a0f1304f5818a872817bf3dfd44ca056a213de4b68e3a792424cb242f71",
+    "rl\\vllm_integrity.py": "131418c2a025ea17cf1eaeb7231428b0149b6c9464a25276f94d4b064911bbc2",
+    "config\\defaults.py": "88aec4a3fcc6414b23098516b6235e174631756f72e7846ca3c49369b4b43c26",
+    "archive\\ADTN_reference\\modeling_tnn.py": "ed561f1e0a27ef86e4da47f7c24b7d248aebade7251c50694bed07b6b1dfe2a1",
+    "archive\\legacy_duplicates\\eval\\runner(1).py": "17615f4ab6ee2897a02ec56e9235fe4af0fb2e9e3c0579954f3bfc26a9a5c353",
+    "scripts\\validate_vllm_export_preflight.py": "98d7721f320e939c19a9b5fe07bbcd04ca95051641c337b27535086c9ab0aadc",
+    "experiments\\operator_geometry\\round3_metric.py": "59db839927969c7bd002e65dd4f332aa55e4cfa15fb1f05a07a2b19f673ddfc5",
+    "tools\\dataset_expansion\\general\\download_proofwriter.py": "28aed99498780242af51f2ca4b58096e5f50965e5fb567e49763e8e75305a7b3",
+    "tests\\test_data_sampling.py": "e1009d363d4e9b92536e1e8147fb4da09befa23e2d1556737671b0c9cbbc5efb",
+    "tasks\\reasoning_normalization.py": "595a7f34625f9ff86512c1e2b1d0fab6ab7053ca649627f8d327b81a28645739",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round2_numeric.py": "9de09945cbbc1d3489b967b8949baee07f4e3d47e9b89e40a1e03de8225a0453",
+    "archive\\ADTN_reference\\Qwen2.5-7B.py": "8f19b4567f6af0fdca97e5506ed257a6191350276297d7e66d4ee62bb11713e9",
+    "research\\gate_design\\diagnostics.py": "3fd16461913141bb17350ed1140dcb1c3d5d65cff3f315b0508ab5c5ee79695b",
+    "experiments\\routing_stability\\probe.py": "ef88d60888416b5c60469dcc1c58e1f09a32f4426781ddd19027f16541ec15c4",
+    "diagnostics\\__init__.py": "c7df3928fbb56697e7fedaecddba5fab33056cdcba90730b827a9462e767cdfb",
+    "archive\\legacy_duplicates\\train\\runtime(1).py": "aaa30ab05463f07dbad5f788b9c043d207d2016ac4a95685a77808743baaf854",
+    "tools\\dataset_expansion\\general\\validate.py": "4c30358b2a9f2c5ff9608676cc25886a3cf3a4d1c6f2c924220b0963f95abe28",
+    "archive\\ADTN_reference\\Qwen3-8B-next.py": "7234fb50d208795d78371be9ec8c6bf94a60c42b4aff634ffbcb74e5d4fe15e8",
+    "tests\\test_repo_hygiene.py": "10b2ad211b04bcff008edc0b090102aa1093c3f4143299edc36d51454dfa1d93",
+    "experiments\\operator_geometry\\pilot.py": "a7736f9bbf185bed868481f0b82f91089f9d4f39e87348c956c81b68761d0238",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+    "tests\\test_sparse_mixt.py": "49c3de2ab75fa8bb28b3d8b0a827f4b53910e36d25310c49667749e7a9e26478",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\autoregressive_gate\\review_history\\reviewed\\analysis.py": "c56dd4c04f4f3bc385896d8c1b2563f84de7ba4b5326e604ee877198301e18e3",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\monitor.py": "9c2f597a1c6e9eb55745f6627a092097dc45713c757540ad12bad71a6ed9f832",
+    "research\\operator_geometry_runtime_snapshot_20261030\\losses.py": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+    "experiments\\operator_geometry\\round2_risk.py": "2d57fe1c29bf049d531897f9304ed5aaf9783ea6c39940a9ae17dee92ada5eb9",
+    "scripts\\run_stage5c_a800_acceptance.py": "c192a9b6e77f13e117e98985689f4069af174ca40660fc95e2c60c0c08a1bdbe",
+    "tests\\test_vllm_runtime_acceptance_script.py": "2e49535b9fa841f8df71faa229b48bd1b8b3d42c7e50506f422e4e181854662f",
+    "tools\\dataset_expansion\\test_expansion.py": "93b9a4842254596f557d3c4d03fadff185af415c80b086a8b12385a976df2859",
+    "experiments\\operator_geometry\\runner.py": "b6c934c47c0efb8489483ab6b24c05956be2b719fcad39e59442bbe8672e6ba2",
+    "rl\\interfaces.py": "32adcc65f0f02bee9f25b9531fc9f5e3cf93385f23841287f40e9a0039d7c2c6",
+    "scripts\\benchmark_rollout_backends.py": "3cba8563c5ba6aef81bd9ab4e885366d25e5f863bef50b7a4cb45b5df86e32ea",
+    "tests\\test_sft_release.py": "3557bb4d8985d2341c23786c16be6d7ed79089f14a33ebd547796ae29fff9990",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\make_report.py": "7d322c260c80626dcc5bcd67bce9c6ff025ac5690c0bb7ce41f1c2bc6158eb8c",
+    "archive\\legacy_duplicates\\train\\stages(1).py": "9abdc189c872ad8e9aae7955cf48746b6909f637b010fe67ee8b9575bd8e655e",
+    "tests\\test_mixed_dtype_inference.py": "ba3945e1d3b3aa580158a71f172135fa94670faf593da35554f1335d26e2b3ab",
+    "rl\\vllm_weight_transfer_capabilities.py": "e114c2cd5e94f36c0030146c28504d14929d0807c471ab6c837428fb8a3ff8e8",
+    "experiments\\operator_geometry\\round3_functional_diagonal.py": "1205951e9534e7635339b5c292f075e2dee8e4e6056dd2cdfc951c96678b6fd0",
+    "tests\\test_rejection_quarantine.py": "b301e01e647907df58b1bb427615e4e4c1aaee2ef1cc0e3f2adfd38c6cfde9cd",
+    "experiments\\routing_stability\\pipeline.py": "83d422a1acc8bcc792b0bafa3c712d2bbf8b9e45ac037f601f2a37a77e36fc38",
+    "eval\\metrics.py": "e4e00305b6f87a0a9640964611c2b006f4bd0a4331315a59cb281cd7db9d018d",
+    "eval\\restore.py": "ca157375c72735c9655c7a4f994f937be74494984937e19d39e92c4f1d404849",
+    "tasks\\pretrain_specs.py": "20b8f47607b0f3f31ccf416b4898b7003475f6a34fd163ab6db6e02df473834d",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\mature_gradient_calibration.py": "63d95954c4bc0ffdb9c46b87936b73658d256b18dd8c3104fc2e4c618aa59f4a",
+    "experiments\\qwen_joint\\task.py": "95da089d66c054eebb7e7cc230115605ff87fe2067bcdea450a756cb846227a1",
+    "losses.py": "b35901fb82cbc611b43e15351d798c78692f158ff4a573d5db2bc287b5128765",
+    "experiments\\operator_geometry\\round3_functional_mechanism.py": "7abaf1af997a7d449c7bfe05437b3a38f0a43748ae8c91b78e1989a2d82193cf",
+    "tests\\test_grpo_rl.py": "5a4d6cfddf2c4fb54eddb5cb29bf87692cbb86f00afa384bd15cd8fdb888911d",
+    "data\\specs.py": "42fcb408e2a35bbca402f9395f09622bc6adeea9d38ec7e6b66f06651ce88864",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\audit_results.py": "cd4c0d20f33f69574730a1620803b6d3e9e77ef132e5ce5441275db017ef1436",
+    "tests\\test_mote_spectral_diagnostics.py": "d7474828033c711876de5679cff7acc6d48e9c146b11aa3024429cb4f4cd7db3",
+    "experiments\\operator_geometry\\round2_prediction_review.py": "d7995007b0396a056dc6405c75a6e84acaf4f2cc1859a13aafb4c5688632332d",
+    "experiments\\gate_benchmark\\models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+    "rl\\reward_shaping.py": "d1785ef1321229614b8d986418e802d294a8e37c93378e373e9d34d8d6f55bdb",
+    "tests\\test_advanced_routers.py": "b6a4288d6feaf9e7573576eeb0ad7521f02d154b032e6a87c9b4c35c027c978b",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round2_positive.py": "3c2d3ac29bfa7cd09810c0155cbc4b3bf9e59e6ce9a4f21255e9a962b92cbcde",
+    "tools\\dataset_expansion\\general\\write_report.py": "233f83e6efb7875bece383b5b83a3f1e3032db702ca8bd6537470450887dd0f9",
+    "research\\operator_geometry_runtime_snapshot_20261030\\structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+    "cli\\train_rl.py": "b8573d2c71c14213c40c7d43d8801000d297b750ad7101311c56ba2d1111e62c",
+    "eval\\runner.py": "cbacb7b2dd17653e0ffd86372c1351c549ea214dee3c384ab993eef5a3c27364",
+    "tools\\dataset_expansion\\general\\test_convert.py": "5e83b3af4cc5f56a4eee020c9a14ee7e0d6cabf7779bb5e570f2804f409e8d55",
+    "cli\\build_clean_release.py": "eb52dba0483f7ea71f3449881973403ac5a7d8b0031fcc19a277e077cfb382f0",
+    "tools\\dataset_expansion\\package_training.py": "49ce0845950393f8c70f061cf85913a6c9db3bb9efc9e69fdaadb82b6eff1eae",
+    "experiments\\autoregressive_gate\\runner.py": "f67703b9d556625b8ed62dff66c4fe80e145c8367974c9f94394943388720070",
+    "scripts\\analyze_rl_timing.py": "2a209388230f9a8afd7ab7051782982be32a6ec02a354be6bd7b655565b9cafc",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\metrics.py": "658a0daa228e83a1bc37c7a419aef450fdd6ce4fd7606cbb1b5c718265bfd900",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\formal\\756b04397b2d\\supporting_source_snapshot\\experiments\\routing_stability\\analysis.py": "5ff79bcff67b6f32c6b2aa36cd5cee3404a240153f44be34c8a1070c30e4ac08",
+    "tests\\test_resume_helpers.py": "04905746416b84fbce12999ad8f15c051d29d4ed72ecde34e912176f5368c768",
+    "archive\\legacy_duplicates\\train\\callbacks(1).py": "6270e680fd175f24da15bda1a99c15047dbf5d0eee6a1cf5771c824f258cc294",
+    "experiments\\routing_stability\\analysis.py": "c3692116d76325e439556bb9e3a66c9aadaa48bf439a40a32fd11cfb4cac6569",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\autoregressive_gate\\final_review.py": "017ecca581495deeae18cabb06c46a6c5cb6f054b3d406a5fbf3bb6e3b413e9b",
+    "scripts\\smoke_vllm_actor_control.py": "14c22b12213624650898a0a8c39511ec1d930562f23d5dde676362881390f811",
+    "tests\\test_gate_benchmark.py": "04cfb9e039ff26518bbc95954c1f58c7fa1e4d53143505f136607b27deed0a90",
+    "tools\\dataset_expansion\\science\\finalize.py": "626cc6df6b042abb82de3b9dc56bee3177e616f1230fa2280e75910047e4bfcf",
+    "archive\\legacy_duplicates\\config\\schema(1).py": "57a1f665e56c5896cb0ae88cae8eb71b5e82465025b2e56c7f9b5599af39bf61",
+    "archive\\legacy_duplicates\\train\\trainer(1).py": "7088295bd220d72bd55bfe2906768fe7b9ca1a4fc15da8ff0bf0c0369009a5f1",
+    "baselines\\__init__.py": "92987fcdbe740e52d45fb990a097fae90c28ad3b90cb0d72f7bdd9f4b9a67a72",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\experiments\\gate_benchmark\\models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+    "tasks\\registry.py": "777a047b6c538527d6512ea107e2d2ec25af53360e971f3e7c0cd8b1c53ec682",
+    "experiments\\qwen_joint\\checkpoint.py": "6679cd9750cf6bd7bda1517e97eaab7027f0fef61463a4f38c4c9a9727a61398",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\experiments\\gate_benchmark\\config.py": "69902d730ce40505ee22c79df55cf852a8f1e034238596b5ab5bd4a42cdaef68",
+    "archive\\legacy_duplicates\\rl\\__init__(1).py": "601d289bbd632b252c89e60b4cfda4afa1a697ddbe14afc0b6053a1331d1f816",
+    "research\\operator_family_quantum_gate_20261030\\build_capacity_review.py": "7a5a9b2cc3b25fc0134434a7059286356a69bd7287d6e7fa029a2aac1e9164b5",
+    "tests\\test_operator_geometry_round3.py": "27271345d5afd7bdfaaef5c3dd128962f76c117624998213f2a83c396855fcb4",
+    "tests\\test_checkpoint_selector.py": "90db0ccf1a2edff943a01c91601ca18306b3bdf131a65a4705281f159e5892c7",
+    "archive\\ADTN_reference\\plot_loss&score.py": "5b89e6a2d0bc531798a2393eae76c63614034fd53b5c1f13092dfc1c9f210970",
+    "rl\\runtime.py": "dbff3c0fffd2bcaa2d5685b8d19482ae7f88a6b5b3516b171938371818b2b08a",
+    "tests\\test_stage4_validation_scripts.py": "84663469ee4e0a9b2c37cabc28a3f9e67622b754a56c61d0ad226674f20c8ae5",
+    "cli\\eval_hf.py": "41c21194aa52ffabb2b84fa2cbca647fff5339e398c009d9b6484dd5fea63ee9",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\experiments\\gate_benchmark\\runner.py": "ccdcce13b0140297b42d25074d136e1b7715f209015b87f52108c1eff969daaf",
+    "tools\\dataset_expansion\\code\\test_evidence.py": "9a15553e4358681ba8c1051cddf684b86f59f75d6af49b5a29560a1dbd20fd7a",
+    "tools\\dataset_release\\build_release.py": "ec3382fb84b2b62523926f834aeb78200dc4d0bd63509ac25290ae78ce35f60b",
+    "research\\gate_design\\test_candidates.py": "6d4a15936bb5dd7e560b5d0d5e063bba1d7ef2bdcbe7539b89d75ec54e026cc1",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\draw_original_recurrence.py": "d18585e6c5af5c5c17ca730d7db39db49f749d91df20403a7673ecf5853edcce",
+    "research\\operator_geometry_runtime_snapshot_20261030\\sparse_mixt.py": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\profile_step.py": "715d54569773b816f3b25626aca624e99f172d175a32134d8db329975769cfcc",
+    "export\\validate.py": "143973030c2feae8ef42943d2b3ae8873bda053f54bccdae4982ed47e5e2c351",
+    "cli\\build_sft_release.py": "d2710d57e8b74b59d284eb3dc96979f07569d21bb5aef42f11329d73a043eea9",
+    "archive\\legacy_duplicates\\gate(1).py": "9a0fe2aaf7835b52f9b1d5e8c8a72e851ec28b85b5e376eb397ef76fd651a541",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round3_capacity.py": "c6c0689d97f7b6ec5521b7ffd4293a4aa5ea4d8d6894b0f5ae5e950140a83fbd",
+    "tests\\test_qwen_handoff.py": "eb85e7e3e19c35b5102f91c3d58789411943a7d4999b879f29be8c72cdb4c5bd",
+    "train\\callbacks.py": "d21a3637b1fbb825d964bb1c6afc63d8fb1895f73b66502ad00202512438a90c",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\routers.py": "52515a58c2457282eefd7748397308a2ffbca32a8830c6f9452172840874fa1c",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\watch_progress.py": "d4e81f781f815b04d9fab57ac5cc5f3aff6b8752919991450ad5514fa1b4faea",
+    "tools\\dataset_expansion\\science\\openstax_probe.py": "07b5ad1048e38448e3fb94cae5ba301f186a7daa2c33e67b5e81a4870bd59969",
+    "experiments\\gate_benchmark\\runner.py": "ccdcce13b0140297b42d25074d136e1b7715f209015b87f52108c1eff969daaf",
+    "config\\__init__.py": "270797427c115a2a00014132dc663a0d7733fbd035ee13344ba2cb91305dcf28",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\analyze.py": "c088beeee22c6cfe28d3505b77c0086a09464c25803c78e20cadd9806f4d86de",
+    "cli\\preflight_sft_release.py": "cf10c350239aa0bc0189642969e107a0f8949eb886a5a2dcfc7bc332eeea6923",
+    "tools\\dataset_expansion\\science\\write_report.py": "5397c80fad729fa0820cc94a72191e88be509eb108dfbb318d8267feb6dbd3d8",
+    "archive\\legacy_duplicates\\eval\\lm_eval_hf(1).py": "fd7c0f072f481ef5c4c8eab76ab97c5f0a8dbf9b3be27ababb657a4caa2bc45c",
+    "tools\\dataset_expansion\\code\\process_code.py": "728f23b4db64e71c42abc6cdbd336c4cb0b9ea0ed0a3ebcb56d136343f4f5777",
+    "export\\roundtrip.py": "6cb7b1f6e7f5c745a5d2ce686518dc873c5b4ff603f6c50c96636419433288cf",
+    "tools\\dataset_expansion\\evidence_checks.py": "8b961fdecc19900aaaa8b0df1a08a8c4030a1b8f6922bed5a85eaa0c52fffad4",
+    "data\\indexed_token_shards.py": "88c7a49409189e6ebb5ed12a58154eb3b1db18d0f7c6be79bbf16f660303c090",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+    "tools\\dataset_expansion\\science\\select_openstax.py": "b0d5abb8d6b043482666a3abba13adb51fcfc20384980c4d93e95fb21456de7a",
+    "scripts\\validate_stage4_cuda.py": "fac1831d3896058d320db0fbdb14eb3398b0bf40742f0f2ceacbe1fde1f2dc36",
+    "tools\\dataset_expansion\\science\\manual_audit.py": "8abf7e6858c75d296b19bfb231bdde6b730e715c7e31691a739eef72c7c7b492",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\validation_queue.py": "26831cf0aaab1d1013ab779c06b660870de5e6a87b3f613f6ada3fa42bd02064",
+    "tests\\test_eval_chat_runtime.py": "7b73d454fb10561357f67cda61bdd7856f68c3902190b3a3a6462d30de6fc893",
+    "data\\collate.py": "f72b42b619d596689e3800df46bb9e531411c2f4a0976fee51431496092f1463",
+    "research\\operator_geometry_runtime_snapshot_20261030\\quantum_gate.py": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+    "experiments\\gate_benchmark\\audit_pareto.py": "76bbcd8b83b46fd03178dfa1e521d5d4b63ffbddb50d6983689c8a3cda15b786",
+    "tools\\build_quantum_gate_tutorial.py": "1e5f36b23a7ca580df515ab86db5302d1deeac26eef92ad339eda4490224dbb0",
+    "experiments\\operator_geometry\\round2_theory.py": "5e62ffd94a6177919f357fce29590c370429df741895272b161defa31a9da0a8",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\routing_stability\\model.py": "e88b564ec5c09050d5028e78ac3bd849859afdb50cdc3351da4e90238674e270",
+    "tests\\test_stage3_cli.py": "1207bb72a497a3756fa8271681dc24809b9f1621f587618c83fa1dddc0f8c887",
+    "experiments\\gate_benchmark\\reference_pareto.py": "2909ca54229e5c19cbf043ab8844aeb1af3baa1d74290352f61ba10c24d2eaae",
+    "experiments\\qwen_joint\\routers.py": "8d6e99536dcc156c3354837efa5191ffe87d17ce7a1c9b60ca76d93d4ae4acd4",
+    "export\\manifest.py": "492c5782679c1cde4e3839bdc92aede5e71bcbb37939604243cf427daa73f4c2",
+    "tools\\dataset_expansion\\finalize_release.py": "720a6832000b47b140bf134f043aff1482882facf174963304cb7a4eb3dd3cf4",
+    "experiments\\operator_geometry\\round2_ridge.py": "502fa5788a01f0994a8a6c6e8b9788ae3d224d6ac79042186149dd9b591fcf93",
+    "tasks\\extra_dataset_specs.py": "caede80a48759173db966237a9a86ccf5b27948eb095a3d02d8bc8d9fafc67f0",
+    "experiments\\gate_benchmark\\__init__.py": "9b4b4f723ee4dccdafa484e5772ab18e0a60fba861e001b6d6b59a2b7bec0331",
+    "eval\\config_utils.py": "29292e693673109f75addbed89609adae9282318398004c70ca2d55b2c3d332b",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\quantum_gate.py": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+    "tests\\test_chat_formatting.py": "33301670e65200b855e861ed1e9a59c29b46615ea31c1b5b94d4b8be7b3af91c",
+    "quantum_gate.py": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round2_train.py": "559898aec2089f8a09fc632b08af3d6cbd8cd93c956cc34630d8dfccb64d87b8",
+    "experiments\\gate_benchmark\\select_pareto.py": "2f9f4ca82a594bc3150fbd940cdc585a24e0847875f663d5ab9605d91554a2a5",
+    "data\\sampling.py": "1e9895aaebc580be2849d05fbb12713b06f274656d9bfec72c745709eb0dc1f7",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\health.py": "459bfc468206682452d5d38a7870ab9273e6be63589b1aca1a4c65a3595941ec",
+    "tools\\dataset_expansion\\math_sources.py": "4821820097770753a1443b928819b64726d84325db023a7793aea8d802a2327d",
+    "cli\\preflight_training_release.py": "849f613e16e5727b5b39fa3b58ce028b40f7072739640f5976263ff247c311c5",
+    "cli\\doctor.py": "c8c5fd2839836541ac5c3220ff99c093825c62fa1aa47671a158c238244bec56",
+    "scripts\\verify_quantum_handoff.py": "1ff24b06b4c3acba9d07e40d2eab7275fd09008d4f1950a8be31e7e3597d7c1a",
+    "train\\runtime.py": "f24b152fbddf0bf6899df7d0eaec2b33b69681b2e78ab2e5dd6c0e2c3c78f601",
+    "tests\\test_custom_reasoning_jsonl.py": "38ab05532ac4b70be64eb54dfc7d43a98d7520f8b2f58d712cf4903cd8e69a77",
+    "tools\\dataset_expansion\\science\\test_openstax.py": "9cf6d72bc3f4bdfb5b499724235417fa83051f2481a57b43f7371b838733339b",
+    "archive\\ADTN_reference\\configuration_llama.py": "4dfd23dee3fc77da04d598b8bc9f5d2103f47df96d91f999d49b637473b38a91",
+    "tools\\dataset_expansion\\apply_manual_index_dispositions.py": "64a1c71b6c6cd9453ee27b9302daa5521a51d25c7ab5ee5b9dcd8ef14bea6683",
+    "experiments\\routing_stability\\model.py": "708308c0254711c247a8ecde2a0aa44a4479dcc7ee384ada98f47ad8d5925290",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\run_phase.py": "716d5225ad18c14a95ffccb789f1366beb175b321a15e96205df65ddd7c6172f",
+    "rl\\__init__.py": "b2db7e47df6318bf1ae4cb571d6e9b86e76edeef4947cc684508143719595d4a",
+    "tests\\test_sparse_mixt_cuda_medium.py": "e7b4ba40bd723d16df07b3a316b44e6fa2ae962d5854c55e68ce0cca7a3dad27",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\live_health.py": "2b018d9faec289b8d3275e632caf5576b5931f4ffb571e64469ae5c2c723e1d8",
+    "data\\caching.py": "dc5b8192e78750e4ad9b9bcc88247ec199a101cf141036380f76664de7c0bdc8",
+    "tools\\dataset_expansion\\general\\finalize_metadata.py": "ecd94fd5c4b47d5b4d72f71c0a93e9a588457ecb3cb9120cf718a96a49da5c9d",
+    "research\\gate_design\\candidates.py": "54198f1a8ca5c0356645353b11db4ea37943b1c55c96df1ff96139df42232836",
+    "data\\training_release.py": "3cbafd0059150fac3ca2b355ecbd9c1afa154ebffbc025c57c11a16327703e99",
+    "experiments\\__init__.py": "1bdb0a2394781076ea06545fc9fd15147474cc615bb4ad4ca6cb4b6a098f9074",
+    "tools\\dataset_expansion\\science\\download_foundations.py": "17e082bc6f16d04b0376c56efeb2946fffcf104b36626272a6e6a478d99a6ce2",
+    "experiments\\qwen_joint\\__init__.py": "d7f9f72ff226d2aa8702ff4a52c76f9d1daaa8a8b2d1a18b13cd755063c4ac83",
+    "experiments\\routing_stability\\__init__.py": "b565b1c6ffa38fa5a11859e510b2630669b57fa43639a226928c2e64ce7a7c82",
+    "tests\\qwen_joint_v3\\test_training_guards.py": "a9595a6d32ddae019e025ae7bf21864daeb2836c8551fadafde1d68353517f52",
+    "train\\checkpoint_selector.py": "de945e42c144a5ac97b4db21bde82874c02470c297a44dc8692fd1f32dd3c8cb",
+    "tests\\test_config_doctor.py": "51285b499ce977a3828aecebe610fb33319fcd00ad38bfa8866f70fe44c0139a",
+    "tools\\dataset_expansion\\code\\normalize_review_labels.py": "ec570a0e99133b9d3eaef546c21175dc12b4763a632985356e393401dd88d4eb",
+    "__init__.py": "9108ad8f9bbbf836ca5d536404982e434b4f8e0886e6aba157e9ee2899d4bd76",
+    "tools\\dataset_expansion\\general\\download_helpsteer.py": "0e181bbde0b8a9e1c921b3cf3804961f99c2e955dc78328685650ed5cdb1af98",
+    "tests\\test_logit_kd.py": "3fede8b98dcbdecc577abd11a72133012de5bab66c74c4be7b6b0187f8a97655",
+    "research\\routing_stability\\trace_cases.py": "6dc8f02701886244b964f310abd8e5e1ea6547cfa0b8be7a0e71c1b78c5df593",
+    "data\\__init__.py": "14b3af824c383fe2a1d41371ba33818a19cc198e8810a2ad25b7d48aa2dae94e",
+    "experiments\\operator_geometry\\round2_metric_bridge.py": "7510584a477651c21dd8d940de6721a5b169a8ce7b12214e1e9e7c49826e2f7c",
+    "research\\operator_family_quantum_gate_20261030\\build_start_report.py": "f34a65cd3d0e15529556db084ecaaedbf5725006eacdf6ac12263f2424855f29",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\benchmark_unique_dispatch.py": "49a84046914c1e2e1519c92d719d9a8529ae9e4235e01c762e090d6dbb1bd05e",
+    "cli\\__init__.py": "0c5bd03399827d4af5bedc88d5410c754740dccaefcd414d345f96aa383202dd",
+    "cli\\export_hf.py": "8c1c441090279dc5b0b1d50b2cb2fee43676316328595565a978d130b6a45699",
+    "experiments\\qwen_joint\\validation.py": "80721d8d1776caeece5518051c78b823d3b5717cf217e762be01d180721092cb",
+    "tests\\test_routing_stability.py": "5257d6005db5eba385ee6ef6f7260aa5f3259bb295b61294066fec7c81042803",
+    "cli\\build_boundary_gsm8k.py": "1c82583b98587f5c853c8413154fb72957e022c59b2eee6556d06e531777c060",
+    "research\\operator_geometry_runtime_snapshot_20261030\\gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\quantum_gate.py": "c51fd2952328869055c65bdcd14f05abe5dd868c788b12479e4bc6343d3dfc45",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\conftest.py": "62c23f26952c40861be0b3d3573f36834b7d0b527567556c865622629da0ae93",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\autoregressive_gate\\runner.py": "fc93c437706da28fd2e4dabf03c87e6a3577a6d3d2abc4b5412a27dd5757c102",
+    "archive\\ADTN_reference\\configuration_tnn.py": "8f7991f9871602f6b672ac4bd129755ac9e272bc8133af5991fa8885ec0e31a2",
+    "tools\\dataset_expansion\\science\\verification_queue.py": "ebca34615fbc569684932749db99bdc1363eefaefa09a07db1678e75f515c67b",
+    "experiments\\operator_geometry\\round3_functional_review.py": "a194bfb523902c9159bbc121a5595e654310282913ec9b72a0a8f38529bd048a",
+    "tests\\test_rl_wrapper.py": "1bc5cbaff2a81e3f9dafdab3ce40a00c382bdf469016934b746f78450684a9ed",
+    "tools\\dataset_expansion\\code\\fetch_sources.py": "0a7871d847f87825311fdace74ac1f5cf00fd5b7d4189ec0ed1d8c3b2a645d41",
+    "tests\\test_rollout_benchmark_script.py": "fae1a09fea430c363866b2646f5018e6f33f8b6312d558f9adda01f0f85f8302",
+    "tools\\dataset_expansion\\general\\test_helpsteer.py": "f18d49a73908c46efdfc71249d9ddddd659983fda4439448b0d8c04a1d6289d9",
+    "tests\\test_indexed_token_shards.py": "3ec9b5ee0c6e164e6b98c517c15495350305643ec9e2364df78ed290ce071e72",
+    "tools\\dataset_expansion\\general\\download.py": "fd5a0cca7b9e638a9eaa57d2393d5a512e9444578ff5655c9835bdeca1be4a58",
+    "archive\\legacy_duplicates\\train\\observability(1).py": "cae709e746f2a2a8c6946c3abeb2ce15b6356e1ef4d913870fd7ceb300bf4610",
+    "cli\\eval_vllm.py": "2ffaec7ce8ddfc0ebdbbe02238e6d4a6502a08a3eaf766cd1937f0529ef93888",
+    "archive\\legacy_duplicates\\patching(1).py": "d42d2783fc80b22d3a9b4067255815578c6df04cbfd99c998614ff6f416bce1c",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\autoregressive_gate\\review_history\\automatic_20261028_1927\\analysis.py": "1edf3332aaaf98c619454990e14e3c750b21e9df490076db4402926035bd97ff",
+    "archive\\legacy_duplicates\\ADTN(1).py": "ab2df00c40df2fa0ee9188f061b05750180135299355bfb7a0bee2ea6032097f",
+    "tests\\test_qwen_joint.py": "850720a495500ab17d68e2d408dafaf633ed0e425bbe0f3764a1e3400ff57d2f",
+    "research\\operator_geometry_runtime_snapshot_20261030\\ADTN.py": "cf8f788b07c5b63b4209d4e13c532505e37432da141d075058767f0078ababcd",
+    "tools\\dataset_expansion\\apply_inflight_source_policy.py": "ac4ccd4eb2f97ddb1b2e76d99694345e023e78fe708f2c2c556aa0eebf402089",
+    "tools\\dataset_expansion\\code\\fetch_kodcode.py": "7ddc783d0921206b9188b12e583365ddad1f0c66a00c43686f478ab91bbd9203",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\postprocessing_fixes\\20261028_0242_serial_measurement_path\\analyze_before.py": "244bb9e1c9483d0039389100757bfd7d16caac02ba57fd4bc3ca0992d3b0630c",
+    "research\\workspace_reconciliation_20261029\\archive_helpers.py": "283b3e71e9c2a93a51291e7a860a072ecd076875d584bd8f8d39697646d6c353",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\finalize_report.py": "468b0f58f359939306332db8c13eb73d75b23778f7a3a1dbc9ea8026216dc9ec",
+    "scripts\\qwen_joint_preflight.py": "d9c38a80eff9219f0c04e16c36585693b3a9ae5a61c27a9631e658ac1c9bc781",
+    "diagnostics\\spectral.py": "783ab2ff8b15abaca6a23ef9b091065e4b93412b0a65e43d3fc1373e6eb7a9b5",
+    "tools\\dataset_release\\export_jsonl.py": "178f6206f9478a2e93170ee086cec9099ac2550a1561f4bbf7db8fa542c45606",
+    "config\\schema.py": "3186de1c7fff72d1b5dc55f35645392f6131ccd996ea76462be9c81f977dba0a",
+    "archive\\ADTN_reference\\modeling_llama.py": "a4f3d5db05a919e45aa4aad1054f0212f0bddafc497811d3420ec0ac6fc22be7",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability\\20261028\\probe_preliminary.py": "1ad84438a9bb8c4fab28d80880d23ab4c4f3956ea47f200dc52d583dc143fea9",
+    "tasks\\reasoning_specs.py": "4584a7bfff547d0bcb4a4a24d3be8c232b55e96147ebdc59ccd9b9582bc41864",
+    "experiments\\gate_benchmark\\report.py": "651595385467013eec24ec0cc1c86694d57f671a8d00bc74f5d6c6e25c51c4de",
+    "archive\\ADTN_reference\\configuration_llama_tnn.py": "2d4a19ee82559631911a66827629d6ed90d45f39c3d6ff73b7771d24f68c623c",
+    "archive\\legacy_duplicates\\data\\collate(1).py": "19adeff0a16cb9201ec85ac3609e185421f495940a81ddf34fc53ba115655775",
+    "structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+    "tests\\test_data_platform_clean_release.py": "4d96a2d9b9c76f41b2c4834c0a9f10226a97b0eb2139e0c5e41c7e6e97a5efed",
+    "train\\stages.py": "6a8c93ab3cd096f8080e14c3a156cca058547417bf3a9fe2e1050d01b52e4760",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round3_functional_diagonal.py": "1205951e9534e7635339b5c292f075e2dee8e4e6056dd2cdfc951c96678b6fd0",
+    "archive\\ADTN_reference\\llama2-7B.py": "750585d8ce8fdf2f4990adbed3f2685297ed86cd95ec6f95e78bbfa1d5d45a8e",
+    "rl\\vllm_qwen35_native.py": "2e22325ee5de659c3fc55f27d534dc8abcc11404f83d7ae07eaf8f430bcadb7e",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\review_audit.py": "1bee01ff7729d4fad6fdf63231661117006525c157c3c7b7be96d563b6df82e3",
+    "experiments\\qwen_joint\\model.py": "3f7ffa6786f5457c20f15d211c633665d1e3346536439f6188f4f4f9d27c4b50",
+    "runtime.py": "b7bf393cf1cb85f012d9819462a746551d8c6444efb6ebd490c334b8fe5a3f6c",
+    "model.py": "ac0b1c323816b890799648a6fe6faf2a44284364cb2d77b2c1a7065d9c40005e",
+    "tests\\test_vllm_export_preflight.py": "81afbb1c937d397c9f5b61bf4ae729becf050c41b711e425a90ce8eb2cdddf37",
+    "diagnostics\\hooks.py": "21297ffea21b381f8706fd1f68060a9a1b602b0383048381e740c3e9eb53f455",
+    "tests\\test_stage_resume.py": "230523ce7c9ea9d60e06d25f5ad370b9832b5f69521d8326a3493f23be95429c",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\autoregressive_gate\\data.py": "13273f3a1fb4041b533e92a94c71fa99d6c06f215b7533c8a5964aed72debd8a",
+    "tests\\test_sft_supervision.py": "6ec7da0973c3580ecb56454228827dbc174442ed880234ac03ec931f102066f6",
+    "experiments\\qwen_joint\\resources.py": "1e00a49bf9b96324d639771768f291015f7f7c5152f6a9e597a4bddea69733ec",
+    "config\\loader.py": "c288a3b2c35d27b6950d17733d99506a54afc209a67581d0dd0a3fd3d596a2f4",
+    "archive\\legacy_duplicates\\data\\mixed_iterable(1).py": "8402b36a86e91a59d6942514159c61560816c7b71e5b956840f3df5a99cdfdd5",
+    "archive\\ADTN_reference\\llama2-7B-new.py": "c0a1f774a54437ef52765ade2754f8ecfcb70e265072683b52574dcafe04584b",
+    "experiments\\operator_geometry\\routers.py": "52515a58c2457282eefd7748397308a2ffbca32a8830c6f9452172840874fa1c",
+    "scripts\\check_repo_hygiene.py": "25a6eb6f44d53859db24c0339d9a459345e8cc044986e8fc4ceb7d0aa09ade85",
+    "cli\\cache_hf_dataset.py": "29cd93e018f8fff0659fbd86f08ef821c92fa92894bb54155f0334b9b37357fd",
+    "tasks\\answer_extraction.py": "d42f3a5ee480aa9d5ca2cc4d88beab820e6959fe600bf214386df1406eb389ff",
+    "tests\\test_extra_datasets.py": "ee0e003ad80669c94b50daa4cf4f6956de62e6f710c9fb374764f7c8a7e50be7",
+    "tests\\test_vllm_actor.py": "e0a62e477246bc033399f6133dcc9b85af65087c64492b5203b72f4a588c2704",
+    "experiments\\operator_geometry\\round2_stage_review.py": "1fbb32e9e7003b4b6d102c46b341c12b5b72dbbdad67db5d427a890932820cbd",
+    "archive\\ADTN_reference\\read_model.py": "05a3edc42aeb38a7d37d8ab6279070b69f072dc2cdad725d6cc3c827cd473af2",
+    "experiments\\qwen_joint\\train.py": "f1bbc7932c1813d4ccdadcb85b5cfacc0f09b4dc0f22ebae39af8cc2bb1d42b3",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+    "rl\\vllm_actor.py": "bdad6e90cd0bcb37b066bcc32dd6fa76b6f86689e9d4a8b8fe184fd8ffd29eed",
+    "train\\observability.py": "68fd1fd666bf831d65c1bb06f7f881bcbae65ec72758c7f7cd4fcac8c96232bb",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\experiments\\gate_benchmark\\config.py": "69902d730ce40505ee22c79df55cf852a8f1e034238596b5ab5bd4a42cdaef68",
+    "experiments\\gate_benchmark\\__main__.py": "89c5e85cccda072b51375f100ca3f7168d7d0aba9a2dcdecb28de79829cb0d3a",
+    "archive\\ADTN_reference\\modeling_llama_tnn.py": "f6b2c4c944b1c2acdd5ede2927acd4328efc143a591b42b718e5bb38a92579e5",
+    "rl\\vllm_weight_transfer_adapters.py": "f445994540b14bf8c07fd32705640f3fa22e3048166f0641a22ee63575336650",
+    "archive\\ADTN_reference\\model_save.py": "c9ded1a97aa8f6b98b7dfe451c75512b11800e60415e6d779c0511b0f52f0a7d",
+    "archive\\legacy_duplicates\\train\\controller(1).py": "e89f4309770fcdc4b2f20e8bd84dde84264994c859179a2728d768e99a4156c5",
+    "experiments\\operator_geometry\\round2_energy_decomposition.py": "30735cd89c4ce349835f717bd9a0adcea5ba9409ac7f25a73d494bf99d48644f",
+    "tools\\dataset_expansion\\code\\apply_manual_reviews.py": "5c94db88daa02d9d787992dbb880bd649811ee0c0def5fe37a81b8727af9a4d3",
+    "tools\\dataset_expansion\\livecodebench_index.py": "bcf3e3f2ac343b61ebb6b59a414799a961e43f2359a62301d6831164b18aa5e9",
+    "rl\\vllm_rollout.py": "b983c82029012a5f96d041b2c53d1303a1e572ee637a52fbb442e8d8eb0d159c",
+    "data\\sft_format.py": "d65e51755e09bbe06ed2a26e5da8a84c5276d7f6324cdab6b60280929ac149c0",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\review_report.py": "b61e439c2479f631274933d427921ec01c037ff20d30b7010fd0e3712a6c89d8",
+    "tests\\test_boundary_data.py": "c824277a2cec5cfae376addf707ad978af4ecd093ff3a7b241ef982edbcb70fa",
+    "tools\\dataset_release\\package_release.py": "d90f3104af0ea9fa2076b5ca737367b6113f56b5678c56c4af77a45a0e5515c5",
+    "tests\\test_lr_scheduler.py": "105fe3bce3fc0ab67cc54618b6710d59aac759d81e6d1b1c2811bea0de642a1f",
+    "tools\\dataset_expansion\\general\\helpsteer.py": "f2be21b70c8ba6d0a3422daacb160e2df99acdc16ceb4aaa9a67345f8a7209d5",
+    "experiments\\operator_geometry\\round2_queue.py": "3d7876ce9f0fe3a44d12b82ce4825921014967fe432897f265b60f84a17ca00e",
+    "cli\\mote_spectral_diagnose.py": "06e980608bf25ca3be83618d52112673761ef4b2930464d4921980e25d448a41",
+    "experiments\\operator_geometry\\round2_boundary.py": "bb88794b2c7d58e130a96034996f923d940018df1c7108cfa520b358b18cdbcd",
+    "tests\\qwen_joint_v3\\test_retention.py": "c14dfbf18aba54aa20419b0894ffad5b8f80e36096052d798ecce82adb85623f",
+    "experiments\\autoregressive_gate\\data.py": "2ca3da0207e559697e4fe7a3297e6ffa6ff81772a6a669b8744a09b6b95b9221",
+    "init\\approx.py": "73fd4ce865b221525acebac7fa93081ff661ac988eef9221db0ce672a9290c36",
+    "tools\\dataset_expansion\\science\\sample_review.py": "14d871d7603d3c44ddfcc7a796fac6d6d2dfd8f54b70997cb63c0c7027559b69",
+    "tests\\test_gate_router_arch.py": "06b0fd505577a505aad20ca1f72f1f281dafc44bc448c8a680fbec3cc340f9ee",
+    "data\\clean_release.py": "510c16c6e45360e5e945aebf0747ba0ecac7a13ef209d880ba6cd3245cf1a2fc",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\runner.py": "b6c934c47c0efb8489483ab6b24c05956be2b719fcad39e59442bbe8672e6ba2",
+    "scripts\\benchmark_quantum_gate.py": "13c3ea79d2929a564b2d6f0f04e7883f8de0a6288cbab6f089a227ead9c96462",
+    "scripts\\validate_stage5c_multiactor.py": "112db680f2145e1ecc6e9c6e6777d02691c3642f02f0f7e67936138a823416a0",
+    "tools\\dataset_expansion\\general\\download_small.py": "3fb895f8d9562b1d2f057574bffec21718a8b4f7d2ff35e9ff4ea13bb8c4fe47",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\serial_efficiency.py": "3eefe7a134e781a8409e742ecf91e66347a970387b57aaa5df7e529b8c611677",
+    "archive\\legacy_duplicates\\train\\__init__(1).py": "4e043137375353940c7b367d13792f9d44c3158e032c923697a2764fe022972d",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\analyze_results.py": "ed1ee10179b012b066a2bbf64a44c96a6b75362d15a4c3dc54ed328143fac65e",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\status.py": "32ed3ace1b7ef533ba3d530f528a8c71819e9cd13163a28875c8b99434ab9788",
+    "tests\\test_operator_geometry.py": "39e16c478efcaaa20c04ceadd3b273d0ba2dc2fd67fbd15ed2dfd5527e9492a1",
+    "tools\\dataset_expansion\\science\\audit_osr_semantics.py": "fef9d4c9824664df97e64d6027fd361dac7ce9114771cd8682afd60efb7ed8fa",
+    "rl\\data.py": "14be94b902dc620513510a756e15643e40cb9c3071943be2759212397625d044",
+    "checkpointing.py": "2899b9b94acab52627a121ab4dddb2745041fce62eb6c5991c2e9623f010e3d6",
+    "diagnostics\\mote_trace.py": "b0ccc86eb3bc8ca1b88f3b0c46b8f041cb6cc8690cd8e2e1011a0cc580f30340",
+    "experiments\\operator_geometry\\__init__.py": "dc206cfb5d750f78821ac55a3a288c9a4616b2ae6b375fc8d15e01144754f6e2",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\formal\\756b04397b2d\\supporting_source_snapshot\\tests\\test_routing_stability.py": "cb41c30c186dc4a23a43d3a88c9bca402f87d8f3b7b4f832e99fc62c5b42b149",
+    "data\\contracts.py": "46c7a34c1a2c0e7a93e019118debdcf64cd5b5ac420b582e25cec2a708eeaef4",
+    "experiments\\operator_geometry\\round3_replay.py": "5c487146eb97357af9fa22345f3326615b93f616da7ba96650253f64062d7f15",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\gate_benchmark\\models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+    "experiments\\qwen_joint\\precision.py": "2d890a79479d79c64f6a2ec7740f38001be32e31443e9ca47419fd431341cf16",
+    "export\\__init__.py": "5078a951f9f7ffe49fb504fe39e8f5cafd30771eb66d0bc95ee28fd396253e9e",
+    "tools\\dataset_expansion\\general\\proofwriter.py": "0f162730a22321b43f08aa47e792b6175ce923a0540be40ed7cb0737b0999679",
+    "tools\\dataset_expansion\\merge_release.py": "62b274bf00ebd0304b6c891af97391e953ecf6a05fcd28bba69e3148b9a555a9",
+    "experiments\\operator_geometry\\round2_controls_audit.py": "f034aa576c1417e75f45e6e55ceb624be8d51fc1e60206eb7e89a208272b5397",
+    "tests\\test_mixed_data_sampling.py": "093c411589f88076d0bae5e0aa813e264635852436e78212056edd365a2fd0e4",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\completed_task_summary.py": "eeddbcec75b35860b12cdb286e0a31cf47562aa3168d292115060add60f915d4",
+    "data\\builders.py": "3bfad7b2d865833ac390fc3931a8da5b517cff93eaa4f0845a620c1bb3544f93",
+    "tests\\test_spectrum_audit.py": "b5f2d837157e7ef3cb8b2f747d33bbd24545f93bddec86da7e90a8ee796b0162",
+    "sparse_mixt.py": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\serial_efficiency.py": "280bf49fe1e6f6b6bc8e20d26bd2a13c255593f4deb7bac626b1dcec5c3b6df8",
+    "tests\\qwen_joint_v3\\test_checkpoint.py": "b8837d6f293c89e6a3bd79633bb865225ffd866c5fcd5982e605570a73a6549f",
+    "experiments\\operator_geometry\\round2_energy.py": "8dbdb9ce319f8ad8cafdfc82f05b2cb40abaf4486524128ea79e51ba880fb9aa",
+    "tests\\qwen_joint_v3\\test_thermal.py": "0e116c4ca5a47031e4e9834218677449e3f6223b338a5ff5b3edbf974c2096bb",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\experiments\\gate_benchmark\\runner.py": "ccdcce13b0140297b42d25074d136e1b7715f209015b87f52108c1eff969daaf",
+    "experiments\\operator_geometry\\round2_boundary_gradient.py": "3fc85c3972f4fe5971cff44204daa893397d56716a9d585a14abaf8e4d87f00c",
+    "tools\\dataset_expansion\\science\\process_openstax.py": "c9b0bd2ddc984a32903de70f21a0787fd2011ba39c2fde20ab57c7c03b944e92",
+    "archive\\legacy_duplicates\\data\\tokenization(1).py": "9f6c1892e0dfa85e6ad607980c19a65f965f7e60cd35a83c7f12d6c55b654a5e",
+    "tests\\test_vllm_weight_transfer.py": "f5d6dd61ef4ae4b4988a898e033b2fca8410be0bb8d1266d459ee2d9a6ef5156",
+    "tests\\test_stage_control_observability.py": "9c35c9fbf23dc2efd633345b2091292a8451d5b7e6b2b72b62c05b85526a0731",
+    "data\\rejection_quarantine.py": "d04c43c43fe122c36de23d2c9be0533109ba73f14482a017cdf6ddea6ca6552d",
+    "experiments\\gate_benchmark\\config.py": "69902d730ce40505ee22c79df55cf852a8f1e034238596b5ab5bd4a42cdaef68",
+    "data\\access.py": "82cb9aa432c8678fb0a431dfbe118e284cd9cb82cde6b28b0f2e0d4741d830ed",
+    "rl\\rewards_gsm8k.py": "4b5d5db2985c22c19db03e3990e4e25f52139dfb13327ea7413c2daed895af86",
+    "data\\shard_loader.py": "bd5237e404c77e90d3fbab7c0112e869595542a09d6175ae0084d1d6ed6f1702",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\routing_stability\\probe.py": "aa6449deb5a4f2b066980cc80aa44b2157f7f39305f999eaa93a06bad49a959e",
+    "experiments\\operator_geometry\\round3_replay_review.py": "13a3875672b96fb0faa9dad4f1327293d0d516cfef718ad5b90ce2d0f5793a45",
+    "tools\\dataset_expansion\\science\\audit_foundations.py": "23d2a8080b5a11d3ab4c58046fb33ba8d9df9c0b256f4d966b9a7854a20f355f",
+    "tools\\dataset_expansion\\validate_release.py": "c897160b684791e85d590f34aafb2607f0bfbfdf8deeed1a6bea32635c107303",
+    "cli\\eval_auto.py": "5bc1369aa1a63c3becdb629dcafd8e574996d3f4b76c67981316a2acfee12fce",
+    "experiments\\operator_geometry\\round2_data.py": "c6521327b7aa6ac6afb444e8a25eff131ee61be5b331e29b3d46f508b9aaf2ad",
+    "tools\\dataset_expansion\\general\\convert.py": "3477f5c3e235cc4f57d0a1d58ddac2c8f668597e283d94e52e0124a3a175ccbd",
+    "tasks\\synthetic_arithmetic.py": "c74ba552890be73d93ee36a0682a071aa6c82cf88f2df55be587a07f151ccc54",
+    "export\\hf_export.py": "64f4dad8d0e14611ed4bb2262cbf716e197cb4ae42cadbe0f98c436c8ac0e845",
+    "archive\\legacy_duplicates\\config\\__init__(1).py": "9ec561e75bf2bafff8d0a643e9f2e693ce3137c7c57e96d15b9b2948ae9d7549",
+    "tests\\test_checkpoint_reliability.py": "12002ed223466ca71ab557d8e3b069e673e3d2fee82df89568916b83bf194121",
+    "tools\\dataset_release\\record_reviews.py": "f7fecc2754905bf1a38852589ecd893428ea09b80d88568bc0e8fdcdbd77bb9e",
+    "train\\rl_controller.py": "27ae871a11b1b2ae5dc30299a863760ff2131b4cdfb71cbb16cc03effbe30876",
+    "archive\\ADTN_reference\\checkpoint_eval.py": "ecc530bf3fc0f90b18392ac44b0b33c21a034cebe988b6b895e9d29c0f5dfd10",
+    "rl\\mgpo.py": "a06ac2f1a7ffa1164c12ac5c600200c254887029badcfaa10b5927b3797d41da",
+    "experiments\\routing_stability\\runner.py": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94",
+    "tests\\test_export_hf_cli.py": "4dd948f5b5ac271e6240001c2931c7ca1b72c6af31f40dbd265a38cefe858a30",
+    "tests\\test_vllm_path_classification.py": "a96e21be0b5baa49a0a13fd603cedd2632617b065491e34189daddeb465f6324",
+    "archive\\legacy_duplicates\\init\\approx(1).py": "43c13effc897b8bfa3e5e3175908d8303e9e8c4f569da4ba543a04b49819aa43",
+    "rl\\grpo.py": "691010a502b6a9413f899faca86927694af632b1c6f3566e55de7a736d2a2c81",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round2_data.py": "c6521327b7aa6ac6afb444e8a25eff131ee61be5b331e29b3d46f508b9aaf2ad",
+    "tests\\test_analyze_rl_timing.py": "00ec1f5ac446395bb897dcb6f387e3056092349da64f46c17319dd4f48b55251",
+    "experiments\\operator_geometry\\round2_audit_queue.py": "7e429b0b75664900ab1578b8a3a35c26cda29c6aec184092d25035eae77ee970",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\experiments\\gate_benchmark\\data.py": "3470ac90269b3b4baf403a6bc3afd0aed3ed0e623ec5e1dfbe43c38d49e1f7b9",
+    "eval\\evalscope_runner.py": "7a5ff943b1e0168cb31e3bfb9b518f354956630b07dbcf384173d7aa9815d65b",
+    "research\\gate_design\\benchmark.py": "2a4aeeea126b93c1d4d808e29216ec0f953983ee526193bd4cea1a66af14d756",
+    "cli\\train_grpo_gsm8k.py": "a96e9d3e375f22b4be8b47f281dc19e547f78e0121fa50705746a8fc04e2a2b6",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\health_check.py": "d249f6639f992b4a8831afb1f3addab324b3bafe4a911f5521eb0b350e1b203d",
+    "fitmotn\\__init__.py": "5ce9770ecc7829ef077c7580847905ea18ad961d629f49f51cef4b1bb25fdb65",
+    "tools\\dataset_release\\common.py": "a242c8ca0b7156a6cf5ecff5491000936f81787769a17a98701cfb13ee19358d",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\experiments\\gate_benchmark\\audit_pareto.py": "e737b3b09bb72d5e9190d5e7633bed643c61f68f5e893662f7b1332a192b2853",
+    "tests\\test_adtn_fixed_backend.py": "0d2bec929bd1be807368a624fb3ed6e4eded0dc8fcaf68357da809321b2a193a",
+    "tools\\dataset_expansion\\code\\refine_test_evidence.py": "fcd691013a094235d60a39d9b72d69755f7cd2780f5055607a593f83afb23ff5",
+    "experiments\\qwen_joint\\acceptance.py": "00ac4a6e0232a7375495e673b875b4a5723260fe878785cfa45533fd6227d1a1",
+    "scripts\\validate_stage5d_native_sync.py": "28b285b7d84aa6e26c40707d5d7ab7681ffd558c632269e04b55189d0d778e87",
+    "experiments\\operator_geometry\\round2_geometry.py": "e6613cc138e618acff34206a7efabe541bc3e1e74e5d83d504f1080d6cfd62ee",
+    "pyproject.toml": "073bcbffcd754280685489475a2cdca3e31a2c9eb57795d5c4f19ae9579d4af2",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\gradient_calibration.py": "5d9328ee9e3d7ea27c54d8966bc5ca03e95a92ecf52a54e57e5ec3e2b99b1f5e",
+    "export\\format.py": "8589213f47a3b34622fcba7bce21a696c62f6259fc949e9967121f40196bc1b2",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\routing_stability\\routers.py": "4690ac28c029608379e01097ee9cd733d03f2cbcb9d7d098be63a72654e117a1",
+    "tests\\test_data_platform_cli.py": "628cf6ba124bcf44ee56c5a11923a7266030016e697455d63b5cb23edbeee052",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\autoregressive_gate\\check_progress.py": "3cd470093f22d8df5862383fed8e6a8a453757b9dd2c7157458591bca061bb63",
+    "tools\\export_quantum_review_markdown.py": "b3d408d0237e4b3a820a6ace10a0195d81698ea680515dd641f0f004f60665f1",
+    "tests\\test_paths.py": "fce3ef5a0fbfadc8cc45f0d60e6a8ddefd4565785a6f05cb47bb1d834c7e3a91",
+    "data\\release.py": "7093d37793a0c9e67b6845de757c14968cc4cfedec93e351a6abdb4ae0ede7d1",
+    "tests\\qwen_joint_v3\\test_precision.py": "425481215b1383566975b56c8c365372dbd001b03bb63d97c3febb453ed051d9",
+    "research\\gate_design\\_bootstrap.py": "929fccd2e06ae3aecc8908464f4b9b489e229095b3b89141df3114d43969880c",
+    "tools\\dataset_expansion\\math_content_gates.py": "901f497640c955a0b82e02b40d42e6fc797bc43807da1f83378cbb6235feaa91",
+    "experiments\\operator_geometry\\round2_review.py": "72213f987a4b3e61acc44fc47ea97b41e3c9021810e4c85a9baae7fb45bf734b",
+    "archive\\ADTN_reference\\llama3-8B-new.py": "37ee188298cf89ddd48affd3ae9826e2283da3497f74b8e72fb639722078c589",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\routing_stability\\runner.py": "588293b701d0c3a7273d60ac46a495f9cc10b705239a53ada1e49bf02eeede94",
+    "experiments\\operator_geometry\\plot_review.py": "83a282ad6678633e2ec70e906168bd71ff02cccb4b5852eb865369d57bd35760",
+    "diagnostics\\jacobian.py": "26b0d256aafcaff33cc51787b3be4f6324de9179f017e8ff97ef0c5eca791f8f",
+    "export\\remote_code\\__init__.py": "e1d0b0a87924d88942713f459fc57a08a2d3098e2504a0c44d5f1da9af040e3a",
+    "eval\\lm_eval_gsm8k_protocol.py": "0d6ba311d6f4fedaed437516cb0b05550b0705af8117b622a7966e90bbcf4d97",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\unique_dispatch_ops.py": "265d84b53302dc73d5a27138392dd4ca3aff0e40cd4b6c9c2a7620d4d6b8786a",
+    "archive\\legacy_duplicates\\model(1).py": "aa33d3d0bc4f314afe9aeb28317cc7729df65868df822dd7cb67d605cd8bd3e3",
+    "research\\operator_family_quantum_gate_20261030\\build_report.py": "a2ca7654250875d9a352edd66b2057e73d25172965624399c67d37debfcc0b6c",
+    "tools\\dataset_expansion\\near_families.py": "0c9f7b24eb965d443b22738714dd3f290f034fce0e57f748351bbb4feabc9bb3",
+    "tools\\dataset_expansion\\science\\download.py": "81227e8bfe136b66b27ddd8d2c01285622323c3fb81f023d9c081ceac213c183",
+    "tasks\\__init__.py": "65d8572aea5e81fa5835d7d144b982080a61cc80ee7cee55b28aad5a34897fde",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\sparse_mixt.py": "47afde0a3741ccaf0df21c3f00bdb45a2054f753b0e6ee5601439ef002374b24",
+    "archive\\ADTN_reference\\llama3-8B.py": "93f62e0563386ec57dc15ec8a1918105369fbc945de26a10b69c8d9b3ce83b81",
+    "research\\routing_stability\\probe.py": "36de1c77bba967bb30a17e0ca31df6729f55569c31d53aa24b02dc65ef90f143",
+    "experiments\\qwen_joint\\configs\\integration.json": "5706831505879905211c7882633e5457c69c1b7dbdf84ac730d17490409e1ee2",
+    "tools\\dataset_expansion\\code\\fetch_questions.py": "4a7f208fd093703d0a05703dd9b9ce56f11b867d27732a51c47fb194376d8d4a",
+    "conftest.py": "9c1aa04990c24abd51f58898843d9208a2d5f895b5eb3a6bfb11be4649a5fd7e",
+    "tools\\dataset_expansion\\math_process.py": "1c66671afce60c0deca452c1b937e1b510b87928be851a4388d449d623af0a22",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\draw_mps_shapes.py": "b9157db7bb487c1558ea220a05213c5689609c46a6150b95ae435a28187818d4",
+    "tools\\dataset_expansion\\science\\recover_openstax.py": "0b74585db892838c3f3273fa7255cf034cc9872ec67d5c64817353a2cc61df2e",
+    "scripts\\validate_stage5e_patch_sync.py": "45d3f6c42596699c09f318e3f13fa9f9d35e50b57fb114c1c15623dbb7fd4762",
+    "scripts\\validate_stage4_sync_artifacts.py": "9bffe8a0a897bc480e43314e49d04e2c38658504ea3818296d17ed53dac7ef64",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round3_functional.py": "9a3ee36ee44ffabb414a12098ef5ddf3751908c735080bf5e132852cf38bf12d",
+    "tests\\test_rl_sampler.py": "ebc1ba412327e9fe202547c92e8bfd198f3a2f498e3729f0c0edd6a025430e80",
+    "tests\\test_structured_routers.py": "c82bdc29f2807b4e1cb53d78c7eb3efd50e9fab5f00d12f11263e4b7f1e0fabd",
+    "tools\\dataset_expansion\\code\\write_independent_math_findings.py": "0be34bc11bfec12055b495eb5e1f8b77c3baf8b810433053c984102c07f3bbb9",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\operator_geometry\\round3_replay_v2.py": "5cc12e47a5ab5ce0e73ccbea15e48851c19dca26336a09b7041f7ddbf3f9f93b",
+    "experiments\\operator_geometry\\round3_sparse_tangent.py": "e3e2220a4fda69637652b4c4a444177e1c445c1a6a289e9bf61d890c40635578",
+    "experiments\\qwen_joint\\reproducibility.py": "c93037265c0d3df01f7505de6a7b37ce486206a7256eb275b64162e0861daeec",
+    "eval\\vllm_runner.py": "dffd748190da1533cd128667e6f3fa2ba14132f8442b1e02ac72b25465f0f13d",
+    "tools\\dataset_expansion\\science\\post_release.py": "7ccbaa6f6288a9b99d8e88a3cbe6a1e13bc2b47f5ae2686eaab4adba971d8e64",
+    "tools\\dataset_expansion\\science\\test_science.py": "87fa8f24346a22aea5cc738b626112317740a4e600c8512e6264e20bc67f81ac",
+    "advanced_routers.py": "e12bfb55fce3926c553a9f15fe5f5a54eb6d6ea2536046b359641d6bc1e38720",
+    "tools\\dataset_expansion\\math_manual_sample.py": "50e322dc6062b4c2963698319012bc15605f2f7037ec6b3512cb437af35549ed",
+    "experiments\\operator_geometry\\round3_selector_diagnostic.py": "26d6e2f3fb3524747f2125a18891ed84b0bb2aabe6e4c5bc9c3ae6493bcc477e",
+    "archive\\legacy_duplicates\\cli\\eval_hf(1).py": "d4d0b73a112f71cf1075c13b80eaf1c52622c36cfc7424d95e6d71a401827dc0",
+    "rl\\vllm_qwen35_motn_native.py": "241b1a58a86b53167fd17275facf3833c61701d40a9d219603ea20202b4fcab3",
+    "research\\operator_geometry_runtime_snapshot_20261030\\experiments\\autoregressive_gate\\model.py": "1b98b052d1187bf4fb9b4139687486ed405987d7992c52e9f8bd9cdbb79498bb",
+    "archive\\ADTN_reference\\modeling_qwen3.py": "1a2f1050a23449c15011fe7484dc831596c8932065008b5b833a057d4fe9f8d0",
+    "rl\\boundary.py": "e849f53caa8da60ea4aae6b76a5ca9379658516bdb294e6dfb3673db849c311e",
+    "archive\\ADTN_reference\\download_datasets.py": "55ed7949bdd96de38651172115a85a4b62dd44938143be98bfe2821521356bb8",
+    "tools\\dataset_expansion\\code\\validate_release.py": "8076574558a94b9e0ad73e65a96c0d9f2124bb5d4a9f9c06c60392dc4a34177b",
+    "experiments\\operator_geometry\\round2_train.py": "559898aec2089f8a09fc632b08af3d6cbd8cd93c956cc34630d8dfccb64d87b8",
+    "research\\gate_design\\draw_circuit.py": "ee8aca12f4ddf59f1dd1199a883f5504a38294a98f439d31358ddb428b7f4027",
+    "tests\\test_stage5d_native_sync_validation.py": "85162c672f0e5a007aba01cb3a885873ab14fccacf80a23697487ad25f233764",
+    "chat_formatting.py": "9651440a0fbada2c47649a167b287ed9930ce5f7c5aca3a176144b93f69a9ade",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\structured_routers.py": "8715dc39148af7d35249c5f9be50f7dbe11fb7144881fc8292aeba7380ba38ee",
+    "eval\\gsm8k_custom_metrics.py": "dc296f484985b2fa92a3de42923952ced23846ee285c676d4b4b519a4468ea49",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\routing_stability_round1\\formal\\756b04397b2d\\supporting_source_snapshot\\experiments\\routing_stability\\calibrate.py": "9d7ed8ba42f65cab0842a8b8e98f6afaee08bee57610b40a36fc4540b4516f9e",
+    "experiments\\autoregressive_gate\\model.py": "a8aa4ce32fbe02a1a4bc441d10732344488a088aa3497678ebfb4f67059d66ea",
+    "archive\\legacy_duplicates\\data\\builders(1).py": "caa740432359a72470fa4efff8590777ced2e575fd81943489a0f2e0b7fb08a5",
+    "tools\\dataset_expansion\\code\\test_curation.py": "9a4de69ab508f41053464825643b7b810fa44924aaa4d956991277aad6df393b",
+    "tools\\dataset_expansion\\science\\filter_teacher_queue.py": "0dc25c17ad109401df6f9029d29d78dd98493a13c24cda138d60ec4d9f6a148e",
+    "data\\tokenization.py": "020f74a3c077f449abdcc9b434b1422281151583c0b9444e504363ee866f1c85",
+    "tools\\dataset_expansion\\science\\finish_when_ready.py": "8e8e766121293951cce7288a5a09e0ced46111374e3714a7b2c9219a59ef75c0",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\benchmark_dispatch.py": "1f3b66be638f47c8364e3edd04b031978e2015e5d065267cbd2dc1d07cc2099d",
+    "experiments\\qwen_joint\\data.py": "3f03d6021a66229a4c4db6ffc58f8c030c7d21aacc40cc07801f1872edad93d8",
+    "research\\operator_family_quantum_gate_20261030\\build_functional_review.py": "8f1a2854255a60c2dd23d6213004b86595cc2e096ad42ad8eadb506f466e2e23",
+    "tests\\test_operator_geometry_functional.py": "a8d58f436ee383f4e7ea353c2b1b851670fd8ecd1ddd082b47210a9347855cc5",
+    "tools\\dataset_expansion\\benchmark_download.py": "29e6ccf8a572d6159c0a5743071434d5573267ad3d2104725f7130a0b60c7bf5",
+    "experiments\\autoregressive_gate\\__init__.py": "faf2f46f80fb0b4a56ec93f63341fbd82c5f0aa5d82ef01b5170958370585728",
+    "cli\\select_checkpoint.py": "23d9bbb1da75a1de342708eddea84506cad24f2ba1845701d5800941b48d04c0",
+    "experiments\\operator_geometry\\analyze.py": "f2cb597b6e86945ae6cabe8fd25b85a3ad2db1dece55b5461c7a9c6c7bbf31cf",
+    "archive\\ADTN_reference\\layer.py": "5db8102111448ecabb05513e348b6f86ed0bc9adc869fab386aa5bceb30f54fe",
+    "data\\source_pipeline.py": "5737073dbf4bce20214d2af2117e5fb766890f26291acac041f7c21f03842b9e",
+    "tools\\dataset_expansion\\benchmark_inventory.py": "358d52c3967effa757f9454a5bee3e282c80e7f31982a9b429b17bcbad602462",
+    "rl\\vllm_sync.py": "98472202e8871a92af8b6cacea5565ac5f86dff3f036bec70ab8d03b448c8b51",
+    "tools\\dataset_expansion\\code\\dedup_problem_families.py": "c7387ab26b7c99adbfe5a0625aded8efff44be5d2732d468619ddf589f56e801",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\monitor_progress.py": "4db82a52496676745de8cd2adaa1cd0f5c4f0cd8bc92e9bd08817fc447b82d64",
+    "rl\\vllm_weight_mapping.py": "e83f3d2d346a6f20ec3bd69c8e51aafb0fc7e8b581334fd877d7c9e6df39ef39",
+    "tools\\render_typst_report.py": "275e55e993d2d50171c4d3c77766048e1d027a32279f978d14891eed889dc6b3",
+    "research\\operator_family_quantum_gate_20261030\\build_metric_note.py": "c5b5ac88d0cc34f694f254cb237232801ae9262513ae84c547562c94da7b9452",
+    "tests\\test_data_platform_binding.py": "5eae547683b2fc75cf2fa80b13a39110a3911816a1790aa575ba395b6df807b1",
+    "train\\__init__.py": "ded4e6c1fe3556a006a2a9ff0da0ffab8318c150382b5b881a6f1c6dc98e3e7e",
+    "tests\\test_config_resume.py": "5058e9a576ed4be97693b32a6c172992344fa83e59566421c60a778c95a3f624",
+    "diagnostics\\vllm_export_preflight.py": "47d141d64407ae8559e836312a87f2b2f34e6c62a18d453c12270e7e4dcf061a",
+    "tools\\dataset_release\\test_curation.py": "8238ca613f3c5680a16129b0c08d2358afcd248399800c9dacbee0280dd16398",
+    "tools\\dataset_expansion\\general\\test_proofwriter.py": "22267c892f5016de7e64f713bc21591579b136a8166848046392867dc8f7c215",
+    "tests\\test_autoregressive_gate.py": "1b53d377961c6280b77452cce13d7c59a21daae9802af191409fab793a000f49",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\experiments\\gate_benchmark\\models.py": "af230b0f4db3cab1dbfa12604f3112e9df73c0a6fba6e694609183d4a7a8c8db",
+    "experiments\\qwen_joint\\PROTOCOL_AMENDMENT.json": "3b0f2913f32a860c61925974c9b87bca132f8680ab8f115899a8ea4109feb45f",
+    "experiments\\operator_geometry\\round2_positive.py": "3c2d3ac29bfa7cd09810c0155cbc4b3bf9e59e6ce9a4f21255e9a962b92cbcde",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\final_qa_bundle.py": "e590b28cc37e46ac5f5186d24922d788573ecec8d834fb30de6470c7f2586f01",
+    "experiments\\routing_stability\\routers.py": "4b7ca8f6d582f6577b8a455211592c0ebb770d5d03e338f1fcd4a7ab9650cac6",
+    "archive\\legacy_duplicates\\eval\\restore(1).py": "98a41bf5a9be551210d60f3cad157cbda2f9be3b8b76eee8bd4794b2a90ec24d",
+    "eval\\lm_eval_hf.py": "9984f131e47a653db9d3b3166e8cd069fd0214d3e453b3a9c2a78230b715ab08",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\orchestrate_formal.py": "7f556866e35346919559252cc04e849cf6795dd9ea5b6612cb3a1c3cdaf3b9ec",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\method_review_checks.py": "881e58a52d1967c0e81fdaaaca7742731bcac60dbaec132eb905cecc0954af50",
+    "tools\\dataset_release\\validate_release.py": "40c13bbfadf99da902c88354a1496742741a5aab69800acdbde14be01c704b64",
+    "cli\\train.py": "ff5c79889be7334d1b3d75908b3249687617049120f7992a894b894b682b3c36",
+    "archive\\ADTN_reference\\plot_loss.py": "ed18a233b927b8c11985fa085bf417437e9bda9c822a5b0731c1d8da0f8d6f51",
+    "data\\supervision.py": "e1c0931e3cd33e7f8ca2f6958e744f8aea3f20f3268deae6df22aaaca658f7ab",
+    "rl\\logprobs.py": "ac74bb035b52f11f83d1049b9f9f91c20d25e82f498b26e3958d5c0d38e35e4e",
+    "research\\quantum_gate_review_20261029\\geometry_checks.py": "860f65e4d35830eb4d0bb782c34af4dc7b51ab69a3bb168d333e4fe9010c0d24",
+    "utils\\__init__.py": "105744ba596d266b5f7b88b7f4ed6640c90b6f85a14e4fea66c46aa421a7c5dc",
+    "experiments\\autoregressive_gate\\analysis.py": "468e90a36db68d6b7aee0c813964e23963be00702cc102d9ce25c97812ca6ad4",
+    "archive\\legacy_duplicates\\audit(1).py": "fa4baa4c81b3cbb210d21416c66cc140179d5d86b7e602303c7a69fdd0c7b26a",
+    "tests\\test_jsonable_compat.py": "3806e4a6d0f94c17e1a1c70f18e85251107b3b81f34c997566d3a3af2c474129",
+    "scripts\\validate_stage4_rl_run.py": "b5c5cb38cc106bc8bddd8c78506008a79d931eb61167da6837de44de0635c831",
+    "tests\\test_stage5b_device_topology.py": "4a183b551f106dfcb7bfbbfdbc91c9d19746eced282b081bcff9cf96a0c36d55",
+    "tools\\dataset_expansion\\science\\write_legacy_math_findings.py": "eb8232ff92cfeb0d5cdcd6c1d7e6bd97b974e935b5aa52edfefc03507b7cde69",
+    "gate.py": "8fbd6b83849d44f14f2a4785699c6ac876f8265bc28a7534a67cafa5b0b7a8fd",
+    "cli\\inspect_dataset.py": "60f642e296a8c2aa5f79f080b135b0c13dce7e597160e77e72415c34213ac45e",
+    "experiments\\operator_geometry\\round3_functional.py": "9a3ee36ee44ffabb414a12098ef5ddf3751908c735080bf5e132852cf38bf12d",
+    "tools\\dataset_expansion\\science\\process_foundations.py": "5da9504e44f0d5a9f44f4625ff36dee589bbfb6d6924d94ec33991bae89872a8",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_formal\\advanced_routers.py": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+    "archive\\legacy_duplicates\\eval\\evalscope_runner(1).py": "24c4a96b1f85fd5d45d41c5eef3c1c1b90e723f1d17b7c0e465875105554bd13",
+    "tools\\dataset_expansion\\code\\write_readme.py": "669cc032d3838b74a714f1ae9730681d96c5c8c9b4810d2d83fdd337a405bf38",
+    "tests\\test_patching.py": "bf3e703c98e6794cf4011013b6cb1a683565d8f0589cb9ede3c5e6284ba90a7c",
+    "data\\mixed_iterable.py": "2975884278e7d5a78049236a1641c4d09a8192dfa791a89d3ada92094204dd62",
+    "tools\\dataset_expansion\\science\\inspect_sources.py": "294edb73ba7632b5feea2f8cbe18dcc63e4274f1f33c26505f88f388fb657671",
+    "experiments\\operator_geometry\\round3_compare.py": "c0d4db2240a3adce852a1ecd61f678a8cd563a8f3f6d2997e892f8ec68b47a1d",
+    "research\\operator_family_quantum_gate_20261030\\historical_helpers\\finalize_functional_delivery.py": "f76132cda727b2c74479061b407a41132c07d6eea8ea1039afb70880e8cedf82",
+    "experiments\\autoregressive_gate\\pipeline.py": "1895008a8b56dbb700fb9f30533dd76878f1aa69a99e7cae0d1b6d973a1ee8f4",
+    "tests\\test_vllm_qwen35_native.py": "48e31820bc3f82b26eb62e2a49069bde806eda277b3a801e5c97d7d2645b2934",
+    "tools\\dataset_expansion\\finish_when_merged.py": "9838991f71d8f9bdb20a631f34f8ddfcda6132b4ef9bbf477e93b7219d156870",
+    "eval\\__init__.py": "dbe81ce83c590b57ec27c0e8aead264b45fd3fb8d59a93dd07a7f5e8a7c577f0",
+    "tests\\test_collate_length_buckets.py": "cd5c3b6aa84c6a7bdedbd4ab87ce8934892f65a948704971b8541f0fc4f310cf",
+    "utils\\paths.py": "af2a451d6c3403c0b31ff1e6b0e6154b28c0d091ba3a2287bc06c16b983f1736",
+    "tests\\test_export_eval_guards.py": "4e665483930401115916b1240cfd8942ecd59e779ad97a9aded8d9c7e52710e0",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\concurrent_matrix.py": "59f89bbf9308175607bc91fea7bf58b4b944e4d5ccb35ece3fdc264bec96cabc",
+    "scripts\\run_stage5d_a800_acceptance.py": "a828e9cc361c0fd13588b77c62aaa6f04dd20fd151baa1d5ad1b68afa129e1e0",
+    "scripts\\export_quantum_evidence.py": "18d2a873218904af933917bd92713e73b407987cf44e1fda89f4676a49a7f778",
+    "scripts\\validate_vllm_runtime_acceptance.py": "0070e6adeb7cbe6d105ff57f48ea00bd549bf0763039241b0ebef3c9736866fb",
+    "cli\\validate_checkpoint.py": "a590f0c01568023c443f7aad552d4aef806ccefdc5da8f39a29edc3510b068b7",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\learning_diagnostics.py": "9edf039d2a20ec8b3ddee16d5bf2399381505154d1adb37ce49892ba41212429",
+    "rl\\rollout_backends.py": "fb9e3af1b19baba747f133cc6640d25dcfd075a43e4c61b674c2ecd95b38da94",
+    "patching.py": "81b41779028cba1aa9c9406ced687c15e68becf9121f8d76d0a4e812e0005a8f",
+    "tools\\dataset_expansion\\benchmark_matcher.py": "29f7013b8d4e5b14b9688a5fd8afbe965d64f9ee7a807923fe539fecdf235565",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\verify_delivery.py": "2844315d62a4f7f875c411056792ad518489f3c102fbaf39d71ca993e12dbb98",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark\\check_pilot_masks.py": "4baa90da71f84f73778efdd09e30b62bc4cf3e263e59a094dfd14b13f659cbcf",
+    "tests\\test_adtn_contraction_optimization.py": "ee986ceafa7f0134c7b1a7d08a672f22c94ee01cc4a65ccd5db75a06effceaf0",
+    "rl\\generation.py": "b89929a2e36db26c42af24e2ac92ae220cca11a313b47746584d59b6ffd7c154",
+    "tools\\check_quantum_gate_tutorial.py": "f26c0e413e68a63a1a90cadf9491bac7a014593e5e4d5f316c88fcee359cda89",
+    "experiments\\operator_geometry\\round3_functional_timing.py": "bc8800e98df12872dec479259136dda555ed21ed4fa17721476ef28cf157b260",
+    "tools\\dataset_expansion\\code\\example_evidence.py": "c768f1c4be52b0d178477c134a7fc3fd0ea68c8f89b908a99c2875ac9b8fb62e",
+    "tests\\test_stage3_reasoning_quality.py": "244e9695caa5b6ef85cfbe7d72e6ca446cf3b226a1ff52d382dbcf5fbbf5eb1c",
+    "tools\\dataset_expansion\\code\\fetch_apps.py": "c1f265bccbf398b1dd51298709d411a217fda021ab40de0cb135651922969705",
+    "tools\\dataset_expansion\\general\\record_reviews.py": "310fb903abc92dcd08a51bbc969ec31a820467763b3de73518564b0861f21ffb",
+    "rl\\sampler.py": "067dbd97e3541a2aa12e126e6fa20ba5447e2ea7f93df2fceaad64b97022dfaf",
+    "tests\\test_data_contracts.py": "68766671f16f57eb05efde14e3c344757e7aceb1f5ee85db5a811752aef30995",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\experiments\\gate_benchmark\\__main__.py": "89c5e85cccda072b51375f100ca3f7168d7d0aba9a2dcdecb28de79829cb0d3a",
+    "tests\\test_operator_geometry_round2.py": "71c4e5072a65f9445404f6a822c6f4887fe1e06c3a1133b00de43d72159aa955",
+    "research\\routing_stability\\analyze.py": "b92ee36c3613d2beb2c380d0070fa01a6fb2d6231a69c5403bcca158303ae17a",
+    "train\\controller.py": "8ade47a783dba93830dd97266fd1a7946a95c58f7074146f313ae64bfd3bf636",
+    "tools\\dataset_expansion\\science\\audit_legacy_math_sample.py": "c41be116b624dae4f84e179680cd31adf2967acdf5f1f653262b6d883ea30d6d",
+    "data\\adapters.py": "f449685d0044ec01c1c7037abb36a20ee82bb04f4329181b8090f7c7eb2451f5",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\autoregressive_gate\\complete_review.py": "eb92b03966238b609a552dd5ad67d2c1f8cec10fa00790da4fb4a1800e9e16c3",
+    "baselines\\adtn_fixed.py": "d3349a1ad7f9e1a8c0927cd57f80acd2a29c89f68c6cc16334bebdcde2ea7525",
+    "tools\\dataset_release\\fetch_benchmark_index.py": "b0948b07f30c9d08b0b29dd40f8b4ed02510a4c2343e31eedb0c3a24d42d8099",
+    "export\\remote_code\\configuration_fitmotn.py": "ccb873ab07a9e85f1e2379099fbba8643d884a956f622fc5698ad01e18c0940c",
+    "tests\\test_vllm_integrity.py": "ba1fea31d4b9db6ead24a7b306763561b95f01261908734a71d8121760607713",
+    "tools\\dataset_expansion\\code\\refine_examples.py": "4f0a638fa1a820a4b04d0b38243e47958ab578da1885b1c2ac5c80ef88a248aa",
+    "archive\\legacy_duplicates\\checkpointing(1).py": "786a5c10ea59463dfcb5dd1ff44eb10e540cf10885ae5bc8988fb262f76b2f4d",
+    "tests\\test_quantum_gate.py": "2f7804663116697ec5c59a874594dbb44b0f6f8faace663ed467aad9544dad91",
+    "tests\\test_vllm_rollout_backend.py": "467f6e85f91138cba68bf746c9a9c86e006a836d7d8aaf5434b2617a43adad4c",
+    "experiments\\operator_geometry\\round3_functional_diagonal_review.py": "78690f9d0715539bde33e534683a31cc3a1af4450f697472b6ebf249d29f4321",
+    "experiments\\qwen_joint\\retention.py": "0fbd1e753dc7a4c17d9b8cd8a135f31545c63301dacd5c28d1f16808137c4183",
+    "tests\\test_data_import_order.py": "8e089e0dcaf32338a371d7ef8a08d1ffd740fd47db144aa1ec6edd0e27948f04",
+    "archive\\legacy_duplicates\\config\\loader(1).py": "0b01520800382fcb8583178b9b995a3248df57d32938618b646c0fb41d859bdb",
+    "experiments\\operator_geometry\\round2_numeric.py": "9de09945cbbc1d3489b967b8949baee07f4e3d47e9b89e40a1e03de8225a0453",
+    "tools\\dataset_expansion\\normalize_records.py": "c43e82556eae88a4d36d4b29cb33d15016ea711fc539020e66acd1e29abc3e69",
+    "export\\remote_code\\modeling_fitmotn.py": "5e537500d92fc196b935c4ad9089b81793933df841c64e5a9b1d06f3f07046d6",
+    "tests\\test_rl_entropy_metrics.py": "90af0acf68cfe06d3d3689aba4c02ca79951a0833782e454d5d5678e35f8a28a",
+    "experiments\\operator_geometry\\round2_boundary_cases.py": "13091a24e2f0c8087b8b75475f8afdde49f8c85f1c3450648ac8f68f393b4bf6",
+    "experiments\\operator_geometry\\round3_capacity.py": "c6c0689d97f7b6ec5521b7ffd4293a4aa5ea4d8d6894b0f5ae5e950140a83fbd",
+    "tests\\test_stage3_source_pipeline.py": "723ebc2c35c02493065b5140042db46f38ee3927de06ea0367955a49154eea1c",
+    "archive\\legacy_duplicates\\data\\access(1).py": "dadcf7738c2084db754eee7baed57ceb33a0423b1a08a7d0af0424de678da5a9",
+    "tools\\dataset_release\\verifiers.py": "b92d1cd6d09be3b7aa1668ddef0aa872de8603aa85f4de2804aefeddaff97c8d",
+    "experiments\\operator_geometry\\metrics.py": "658a0daa228e83a1bc37c7a419aef450fdd6ce4fd7606cbb1b5c718265bfd900",
+    "tools\\dataset_release\\write_docs.py": "dd7898fdcf859a2a5a4dbbe53cff1d0d26708c20aab4745c4269eb2d80eefabb",
+    "research\\operator_geometry_runtime_snapshot_20261030\\advanced_routers.py": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+    "rl\\device_topology.py": "1d3b355fc894de70cfade4deebd054fc50c3fd809067b8ff54728def64007980",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\recovery_audit.py": "15c0767eabdbb3d06673857d254a4710c06a3688c26dc9da77a19dd37c7743e2",
+    "tests\\test_stage3_config.py": "440f501702b2a1e39435d07104379b3b475da9c75e5011c77b1ebd237464874e",
+    "init\\__init__.py": "fe4013789b4506d74d2145468762269a46f681427f1db4478be066b89e6eac6f",
+    "archive\\ADTN_reference\\Qwen3-8B.py": "777ddf6c580749787fe3fd029e90acc8ae1de329065f5855d3259bdeceedd313",
+    "tests\\test_stage5e_patch_sync_validation.py": "421c2f8f239643bb5ecc3cf17bdfa20c07d46e91d84ba1d8fd7413c2114049ea",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\gate_benchmark_round2\\source_snapshot_v1\\advanced_routers.py": "2fe1e0a51e51b0888dc71cc80e9209b324432ca49a0f5295769627aad01540e4",
+    "research\\workspace_reconciliation_20261029\\archived_helpers\\autoregressive_gate\\write_reviewed_report.py": "bc82847b0fbd7fd4a6fd3830c2a78172398be38723b2cac85cd79be01be0c034"
+  },
+  "data_sha256": "888c7c2cb54e834e5d6a2c369d0f315374e2bb539150531b6e7a90308eb6fbe1",
+  "model_manifest_sha256": "22771de2ba4251c510542c49ef55b877a3ab1c56e700d7dd8668507fb2ec69eb",
+  "config_sha256": "5706831505879905211c7882633e5457c69c1b7dbdf84ac730d17490409e1ee2",
+  "methods": [
+    "mlp",
+    "affine_born",
+    "reencode_cz",
+    "reencode_product",
+    "dense"
+  ],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "common_sha256_by_seed": {
+    "17": "b61acd742b66a6eb01ec42feda4b9bbf01df2466e57cbacc4717b0bab6b0c86e",
+    "29": "00c93eb0351a9966f478fffa557d48c27d12928cbe50fbd09bf103a7ff6ab89d",
+    "43": "b6ac6d3933e08160741a188f7155c88e350ac042083654728d1bd7ea773f2018"
+  },
+  "accepted_gpu_uuids": [
+    "GPU-67f0c332-3f01-a733-4651-5532e94fc051",
+    "GPU-f145a48f-ccc7-cccf-94ad-acf680ff0891",
+    "GPU-3753e6c9-3189-164f-a329-507d9a4a16f6"
+  ],
+  "formal_tokens": 32768000,
+  "formal_matrix_sha256": "101b00fa3696d639d4fc91051aad93c7bbf46e2ebaac6332c2c8d99f1a6691a5",
+  "formal_controller_manifest_sha256": "54d23c18597285fc9d35f8bce3c5dde7e34c1bf978da6933b832ace0b3e5f1f2",
+  "formal_diagnostic_controller_manifest_sha256": "3b16b622d21d2b8a8760ff7531d83aed8db63bf45dbbf6c245108c4df5ba4680",
+  "formal_diagnostic_worker_manifest_sha256": "31d8c8c9d19f57c1dd0c12a177c748a29442dc69a957376b91b3652d66706ea9",
+  "initial_local_fp16_index_sha256": "7f6beac3657b4cec0c7ffa0b36aec48ba2a8144fc9a3f6639cf6cd16f9d73860",
+  "resources": {
+    "formal_checkpoint_envelope_bytes": 101178704238,
+    "formal_processing_envelope_bytes": 8504000000,
+    "other_remaining_processing_bytes": 1000000000,
+    "legacy_failure_allowance_bytes": 1860094930,
+    "approved": true,
+    "new_data_cache_reserved_total_bytes": 18141333234,
+    "maximum_new_run_peak_bytes": 6580284790,
+    "per_run_processing_allowance_bytes": 1000000000,
+    "headroom_bytes": 2000000000,
+    "per_run_peak_basis": "Six maximum checkpoint slots plus1GB conservative single-run logs, diagnostics andtemporary allowance; global accounting reserves processing separately once.",
+    "checkpoint_retention": "Keep protected10percent,50percent,final andbest; up to4 retained,5during save, plusone failure perworker. Never remove old project assets."
+  },
+  "model_identity": "Qwen3-0.6B, containing pretraining and posttraining; user-selected local model, not Base",
+  "numerical_protocol": "BF16 experts on PRO4000; FP16+GradScaler on V100 independently; FP32 routing/master weights; TF32disabled; methods share initialization and effective-token streams.",
+  "reserved_test_policy": "Reserved test stays locked until the frozen formal matrix and internal-dev analyses are complete; no tuning on reserved_test.",
+  "known_limitations": [
+    "Pilot Dense CE beats allfour routing variants; preserve negative results and allseeds.",
+    "1000optimizer updates include999 positive-LR updates andone zero-LR terminal update; allmethods use same frozen schedule.",
+    "Full initial tensor digest is an independent diagnostic reference; training directly verifies router hash and common-loader provenance, not a second in-worker full tensor read."
+  ],
+  "required_evidence": [
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\CONTROLLER.json",
+      "sha256": "3904f795c0c4e0d25ad9b299b4e5ec37dfefd185c05c87a5dadb1f0ba1a3f856",
+      "bytes": 378764
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\diagnostic-controller-exits-v15-20261031\\bf16.RESULT.json",
+      "sha256": "7baa739a01aa9fe64b004d2e429265670ca4c7e8f67ba8ab8300dfcd52f89360",
+      "bytes": 820
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\diagnostic-controller-exits-v15-20261031\\bf16.ATTACHED.json",
+      "sha256": "2636773ec8eb5a809045821f21044ddfc4cbb32b026f9b94ca6504d05e7be67a",
+      "bytes": 1098
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\CONTROLLER.json",
+      "sha256": "09ed607c15d2e46ce060906072a17188a944009060def0f5e650ff95fe8f6286",
+      "bytes": 77670
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\diagnostic-controller-exits-v15-20261031\\fp16_initial_local.RESULT.json",
+      "sha256": "8c2de7eabd74c15bb503c283e0164a676de7aac8c2c2c018203d28ee149d4f17",
+      "bytes": 897
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\diagnostic-controller-exits-v15-20261031\\fp16_initial_local.ATTACHED.json",
+      "sha256": "870340ddc48d743cfb4c1243aee500b0dcc4ec4883ab5a4da754d2523a9640df",
+      "bytes": 1171
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\formal-supervision-v12-release-20261031\\MANIFEST.json",
+      "sha256": "54d23c18597285fc9d35f8bce3c5dde7e34c1bf978da6933b832ace0b3e5f1f2",
+      "bytes": 1640
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\formal-diagnostics-v14-release-20261031\\MANIFEST.json",
+      "sha256": "3b16b622d21d2b8a8760ff7531d83aed8db63bf45dbbf6c245108c4df5ba4680",
+      "bytes": 1417
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\formal-diagnostic-workers-v14-release-20261031\\MANIFEST.json",
+      "sha256": "31d8c8c9d19f57c1dd0c12a177c748a29442dc69a957376b91b3652d66706ea9",
+      "bytes": 7556
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\matrix-budget-v5-release-20261031\\MANIFEST.json",
+      "sha256": "641b6bda3dac4c253297a455b417dbedf105f1ec1c117eea0f5664d70fd52cc3",
+      "bytes": 667
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\matrix-cost-v8-release-20261031\\MANIFEST.json",
+      "sha256": "986f9576f4c055bb97d7573eb5c1640eed80a95c0b0eb143c2a9b5078a25e5d4",
+      "bytes": 1043
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\bf16-recovery-v13-release-20261031\\MANIFEST.json",
+      "sha256": "a58678eb58c4dec24fbf63c6a0fd92883471927ecbe0ea28394ce64d3aef8c80",
+      "bytes": 1258
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\releases\\integration-v3.json",
+      "sha256": "2186bce5f9ad702d65861dc40fff5e20a59b0211bdd32f3c5812b15ef0ad4685",
+      "bytes": 157623
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\production-v3-checkout-cpu.xml",
+      "sha256": "3dfaa3706e515629ae5bb9ff512a14aece57d0830f248db6bddbb19a50ec2a33",
+      "bytes": 11746
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\releases\\integration-v3-source-canonicalization.json",
+      "sha256": "f6ef9446ae3917fe461094c12f8294bd9511799316944c7e64c214d770414bc8",
+      "bytes": 79836
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\releases\\production-protocol-amendment-v3.json",
+      "sha256": "8f49209c3f80f095f9e7fd7619211ca0cb6359dbe31de6491ae98a7e399b6aa5",
+      "bytes": 1989
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\initialization\\seed-release-v2-20261031\\SEED_RELEASE.json",
+      "sha256": "2f88b8735ec4b4303af3578caf0c228a33a3ab697acf8b3466312996b4648f71",
+      "bytes": 91947
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\initialization\\seed-release-v2-20261031\\SEED_STREAM_CROSSCHECK.json",
+      "sha256": "7d4bc5dd73c24fb9669aefa55dc1087a8881769136ff602da05959247c1e2509",
+      "bytes": 5629
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\queue-20261030\\model-manifest.json",
+      "sha256": "22771de2ba4251c510542c49ef55b877a3ab1c56e700d7dd8668507fb2ec69eb",
+      "bytes": 2086
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\data-release-audit-v3.json",
+      "sha256": "5692f5c944c34ed954234a1c89b91082e1800b33b4f96180581fe75577ac4b1d",
+      "bytes": 4491
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\process-observation-v3-tests.xml",
+      "sha256": "92a08666ed1f319113eca58e548149a0f950271b1bbcbe380a06947332c5ca0a",
+      "bytes": 546
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\premodel-refusal-v3-tests.xml",
+      "sha256": "44a5e554ad509ba1ee6988d57a47af4f7031d3dfb55c55885eec1d7b371aa98e",
+      "bytes": 1382
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-replay-v3-v100b-20261031\\TRAINER_REPLAY_ACCEPTANCE.json",
+      "sha256": "932e73173600f6bd978ea8fb39a53da769eb34b2ee2e6813f7838c1200430748",
+      "bytes": 4471
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\production-replay-artifact-audit-v3-v100b.json",
+      "sha256": "2a349b7046ca2579c996940b6ec45b1d270b9c6cbd3d54768913eac26ea38205",
+      "bytes": 6278
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-replay-v3-v100b-20261031\\full-model\\FULL_MODEL_ACCEPTANCE.json",
+      "sha256": "0d29a3c5bb8bbad53b2eb931dfa8e24c390f39f3663df2e9f90fb5025aeede9f",
+      "bytes": 123718
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-replay-v3-v100b-20261031\\CONTROLLER_FAILURE_REVIEW.json",
+      "sha256": "a146b885009157a3ff85eb01bc05ea8058047498697044e74a301ca178a9b670",
+      "bytes": 366
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-replay-v3-pro4000-20261031\\TRAINER_REPLAY_ACCEPTANCE.json",
+      "sha256": "f460d465a1f5231f0232527be468b922d12a9927ea916b60ca2cdd44e5e6d22b",
+      "bytes": 5435
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\production-replay-artifact-audit-v3-pro4000.json",
+      "sha256": "d3c78cf23ef81292dfc62317a18ae1606b0f45d1829a4882ce280626cea435a7",
+      "bytes": 6465
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-replay-v3-pro4000-20261031\\full-model\\FULL_MODEL_ACCEPTANCE.json",
+      "sha256": "1ac9e49b72bc9e2e101c4590a510fe0914378c8a5a5591afbe0cad2057ad674e",
+      "bytes": 127471
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-replay-v3-pro4000-20261031\\CONTROLLER_FAILURE_REVIEW.json",
+      "sha256": "1621cd4dea71fae962655f4d27e721f2f0503c033116000105b5536d8a5f1e61",
+      "bytes": 362
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\releases\\integration-v3-requirements.txt",
+      "sha256": "a0564ac61793fa06203b70758b9db7c1ce5328024aaca57c0751f70261768673",
+      "bytes": 1300
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\acceptance-result-audits-v3\\SUMMARY.json",
+      "sha256": "a2f780ebf2166abc0b3a86412fff6e4da4dba0466fea93bba0d7ba9524e08802",
+      "bytes": 55625
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\smoke-mlp\\RESULT.json",
+      "sha256": "741be8c6731fbca215fcc2e4c0d062276f64dfd432799e1a194c10ce8dd40761",
+      "bytes": 81429
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\smoke-affine_born\\RESULT.json",
+      "sha256": "548ff9e96d06589d3bed984e18e70c1a7be315ac25ef63d9238440ea5eec4b6f",
+      "bytes": 81462
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\smoke-reencode_cz\\RESULT.json",
+      "sha256": "3ebc8e944e0dd4a69ba9148ba89457e3449f1be8c1466b0fc59d4590ad36f166",
+      "bytes": 81463
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\smoke-reencode_product\\RESULT.json",
+      "sha256": "ec866ca7f6c937d0376d95e8bc19638942fd0452b962cb7952f70734dfabcd7f",
+      "bytes": 81480
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\smoke-dense\\RESULT.json",
+      "sha256": "352a603826fd04606a02ebb18b32e1d0648456643db32e5f61d1ae205e464bbf",
+      "bytes": 81375
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\pilot-mlp\\RESULT.json",
+      "sha256": "0dcd77133684a9ce41609fcda1c1e7d788e3d7c5c29872b60083e2996c33f573",
+      "bytes": 81431
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\pilot-affine_born\\RESULT.json",
+      "sha256": "7b0dd7b86720a9fda8b7e75e9a0d76eed2341089d2790f2d5d8cf991cc16091a",
+      "bytes": 81464
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\pilot-reencode_cz\\RESULT.json",
+      "sha256": "952a41e5f08dcbf97f454d2cdde06e93dd013d52fa48d9af453d38272ec99031",
+      "bytes": 81463
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\pilot-reencode_product\\RESULT.json",
+      "sha256": "7899ece2f207ba3a62be74d45a145521f930705bea4bee4f72ad925a9ea3da1c",
+      "bytes": 81485
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\pilot-dense\\RESULT.json",
+      "sha256": "0571c9c02a11a4d51d233ac2d5ffd8189d6cb8ca7a6e627e1c9ee341e716cf71",
+      "bytes": 81380
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100a-short-20261031\\smoke-mlp\\RESULT.json",
+      "sha256": "c1057b0ca207f6d94ec29390502218924f15220ff3fa9e5693ac32965db1882b",
+      "bytes": 77638
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100a-short-20261031\\smoke-affine_born\\RESULT.json",
+      "sha256": "55ea461dbf6f9b4a67c47c5648b0bd8102ae02b8f6d5ca855f02e38f1b9cc5fc",
+      "bytes": 77672
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100a-short-20261031\\smoke-reencode_cz\\RESULT.json",
+      "sha256": "9cbcc35d4990c424ff83d09342b7a2474f0f6d8ba92f3bd5ed91edccba627599",
+      "bytes": 77672
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100a-short-20261031\\smoke-reencode_product\\RESULT.json",
+      "sha256": "75e630edb1b05d3498bbbb4d1187ef98a2d25a0e8c01ef02341ee676f8aa1105",
+      "bytes": 77694
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100a-short-20261031\\smoke-dense\\RESULT.json",
+      "sha256": "d4400ab6ecdd95c2de074b118a598c3721ca620313704653afdac3d8b70d77ba",
+      "bytes": 77590
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\smoke-mlp\\RESULT.json",
+      "sha256": "577b2afd49f29510fd893e51fa276b15eb580b4871d5152f6a5998bb80f83133",
+      "bytes": 77628
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\smoke-affine_born\\RESULT.json",
+      "sha256": "a246906d78871cf01061c0ae9cedccc601bdf07699d3b90f7473fe008db66ccf",
+      "bytes": 77660
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\smoke-reencode_cz\\RESULT.json",
+      "sha256": "bc4fd325075fab1f5c040c222da11f79162bfb1e88569e6b1a4cfc8c48137161",
+      "bytes": 77660
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\smoke-reencode_product\\RESULT.json",
+      "sha256": "4cd95854e2fcba9d948596b4d25f0797c6ca5373ba57aeea70656f088165155e",
+      "bytes": 77681
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\smoke-dense\\RESULT.json",
+      "sha256": "6b36d85d0a703dd02480680a55a8b5bcb9188271ba38f0d0bdb7d9204d77fd37",
+      "bytes": 77576
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\pilot-mlp\\RESULT.json",
+      "sha256": "da2166f2a165aea026a93bf6c02f659d66fe566df8efdc6bef87243850901677",
+      "bytes": 77632
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\pilot-affine_born\\RESULT.json",
+      "sha256": "dadd8b64322fdc57f5c494d24b0435072dd82468aa0bf477fa15560e4f42b903",
+      "bytes": 77665
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\pilot-reencode_cz\\RESULT.json",
+      "sha256": "2fd47e5f0252ae527216a077157d43abb7adf66394cc9abf9310c719b0acaba3",
+      "bytes": 77663
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\pilot-reencode_product\\RESULT.json",
+      "sha256": "f214c448ae57cfc2a10daaa5fa20802f73bbbf11899a856c7f4a14f0a24d4e60",
+      "bytes": 77685
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\pilot-dense\\RESULT.json",
+      "sha256": "ca48270b753c3cb617200397531a8baff1b1d2ba29a5c2ec65c8282cb51072d4",
+      "bytes": 77577
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-pro4000-20261031\\dense-eval-dense-idle-attempt2\\DENSE_EVALUATION.json",
+      "sha256": "c32cb6283497277a4c5461048374536904a40e1af79fccd433242a50f5be1b23",
+      "bytes": 76188
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runs\\production-acceptance-v3-v100b-20261031\\dense-eval-dense\\DENSE_EVALUATION.json",
+      "sha256": "41fccc7dd466721e3e24acd7a4d51981e58f513cf2c74cdea81a5cbe716aafb0",
+      "bytes": 76177
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\data\\qwen-local-en-v3\\DATA_RELEASE.json",
+      "sha256": "888c7c2cb54e834e5d6a2c369d0f315374e2bb539150531b6e7a90308eb6fbe1",
+      "bytes": 4359
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\configs\\formal-matrix-v11-20261031\\MATRIX.json",
+      "sha256": "101b00fa3696d639d4fc91051aad93c7bbf46e2ebaac6332c2c8d99f1a6691a5",
+      "bytes": 13953
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\INITIAL_LOCAL_INDEX.json",
+      "sha256": "7f6beac3657b4cec0c7ffa0b36aec48ba2a8144fc9a3f6639cf6cd16f9d73860",
+      "bytes": 8894
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-v5-validation-fp16-seed17-mlp-20261031\\RESULT.json",
+      "sha256": "f981eb2e4ebaa9ce260f556ac5ace26b7137d6390fbd56a771c7f4a41760dd6a",
+      "bytes": 117855
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-v5-validation-fp16-seed17-mlp-20261031\\AUDIT.json",
+      "sha256": "c6d9cbb3ffc65ff305120bb35c6f44a3187cc4022bdc83de19d1d4ca13bf1e1c",
+      "bytes": 21348
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-affine_born\\RESULT.json",
+      "sha256": "6748890eee7fdfe2436cf97b36271a19d76e3a643f096069e4cecd6f31c433c1",
+      "bytes": 118072
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-affine_born\\AUDIT.json",
+      "sha256": "f5e9101369014bf38ae1dd5e917e244ea5f89aafbe345deed6cca8b7159f3904",
+      "bytes": 21434
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-reencode_cz\\RESULT.json",
+      "sha256": "18625a4fa1c624506ecd8c4a506e2adda83586f2e5e40fa74868ffd0ab8e2346",
+      "bytes": 117035
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-reencode_cz\\AUDIT.json",
+      "sha256": "848fd569361292852beb99ac993b4e95ba5f49c39a2fe3eb681c51257b53fbd9",
+      "bytes": 20396
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-reencode_product\\RESULT.json",
+      "sha256": "81246ee78bba076ca8a62255ab0dd1d0bc3595320be6cde861556534b5fc6bb3",
+      "bytes": 117482
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-reencode_product\\AUDIT.json",
+      "sha256": "c598165f7bdc07cfe63d19a440ea959555019b58d6fe8bfcbd6330bdeba0e2c0",
+      "bytes": 20744
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-dense\\RESULT.json",
+      "sha256": "3d21176690377167841a0d661e0799b904f90bf401a329f3319896984e3ca759",
+      "bytes": 87499
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed17-dense\\AUDIT.json",
+      "sha256": "905006db08deda01ad9a6f244333f537e29f360e1d862723148d6ccfb1b0ba1c",
+      "bytes": 7487
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-mlp\\RESULT.json",
+      "sha256": "91856f56ae7704fdd311c5e7003433cefb7e751963b90a32af1e6b849ca67506",
+      "bytes": 117762
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-mlp\\AUDIT.json",
+      "sha256": "9b63bd8eea738c076e164956763be72a7942e5010af0b134eefe44bd97375d93",
+      "bytes": 21273
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-affine_born\\RESULT.json",
+      "sha256": "fb95952f1e4e8c00742e5e21b23f1bb113571b196bbe5955abc87014a727c926",
+      "bytes": 117938
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-affine_born\\AUDIT.json",
+      "sha256": "28e6bedc240668cefb07a1ec0a6b9ac479e5a011bc950ae7a08505899f7f86b3",
+      "bytes": 21295
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-reencode_cz\\RESULT.json",
+      "sha256": "db1fb63a94217ab80aefe505ae3bde82613c7eb78a43325cdb08b20b7f1665ba",
+      "bytes": 116743
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-reencode_cz\\AUDIT.json",
+      "sha256": "1dcb632f12a285d374e436c376df9a6470f6382848c0f1e174dbcab328a5d10c",
+      "bytes": 20106
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-reencode_product\\RESULT.json",
+      "sha256": "e23ec5c2a126d227d19ba6f815d3e4dcfb47ab0179057e56d66b212bff1b727b",
+      "bytes": 117224
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-reencode_product\\AUDIT.json",
+      "sha256": "12d6d95e1cec8ed71cf11d5a6087d778c53366f60745d8143a6ed8e9b9256adc",
+      "bytes": 20484
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-dense\\RESULT.json",
+      "sha256": "49ee645273c7ea8040f5bef65cd58ec56dbf87fcafbc5d1ad69e80fad19e03b9",
+      "bytes": 87499
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed29-dense\\AUDIT.json",
+      "sha256": "00a6e6617da2a6e14b0a56c840561b8892e0bb6eba0ecd9378e00a224aa342db",
+      "bytes": 7486
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-mlp\\RESULT.json",
+      "sha256": "9a7e7bf51f7e97558b9d55932db85ae851aa636120aea868a44cc4aaa995616e",
+      "bytes": 117715
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-mlp\\AUDIT.json",
+      "sha256": "baf3d4f9c591db8515b3fef29cef62be14598e9fb6511bf883092bb63fd9ed1b",
+      "bytes": 21223
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-affine_born\\RESULT.json",
+      "sha256": "e952f803bcc4c44fa4b43de4ef71a4f60c2ad451f6925911ad75c4ef463f692a",
+      "bytes": 118080
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-affine_born\\AUDIT.json",
+      "sha256": "86a8431a8eb64b7b7327ca0b099d1aa340bbeb08677fc46f6a1015db4912233c",
+      "bytes": 21427
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-reencode_cz\\RESULT.json",
+      "sha256": "e5587e908e7ddede9eef06c841b030a9d2265b72a6a3032f77b7beb74c0de548",
+      "bytes": 116561
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-reencode_cz\\AUDIT.json",
+      "sha256": "57cd88c7ba0542afb2061bc7ca626ac8778467991507a07b7faaf193ae1a4406",
+      "bytes": 19920
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-reencode_product\\RESULT.json",
+      "sha256": "e098aab78c7ccdc30731c3a862227c97b8758646147b9e54dc3051bdc14d1f28",
+      "bytes": 117338
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-reencode_product\\AUDIT.json",
+      "sha256": "e6df5481e8e63c80814a4aeb0affe58b76382eda7f5d063559f838c16b871018",
+      "bytes": 20598
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-dense\\RESULT.json",
+      "sha256": "534ccc3308345bd41da74abcb7dacf2843777394ea2792043efb5ec08c9b32ed",
+      "bytes": 87499
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-full-model-v5-v100a-20261031\\seed43-dense\\AUDIT.json",
+      "sha256": "d6f6a5c01fa8961c11639656590b40e8d4810706a0c480531f844e7cf440d27e",
+      "bytes": 7485
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\mlp-timing\\RESULT.json",
+      "sha256": "e07e796f17c3e6240b37ebf81452ea13298e8f324ed5d2f0d9e5622bf963adab",
+      "bytes": 108490
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\mlp-timing\\AUDIT.json",
+      "sha256": "5b6b728a8cc5dd8db1908aa985f08174c53f74c417b100f387779842d266314d",
+      "bytes": 3002
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\mlp-local_precision\\RESULT.json",
+      "sha256": "21081a96daa3c83a57bf2c7525900bdb179fcd850a8ef36625c86a3dcc002286",
+      "bytes": 184116
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\mlp-local_precision\\AUDIT.json",
+      "sha256": "047c9f01ca2124a02a9a241048c87ced920daf69e35ea3b3c6da615158e13cbd",
+      "bytes": 2548
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\mlp-full_model\\RESULT.json",
+      "sha256": "0c7ae826d040ee7a0483c5ace45b9750d9ee890e33b85fe490a779d9afcb38e5",
+      "bytes": 116626
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\mlp-full_model\\AUDIT.json",
+      "sha256": "d5a591b568d83bac1b820b1acf9af14096b3d3f444d79157e73c777be8a2d456",
+      "bytes": 21206
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\affine_born-timing\\RESULT.json",
+      "sha256": "587605bfa22df531a4a1508fcf96d03b57c9e536727943416214aa0dc27d02f2",
+      "bytes": 108710
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\affine_born-timing\\AUDIT.json",
+      "sha256": "65d51d967cd6a38b382bd07f670d19e87facd162016d1edefb03d4edad160623",
+      "bytes": 3113
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\affine_born-local_precision\\RESULT.json",
+      "sha256": "def37459afc7514a7cb0f56e841e028dc6d96381291f2aa81f12c2f62808eb2a",
+      "bytes": 184330
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\affine_born-local_precision\\AUDIT.json",
+      "sha256": "a38f9fac4921102b0ba2bd64c66bdf92587295773d0922e5ea3714ba2ea78a8a",
+      "bytes": 2569
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\affine_born-full_model\\RESULT.json",
+      "sha256": "6036c7501e397770e687a1c07dd8549fbd857a1c0c647dcd00d85076f720e275",
+      "bytes": 116722
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\affine_born-full_model\\AUDIT.json",
+      "sha256": "bdf50beb3fcf8fe037d1344e3f040cb643d6470b761c6b0afe87209bc3904a47",
+      "bytes": 21149
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_cz-timing\\RESULT.json",
+      "sha256": "8c924df6d3195d7db74924251c127cbe40d6b010e74c0112552b6900e302d25b",
+      "bytes": 108713
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_cz-timing\\AUDIT.json",
+      "sha256": "f8831e9e2802c6b8d917ba247c99d26479cb25c2318b44f758aafd927eb9409e",
+      "bytes": 3113
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_cz-local_precision\\RESULT.json",
+      "sha256": "e070d3ee43e781178b5ce40e831baf6430777db9009f1168cff673d198b72fe3",
+      "bytes": 184334
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_cz-local_precision\\AUDIT.json",
+      "sha256": "3cfff1f34f3810307035f3298bff38804e3d678a5c3aea2a7ff3a0660b5341ea",
+      "bytes": 2565
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_cz-full_model\\RESULT.json",
+      "sha256": "0385cd56ec8c78ad8924b8dba16eb2c4cc53aa66bf3d3f2b4fe5c9cd1281d2fa",
+      "bytes": 115629
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_cz-full_model\\AUDIT.json",
+      "sha256": "97dd405648ca74936af129065d4af8be07461acfd100cb11323ef3b52ca60d98",
+      "bytes": 20051
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_product-timing\\RESULT.json",
+      "sha256": "fe04531fee1deea7132d4674d151d3320eacef040ede19a2b210e26fc5bd52db",
+      "bytes": 108732
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_product-timing\\AUDIT.json",
+      "sha256": "3982ac3f32fff215acc63be91e53eb2a498d8a4d60d99d8cc07bf9579282a8ea",
+      "bytes": 3183
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_product-local_precision\\RESULT.json",
+      "sha256": "11ba58c846653017e16a41b90234a9fc98d39c938a3587e6e0bc9d322141490f",
+      "bytes": 184456
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_product-local_precision\\AUDIT.json",
+      "sha256": "34d28a3cdb54381d8e9adec944c97daef388fc17d0d03e4214de5caf945b7120",
+      "bytes": 2584
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_product-full_model\\RESULT.json",
+      "sha256": "7289a40cc3d64b07a891dcd57888cbe00d82aa5f6dd0e3c6c4b5503d904a8aa8",
+      "bytes": 116191
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\reencode_product-full_model\\AUDIT.json",
+      "sha256": "3923f1f06183ff1be2f8656908d781bb4657a831d800f94ca8bfe6768a18daf1",
+      "bytes": 20513
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\dense-timing\\RESULT.json",
+      "sha256": "72ee48ebf2f23ed1abae0c6373c527343a546eb80c5aa25c2a3231c0ffb509bd",
+      "bytes": 108706
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\dense-timing\\AUDIT.json",
+      "sha256": "2cb200755d3c95171ed030d8d410fc8577ad75feb7cb25ab3680cb9c4a54532b",
+      "bytes": 3034
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\dense-local_precision\\RESULT.json",
+      "sha256": "a0d07d912ab9c99b0090ef3cd70dc2ca9849befb91dd99e5dbcbeb57f0437a8e",
+      "bytes": 135560
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\dense-local_precision\\AUDIT.json",
+      "sha256": "618826377fdd223eb9d1311374a72528111aa69cbe9bd5354c2fcc5339d28996",
+      "bytes": 1965
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\dense-full_model\\RESULT.json",
+      "sha256": "b5d65b36a282d69c56c52d3cd36a3597e38dbbfb75049156914b429ef318ecf2",
+      "bytes": 86247
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\native-diagnostics-v4-v100a-20261031\\dense-full_model\\AUDIT.json",
+      "sha256": "76ce56f0e34e080f84520ab2450c65cdeda6b98962a04ec09c4d8c812205e734",
+      "bytes": 7288
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\mlp-timing\\RESULT.json",
+      "sha256": "a6b5edf37a30f811f8e3d51c63eec66267f792fa14d160bf5e70e4187e9c8718",
+      "bytes": 108654
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\mlp-timing\\AUDIT.json",
+      "sha256": "4e87bcb16323a1bed86a86afdea719c71a8a33283c5a286f4886f96fbf834a24",
+      "bytes": 2950
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\mlp-local_precision\\RESULT.json",
+      "sha256": "e6822cf606b4f7a9dc10b142d0bdcdbde92cc91fb52704569a9e90667a7cdb3b",
+      "bytes": 184078
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\mlp-local_precision\\AUDIT.json",
+      "sha256": "c2c2f0753a4f99f90fc73828cd768e6f0c9ae8675023fdd1a067691945bb6e57",
+      "bytes": 2461
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\mlp-full_model\\RESULT.json",
+      "sha256": "cf4379846d91720d30c7fe26890e801993c561f710afbd1297740bbc56bc67f4",
+      "bytes": 116378
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\mlp-full_model\\AUDIT.json",
+      "sha256": "f1df662a802dd064a9b3de78592be3fe98ed0de473a0761b94dc4037f1fd22e0",
+      "bytes": 21018
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\affine_born-timing\\RESULT.json",
+      "sha256": "84ff70f1616751f315df871d358742c08540ee8683bba26cfc99d523d41bdd09",
+      "bytes": 108940
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\affine_born-timing\\AUDIT.json",
+      "sha256": "d8a2f59d48ab364d1d1685e07b6e4fb81569c91c24fcd0ac4a6a19ff75eded3f",
+      "bytes": 3063
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\affine_born-local_precision\\RESULT.json",
+      "sha256": "c00d0489ab19f55a7716176a43af49190b5ac8dbd3fd76d447f8cd993d41422d",
+      "bytes": 184283
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\affine_born-local_precision\\AUDIT.json",
+      "sha256": "3a4f0b7aea3282f7f03154c8a62a41a5fbd9be475ccffe9c60ab0e66a58dafad",
+      "bytes": 2471
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\affine_born-full_model\\RESULT.json",
+      "sha256": "335a61215fe32913dd75149d4904ca76ce68194a3c754e8aca537b89d7714469",
+      "bytes": 116635
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\affine_born-full_model\\AUDIT.json",
+      "sha256": "9e23377e89f376a2aae290b372c9b697222e9b478fb5d34c47f6ce1c8cc5a1d6",
+      "bytes": 21118
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_cz-timing\\RESULT.json",
+      "sha256": "1e72d4bb5c747786efc3b63dfc9d4ac6692f1df419f68c5c9c1354f175d23f2a",
+      "bytes": 108754
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_cz-timing\\AUDIT.json",
+      "sha256": "87c2d2c7443ed35ef0c9d474c695ba34079b70af911939d56568e87ac1600e10",
+      "bytes": 3064
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_cz-local_precision\\RESULT.json",
+      "sha256": "5b735529402d63eed1aa20f57f0fd4c21ac107d15e2847dfce072701110af9b0",
+      "bytes": 184224
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_cz-local_precision\\AUDIT.json",
+      "sha256": "3dcf264e6541f2edeab372a52713e89f6ae6d096b1443d6a4299ca70566cbe22",
+      "bytes": 2480
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_cz-full_model\\RESULT.json",
+      "sha256": "95b2c465bda5887c843aeda666550609924475036ffbf80bdc62648618f857d9",
+      "bytes": 115301
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_cz-full_model\\AUDIT.json",
+      "sha256": "15f5193dbc2d3595762ade16a1e8a67bb119282a2b6fe5276d9f59b930d6cb82",
+      "bytes": 19786
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_product-timing\\RESULT.json",
+      "sha256": "bea8921a909a717372fcfdaf64fd7b47b3b92c56264e8971fba6cbf4c4e6c18a",
+      "bytes": 108574
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_product-timing\\AUDIT.json",
+      "sha256": "d13c3cdb32d0e8de928d97cade769747ad316aea5a22cd3f5c14856d16c2025a",
+      "bytes": 3135
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_product-local_precision\\RESULT.json",
+      "sha256": "fbd3adcc95236930cdbf232ec285c49a652110676487af86176d391ca0969f53",
+      "bytes": 184383
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_product-local_precision\\AUDIT.json",
+      "sha256": "d4c64f7154f3d90029d19628cc84d811007837344b45abce91074ef75cb19c4c",
+      "bytes": 2492
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_product-full_model\\RESULT.json",
+      "sha256": "e4d48333ad5fe09efa64f5e2c3742495386d53cbe3b518e03f02161257aa7042",
+      "bytes": 115668
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\reencode_product-full_model\\AUDIT.json",
+      "sha256": "a7037fc2660f2075f2ed665b84e6fb6145917f58efb55871863bfcbce40ac677",
+      "bytes": 20064
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\dense-timing\\RESULT.json",
+      "sha256": "d64a7bde114120326aebd627b8dfeb411adf7c72aa0044e37123f1afab052e16",
+      "bytes": 108545
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\dense-timing\\AUDIT.json",
+      "sha256": "5cbb1f3872584cc42dc6d64510f4d8cfea52592b99b08b066d0b6f9f266149d0",
+      "bytes": 2982
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\dense-local_precision\\RESULT.json",
+      "sha256": "dc17e35a12dece803760c2d69a1b63cd1aaf54118a09e519c2b87da6df0be283",
+      "bytes": 135400
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\dense-local_precision\\AUDIT.json",
+      "sha256": "f0aec9dbed756932100b344317ebe5f753ba1734a14f5c73131ddbb169a871fb",
+      "bytes": 1873
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\dense-full_model\\RESULT.json",
+      "sha256": "59807f0b46cc11ea8c622c3f3788f3bddf575f8f830faab1b0677f7df636e12e",
+      "bytes": 86192
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\pilot-endpoint-v5-v100a-20261031\\dense-full_model\\AUDIT.json",
+      "sha256": "67cf210085d2f281b98bbfb28da250d35c72ce02ba601043c955021db2400fa1",
+      "bytes": 7249
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-mlp-initial_full_model\\RESULT.json",
+      "sha256": "5d28a08aba470709a79b36253f710111410d88c9284ef218f2020e2d704c0d26",
+      "bytes": 122085
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-mlp-initial_full_model\\AUDIT.json",
+      "sha256": "0fd7e1e62e3c76bcd7b763eb4e8feb5848f41b765626a98db893eb171e796296",
+      "bytes": 21341
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-mlp-local_precision\\RESULT.json",
+      "sha256": "d798384945b030b4b4d05c9dbbb6ffe5d078ff8f64b7cdec7815733d013a12a8",
+      "bytes": 187793
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-mlp-local_precision\\AUDIT.json",
+      "sha256": "1817c4fee53b6ab69419740b61fdd14242ff7e2167c52a3b5fda14e7845fca19",
+      "bytes": 2468
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-affine_born-initial_full_model\\RESULT.json",
+      "sha256": "1066347a4c52fcdc3e82fccb3cb18354672eca9e72a0797fe12cabd0e6367c27",
+      "bytes": 122290
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-affine_born-initial_full_model\\AUDIT.json",
+      "sha256": "b32a870722fcd7d618b9e8b9aa054a137a77412272c35774e026de8ef3a48c29",
+      "bytes": 21395
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-affine_born-local_precision\\RESULT.json",
+      "sha256": "aa3ceaa512b3e2374b9d5a9ced3b2824bf74c5e00eb824084c861f748c0e70fa",
+      "bytes": 187995
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-affine_born-local_precision\\AUDIT.json",
+      "sha256": "b711cde0352b463f4e8190ca91c7950494e924ff43f0f175f26b90fd0c5a9f1a",
+      "bytes": 2484
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_cz-initial_full_model\\RESULT.json",
+      "sha256": "5b16e97cb2ee972508e3b9563035d13babeaf1e41b4bb341e59e35f1c0578cc6",
+      "bytes": 121479
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_cz-initial_full_model\\AUDIT.json",
+      "sha256": "c2dfcf6d1898b0aa821fe0c30665ab2eef688f353ea92673acce6b33454c1c70",
+      "bytes": 20581
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_cz-local_precision\\RESULT.json",
+      "sha256": "ef30fccc8a454da3f6f5457039e489983853c55dc25771396e6b67469230269d",
+      "bytes": 188005
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_cz-local_precision\\AUDIT.json",
+      "sha256": "fc364abe3c621d6289da10b9490e373ab845dcb4d64c8f8e94a8aaab2eed5f26",
+      "bytes": 2481
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_product-initial_full_model\\RESULT.json",
+      "sha256": "e02678c1f912d46373a3a4a236fc5e3e441d84dc9217ace6ddb03d427fc00c6d",
+      "bytes": 121818
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_product-initial_full_model\\AUDIT.json",
+      "sha256": "975db9e61057b471cf3fe754ca45cc0a3ff51eb196c6115c03de861099288f4b",
+      "bytes": 20825
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_product-local_precision\\RESULT.json",
+      "sha256": "16807972e11587b3bb94447900c58974c8755665567701c92b6a10e361532310",
+      "bytes": 188113
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-reencode_product-local_precision\\AUDIT.json",
+      "sha256": "9741b0ccc4cf12b7bd426b1582c87185edb75ef25bd77c705640422d82047ba5",
+      "bytes": 2496
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-dense-initial_full_model\\RESULT.json",
+      "sha256": "e74c9e0c0d940a7695a3cc548d114ecb760879e440a37d2db0bd69d262cd6f55",
+      "bytes": 91470
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-dense-initial_full_model\\AUDIT.json",
+      "sha256": "037e8a05087b9fd8dd5a307e0854c9b9983d05b0d289294c3855d4d2ffec49cb",
+      "bytes": 7515
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-dense-local_precision\\RESULT.json",
+      "sha256": "f29c10179f74adf0b525a6b8706a11227bdb929cfa386abd9af72604b815ee93",
+      "bytes": 139315
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed17-dense-local_precision\\AUDIT.json",
+      "sha256": "9ba7770f75a615902fdacdf9321e18d72618c58bb9e5f98b9c68bde72d26ba0c",
+      "bytes": 1882
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-mlp-initial_full_model\\RESULT.json",
+      "sha256": "0286c0bdbc084ad2bb94462420a2616a1a7465b494e295e1a9a266e8b93861fa",
+      "bytes": 122188
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-mlp-initial_full_model\\AUDIT.json",
+      "sha256": "d41c0659728b999a6f091278df111baad9f34051864a4f68b80a9e573fb7e52b",
+      "bytes": 21442
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-mlp-local_precision\\RESULT.json",
+      "sha256": "79637f86ab3b1eee182266ed676442c4d67c95bd18f450a79a7ef787f8e4e584",
+      "bytes": 187844
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-mlp-local_precision\\AUDIT.json",
+      "sha256": "ed29cca7f4f032a93ab1b051672a9edb873fb0f4fae9ac7ceaeff748a1c7b945",
+      "bytes": 2464
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-affine_born-initial_full_model\\RESULT.json",
+      "sha256": "85942f952998a9cfc795a8ff9d55826c51c609d91b452172b599dad76f71b471",
+      "bytes": 122188
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-affine_born-initial_full_model\\AUDIT.json",
+      "sha256": "e0a227603bab2c768438d9450e593d8f9cc3180863953a3bc286f0d9cdfa60ec",
+      "bytes": 21283
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-affine_born-local_precision\\RESULT.json",
+      "sha256": "7dec1bcd305a464c3e3197a49b01d5f927d1a255ed7cd4de06a22c068bde3cea",
+      "bytes": 188036
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-affine_born-local_precision\\AUDIT.json",
+      "sha256": "860f50c9c3760d28053b378dc25fd14c36c9f5fdaef1938a94174df25a128302",
+      "bytes": 2479
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_cz-initial_full_model\\RESULT.json",
+      "sha256": "27c13f6ca86e2eb1c3695be1e33bd0c6aeae2833b2a5f2ad2e1d6a36a60dd259",
+      "bytes": 121155
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_cz-initial_full_model\\AUDIT.json",
+      "sha256": "ad61d39cfa0963c48a70f5a75342b9707a0c147ebf8f5b5d0bd15d89a5e864be",
+      "bytes": 20263
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_cz-local_precision\\RESULT.json",
+      "sha256": "5cfdd29c98631a2112b894d0fe18d849e5925be9b99f0cc50ec00a3976451ab2",
+      "bytes": 188023
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_cz-local_precision\\AUDIT.json",
+      "sha256": "6a2173d5c92c0cbd26e72a678e5ba1552e03f6dbbe44438a8096517902e70c3d",
+      "bytes": 2484
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_product-initial_full_model\\RESULT.json",
+      "sha256": "a8cb5b9677b2a185c19eb920f6842ec2303a818d29e33cadc392a3838263e5f2",
+      "bytes": 121500
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_product-initial_full_model\\AUDIT.json",
+      "sha256": "e8fd3c9b44223468d6ab4eb2dacf6750c9e1aef4c96945d173b8d48014af92c8",
+      "bytes": 20508
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_product-local_precision\\RESULT.json",
+      "sha256": "cf22de9cab3477e205f6fb8f0f189aadd604cf84db13c441d4a53d9208942a47",
+      "bytes": 188139
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-reencode_product-local_precision\\AUDIT.json",
+      "sha256": "4b39c71bd4c99fc68ac85b1fc094496684073e945cb32ca8cc0db838deee490c",
+      "bytes": 2489
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-dense-initial_full_model\\RESULT.json",
+      "sha256": "ff5cecbf72fdccc171bc74c9a0d4ee70e8c41f4e5d56d83255af0573af0a612f",
+      "bytes": 91473
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-dense-initial_full_model\\AUDIT.json",
+      "sha256": "73beb066eae719ccfd382e9f34f101886fbf9fd53ba034fe61aae4ec20202fac",
+      "bytes": 7518
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-dense-local_precision\\RESULT.json",
+      "sha256": "ab5dd81d485a2847bea9bc93d83066e3a590e7914e3d5a71b2c3c7d234238311",
+      "bytes": 139313
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed29-dense-local_precision\\AUDIT.json",
+      "sha256": "dbef6c998de0e2d14873603a7d3bad4618f5a3e3806d2faecb2550aabaa3c74d",
+      "bytes": 1882
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-mlp-initial_full_model\\RESULT.json",
+      "sha256": "b1ae5e5ad303bc0a00671cc8f4e596488ecc40718fe8f4f7454ebef733643820",
+      "bytes": 122160
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-mlp-initial_full_model\\AUDIT.json",
+      "sha256": "c972fa0c29a40895dc5438aff1cbd5d2ab12857267964982130c036ef2318206",
+      "bytes": 21400
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-mlp-local_precision\\RESULT.json",
+      "sha256": "b0a0a4f34f1e87eb5affee855f42a5cda4f2f71eb98fb4eb72454f3fa3e8e685",
+      "bytes": 187846
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-mlp-local_precision\\AUDIT.json",
+      "sha256": "7e9451920dfd73ae5e23e5ffc586823bf483e28da643a1c1e5cc478e3fe1712d",
+      "bytes": 2465
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-affine_born-initial_full_model\\RESULT.json",
+      "sha256": "b0719e88f57e16c6d39a5101d6b071b9fd48473052f127160dadcda806b7c604",
+      "bytes": 122388
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-affine_born-initial_full_model\\AUDIT.json",
+      "sha256": "13cf003d5920a588ae37e3fb5fd8b3ad41a60466183765696b57dbbe562f4666",
+      "bytes": 21483
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-affine_born-local_precision\\RESULT.json",
+      "sha256": "27aea4d7e63d87f33e843d95e356997fc7b04c095d3166654fcb53ff7173b195",
+      "bytes": 188018
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-affine_born-local_precision\\AUDIT.json",
+      "sha256": "567b4424821b69f0c042816b16f3cf25562367b9ec02aca50c13765f61a1a1fe",
+      "bytes": 2487
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_cz-initial_full_model\\RESULT.json",
+      "sha256": "0e7989e759d7f964413f145afc1ceb8988bfe640d49dad0baf48f4de1f0c9e4a",
+      "bytes": 121402
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_cz-initial_full_model\\AUDIT.json",
+      "sha256": "b594a2203efc982547350f1285cb7d40d832b447807df6683c7ecf38bf9472c6",
+      "bytes": 20501
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_cz-local_precision\\RESULT.json",
+      "sha256": "e52ed43d11ac58a20ba8b1242e0090677f6abf95d23767c9c358ac3beb0160ba",
+      "bytes": 188045
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_cz-local_precision\\AUDIT.json",
+      "sha256": "bd868b80a61fc3a3c3dffda391bd6392c3602147e960cd2557e35dc4b8dda599",
+      "bytes": 2488
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_product-initial_full_model\\RESULT.json",
+      "sha256": "70c5bb8ead23dee78657439dd4987b85b0a7f72a7a5c8b67e1eb5a4fb0671858",
+      "bytes": 121767
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_product-initial_full_model\\AUDIT.json",
+      "sha256": "b5390faecf4954fb79edc33167991308ff2042d646345c20a83041063d49ec96",
+      "bytes": 20765
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_product-local_precision\\RESULT.json",
+      "sha256": "f5079943ad20a1255d9da6f34cc6cf3e590d374bcbdb98bfeebd9753af4894e6",
+      "bytes": 188146
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v6r1-pro4000-20261031\\initial-seed43-reencode_product-local_precision\\AUDIT.json",
+      "sha256": "89b7548dc55de02ce163c112ba5295f6b63347dcd2cc3310601156ebe3edf14c",
+      "bytes": 2495
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\initial-seed43-dense-initial_full_model-attempt1\\RESULT.json",
+      "sha256": "5a19722cf9e5db3d165fd2923541d5fbce802558dfcd34f0d21d42e8a0bbed74",
+      "bytes": 91403
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\initial-seed43-dense-initial_full_model-attempt1\\AUDIT.json",
+      "sha256": "f5a646611c81c69c3a9934c64505eaa2b6e9f0e81f09cdfbff38b690f8a1672a",
+      "bytes": 7528
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\initial-seed43-dense-local_precision-attempt1\\RESULT.json",
+      "sha256": "ea5d898146e278fcc5e911468c9a65a4ce88c69427977346fadc6a2badbeafba",
+      "bytes": 139378
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\initial-seed43-dense-local_precision-attempt1\\AUDIT.json",
+      "sha256": "41a0b97d1b575ec4467df10cb8d6f81c1db0fd7fcece542a1151bf59187f8337",
+      "bytes": 1891
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-mlp-timing-attempt1\\RESULT.json",
+      "sha256": "4a14c15912b173687393faded4475c53ea7d8afc1d7b6bfb78c296c155451d13",
+      "bytes": 212067
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-mlp-timing-attempt1\\AUDIT.json",
+      "sha256": "31c8c4c6a28f8455f2cc010c315fc707a96e98037726a1a538ec4cbba5332d57",
+      "bytes": 3277
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-mlp-local_precision-attempt1\\RESULT.json",
+      "sha256": "6f581008b0236bbbc2967c974d98e698778097df7e44aa006494c5f1da3c2c52",
+      "bytes": 188161
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-mlp-local_precision-attempt1\\AUDIT.json",
+      "sha256": "cf4f1728942e29879e0c686d482e7de194b8855c5099a6b7e265cac6de928e4c",
+      "bytes": 2474
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-mlp-full_model-attempt1\\RESULT.json",
+      "sha256": "ae09f2046dbb36c5550d0f867c53532460bfb6cb73242fea52c8c037fe69dc3c",
+      "bytes": 120535
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-mlp-full_model-attempt1\\AUDIT.json",
+      "sha256": "75caa2328ce52c9f035d851e5ccf66c08cdaf1a26abc9e069aa36d61e02734d8",
+      "bytes": 21068
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-affine_born-timing-attempt1\\RESULT.json",
+      "sha256": "5a37f064a41d3f100bf07cfdcae81abadfbef2bfc967979abace5335a6491788",
+      "bytes": 212086
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-affine_born-timing-attempt1\\AUDIT.json",
+      "sha256": "c8b3f47810c94097684136c3cd1afd78bb33ff2258f5438843c14400836d76b1",
+      "bytes": 3391
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-affine_born-local_precision-attempt1\\RESULT.json",
+      "sha256": "bdc5a6cc1b7ceb4dc420696128b53488a17223ec2f07710694cd86c1a30c4509",
+      "bytes": 188341
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-affine_born-local_precision-attempt1\\AUDIT.json",
+      "sha256": "23faa8f63d6d0ba29c13fbd06cdbf6fcc9b6d743f37ac519e621408288e6cf4a",
+      "bytes": 2496
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-affine_born-full_model-attempt1\\RESULT.json",
+      "sha256": "6c3680a0900d2e02847f649cdf0cfa42ebbc242ed4d0d02c426d4227ed4fe324",
+      "bytes": 120821
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-affine_born-full_model-attempt1\\AUDIT.json",
+      "sha256": "f5045ce5f467657d43734129ad84a8d304ac9ba511d862ab1903cdc800887db4",
+      "bytes": 21200
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_cz-timing-attempt1\\RESULT.json",
+      "sha256": "c37ffabb533070867f2c0c9747e719456e6b98898626d3843e1fa7d4fefdec89",
+      "bytes": 212091
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_cz-timing-attempt1\\AUDIT.json",
+      "sha256": "e5bb5615f7487a0c994684e3446b6cbe41f18c6e6ac9aa467506d65f1de748a4",
+      "bytes": 3392
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_cz-local_precision-attempt1\\RESULT.json",
+      "sha256": "d3d32176124e4bc644ff23b16593a87f5fa704461af20202ba69ae119276b5d7",
+      "bytes": 188310
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_cz-local_precision-attempt1\\AUDIT.json",
+      "sha256": "56bd2aa3a1a92f130319f71826dfeaec12d1548bf350c1ccdfd0fa35eb4f5ac7",
+      "bytes": 2492
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_cz-full_model-attempt1\\RESULT.json",
+      "sha256": "83a2db5ac51eb0b0014fa9b6678645279c4efd3aeee8d0c13e4626ed68bb166d",
+      "bytes": 119748
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_cz-full_model-attempt1\\AUDIT.json",
+      "sha256": "c79180e8147784cef3146ac22542133c33791cccfeafdc796d68744ff4b4d27e",
+      "bytes": 20129
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_product-timing-attempt1\\RESULT.json",
+      "sha256": "4bebc59b3bebab1a4cfe65d63876ee310a45f62b895c6960ae4aa857d0211ad9",
+      "bytes": 212114
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_product-timing-attempt1\\AUDIT.json",
+      "sha256": "2a17da2e73773278042417dde1cf21ed98d90c3cb563b555f1385caa04f415c8",
+      "bytes": 3462
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_product-local_precision-attempt1\\RESULT.json",
+      "sha256": "55698a514a91c76bc58406bf00fc3784941bfa930c20e597df8328375be0987c",
+      "bytes": 188460
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_product-local_precision-attempt1\\AUDIT.json",
+      "sha256": "45b9cff8bafe11bf333d34ff394ea4dd83832ebfc3d9b446148c5ba2e4fcf65c",
+      "bytes": 2502
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_product-full_model-attempt1\\RESULT.json",
+      "sha256": "42a4d965e6745d02ff32d5698fb3f9bcb96bd97c8312b894a58fb1b12f5c2284",
+      "bytes": 120073
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-reencode_product-full_model-attempt1\\AUDIT.json",
+      "sha256": "e8990a77891e3568fc15e5914ec5af12c4838d7050d610bb2099cdd3916e7889",
+      "bytes": 20363
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-dense-timing-attempt1\\RESULT.json",
+      "sha256": "75670d212763fa48a0b10548fcad1f280bd89a9e595e2b654a0c22fe0c47d76e",
+      "bytes": 212085
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-dense-timing-attempt1\\AUDIT.json",
+      "sha256": "debea903413a2ff4ede8c8c8a42367fc34f872a6c06d55d19a39f80db52b1c53",
+      "bytes": 3309
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-dense-local_precision-attempt1\\RESULT.json",
+      "sha256": "4a03eaf167f6b11a0de7c222abc002d90e8b1153575d6d1f180b39896fc390fc",
+      "bytes": 139607
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-dense-local_precision-attempt1\\AUDIT.json",
+      "sha256": "530fed6a008199858e5f5b5bd9648ba8cd62aaed83aea67e385cd0f139c9b0e2",
+      "bytes": 1894
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-dense-full_model-attempt1\\RESULT.json",
+      "sha256": "7288ca9363711f2f9ebe187a37a63c2e4f4a67d31c47d8eb32a9e2f2cc8e4eca",
+      "bytes": 90011
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\bf16-followup-v13-recovery-20261031\\pilot-seed17-dense-full_model-attempt1\\AUDIT.json",
+      "sha256": "a7e18f85a7bde33060f2ac32c3b683e97fc85f9ac62e601c2e5a16ccdc644a8c",
+      "bytes": 7268
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-mlp\\RESULT.json",
+      "sha256": "878bcc5012082bf5274376630fe19ac21a37b5f490c737df354b610fb42d608a",
+      "bytes": 183654
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-mlp\\AUDIT.json",
+      "sha256": "78d7c568c2d4d0c1db5c8937f359fe3fa7bed490eebe7e9718f62af929620604",
+      "bytes": 2450
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-mlp\\RESULT.json",
+      "sha256": "0e0aae64484301761365de473ae71292e9b4b2e76a2ea081f77875ed1ff070a1",
+      "bytes": 183666
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-mlp\\AUDIT.json",
+      "sha256": "33d1e5dd10666344608339bda9cc07385a6b19974599ad1bdf5cccf8935037f4",
+      "bytes": 2449
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-affine_born\\RESULT.json",
+      "sha256": "c80cc9b522ee955c01b662669002ebcd7113e644604668ba38e522c9c8e5931b",
+      "bytes": 183845
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-affine_born\\AUDIT.json",
+      "sha256": "1926342519356a26b60802782b1383eeee52140dce94b55d96fc0a83fb420046",
+      "bytes": 2464
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-affine_born\\RESULT.json",
+      "sha256": "4009d9c046ab5a2e5d26223392cf2d62010aa81693eb53f1d3dec49102e7eb78",
+      "bytes": 183814
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-affine_born\\AUDIT.json",
+      "sha256": "8d5e0d11797a9c523d0702894fc3f56b4bc2637b84b0e758f69f011f781365e4",
+      "bytes": 2468
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-reencode_cz\\RESULT.json",
+      "sha256": "8efabb6a4827602f6531bfbbbe2474dd86bd0f8630c43dd469d12b81fe1625d1",
+      "bytes": 183848
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-reencode_cz\\AUDIT.json",
+      "sha256": "9f4cabcfd3408897a6fd5088c205e473e44c96a2fbe971a71c0917a8ce7b277f",
+      "bytes": 2471
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-reencode_cz\\RESULT.json",
+      "sha256": "9c3d596361258de200035888b4d771e6010f97143b20c1191bbfd98c143adf4e",
+      "bytes": 183844
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-reencode_cz\\AUDIT.json",
+      "sha256": "83c554a9f8a0d44bece0bb92066c77b1cb2cc0d0f9f5ccdda8411436e14a3544",
+      "bytes": 2466
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-reencode_product\\RESULT.json",
+      "sha256": "16d9af1cf8fcf9f6c962aa6be7c5802b0dd3e2d3d12c18f08cdd99cddf93ad8d",
+      "bytes": 183964
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-reencode_product\\AUDIT.json",
+      "sha256": "3eff22ba842dcac32e4e16878d9848cb113de97fcc6b332cf9a669b4fab2a2f2",
+      "bytes": 2475
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-reencode_product\\RESULT.json",
+      "sha256": "95072152a1b44ee61915e0c0d012a8396250592923ce2186dbf0a4b603d8f451",
+      "bytes": 183967
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-reencode_product\\AUDIT.json",
+      "sha256": "2e73d8108980dad95f03b4ddf1112acd177a804f82c67b18027f64a1f34957e4",
+      "bytes": 2480
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-dense\\RESULT.json",
+      "sha256": "b1a4e3a263f55bd751b6a03009cd4ee5f129ce9a2f004c3959c782faafb0b8e5",
+      "bytes": 135035
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed29-dense\\AUDIT.json",
+      "sha256": "35dbcb48cb9af4f18dd089c312395e892849d347cfb570c3fe246761db84a0cd",
+      "bytes": 1861
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-dense\\RESULT.json",
+      "sha256": "70622eddb7d699c6dcf606a7935009d331da8c9f53eb74b13a211c48e80a6381",
+      "bytes": 135038
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed17-dense\\AUDIT.json",
+      "sha256": "77c3a53f33db9fd2538087c592ba512a65482428110a9e98b6e3573553094b9d",
+      "bytes": 1861
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-mlp\\RESULT.json",
+      "sha256": "6882e2e4f5e5ccacefe12ffa9701668b271f176a0edfff2048f9008aa5e36f09",
+      "bytes": 183644
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-mlp\\AUDIT.json",
+      "sha256": "5be007fedc8bf1dcfbff881ab7e7480d5b32d65219d76286e560edaa0a26ed92",
+      "bytes": 2451
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-affine_born\\RESULT.json",
+      "sha256": "ffc34424138df8dbaa8c846a885c5845fbe6af0f9d4397a26bb3e6cbd5f2639e",
+      "bytes": 183810
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-affine_born\\AUDIT.json",
+      "sha256": "bac05aef267171b55f970588e7628625618b556f5101de480901b8fc3c24d1d7",
+      "bytes": 2471
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-reencode_cz\\RESULT.json",
+      "sha256": "997e525ba0152b4348a5dc296535eaa41c48ec200d2533ef5e479a4bb700b929",
+      "bytes": 183832
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-reencode_cz\\AUDIT.json",
+      "sha256": "229427d1818fde7a5195c37c28a6078e75ceec95f11df7251624a643eb524269",
+      "bytes": 2468
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-reencode_product\\RESULT.json",
+      "sha256": "c90df5f8ea88b2bd9e862a6eb6f248e1ec0a2e3f837777b55963eaaa8c37f4fe",
+      "bytes": 183920
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-reencode_product\\AUDIT.json",
+      "sha256": "adc51b6e519126dc0e2f9afbb6b20510962f238f9291b57eeae7aedab22f69ee",
+      "bytes": 2480
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-dense\\RESULT.json",
+      "sha256": "4b4b727ce47b833cdec751ae64296d5831bb93936290fdc27a0b9c521f1a21d3",
+      "bytes": 135037
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\diagnostics\\initial-local-fp16-v14-20261031\\fp16-seed43-dense\\AUDIT.json",
+      "sha256": "6df365fb9e7578e7eecd89e9f4ca0a75fffd7d75f465f57b2313473a2d04316d",
+      "bytes": 1861
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\final-integration-v15-20261031\\COMPLETE_COST.json",
+      "sha256": "bcfc06a2898fd6f251feadb3400d3f8d17a458299603c1f590ceb6aceb393171",
+      "bytes": 127625
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\matrix-budget-v5-final-20261031T1458Z.json",
+      "sha256": "1c6067a127d3d0c5515290a0685b7ecf65651426e3bba3e5fa278bf711ac5d93",
+      "bytes": 17174
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\matrix-cost-v8-final-20261031T1458Z.json",
+      "sha256": "808f78fcd60e910fe29b5cf89bacff91814f8c0217ba0f79b39de873ff9ecb36",
+      "bytes": 637003
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\final-integration-v15-20261031\\FINAL_AUDIT.json",
+      "sha256": "d70a60f6d544e189c7d477b05c4c6694a904b30d0e8fa04bdb26eae7585e22d8",
+      "bytes": 110781
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\reports\\final-integration-v15-20261031\\stage-report.md",
+      "sha256": "5440d4ee6c20e43e2aa1115f7e2e55fc4a69bb7e1636618d321ebd8d2befb9de",
+      "bytes": 5229
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\reports\\final-integration-v15-20261031\\stage-report.typ",
+      "sha256": "d509ee957c125ae9060dba23a9d95e49da2b45c7e290ac47af0ab2eade0bb0bb",
+      "bytes": 5681
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\reports\\final-integration-v15-20261031\\stage-report.pdf",
+      "sha256": "ca5d87ff54f40de57d16cb7a4b70ff3d0c4cafc4430f8dbbd51a806b7112009d",
+      "bytes": 138292
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\reports\\final-integration-v15-20261031\\PDF_QA.json",
+      "sha256": "300bd3634db4bb902fe10258a7d75cb3d14638f745147e4ad0474ad1fe6e19a9",
+      "bytes": 1462
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\final-acceptance-v15-release-20261031\\MANIFEST.json",
+      "sha256": "fd2a7ab9c31f3314b2bccebe0c3b7c0ba0366f78399d06bc012fe8ed4b602109",
+      "bytes": 726
+    }
+  ],
+  "published_utc": "2026-10-31T15:07:02.967201+00:00",
+  "publication_capacity": {
+    "processing_actual_plus_reserved_bytes": 18141333234,
+    "processing_fits": true,
+    "formal_checkpoint_bytes_written": 0,
+    "formal_processing_bytes_written": 0,
+    "pending_checkpoint_bytes": 101178704238,
+    "pending_processing_bytes": 9504000000,
+    "pending_all_categories_plus_headroom": 114542799168,
+    "free_bytes": 115295227904,
+    "disk_fits": true,
+    "fits": true,
+    "observed_epoch": 1793459222.9672017,
+    "actual_processing_bytes": 8637333234,
+    "note": "All unfinished and finished matrix runs share one global envelope. Committed/partial owned formal bytes count as consumed reservation; old assets never deleted."
+  },
+  "integration_report": "E:\\AI\\MOTE-quantum\\reports\\final-integration-v15-20261031",
+  "final_builder_manifest": {
+    "path": "E:\\AI\\MOTE-quantum\\runtime\\final-acceptance-v15-release-20261031\\MANIFEST.json",
+    "sha256": "fd2a7ab9c31f3314b2bccebe0c3b7c0ba0366f78399d06bc012fe8ed4b602109",
+    "bytes": 726
+  },
+  "authorization": "Continuation of the user-authorized complete0.6B matrix; allmethod integration and measured resource gates passed."
+}

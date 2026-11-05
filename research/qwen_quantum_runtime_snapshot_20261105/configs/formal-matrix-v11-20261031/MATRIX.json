@@ -1,0 +1,338 @@
+{
+  "schema": "qwen-formal-matrix-preparation-v11",
+  "phase": "prepared_pending_integration_acceptance",
+  "formal_approved": false,
+  "code_commit": "860426ce3df30f5c2a74a030a43f22e3a76247c6",
+  "configurations": [
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed17-mlp.json",
+      "sha256": "671599c994a15e94a8f38173f9df9dd2f417e1845ea8ffa34666d810af572294",
+      "bytes": 9218
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed17-affine_born.json",
+      "sha256": "d4ca275a922efe88b67be3573edde54b0adfd95ab0831a8b022ff6fa98f1ce21",
+      "bytes": 9258
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed17-reencode_cz.json",
+      "sha256": "1ae08f86955642c34e152c79e5bfe830471a5813de09ada5287b3d64ab2987a2",
+      "bytes": 9258
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed17-reencode_product.json",
+      "sha256": "6465f05006597ce05e15a5af14168e45d852720d22a91403b85eeb19d89280c7",
+      "bytes": 9283
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed17-dense.json",
+      "sha256": "f89489b89421ee607d522daef8adfa0d2a5c4937b7a52c8e1d3d04327efddcfa",
+      "bytes": 8762
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed29-mlp.json",
+      "sha256": "07e7bb46c57791891eb57bc92476f1b919bde3b5bc634f2c3c38ca827c02da47",
+      "bytes": 9218
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed29-affine_born.json",
+      "sha256": "1f1d12ce11765dfecd023d0dcc7a27ebce2870f747ccd511ba63a938e014acd6",
+      "bytes": 9258
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed29-reencode_cz.json",
+      "sha256": "952af84f001274b6b7e3508902beb0f0e119597d0cd052c5202083eb93c5f657",
+      "bytes": 9258
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed29-reencode_product.json",
+      "sha256": "65be5f33e7ed2a052a1dec13e5ddd21474c98b480ddd085040e91034fef90146",
+      "bytes": 9283
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed29-dense.json",
+      "sha256": "9180fd4690aeeabc10eb56c7f1f1ce5d1cffa1b2f5cbc943b5dcdb11e2a6b5ed",
+      "bytes": 8762
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed43-mlp.json",
+      "sha256": "727728ae03ff8263067205a45ded166afd161c3b6be3cda5a2494e527a8a7e5b",
+      "bytes": 9218
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed43-affine_born.json",
+      "sha256": "c40535892948b5e904088f57cbedc862e8820fe595eaca57448065df749293bb",
+      "bytes": 9258
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed43-reencode_cz.json",
+      "sha256": "1e56fe0c79dbc425ce8edcc9912ea5f3c4a433b8e1a77b9f0495ef16b5c54656",
+      "bytes": 9258
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed43-reencode_product.json",
+      "sha256": "aa48470367aa326d29a83b5b43325e83c84148b6f4c8bbb3ef13901ebe7ee9d6",
+      "bytes": 9283
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/bf16-seed43-dense.json",
+      "sha256": "a99ea087765be01905f8257ba7d8a0e1a1c156c4e89b33b68f3a475ebb78d562",
+      "bytes": 8762
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed17-mlp.json",
+      "sha256": "525c57313ab73ea59c8a1fe1acd7d05e86eb79341a825ff63821031bf3813f90",
+      "bytes": 9216
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed17-affine_born.json",
+      "sha256": "ce806e38f631468287a67a28a9d48b9920d255da80fc6cd9f9f7a9f40e8f28f6",
+      "bytes": 9256
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed17-reencode_cz.json",
+      "sha256": "2b04c32d86c94376e1570090f1b54cd597c8c33a18fc2c284b9a7cc9ff9d8bf9",
+      "bytes": 9256
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed17-reencode_product.json",
+      "sha256": "02e4aed101c713ef73b21599d332e84fb31e203f372f2f88690d53b0128de437",
+      "bytes": 9281
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed17-dense.json",
+      "sha256": "cd7654388f895ac28e9772504c2f029f92f0e674fc960973ec09dc4d5624f2cc",
+      "bytes": 8760
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed29-mlp.json",
+      "sha256": "a7290da6a043076df984328b8ff440ebdd77da65f2acb71a8c51d1084eed31bb",
+      "bytes": 9216
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed29-affine_born.json",
+      "sha256": "aaf1add72364b98706dde6a52b203975b996f51f47bc8a09acc02d90f2c134d8",
+      "bytes": 9256
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed29-reencode_cz.json",
+      "sha256": "89a6dddd64b97b5bd65610146301a8b18669be97968dfb2a97b1125a23907a94",
+      "bytes": 9256
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed29-reencode_product.json",
+      "sha256": "f915bccd4a6e00751aedef651f8cab861af7fdd3d279f1c5c7ac80d1149ac113",
+      "bytes": 9281
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed29-dense.json",
+      "sha256": "3eeb1eee01e2f4d1d0795cf2973490acafa25f86e8e136d6042bc708f47e8372",
+      "bytes": 8760
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed43-mlp.json",
+      "sha256": "9e2bf162f24dc9166770dcb09542fd15940094ec1665fd26a33c1a6fb54f9d70",
+      "bytes": 9216
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed43-affine_born.json",
+      "sha256": "eb68c0151db7aa4295a9635194e57798f8cdaf1a549d6224ed97c70d79ac7c5d",
+      "bytes": 9256
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed43-reencode_cz.json",
+      "sha256": "1ea07e1e1ceee4ed481dd6317695aa2a11f0fc398057a15f755a990dcdab2fbe",
+      "bytes": 9256
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed43-reencode_product.json",
+      "sha256": "0bc03f8fbe1cd22b7f30d008786363dd6bb616a4a139e67ea74a8604ca098e33",
+      "bytes": 9281
+    },
+    {
+      "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/fp16-seed43-dense.json",
+      "sha256": "7e8d012ca400fd9bc87fa41a2c20ede3f983ce1c93f2839e44f99b2695604828",
+      "bytes": 8760
+    }
+  ],
+  "evidence": {
+    "release": {
+      "path": "E:/AI/MOTE-quantum/releases/integration-v3.json",
+      "sha256": "2186bce5f9ad702d65861dc40fff5e20a59b0211bdd32f3c5812b15ef0ad4685",
+      "bytes": 157623
+    },
+    "seeds": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/SEED_RELEASE.json",
+      "sha256": "2f88b8735ec4b4303af3578caf0c228a33a3ab697acf8b3466312996b4648f71",
+      "bytes": 91947
+    },
+    "crosscheck": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/SEED_STREAM_CROSSCHECK.json",
+      "sha256": "7d4bc5dd73c24fb9669aefa55dc1087a8881769136ff602da05959247c1e2509",
+      "bytes": 5629
+    },
+    "integration_config": {
+      "path": "D:/AI/MOTE/experiments/qwen_joint/configs/integration.json",
+      "sha256": "5706831505879905211c7882633e5457c69c1b7dbdf84ac730d17490409e1ee2",
+      "bytes": 2688
+    },
+    "entry": {
+      "path": "E:/AI/MOTE-quantum/runtime/production_v3_entry_r1.py",
+      "sha256": "cad8eef4d7859d7308d6df7f95704c3ce763017d5c72073b99087e09752c506d",
+      "bytes": 1979
+    },
+    "model_manifest": {
+      "path": "E:/AI/MOTE-quantum/queue-20261030/model-manifest.json",
+      "sha256": "22771de2ba4251c510542c49ef55b877a3ab1c56e700d7dd8668507fb2ec69eb",
+      "bytes": 2086
+    },
+    "data": {
+      "path": "E:/AI/MOTE-quantum/data/qwen-local-en-v3/DATA_RELEASE.json",
+      "sha256": "888c7c2cb54e834e5d6a2c369d0f315374e2bb539150531b6e7a90308eb6fbe1",
+      "bytes": 4359
+    },
+    "environment": {
+      "path": "E:/AI/MOTE-quantum/releases/integration-v3-requirements.txt",
+      "sha256": "a0564ac61793fa06203b70758b9db7c1ce5328024aaca57c0751f70261768673",
+      "bytes": 1300
+    },
+    "amendment": {
+      "path": "E:/AI/MOTE-quantum/releases/production-protocol-amendment-v3.json",
+      "sha256": "8f49209c3f80f095f9e7fd7619211ca0cb6359dbe31de6491ae98a7e399b6aa5",
+      "bytes": 1989
+    },
+    "storage": {
+      "path": "E:/AI/MOTE-quantum/runtime/full-optimizer-storage-v3.json",
+      "sha256": "77c220a9e249d2e7ce1ad42251a94fb31167d9fb9b52d4d1e070c532c44f4223",
+      "bytes": 3868
+    },
+    "common_17": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed17-v1/common.pt",
+      "sha256": "b61acd742b66a6eb01ec42feda4b9bbf01df2466e57cbacc4717b0bab6b0c86e",
+      "bytes": 214941197
+    },
+    "common_metadata_17": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed17-v1/COMMON_INITIALIZATION.json",
+      "sha256": "86b1ecc365a5bc8bd188d4a6f3ca301dd369279b6ae83f689c21b5a8ae9c31ed",
+      "bytes": 125896
+    },
+    "common_29": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed29-v2/common.pt",
+      "sha256": "00c93eb0351a9966f478fffa557d48c27d12928cbe50fbd09bf103a7ff6ab89d",
+      "bytes": 214941325
+    },
+    "common_metadata_29": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed29-v2/COMMON_INITIALIZATION.json",
+      "sha256": "e30d8ad5f2c83826378636a47622c99cd860d0b67e85d9c2eae084dc4bccc3ce",
+      "bytes": 125989
+    },
+    "common_43": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed43-v2/common.pt",
+      "sha256": "b6ac6d3933e08160741a188f7155c88e350ac042083654728d1bd7ea773f2018",
+      "bytes": 214941325
+    },
+    "common_metadata_43": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed43-v2/COMMON_INITIALIZATION.json",
+      "sha256": "73b8695051570d5e8b09256e6a49fc26b576ca76a7ff75351cfced71ae8dc6f3",
+      "bytes": 125991
+    },
+    "samples_17": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/train-seed17-samples.jsonl",
+      "sha256": "7da361715169a9ef4a6121cbd177b1ff58537eb881bceb55f82866699529d7b6",
+      "bytes": 2798444
+    },
+    "samples_29": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/train-seed29-samples.jsonl",
+      "sha256": "c553c17f6a29a6502d250f8f88f734dd116c19cdf9fc256dd0d85970e7356d87",
+      "bytes": 2798472
+    },
+    "samples_43": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/train-seed43-samples.jsonl",
+      "sha256": "1589075f34e81b751368e40981a78cf9dae046a966cdd05e5f2e36dd12d2fd1a",
+      "bytes": 2798402
+    },
+    "parameters_mlp": {
+      "path": "E:/AI/MOTE-quantum/runs/production-acceptance-v3-pro4000-20261031/pilot-mlp/PARAMETERS.json",
+      "sha256": "facc6aa234b955f4fd2af372b58f1419249fa994bf6630e22a44e6cdcdd42d6f",
+      "bytes": 53280
+    },
+    "parameters_affine_born": {
+      "path": "E:/AI/MOTE-quantum/runs/production-acceptance-v3-pro4000-20261031/pilot-affine_born/PARAMETERS.json",
+      "sha256": "112aa2cc7a227fbf6acc43520d704ce7337cd72d98f0c1cb2bc58be7c8952dc4",
+      "bytes": 53288
+    },
+    "parameters_reencode_cz": {
+      "path": "E:/AI/MOTE-quantum/runs/production-acceptance-v3-pro4000-20261031/pilot-reencode_cz/PARAMETERS.json",
+      "sha256": "53a6e3440057e042f2de0112efb4a66209f675e489d6f593b6552597b99987ec",
+      "bytes": 53288
+    },
+    "parameters_reencode_product": {
+      "path": "E:/AI/MOTE-quantum/runs/production-acceptance-v3-pro4000-20261031/pilot-reencode_product/PARAMETERS.json",
+      "sha256": "c81fa5315cd68d43182a99be1277edda94298c00788ad03330725e41809e123f",
+      "bytes": 53293
+    },
+    "parameters_dense": {
+      "path": "E:/AI/MOTE-quantum/runs/production-acceptance-v3-pro4000-20261031/pilot-dense/PARAMETERS.json",
+      "sha256": "eb7e792ab91ff54de3e87820e0d3ee2dc70ac8491a63335a254d835c11592061",
+      "bytes": 462
+    }
+  },
+  "generator": {
+    "path": "E:/AI/MOTE-quantum/runtime/formal-configs-v11-release-20261031/formal_configs_v11.py",
+    "sha256": "10aad7893943a3862cd55ced93e7f57c70da7f04bd8e692e2e4af5ad63e2111a",
+    "bytes": 19834
+  },
+  "summary": {
+    "configurations": 30,
+    "bf16": 15,
+    "fp16": 15,
+    "v100a": 10,
+    "v100b": 5,
+    "distinct_output_directories": 30,
+    "expected_valid_targets_per_run": 32768000,
+    "expected_total_valid_targets": 983040000
+  },
+  "queue_order": {
+    "GPU-67f0c332-3f01-a733-4651-5532e94fc051": [
+      "bf16-seed17-mlp",
+      "bf16-seed17-affine_born",
+      "bf16-seed17-reencode_cz",
+      "bf16-seed17-reencode_product",
+      "bf16-seed17-dense",
+      "bf16-seed29-mlp",
+      "bf16-seed29-affine_born",
+      "bf16-seed29-reencode_cz",
+      "bf16-seed29-reencode_product",
+      "bf16-seed29-dense",
+      "bf16-seed43-mlp",
+      "bf16-seed43-affine_born",
+      "bf16-seed43-reencode_cz",
+      "bf16-seed43-reencode_product",
+      "bf16-seed43-dense"
+    ],
+    "GPU-f145a48f-ccc7-cccf-94ad-acf680ff0891": [
+      "fp16-seed17-mlp",
+      "fp16-seed17-affine_born",
+      "fp16-seed17-reencode_cz",
+      "fp16-seed17-reencode_product",
+      "fp16-seed17-dense",
+      "fp16-seed43-mlp",
+      "fp16-seed43-affine_born",
+      "fp16-seed43-reencode_cz",
+      "fp16-seed43-reencode_product",
+      "fp16-seed43-dense"
+    ],
+    "GPU-3753e6c9-3189-164f-a329-507d9a4a16f6": [
+      "fp16-seed29-mlp",
+      "fp16-seed29-affine_born",
+      "fp16-seed29-reencode_cz",
+      "fp16-seed29-reencode_product",
+      "fp16-seed29-dense"
+    ]
+  },
+  "planned_acceptance_path": "E:/AI/MOTE-quantum/releases/INTEGRATION_ACCEPTANCE.json",
+  "acceptance_sha256": null,
+  "total_checkpoint_retained_upper_bytes": 95598419448,
+  "controller_pending": true,
+  "initial_and_endpoint_diagnostics_pending_acceptance": true
+}

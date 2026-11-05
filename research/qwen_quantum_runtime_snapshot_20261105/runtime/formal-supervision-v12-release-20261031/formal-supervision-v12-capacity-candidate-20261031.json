@@ -1,0 +1,24 @@
+{
+  "resources": {
+    "formal_checkpoint_envelope_bytes": 101178704238,
+    "formal_processing_envelope_bytes": 8504000000,
+    "other_remaining_processing_bytes": 1000000000,
+    "legacy_failure_allowance_bytes": 1860094930
+  },
+  "measurement": {
+    "processing_actual_plus_reserved_bytes": 17888591613,
+    "processing_fits": true,
+    "formal_checkpoint_bytes_written": 0,
+    "formal_processing_bytes_written": 0,
+    "pending_checkpoint_bytes": 101178704238,
+    "pending_processing_bytes": 9504000000,
+    "pending_all_categories_plus_headroom": 114542799168,
+    "free_bytes": 115555475456,
+    "disk_fits": true,
+    "fits": true,
+    "observed_epoch": 1793456276.8391912,
+    "actual_processing_bytes": 8384591613,
+    "note": "All unfinished and finished matrix runs share one global envelope. Committed/partial owned formal bytes count as consumed reservation; old assets never deleted."
+  },
+  "formal_approved": false
+}

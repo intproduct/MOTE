@@ -1,0 +1,266 @@
+{
+  "schema": "qwen-formal-run-config-v11",
+  "name": "fp16-seed17-dense",
+  "stage": "formal",
+  "method": "dense",
+  "seed": 17,
+  "cohort": "fp16",
+  "gpu_uuid": "GPU-f145a48f-ccc7-cccf-94ad-acf680ff0891",
+  "working_directory": "D:/AI/MOTE",
+  "output": "E:/AI/MOTE-quantum/runs/formal-matrix-v11/fp16-seed17-dense",
+  "authorization_status": "prepared_pending_integration_acceptance",
+  "formal_approved": false,
+  "launch": {
+    "argv": [
+      "E:/AI/MOTE-quantum/envs/qwen-native-py312-cu128/Scripts/python.exe",
+      "-u",
+      "E:/AI/MOTE-quantum/runtime/production_v3_entry_r1.py",
+      "formal",
+      "--method",
+      "dense",
+      "--seed",
+      "17",
+      "--gpu",
+      "GPU-f145a48f-ccc7-cccf-94ad-acf680ff0891",
+      "--data",
+      "E:/AI/MOTE-quantum/data/qwen-local-en-v3",
+      "--output",
+      "E:/AI/MOTE-quantum/runs/formal-matrix-v11/fp16-seed17-dense",
+      "--root",
+      "E:/AI/MOTE-quantum",
+      "--model-manifest",
+      "E:/AI/MOTE-quantum/queue-20261030/model-manifest.json",
+      "--acceptance",
+      "E:/AI/MOTE-quantum/releases/INTEGRATION_ACCEPTANCE.json"
+    ],
+    "shell": false,
+    "hidden_window": true,
+    "acceptance_path": "E:/AI/MOTE-quantum/releases/INTEGRATION_ACCEPTANCE.json",
+    "acceptance_sha256": null,
+    "acceptance_binding_policy": "Final controller must bind and validate acceptance before spawning; this preparation never authorizes a run",
+    "environment": {
+      "PYTHONUTF8": "1",
+      "PYTHONPYCACHEPREFIX": "E:/AI/MOTE-quantum/runtime/pycache",
+      "TEMP": "E:/AI/MOTE-quantum/runtime/tmp",
+      "TMP": "E:/AI/MOTE-quantum/runtime/tmp",
+      "HF_HOME": "E:/AI/MOTE-quantum/runtime/hf-cache",
+      "CUDA_VISIBLE_DEVICES": "GPU-f145a48f-ccc7-cccf-94ad-acf680ff0891",
+      "CUDA_DEVICE_ORDER": "PCI_BUS_ID",
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "OMP_NUM_THREADS": "8",
+      "MKL_NUM_THREADS": "8",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "release": {
+    "path": "E:/AI/MOTE-quantum/releases/integration-v3.json",
+    "sha256": "2186bce5f9ad702d65861dc40fff5e20a59b0211bdd32f3c5812b15ef0ad4685",
+    "code_commit": "860426ce3df30f5c2a74a030a43f22e3a76247c6",
+    "config_sha256": "5706831505879905211c7882633e5457c69c1b7dbdf84ac730d17490409e1ee2",
+    "entry": {
+      "path": "E:/AI/MOTE-quantum/runtime/production_v3_entry_r1.py",
+      "sha256": "cad8eef4d7859d7308d6df7f95704c3ce763017d5c72073b99087e09752c506d",
+      "bytes": 1979
+    },
+    "environment": {
+      "path": "E:/AI/MOTE-quantum/releases/integration-v3-requirements.txt",
+      "sha256": "a0564ac61793fa06203b70758b9db7c1ce5328024aaca57c0751f70261768673",
+      "bytes": 1300
+    },
+    "amendment": {
+      "path": "E:/AI/MOTE-quantum/releases/production-protocol-amendment-v3.json",
+      "sha256": "8f49209c3f80f095f9e7fd7619211ca0cb6359dbe31de6491ae98a7e399b6aa5",
+      "bytes": 1989
+    }
+  },
+  "model": {
+    "path": "D:/AI/Models/Qwen3-0.6B",
+    "identity": "Qwen/Qwen3-0.6B (pretraining and post-training; not Base)",
+    "manifest": {
+      "path": "E:/AI/MOTE-quantum/queue-20261030/model-manifest.json",
+      "sha256": "22771de2ba4251c510542c49ef55b877a3ab1c56e700d7dd8668507fb2ec69eb",
+      "bytes": 2086
+    }
+  },
+  "data": {
+    "path": "E:/AI/MOTE-quantum/data/qwen-local-en-v3",
+    "release": {
+      "path": "E:/AI/MOTE-quantum/data/qwen-local-en-v3/DATA_RELEASE.json",
+      "sha256": "888c7c2cb54e834e5d6a2c369d0f315374e2bb539150531b6e7a90308eb6fbe1",
+      "bytes": 4359
+    },
+    "training_split": "train",
+    "validation_split": "internal_dev",
+    "reserved_test": "locked_until_analysis_protocol_is_final",
+    "order_sha256": "32f59de06c7145fc12bda912f3b217f5930ed75507bbc4a8beaa62659003655c",
+    "formal_inputs_labels_sha256": "12a5611b5ed37cf66ce821c1a0099d8281922bceeaca8913d11e9256b774e1fa",
+    "formal_samples_lf_sha256": "7da361715169a9ef4a6121cbd177b1ff58537eb881bceb55f82866699529d7b6",
+    "formal_samples_windows_crlf_sha256": "2b2b96a0b712c379e73ba0425026cdf614b98940a63423b02394591a9fe80a2f",
+    "expected_final_cursor": {
+      "position": 32037,
+      "offset": 237
+    },
+    "seed_release": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/SEED_RELEASE.json",
+      "sha256": "2f88b8735ec4b4303af3578caf0c228a33a3ab697acf8b3466312996b4648f71",
+      "bytes": 91947
+    },
+    "crosscheck": {
+      "path": "E:/AI/MOTE-quantum/initialization/seed-release-v2-20261031/SEED_STREAM_CROSSCHECK.json",
+      "sha256": "7d4bc5dd73c24fb9669aefa55dc1087a8881769136ff602da05959247c1e2509",
+      "bytes": 5629
+    }
+  },
+  "initialization": {
+    "mode": "original_dense_ffn",
+    "common": null,
+    "independent_from_pilot": true,
+    "resume": null
+  },
+  "architecture": {
+    "patched_layers": [
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27
+    ],
+    "projections": [
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "adapter": null,
+    "parameters": {
+      "total": 596049920,
+      "trainable": 66060288,
+      "router": 0,
+      "expert": 0,
+      "residual_tail_or_dense": 66060288
+    }
+  },
+  "precision": {
+    "backbone_expert_residual": "fp16",
+    "router": "float32",
+    "optimizer_master": "float32",
+    "optimizer_state": "float32",
+    "grad_scaler": {
+      "enabled": true,
+      "init_scale": 1024,
+      "growth_factor": 2.0,
+      "backoff_factor": 0.5,
+      "growth_interval": 2000
+    },
+    "autocast": true,
+    "maximum_overflow_attempts": 9,
+    "identical_sample_and_rng_on_retry": true,
+    "pool_with_other_precision": false
+  },
+  "training": {
+    "target_supervised_tokens": 32768000,
+    "tokens_per_update": 32768,
+    "optimizer_updates": 1000,
+    "expected_parameter_changing_updates": 999,
+    "final_update_lr": 0.0,
+    "microbatch_sequences": 1,
+    "sequence_length": 1024,
+    "gradient_checkpointing": true,
+    "gradient_checkpointing_use_reentrant": false,
+    "use_cache": false,
+    "attention": "sdpa",
+    "optimizer": {
+      "name": "AdamW",
+      "master_dtype": "float32",
+      "state_dtype": "float32",
+      "expert_lr": 3e-05,
+      "router_lr": 0.0001,
+      "weight_decay": 0.01,
+      "max_grad_norm": 1.0,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08,
+      "foreach": false,
+      "amsgrad": false,
+      "no_weight_decay": "ndim<2 or name endswith bias or contains .norm."
+    },
+    "scheduler": {
+      "name": "token_cosine",
+      "warmup_fraction": 0.05,
+      "endpoint": "Right-endpoint token cosine; final update has zero LR and does not change parameters"
+    },
+    "loss": {
+      "task_ce": 1.0,
+      "load_balance": 0.01,
+      "kd": 0.0,
+      "margin": 0.0,
+      "geometry": 0.0,
+      "z": 0.0
+    },
+    "joint_from_first_update": true,
+    "gate_freeze_steps": 0,
+    "drop_tokens": false,
+    "router_temperature": 1.0,
+    "deterministic_algorithms": true,
+    "tf32": false,
+    "cpu_threads": 8
+  },
+  "evaluation": {
+    "dev_targets_per_evaluation": 1048576,
+    "evaluation_order_seed": 17,
+    "expected_dev_sample_hash": "a9c4ad23d441a2c6d41f08e58bd4ddb2d2be8035c4c848e017062a406f31e548",
+    "save_and_dev_tokens": [
+      3276800,
+      6553600,
+      9830400,
+      13107200,
+      16384000,
+      19660800,
+      22937600,
+      26214400,
+      29491200,
+      32768000
+    ],
+    "mechanism_tokens": [
+      0,
+      3276800,
+      16384000,
+      32768000
+    ],
+    "primary_endpoint": "final_budget",
+    "secondary_endpoint": "best_internal_dev",
+    "per_seed_raw_results_required": true
+  },
+  "thermal": {
+    "trigger_c": 65,
+    "target_c": 55,
+    "emergency_c": 82,
+    "max_cooling_wait_seconds": 600,
+    "poll_seconds": 2,
+    "evaluation_check_every_windows": 16,
+    "minimum_update_start_interval_seconds": 0
+  },
+  "storage": {
+    "checkpoint_full_state_upper_bytes": 930047465,
+    "final_retained_checkpoints_maximum": 4,
+    "own_run_normal_peak_checkpoint_count": 5,
+    "failure_checkpoint_allowance_count": 1,
+    "peak_checkpoint_and_failure_bytes": 5580284790,
+    "processing_limit_bytes": 20000000000,
+    "requires_fresh_shared_reservation": true,
+    "retention": "Formal fresh owned checkpoint store only: keep latest,10%,50%,final,best-dev; earliest wins ties; failures and all score/raw logs preserved"
+  },
+  "start_requirements": [
+    "complete_all_method_acceptance",
+    "hash_bind_final_acceptance",
+    "fresh_shared_storage_budget",
+    "actual_process_and_gpu_occupancy_check",
+    "owned_uuid_gpu_lease",
+    "fresh_output_directory",
+    "no_STOP_marker"
+  ],
+  "provenance_note": "The immutable r1 entry records formal_approved=false as entry provenance. Actual formal authorization is the hash-bound acceptance in RUN_CONFIG and RESULT identity; a controller must check both."
+}

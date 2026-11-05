@@ -1,0 +1,609 @@
+{
+  "schema": "qwen-quantum-runtime-source-snapshot-v1",
+  "date": "2026-11-05",
+  "source_root": "E:\\AI\\MOTE-quantum",
+  "training_code_commit": "860426ce3df30f5c2a74a030a43f22e3a76247c6",
+  "purpose": "Archive the active formal controllers, dependency bundles, monitoring fixes, dashboard, tests, and frozen configurations without changing the experiment checkout.",
+  "mode": "source_and_protocol_archive",
+  "training_run_completed": false,
+  "observed_phase": "formal_matrix_failed_preserved",
+  "observed_at": "2026-11-05T05:31:42.103474+00:00",
+  "source_workspace": "D:\\AI\\MOTE",
+  "excluded": [
+    "model weights",
+    "training datasets",
+    "checkpoints",
+    "live process state",
+    "mutable queue state",
+    "generated run outputs",
+    "environment binaries"
+  ],
+  "execution_note": "Historical absolute paths and hashes are preserved. This snapshot is not a new training release or an instruction to launch or resume a run.",
+  "files": {
+    "configs/formal-matrix-v11-20261031/AUDIT.json": {
+      "sha256": "180f3136fc4130fb0f36dd45495445a821d755acc9d9a9370e0308465cc28f96",
+      "bytes": 1225,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/CPU_VALIDATION.json": {
+      "sha256": "ad2a29075d38961cd7be4ec530f7a86fd133727a6292f4fc197cb4c5082c389a",
+      "bytes": 1424,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/MATRIX.json": {
+      "sha256": "101b00fa3696d639d4fc91051aad93c7bbf46e2ebaac6332c2c8d99f1a6691a5",
+      "bytes": 13953,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed17-affine_born.json": {
+      "sha256": "d4ca275a922efe88b67be3573edde54b0adfd95ab0831a8b022ff6fa98f1ce21",
+      "bytes": 9258,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed17-dense.json": {
+      "sha256": "f89489b89421ee607d522daef8adfa0d2a5c4937b7a52c8e1d3d04327efddcfa",
+      "bytes": 8762,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed17-mlp.json": {
+      "sha256": "671599c994a15e94a8f38173f9df9dd2f417e1845ea8ffa34666d810af572294",
+      "bytes": 9218,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed17-reencode_cz.json": {
+      "sha256": "1ae08f86955642c34e152c79e5bfe830471a5813de09ada5287b3d64ab2987a2",
+      "bytes": 9258,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed17-reencode_product.json": {
+      "sha256": "6465f05006597ce05e15a5af14168e45d852720d22a91403b85eeb19d89280c7",
+      "bytes": 9283,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed29-affine_born.json": {
+      "sha256": "1f1d12ce11765dfecd023d0dcc7a27ebce2870f747ccd511ba63a938e014acd6",
+      "bytes": 9258,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed29-dense.json": {
+      "sha256": "9180fd4690aeeabc10eb56c7f1f1ce5d1cffa1b2f5cbc943b5dcdb11e2a6b5ed",
+      "bytes": 8762,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed29-mlp.json": {
+      "sha256": "07e7bb46c57791891eb57bc92476f1b919bde3b5bc634f2c3c38ca827c02da47",
+      "bytes": 9218,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed29-reencode_cz.json": {
+      "sha256": "952af84f001274b6b7e3508902beb0f0e119597d0cd052c5202083eb93c5f657",
+      "bytes": 9258,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed29-reencode_product.json": {
+      "sha256": "65be5f33e7ed2a052a1dec13e5ddd21474c98b480ddd085040e91034fef90146",
+      "bytes": 9283,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed43-affine_born.json": {
+      "sha256": "c40535892948b5e904088f57cbedc862e8820fe595eaca57448065df749293bb",
+      "bytes": 9258,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed43-dense.json": {
+      "sha256": "a99ea087765be01905f8257ba7d8a0e1a1c156c4e89b33b68f3a475ebb78d562",
+      "bytes": 8762,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed43-mlp.json": {
+      "sha256": "727728ae03ff8263067205a45ded166afd161c3b6be3cda5a2494e527a8a7e5b",
+      "bytes": 9218,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed43-reencode_cz.json": {
+      "sha256": "1e56fe0c79dbc425ce8edcc9912ea5f3c4a433b8e1a77b9f0495ef16b5c54656",
+      "bytes": 9258,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/bf16-seed43-reencode_product.json": {
+      "sha256": "aa48470367aa326d29a83b5b43325e83c84148b6f4c8bbb3ef13901ebe7ee9d6",
+      "bytes": 9283,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed17-affine_born.json": {
+      "sha256": "ce806e38f631468287a67a28a9d48b9920d255da80fc6cd9f9f7a9f40e8f28f6",
+      "bytes": 9256,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed17-dense.json": {
+      "sha256": "cd7654388f895ac28e9772504c2f029f92f0e674fc960973ec09dc4d5624f2cc",
+      "bytes": 8760,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed17-mlp.json": {
+      "sha256": "525c57313ab73ea59c8a1fe1acd7d05e86eb79341a825ff63821031bf3813f90",
+      "bytes": 9216,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed17-reencode_cz.json": {
+      "sha256": "2b04c32d86c94376e1570090f1b54cd597c8c33a18fc2c284b9a7cc9ff9d8bf9",
+      "bytes": 9256,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed17-reencode_product.json": {
+      "sha256": "02e4aed101c713ef73b21599d332e84fb31e203f372f2f88690d53b0128de437",
+      "bytes": 9281,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed29-affine_born.json": {
+      "sha256": "aaf1add72364b98706dde6a52b203975b996f51f47bc8a09acc02d90f2c134d8",
+      "bytes": 9256,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed29-dense.json": {
+      "sha256": "3eeb1eee01e2f4d1d0795cf2973490acafa25f86e8e136d6042bc708f47e8372",
+      "bytes": 8760,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed29-mlp.json": {
+      "sha256": "a7290da6a043076df984328b8ff440ebdd77da65f2acb71a8c51d1084eed31bb",
+      "bytes": 9216,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed29-reencode_cz.json": {
+      "sha256": "89a6dddd64b97b5bd65610146301a8b18669be97968dfb2a97b1125a23907a94",
+      "bytes": 9256,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed29-reencode_product.json": {
+      "sha256": "f915bccd4a6e00751aedef651f8cab861af7fdd3d279f1c5c7ac80d1149ac113",
+      "bytes": 9281,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed43-affine_born.json": {
+      "sha256": "eb68c0151db7aa4295a9635194e57798f8cdaf1a549d6224ed97c70d79ac7c5d",
+      "bytes": 9256,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed43-dense.json": {
+      "sha256": "7e8d012ca400fd9bc87fa41a2c20ede3f983ce1c93f2839e44f99b2695604828",
+      "bytes": 8760,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed43-mlp.json": {
+      "sha256": "9e2bf162f24dc9166770dcb09542fd15940094ec1665fd26a33c1a6fb54f9d70",
+      "bytes": 9216,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed43-reencode_cz.json": {
+      "sha256": "1ea07e1e1ceee4ed481dd6317695aa2a11f0fc398057a15f755a990dcdab2fbe",
+      "bytes": 9256,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "configs/formal-matrix-v11-20261031/fp16-seed43-reencode_product.json": {
+      "sha256": "0bc03f8fbe1cd22b7f30d008786363dd6bb616a4a139e67ea74a8604ca098e33",
+      "bytes": 9281,
+      "reason": "Frozen formal matrix configuration"
+    },
+    "releases/INTEGRATION_ACCEPTANCE.json": {
+      "sha256": "443cffa69bc28e743d6cd4d5552a9b751559315b1ec57087260ec9d013ac77e3",
+      "bytes": 147771,
+      "reason": "Frozen release or environment binding"
+    },
+    "releases/integration-v3-requirements.txt": {
+      "sha256": "a0564ac61793fa06203b70758b9db7c1ce5328024aaca57c0751f70261768673",
+      "bytes": 1300,
+      "reason": "Frozen release or environment binding"
+    },
+    "releases/integration-v3.json": {
+      "sha256": "2186bce5f9ad702d65861dc40fff5e20a59b0211bdd32f3c5812b15ef0ad4685",
+      "bytes": 157623,
+      "reason": "Frozen release or environment binding"
+    },
+    "releases/production-protocol-amendment-v3.json": {
+      "sha256": "8f49209c3f80f095f9e7fd7619211ca0cb6359dbe31de6491ae98a7e399b6aa5",
+      "bytes": 1989,
+      "reason": "Frozen release or environment binding"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json": {
+      "sha256": "40d9b886f5fa3bf95a1b9b5953aa6b22b57a0e56f87bc63eeb55490fcb029125",
+      "bytes": 3317,
+      "reason": "Referenced frozen bundle"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/checkpoint-mechanism-v4-cpu.xml": {
+      "sha256": "ccaa4a9103b574a1ffc3bf8290e85a81123247f47a4bdbe36f04b95dc48cafeb",
+      "bytes": 2814,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/checkpoint_mechanism_v4.py": {
+      "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+      "bytes": 15581,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/full_checkpoint_diagnostics_v4.py": {
+      "sha256": "0be3f5dfc717a6986349f162d41765af2ed5825a5662045e53ff11b65141a7b4",
+      "bytes": 11009,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/mechanism_metrics_candidate_v1.py": {
+      "sha256": "966d60706a3740968a37571ef22329908672ebad73b4fd2db93aa61a362012e8",
+      "bytes": 5052,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/production_resource_preflight_v3.py": {
+      "sha256": "df498caef141495993675c12c8df8722e932c4bb503109caa17d8aa1cc348e3c",
+      "bytes": 3717,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/risk-probe-v4-cpu.xml": {
+      "sha256": "5ba6c7a9ca8ed0b1f700fc6d514fa6c75f1620513c93bfdfe855be2dac072332",
+      "bytes": 664,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/risk_probe_candidate_v2.py": {
+      "sha256": "4c4210988f0e0cd75591cc375db20563eedcb59b51c1e21239857214baf373f2",
+      "bytes": 6871,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/risk_probe_v4.py": {
+      "sha256": "56416ba2c35dd76abd1d4719ee4862e8d294765f0feb81bea8c69b5edcb2b286",
+      "bytes": 7605,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/test_checkpoint_mechanism_v4.py": {
+      "sha256": "0c5f88f138bfcb4c4017d028a051d2215a95a03eb054285cdde882bf181ef80f",
+      "bytes": 3531,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/test_mechanism_metrics_candidate_v1.py": {
+      "sha256": "4b1a65109969520ae797e254083ead750f9a558192aa7c5b57d7d68fc9077bfc",
+      "bytes": 3678,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/test_risk_probe_candidate_v2.py": {
+      "sha256": "30464061824c51fba92e9669d88173930f9323ea3c84652d33c0868b814ba2e1",
+      "bytes": 3339,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/checkpoint-diagnostics-v4-release-20261031/test_risk_probe_v4.py": {
+      "sha256": "cd54bb0e14183a44510b78841de27a992c1bc7eb98cd3e7080a5adcbf1a76f9a",
+      "bytes": 2618,
+      "reason": "Declared by runtime/checkpoint-diagnostics-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/dashboard-v1/DASHBOARD_ACCEPTANCE.json": {
+      "sha256": "a37458b930e519447a9bd20066c3f30c161f1dd46722da825e748c766b3db264",
+      "bytes": 2754,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/README.md": {
+      "sha256": "2d635bce27e8a4f1b4aa54d5154720ddde6e2d3d6a5963d73225baf1ebf9ccb8",
+      "bytes": 1517,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/UI_CHECK.json": {
+      "sha256": "bfc17621fc269a2ab747c27511c29c7ab43f9009df9a30eddb045142ba831e85",
+      "bytes": 753,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/app.js": {
+      "sha256": "46337f26be64cdb5737746f29d505b96fa087c8d4d08d99ee47cbf578a301a8d",
+      "bytes": 6697,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/check-ui.cjs": {
+      "sha256": "9ced5caa1f4b59cb92b317ae69bd8e00310ffc77030520b24845c46fc7441133",
+      "bytes": 3676,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/index.html": {
+      "sha256": "3a874a0ba1cf2dadb0b5e64a81169f3a5340a5a3a29403895c9ac5b00a30554d",
+      "bytes": 3074,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/server.py": {
+      "sha256": "c2e7b2aefd63068c8acfc26643e6baff80da64384cc733fb1cf9222140128ada",
+      "bytes": 11663,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/start-dashboard.ps1": {
+      "sha256": "340e80ef40dad49ceebb00bdb513b17eb5407466eb715f21e2df666c5cdb4c55",
+      "bytes": 1096,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/dashboard-v1/style.css": {
+      "sha256": "2d96853a11ab1626c7efeaacb278c7c004fdc77615058f9b14f17e9383635a81",
+      "bytes": 7305,
+      "reason": "Read-only dashboard source or historical acceptance"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json": {
+      "sha256": "31d8c8c9d19f57c1dd0c12a177c748a29442dc69a957376b91b3652d66706ea9",
+      "bytes": 7556,
+      "reason": "Frozen formal execution bundle"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/audit_inference_timing_v4.py": {
+      "sha256": "f438d12073bfa3f9f14431f97254083085d2b978466127a988575e65a79ec107",
+      "bytes": 3971,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/checkpoint_mechanism_v4.py": {
+      "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+      "bytes": 15581,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/full_checkpoint_diagnostics_v4.py": {
+      "sha256": "0be3f5dfc717a6986349f162d41765af2ed5825a5662045e53ff11b65141a7b4",
+      "bytes": 11009,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/inference_timing_core_v4.py": {
+      "sha256": "a26b9e934d7f5995d186a3f1a87313e51917f3320faa8e595c03d8cd2ea40e7e",
+      "bytes": 3618,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/isolated_inference_timing_v4.py": {
+      "sha256": "8cb9dae0a1647d94d4b4fc93da3632285061649c96b4bfc55a619fd121603710",
+      "bytes": 11723,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/local_checkpoint_precision_v4.py": {
+      "sha256": "03475b587dca7016174441194b81d5743a9c7b049b00c4a31876d89d14d41eac",
+      "bytes": 16701,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/mechanism_metrics_candidate_v1.py": {
+      "sha256": "966d60706a3740968a37571ef22329908672ebad73b4fd2db93aa61a362012e8",
+      "bytes": 5052,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/production_resource_preflight_v3.py": {
+      "sha256": "40acb82c3a0ef34f3ab210346021e98ca27f59ec89520ce4e6708fa79361babe",
+      "bytes": 3067,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/risk_probe_candidate_v2.py": {
+      "sha256": "4c4210988f0e0cd75591cc375db20563eedcb59b51c1e21239857214baf373f2",
+      "bytes": 6871,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostic-workers-v14-release-20261031/risk_probe_v4.py": {
+      "sha256": "56416ba2c35dd76abd1d4719ee4862e8d294765f0feb81bea8c69b5edcb2b286",
+      "bytes": 7605,
+      "reason": "Declared by runtime/formal-diagnostic-workers-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json": {
+      "sha256": "3b16b622d21d2b8a8760ff7531d83aed8db63bf45dbbf6c245108c4df5ba4680",
+      "bytes": 1417,
+      "reason": "Frozen formal execution bundle"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/diagnostic_plan_v14.py": {
+      "sha256": "02cc10a1eff3efee452993aaf02fcea7ab8746dd80562ba71ac3ab8aea59cfd1",
+      "bytes": 9487,
+      "reason": "Declared by runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/diagnostics-v14-cpu-r2.xml": {
+      "sha256": "36c594ccac69339e82e47c71f5113c3633405f0e270edb31603bbd66cc9df413",
+      "bytes": 5009,
+      "reason": "Declared by runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/formal_diagnostic_budget_v14.py": {
+      "sha256": "40acb82c3a0ef34f3ab210346021e98ca27f59ec89520ce4e6708fa79361babe",
+      "bytes": 3067,
+      "reason": "Declared by runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/freeze_diagnostics_v14.py": {
+      "sha256": "da132793bc02f0dfc53925347761ae05fe284d6a69d03eb29c04d5e50c1820c1",
+      "bytes": 3193,
+      "reason": "Declared by runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/run_diagnostics_v14.py": {
+      "sha256": "079a416c3164eb464d5948055090f0f6e6b4cbbc59cf5ef219d40f49dbc189f4",
+      "bytes": 15332,
+      "reason": "Declared by runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-diagnostics-v14-release-20261031/test_diagnostics_v14.py": {
+      "sha256": "f5bfa050f9e4746c2993a175fa417d5cac7f8ebd43d8e7342013fb4f543b098d",
+      "bytes": 15631,
+      "reason": "Declared by runtime/formal-diagnostics-v14-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-health-v22-boundary-fixture.json": {
+      "sha256": "d84e5652163fc41bd6757f66272b8d1dcec36f3bf622aa8d1e9a4e6789b666de",
+      "bytes": 2325,
+      "reason": "Fixture referenced by test_formal_health_freshness_v22.py"
+    },
+    "runtime/formal-health-v23-boundary-fixture.json": {
+      "sha256": "6e756e245ffaf52ce2308b5115db257243ec94e7edeb47a49970ae4d5862e957",
+      "bytes": 1225,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/formal-supervision-v12-release-20261031/MANIFEST.json": {
+      "sha256": "54d23c18597285fc9d35f8bce3c5dde7e34c1bf978da6933b832ace0b3e5f1f2",
+      "bytes": 1640,
+      "reason": "Frozen formal execution bundle"
+    },
+    "runtime/formal-supervision-v12-release-20261031/NO_ACCEPTANCE_REFUSAL.json": {
+      "sha256": "2a2a5801568e25390dce3c2d2214b226ca6995e21102613dce493b057eb1b37c",
+      "bytes": 1397,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-supervision-v12-release-20261031/formal-supervision-v12-capacity-candidate-20261031.json": {
+      "sha256": "10d24be2271e47ba134d14eb56250e7c937d51fcb7d0295dabebf5f8a6ce558c",
+      "bytes": 960,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-supervision-v12-release-20261031/formal-supervision-v12-cpu-r5.xml": {
+      "sha256": "447c16da4bea2d2f7bc74b6f6ff8529944deac5866f73320ecc3c641bc94b21d",
+      "bytes": 7076,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-supervision-v12-release-20261031/formal_runtime_v12.py": {
+      "sha256": "3dd08d0dd25c6fb33cd6176bb6dced6e5ef5dc2c4e8848273eb2345cc636a2e2",
+      "bytes": 18968,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-supervision-v12-release-20261031/run_formal_matrix_v12.py": {
+      "sha256": "3accdd77d34c6a7787f487a67f65489aa6ef3ce865d8e8a560cc73139644c98f",
+      "bytes": 16658,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-supervision-v12-release-20261031/test_formal_supervision_v12.py": {
+      "sha256": "76799ec154747510a749227ca10e5adbd9b91c8e727e1607aaa8279ebb84a469",
+      "bytes": 20413,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal-supervision-v12-release-20261031/watch_pro_product_exit_v9.py": {
+      "sha256": "369ec2e6c6181067acba8c92516a3a7d4b6e447374d267f0e975b254f34e7b3d",
+      "bytes": 5014,
+      "reason": "Declared by runtime/formal-supervision-v12-release-20261031/MANIFEST.json"
+    },
+    "runtime/formal_health_boundaries_v18.py": {
+      "sha256": "7998b968c3eaaeaf1a663ff589e5cd99dbfc9a28860cc26b6c0a6cab2fa40d10",
+      "bytes": 9046,
+      "reason": "Local import of observe_formal_health_v24.py"
+    },
+    "runtime/formal_health_freshness_v22.py": {
+      "sha256": "efa936f2edd7159ed8c9925dc9885334d79fc870fc8e120ce3411c6c8a200c27",
+      "bytes": 2333,
+      "reason": "Local import of observe_formal_health_v24.py"
+    },
+    "runtime/formal_health_freshness_v23.py": {
+      "sha256": "c330d92aaebbcb47c5906b16edb5db9db41f829be7cb4e617959b54dd1430f16",
+      "bytes": 1353,
+      "reason": "Local import of observe_formal_health_v24.py"
+    },
+    "runtime/formal_health_processes_v24.py": {
+      "sha256": "a5ae104a495246dd7e910e4df04ce2570d20cdb87836e77766718c8133d63888",
+      "bytes": 1970,
+      "reason": "Local import of observe_formal_health_v24.py"
+    },
+    "runtime/formal_runtime_v12.py": {
+      "sha256": "3dd08d0dd25c6fb33cd6176bb6dced6e5ef5dc2c4e8848273eb2345cc636a2e2",
+      "bytes": 18968,
+      "reason": "Local import of observe_resource_capacity_v24.py"
+    },
+    "runtime/inference-timing-v4-release-20261031/MANIFEST.json": {
+      "sha256": "b80b572db803fc15fb81380d1746599b14f6656b293006af4d9e45cbfd9f02cb",
+      "bytes": 1580,
+      "reason": "Referenced frozen bundle"
+    },
+    "runtime/inference-timing-v4-release-20261031/audit_inference_timing_v4.py": {
+      "sha256": "f438d12073bfa3f9f14431f97254083085d2b978466127a988575e65a79ec107",
+      "bytes": 3971,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/inference-timing-v4-release-20261031/checkpoint_mechanism_v4.py": {
+      "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+      "bytes": 15581,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/inference-timing-v4-release-20261031/inference-timing-v4-cpu.xml": {
+      "sha256": "806fee63318fab615dbd074cb54e39622043f9103d0558a08039e6dbe023ebcb",
+      "bytes": 2445,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/inference-timing-v4-release-20261031/inference_timing_core_v4.py": {
+      "sha256": "a26b9e934d7f5995d186a3f1a87313e51917f3320faa8e595c03d8cd2ea40e7e",
+      "bytes": 3618,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/inference-timing-v4-release-20261031/isolated_inference_timing_v4.py": {
+      "sha256": "8cb9dae0a1647d94d4b4fc93da3632285061649c96b4bfc55a619fd121603710",
+      "bytes": 11723,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/inference-timing-v4-release-20261031/production_resource_preflight_v3.py": {
+      "sha256": "df498caef141495993675c12c8df8722e932c4bb503109caa17d8aa1cc348e3c",
+      "bytes": 3717,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/inference-timing-v4-release-20261031/test_inference_timing_v4.py": {
+      "sha256": "15264fc4fc5f0c25cd2a89502dc174cb2bdbd42c4c1dbf571cc008769594e33d",
+      "bytes": 4289,
+      "reason": "Declared by runtime/inference-timing-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json": {
+      "sha256": "b19d7ed4f05476d45a59cfcffe4d2b0371631fd3d428e96eb03bc3a4cb8703f6",
+      "bytes": 859,
+      "reason": "Referenced frozen bundle"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/checkpoint_mechanism_v4.py": {
+      "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+      "bytes": 15581,
+      "reason": "Declared by runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/local-checkpoint-precision-v4-cpu.xml": {
+      "sha256": "ae058601c34e7ec7f5031dba55ca24faf6ed17ac138c4097b121a42175073f84",
+      "bytes": 1693,
+      "reason": "Declared by runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/local_checkpoint_precision_v4.py": {
+      "sha256": "03475b587dca7016174441194b81d5743a9c7b049b00c4a31876d89d14d41eac",
+      "bytes": 16701,
+      "reason": "Declared by runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/production_resource_preflight_v3.py": {
+      "sha256": "df498caef141495993675c12c8df8722e932c4bb503109caa17d8aa1cc348e3c",
+      "bytes": 3717,
+      "reason": "Declared by runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/run_local_checkpoint_precision_v4.py": {
+      "sha256": "4b150b3d80774de3783621484817e881c4658a4a715bbdc432eea93b2435f9dc",
+      "bytes": 2872,
+      "reason": "Declared by runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/local-checkpoint-precision-v4-release-20261031/test_local_checkpoint_precision_v4.py": {
+      "sha256": "3cb231b786af1aef3f2a5eba75c83f47715035218efba8ec0a806546dc954743",
+      "bytes": 4773,
+      "reason": "Declared by runtime/local-checkpoint-precision-v4-release-20261031/MANIFEST.json"
+    },
+    "runtime/observe_diagnostic_exits_v15.py": {
+      "sha256": "e4ef9bd71d4deaa2d97c478ffcbd372a5ae694db1922cd5493a3055c0eb9533e",
+      "bytes": 2812,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/observe_formal_exits_v15.py": {
+      "sha256": "5c9325f898de5ac73e0f1dc22d19dfa801a3c72da57fc2a1950cb3fc7214e16b",
+      "bytes": 2309,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/observe_formal_health_v24.py": {
+      "sha256": "28717dfa0166bdac8f1ff63688340a01f97bee284a6ba6502421c5d0c2b0a1e8",
+      "bytes": 12916,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/observe_resource_capacity_v24.py": {
+      "sha256": "b53b843113e1239d8298b48a0e615e685d8dc5655eaf656a2a6751ba00ee8dcd",
+      "bytes": 2231,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/production_v3_entry_r1.py": {
+      "sha256": "cad8eef4d7859d7308d6df7f95704c3ce763017d5c72073b99087e09752c506d",
+      "bytes": 1979,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/test_formal_health_boundaries_v18.py": {
+      "sha256": "0b65b0133762193366bffe8eaef185227a6767a844d2044a5808d9d5d5b1628a",
+      "bytes": 1711,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/test_formal_health_freshness_v22.py": {
+      "sha256": "0a1adbb098e9c7f99111ff21fea11070978c39b460b514cc8efeeab7ca647b5f",
+      "bytes": 2451,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/test_formal_health_freshness_v23.py": {
+      "sha256": "f06f04100c153745d0dc0a6c30618bd8c84c22178ccc6ea2401f16a261af0cf1",
+      "bytes": 2704,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/test_formal_health_processes_v24.py": {
+      "sha256": "f1def2e7636eaccf79f389fd1f12d24272eb0a0914efbc6cfab2e8aa77c14f5f",
+      "bytes": 2598,
+      "reason": "Current entry, observer, or regression fixture"
+    },
+    "runtime/watch_pro_product_exit_v9.py": {
+      "sha256": "369ec2e6c6181067acba8c92516a3a7d4b6e447374d267f0e975b254f34e7b3d",
+      "bytes": 5014,
+      "reason": "Local import of observe_formal_exits_v15.py"
+    }
+  }
+}

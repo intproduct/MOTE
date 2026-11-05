@@ -1,0 +1,44 @@
+const {chromium}=require('C:/Users/Frank F/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const fs=require('node:fs/promises');
+const assert=require('node:assert/strict');
+const root='E:/AI/MOTE-quantum/runtime/dashboard-v1';
+(async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',args:['--disable-gpu']});
+ try {
+  const page=await browser.newPage({viewport:{width:1440,height:1200},deviceScaleFactor:1});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  let responses=0;page.on('response',r=>{if(r.url().endsWith('/api/status')&&r.status()===200)responses++});
+  await page.goto('http://127.0.0.1:8766/');
+  await page.getByText('实时连接',{exact:true}).waitFor();
+  assert.equal(await page.locator('.cell').count(),30);
+  assert.equal(await page.locator('.gpu-card').count(),3);
+  const snapshot=await page.locator('main').ariaSnapshot();
+  await fs.writeFile(root+'/desktop-dom.txt',snapshot);
+  const title='查看 Affine Born FP16 seed 17 详情';
+  assert.equal(await page.getByTitle(title).count(),1);
+  await page.getByTitle(title).click();
+  await page.locator('#detail').waitFor({state:'visible'});
+  assert.match(await page.locator('#detail').innerText(),/Affine Born.*FP16.*seed 17/);
+  const first=responses;await page.waitForResponse(r=>r.url().endsWith('/api/status')&&r.status()===200,{timeout:10000});
+  assert(responses>first,'automatic refresh');
+  await page.screenshot({path:root+'/desktop.png',fullPage:true});
+  const count=await page.locator('#completed').innerText();
+  await page.route('**/api/status',r=>r.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'验证连接中断提示'})}));
+  await page.getByRole('button',{name:'刷新状态',exact:true}).click();
+  await page.locator('#error').waitFor({state:'visible'});
+  assert.equal(await page.locator('#completed').innerText(),count,'retain last visible data when offline');
+  await page.unroute('**/api/status');await page.getByRole('button',{name:'刷新状态',exact:true}).click();
+  await page.locator('#error').waitFor({state:'hidden'});
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:root+'/mobile.png',fullPage:true});
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile no horizontal overflow');
+  assert.deepEqual(errors,[]);
+  const api=await page.request.get('http://127.0.0.1:8766/api/status');assert.equal(api.status(),200);
+  const data=await api.json();assert.equal(data.rows.length,30);
+  assert.equal((await page.request.get('http://127.0.0.1:8766/server.py')).status(),404);
+  assert.equal((await page.request.post('http://127.0.0.1:8766/api/status',{data:{}})).status(),501);
+  const pdf=await page.request.get('http://127.0.0.1:8766/report/latest');assert.equal(pdf.status(),200);assert.equal(pdf.headers()['content-type'],'application/pdf');
+  const result={passed:true,observed_epoch:Date.now()/1000,summary:data.summary,alerts:data.alerts,checks:['30 matrix cells','3 GPU cards','run details','5-second automatic refresh','offline warning preserves previous state','connection recovery','390px layout no horizontal overflow','no JS page errors','API JSON','private files blocked','POST unsupported','latest report opens'],browser:'independent headless Edge with GPU disabled',in_app_automation_available:false};
+  await fs.writeFile(root+'/UI_CHECK.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+ } finally {await browser.close()}
+})().catch(e=>{console.error(e);process.exitCode=1});

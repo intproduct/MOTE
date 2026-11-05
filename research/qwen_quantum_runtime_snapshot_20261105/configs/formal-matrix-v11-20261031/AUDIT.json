@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "summary": {
+    "configurations": 30,
+    "bf16": 15,
+    "fp16": 15,
+    "v100a": 10,
+    "v100b": 5,
+    "distinct_output_directories": 30,
+    "expected_valid_targets_per_run": 32768000,
+    "expected_total_valid_targets": 983040000
+  },
+  "cli": {
+    "parsed_formal_commands": 30,
+    "training_callbacks_intercepted": 30,
+    "gpu_initialized": false
+  },
+  "streams": [
+    {
+      "seed": 17,
+      "updates": 1000,
+      "valid_targets": 32768000,
+      "native_windows_crlf_sha256": "2b2b96a0b712c379e73ba0425026cdf614b98940a63423b02394591a9fe80a2f"
+    },
+    {
+      "seed": 29,
+      "updates": 1000,
+      "valid_targets": 32768000,
+      "native_windows_crlf_sha256": "9830e87b7e4dac63ef7ed6b47cc6a442de0e707b76404c2e82bc82b585c8c13b"
+    },
+    {
+      "seed": 43,
+      "updates": 1000,
+      "valid_targets": 32768000,
+      "native_windows_crlf_sha256": "3ff4743899e0a4a70730fef78c6b04db29c3d258ab87f3f8746b8160a54d2338"
+    }
+  ],
+  "matrix": {
+    "path": "E:/AI/MOTE-quantum/configs/formal-matrix-v11-20261031/MATRIX.json",
+    "sha256": "101b00fa3696d639d4fc91051aad93c7bbf46e2ebaac6332c2c8d99f1a6691a5",
+    "bytes": 13953
+  },
+  "gpu_used": false,
+  "formal_approved": false
+}

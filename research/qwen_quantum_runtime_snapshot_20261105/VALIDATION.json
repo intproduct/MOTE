@@ -1,0 +1,35 @@
+{
+  "schema": "qwen-runtime-publication-validation-v1",
+  "checked_at_utc": "2026-11-05T10:49:20.184764+00:00",
+  "payload_files": 117,
+  "payload_bytes": 1093341,
+  "original_payload_hashes_match": true,
+  "live_frozen_source_files_verified": 584,
+  "live_checkout_clean": true,
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "packages": {
+    "torch": "2.10.0+cu128",
+    "transformers": "4.57.6",
+    "pytest": "8.3.5"
+  },
+  "tests": {
+    "passed": 184,
+    "failed": 0,
+    "seconds": 14.17,
+    "scope": [
+      "tests/test_qwen_joint.py",
+      "tests/qwen_joint_v3",
+      "tests/test_quantum_gate.py",
+      "runtime/test_formal_health_boundaries_v18.py",
+      "runtime/test_formal_health_freshness_v22.py",
+      "runtime/test_formal_health_freshness_v23.py",
+      "runtime/test_formal_health_processes_v24.py"
+    ]
+  },
+  "credential_pattern_scan": {
+    "findings": 0,
+    "note": "Heuristic source-text scan; no credentials detected."
+  },
+  "training_launched": false,
+  "experiment_completion_claim": false
+}

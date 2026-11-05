@@ -1,0 +1,143 @@
+{
+  "schema": "qwen-formal-diagnostic-workers-v14",
+  "created_epoch": 1793457640.0359838,
+  "files": {
+    "inference_timing_core_v4.py": "a26b9e934d7f5995d186a3f1a87313e51917f3320faa8e595c03d8cd2ea40e7e",
+    "isolated_inference_timing_v4.py": "8cb9dae0a1647d94d4b4fc93da3632285061649c96b4bfc55a619fd121603710",
+    "audit_inference_timing_v4.py": "f438d12073bfa3f9f14431f97254083085d2b978466127a988575e65a79ec107",
+    "checkpoint_mechanism_v4.py": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+    "local_checkpoint_precision_v4.py": "03475b587dca7016174441194b81d5743a9c7b049b00c4a31876d89d14d41eac",
+    "full_checkpoint_diagnostics_v4.py": "0be3f5dfc717a6986349f162d41765af2ed5825a5662045e53ff11b65141a7b4",
+    "mechanism_metrics_candidate_v1.py": "966d60706a3740968a37571ef22329908672ebad73b4fd2db93aa61a362012e8",
+    "risk_probe_candidate_v2.py": "4c4210988f0e0cd75591cc375db20563eedcb59b51c1e21239857214baf373f2",
+    "risk_probe_v4.py": "56416ba2c35dd76abd1d4719ee4862e8d294765f0feb81bea8c69b5edcb2b286",
+    "production_resource_preflight_v3.py": "40acb82c3a0ef34f3ab210346021e98ca27f59ec89520ce4e6708fa79361babe"
+  },
+  "numerical_worker_sources_unchanged": true,
+  "numerical_provenance": {
+    "inference_timing_core_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\inference_timing_core_v4.py",
+        "sha256": "a26b9e934d7f5995d186a3f1a87313e51917f3320faa8e595c03d8cd2ea40e7e",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\MANIFEST.json",
+          "sha256": "b80b572db803fc15fb81380d1746599b14f6656b293006af4d9e45cbfd9f02cb",
+          "bytes": 1580
+        }
+      }
+    ],
+    "isolated_inference_timing_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\isolated_inference_timing_v4.py",
+        "sha256": "8cb9dae0a1647d94d4b4fc93da3632285061649c96b4bfc55a619fd121603710",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\MANIFEST.json",
+          "sha256": "b80b572db803fc15fb81380d1746599b14f6656b293006af4d9e45cbfd9f02cb",
+          "bytes": 1580
+        }
+      }
+    ],
+    "audit_inference_timing_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\audit_inference_timing_v4.py",
+        "sha256": "f438d12073bfa3f9f14431f97254083085d2b978466127a988575e65a79ec107",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\MANIFEST.json",
+          "sha256": "b80b572db803fc15fb81380d1746599b14f6656b293006af4d9e45cbfd9f02cb",
+          "bytes": 1580
+        }
+      }
+    ],
+    "checkpoint_mechanism_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\checkpoint_mechanism_v4.py",
+        "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\inference-timing-v4-release-20261031\\MANIFEST.json",
+          "sha256": "b80b572db803fc15fb81380d1746599b14f6656b293006af4d9e45cbfd9f02cb",
+          "bytes": 1580
+        }
+      },
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\local-checkpoint-precision-v4-release-20261031\\checkpoint_mechanism_v4.py",
+        "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\local-checkpoint-precision-v4-release-20261031\\MANIFEST.json",
+          "sha256": "b19d7ed4f05476d45a59cfcffe4d2b0371631fd3d428e96eb03bc3a4cb8703f6",
+          "bytes": 859
+        }
+      },
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\checkpoint_mechanism_v4.py",
+        "sha256": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\MANIFEST.json",
+          "sha256": "40d9b886f5fa3bf95a1b9b5953aa6b22b57a0e56f87bc63eeb55490fcb029125",
+          "bytes": 3317
+        }
+      }
+    ],
+    "local_checkpoint_precision_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\local-checkpoint-precision-v4-release-20261031\\local_checkpoint_precision_v4.py",
+        "sha256": "03475b587dca7016174441194b81d5743a9c7b049b00c4a31876d89d14d41eac",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\local-checkpoint-precision-v4-release-20261031\\MANIFEST.json",
+          "sha256": "b19d7ed4f05476d45a59cfcffe4d2b0371631fd3d428e96eb03bc3a4cb8703f6",
+          "bytes": 859
+        }
+      }
+    ],
+    "full_checkpoint_diagnostics_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\full_checkpoint_diagnostics_v4.py",
+        "sha256": "0be3f5dfc717a6986349f162d41765af2ed5825a5662045e53ff11b65141a7b4",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\MANIFEST.json",
+          "sha256": "40d9b886f5fa3bf95a1b9b5953aa6b22b57a0e56f87bc63eeb55490fcb029125",
+          "bytes": 3317
+        }
+      }
+    ],
+    "mechanism_metrics_candidate_v1.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\mechanism_metrics_candidate_v1.py",
+        "sha256": "966d60706a3740968a37571ef22329908672ebad73b4fd2db93aa61a362012e8",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\MANIFEST.json",
+          "sha256": "40d9b886f5fa3bf95a1b9b5953aa6b22b57a0e56f87bc63eeb55490fcb029125",
+          "bytes": 3317
+        }
+      }
+    ],
+    "risk_probe_candidate_v2.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\risk_probe_candidate_v2.py",
+        "sha256": "4c4210988f0e0cd75591cc375db20563eedcb59b51c1e21239857214baf373f2",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\MANIFEST.json",
+          "sha256": "40d9b886f5fa3bf95a1b9b5953aa6b22b57a0e56f87bc63eeb55490fcb029125",
+          "bytes": 3317
+        }
+      }
+    ],
+    "risk_probe_v4.py": [
+      {
+        "source": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\risk_probe_v4.py",
+        "sha256": "56416ba2c35dd76abd1d4719ee4862e8d294765f0feb81bea8c69b5edcb2b286",
+        "manifest": {
+          "path": "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\MANIFEST.json",
+          "sha256": "40d9b886f5fa3bf95a1b9b5953aa6b22b57a0e56f87bc63eeb55490fcb029125",
+          "bytes": 3317
+        }
+      }
+    ]
+  },
+  "formal_supervision_manifest_sha256": "54d23c18597285fc9d35f8bce3c5dde7e34c1bf978da6933b832ace0b3e5f1f2",
+  "resource_adapter_source": {
+    "path": "E:\\AI\\MOTE-quantum\\runtime\\formal_diagnostic_budget_v14.py",
+    "sha256": "40acb82c3a0ef34f3ab210346021e98ca27f59ec89520ce4e6708fa79361babe",
+    "bytes": 3067
+  },
+  "scope": "Only resource accounting interface changes; all numerical workers and numerical dependencies are byte-identical to independently GPU-audited originals. Final acceptance is mandatory."
+}

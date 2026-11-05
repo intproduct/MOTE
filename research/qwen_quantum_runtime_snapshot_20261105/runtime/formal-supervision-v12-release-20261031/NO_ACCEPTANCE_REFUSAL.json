@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "command": [
+    "E:\\AI\\MOTE-quantum\\envs\\qwen-native-py312-cu128\\Scripts\\python.exe",
+    "-u",
+    "E:\\AI\\MOTE-quantum\\runtime\\formal-supervision-v12-release-20261031\\run_formal_matrix_v12.py",
+    "validate"
+  ],
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"E:\\AI\\MOTE-quantum\\runtime\\formal-supervision-v12-release-20261031\\run_formal_matrix_v12.py\", line 268, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"E:\\AI\\MOTE-quantum\\runtime\\formal-supervision-v12-release-20261031\\run_formal_matrix_v12.py\", line 258, in main\n    rows,manifest,approval,binding=core.validate_acceptance()\n                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\AI\\MOTE-quantum\\runtime\\formal-supervision-v12-release-20261031\\formal_runtime_v12.py\", line 56, in validate_acceptance\n    require(acceptance_path.is_file(),'Final integration acceptance is not published')\n  File \"E:\\AI\\MOTE-quantum\\runtime\\formal-supervision-v12-release-20261031\\formal_runtime_v12.py\", line 25, in require\n    if not ok:raise ValueError(message)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: Final integration acceptance is not published\n",
+  "no_formal_output": true,
+  "no_formal_lock": true,
+  "no_gpu_or_training_launched": true
+}

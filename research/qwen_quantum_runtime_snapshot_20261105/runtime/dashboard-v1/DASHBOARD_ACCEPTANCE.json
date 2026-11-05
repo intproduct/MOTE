@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "checked_epoch": 1793540506.3446963,
+  "desktop_and_mobile_visually_checked": true,
+  "ui_checks": {
+    "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\UI_CHECK.json",
+    "bytes": 753,
+    "sha256": "bfc17621fc269a2ab747c27511c29c7ab43f9009df9a30eddb045142ba831e85"
+  },
+  "screenshots": [
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\desktop.png",
+      "bytes": 139283,
+      "sha256": "5db5247d7d3031ba1e1b582827e6e1316b2009edb064cd34a306f186be6ed58b"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\mobile.png",
+      "bytes": 152744,
+      "sha256": "eee1623487065ce2d1ccc2e239ae2598607cf65009d5920035521e5100055c01"
+    }
+  ],
+  "visual_findings": "No clipped text, overlap, or horizontal overflow. All thirty matrix cells, three GPU panels, progress definitions and freshness times visible.",
+  "read_only_to_experiments": true,
+  "server_identity": {
+    "url": "http://127.0.0.1:8766",
+    "pid": 96172,
+    "create_time": 1793540323.9944625,
+    "command": [
+      "C:\\Users\\Frank F\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "-u",
+      "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\server.py",
+      "--port",
+      "8766"
+    ],
+    "started_epoch": 1793540324.1671991,
+    "read_only_experiment_access": true
+  },
+  "files": [
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\server.py",
+      "bytes": 11663,
+      "sha256": "c2e7b2aefd63068c8acfc26643e6baff80da64384cc733fb1cf9222140128ada"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\index.html",
+      "bytes": 3074,
+      "sha256": "3a874a0ba1cf2dadb0b5e64a81169f3a5340a5a3a29403895c9ac5b00a30554d"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\style.css",
+      "bytes": 7305,
+      "sha256": "2d96853a11ab1626c7efeaacb278c7c004fdc77615058f9b14f17e9383635a81"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\app.js",
+      "bytes": 6697,
+      "sha256": "46337f26be64cdb5737746f29d505b96fa087c8d4d08d99ee47cbf578a301a8d"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\start-dashboard.ps1",
+      "bytes": 1096,
+      "sha256": "340e80ef40dad49ceebb00bdb513b17eb5407466eb715f21e2df666c5cdb4c55"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\README.md",
+      "bytes": 1517,
+      "sha256": "2d635bce27e8a4f1b4aa54d5154720ddde6e2d3d6a5963d73225baf1ebf9ccb8"
+    },
+    {
+      "path": "E:\\AI\\MOTE-quantum\\runtime\\dashboard-v1\\check-ui.cjs",
+      "bytes": 3676,
+      "sha256": "9ced5caa1f4b59cb92b317ae69bd8e00310ffc77030520b24845c46fc7441133"
+    }
+  ]
+}

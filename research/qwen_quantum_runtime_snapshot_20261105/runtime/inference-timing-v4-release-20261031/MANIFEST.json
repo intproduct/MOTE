@@ -1,0 +1,31 @@
+{
+  "created_epoch": 1793444040.3359058,
+  "status": "cpu_boundaries_passed_gpu_validation_pending",
+  "cpu_tests": 23,
+  "files": {
+    "inference_timing_core_v4.py": "a26b9e934d7f5995d186a3f1a87313e51917f3320faa8e595c03d8cd2ea40e7e",
+    "isolated_inference_timing_v4.py": "8cb9dae0a1647d94d4b4fc93da3632285061649c96b4bfc55a619fd121603710",
+    "test_inference_timing_v4.py": "15264fc4fc5f0c25cd2a89502dc174cb2bdbd42c4c1dbf571cc008769594e33d",
+    "audit_inference_timing_v4.py": "f438d12073bfa3f9f14431f97254083085d2b978466127a988575e65a79ec107",
+    "checkpoint_mechanism_v4.py": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+    "production_resource_preflight_v3.py": "df498caef141495993675c12c8df8722e932c4bb503109caa17d8aa1cc348e3c",
+    "inference-timing-v4-cpu.xml": "806fee63318fab615dbd074cb54e39622043f9103d0558a08039e6dbe023ebcb"
+  },
+  "gpu_validated": false,
+  "formal_approved": false,
+  "protocol": {
+    "task": "serial full vocabulary forward",
+    "warmup_repeats": 2,
+    "measured_repeats": 10,
+    "batch_size": 1,
+    "windows": 2,
+    "sequence_length": 1024,
+    "kv_cache": false,
+    "valid_targets": 2046,
+    "input_tokens": 2048,
+    "timing": "synchronized wall time; fixed device-resident inputs; no hooks or routing capture",
+    "device_occupancy": "owned UUID lease plus pre/post repeat snapshots; foreign compute refuses result",
+    "sharing": "Other devices and host CPU/memory may remain active; all-device observations retained",
+    "storage_reservation_per_job_bytes": 10000000
+  }
+}

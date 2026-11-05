@@ -1,0 +1,14 @@
+{
+  "cpu_test_count": 13,
+  "native_gpu_acceptance_pending": true,
+  "files": {
+    "run_local_checkpoint_precision_v4.py": "4b150b3d80774de3783621484817e881c4658a4a715bbdc432eea93b2435f9dc",
+    "production_resource_preflight_v3.py": "df498caef141495993675c12c8df8722e932c4bb503109caa17d8aa1cc348e3c",
+    "local-checkpoint-precision-v4-cpu.xml": "ae058601c34e7ec7f5031dba55ca24faf6ed17ac138c4097b121a42175073f84",
+    "test_local_checkpoint_precision_v4.py": "3cb231b786af1aef3f2a5eba75c83f47715035218efba8ec0a806546dc954743",
+    "local_checkpoint_precision_v4.py": "03475b587dca7016174441194b81d5743a9c7b049b00c4a31876d89d14d41eac",
+    "checkpoint_mechanism_v4.py": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d"
+  },
+  "status": "cpu_unit_tests_passed_input_roundtrip_measurement_pending",
+  "formal_approved": false
+}

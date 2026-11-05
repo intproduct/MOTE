@@ -1,0 +1,41 @@
+{
+  "schema": "qwen-common-protocol-amendment-v3",
+  "time": 1793438470.8336768,
+  "model": "D:/AI/Models/Qwen3-0.6B",
+  "model_identity": "Qwen/Qwen3-0.6B, Pretraining & Post-training; not Base",
+  "layers": [
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27
+  ],
+  "methods": [
+    "mlp",
+    "affine_born",
+    "reencode_cz",
+    "reencode_product",
+    "dense"
+  ],
+  "seeds": [
+    17,
+    29,
+    43
+  ],
+  "data_release_sha256": "888c7c2cb54e834e5d6a2c369d0f315374e2bb539150531b6e7a90308eb6fbe1",
+  "staged_source_release_sha256": "a8969405deb0413429161a67428444a1f85047720078c8dc827a33bcf362cd63",
+  "initialization": "Same frozen common expert tensors and per-seed sample streams. Router values remain FP32 throughout device/dtype placement.",
+  "precision_cohorts": {
+    "pro4000": "BF16 experts/backbone, FP32 router",
+    "v100": "FP16 experts/backbone + GradScaler, FP32 router"
+  },
+  "deterministic_execution": "torch deterministic algorithms; cuBLAS :4096:8 before CUDA init; TF32 off; SDPA; microbatch1; 8 CPU threads",
+  "schedule": "Unchanged right-endpoint 5% warmup/cosine; final zero-LR optimizer update counts targets but causes no parameter change",
+  "full_state_format": "qwen-immutable-base-full-state-v1: reconstruct hash-checked frozen base tensors; preserve all trainable values, FP32 masters/moments, schedule/scaler/RNG/cursor",
+  "retention": "Future fresh owned checkpoint stores only. Keep latest/10%/50%/final/best; preserve old and failed assets. Exact registered dispensable files only.",
+  "replay": "Actual production entry; two 32768-target reference updates, fresh process restores first checkpoint and repeats second, including fixed 4096-target RNG-preserving dev evaluation.",
+  "primary_comparison_budget": "20 updates smoke, 1048576 targets pilot; formal target proposed32768000 remains subject to complete corrected-release acceptance and actual resource budget",
+  "formal_approved": false
+}

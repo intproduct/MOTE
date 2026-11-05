@@ -6,3 +6,7 @@ research/experiment_evidence_20261030/** -text -whitespace
 research/operator_family_quantum_gate_20261030/** -text -whitespace
 research/operator_geometry_runtime_snapshot_20261030/** -text -whitespace
 experiments/operator_geometry/** -text -whitespace
+# Keep external Qwen runtime snapshots identical to their original SHA-256 bindings.
+research/qwen_quantum_runtime_snapshot_20261105/runtime/** -text -whitespace
+research/qwen_quantum_runtime_snapshot_20261105/configs/** -text -whitespace
+research/qwen_quantum_runtime_snapshot_20261105/releases/** -text -whitespace

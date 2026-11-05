@@ -1,0 +1,48 @@
+{
+  "schema": "qwen-checkpoint-diagnostics-v4",
+  "created_at": "2026-10-31T10:11:38.758906+00:00",
+  "status": "checkpoint_local_cpu_validated_full_gpu_candidate_pending",
+  "code_commit": "860426ce3df30f5c2a74a030a43f22e3a76247c6",
+  "training_release": "E:\\AI\\MOTE-quantum\\releases\\integration-v3.json",
+  "training_release_sha256": "2186bce5f9ad702d65861dc40fff5e20a59b0211bdd32f3c5812b15ef0ad4685",
+  "files": {
+    "checkpoint-mechanism-v4-cpu.xml": "ccaa4a9103b574a1ffc3bf8290e85a81123247f47a4bdbe36f04b95dc48cafeb",
+    "checkpoint_mechanism_v4.py": "0200fbd28457a88fd3681faafa6937c7a1abc942214220b99885ad4a20692d8d",
+    "full_checkpoint_diagnostics_v4.py": "0be3f5dfc717a6986349f162d41765af2ed5825a5662045e53ff11b65141a7b4",
+    "mechanism_metrics_candidate_v1.py": "966d60706a3740968a37571ef22329908672ebad73b4fd2db93aa61a362012e8",
+    "production_resource_preflight_v3.py": "df498caef141495993675c12c8df8722e932c4bb503109caa17d8aa1cc348e3c",
+    "risk-probe-v4-cpu.xml": "5ba6c7a9ca8ed0b1f700fc6d514fa6c75f1620513c93bfdfe855be2dac072332",
+    "risk_probe_candidate_v2.py": "4c4210988f0e0cd75591cc375db20563eedcb59b51c1e21239857214baf373f2",
+    "risk_probe_v4.py": "56416ba2c35dd76abd1d4719ee4862e8d294765f0feb81bea8c69b5edcb2b286",
+    "test_checkpoint_mechanism_v4.py": "0c5f88f138bfcb4c4017d028a051d2215a95a03eb054285cdde882bf181ef80f",
+    "test_mechanism_metrics_candidate_v1.py": "4b1a65109969520ae797e254083ead750f9a558192aa7c5b57d7d68fc9077bfc",
+    "test_risk_probe_candidate_v2.py": "30464061824c51fba92e9669d88173930f9323ea3c84652d33c0868b814ba2e1",
+    "test_risk_probe_v4.py": "cd54bb0e14183a44510b78841de27a992c1bc7eb98cd3e7080a5adcbf1a76f9a"
+  },
+  "cpu_tests": 29,
+  "local_acceptance": "E:\\AI\\MOTE-quantum\\diagnostics\\checkpoint-local-v4-acceptance-20261031\\AUDIT.json",
+  "local_acceptance_sha256": "55f360ecc68c70b1fbee5da4cd56d1d5ce1a0486716714aa0f7ec93d39cdb1ee",
+  "scope": "Ten first-update checkpoints, five methods in each native training precision; local arithmetic is CPU FP32. Whole-model native probes have CPU contract tests only and need owned-GPU acceptance.",
+  "gpu_acceptance_pending": true,
+  "formal_approved": false,
+  "launch_after": "Selected GPU controller completes, process exit confirmed, no outstanding owned card lock, fresh idle observations and budget check; no duplicate and no takeover.",
+  "gpu_commands": [
+    [
+      "E:/AI/MOTE-quantum/envs/qwen-native-py312-cu128/Scripts/python.exe",
+      "E:\\AI\\MOTE-quantum\\runtime\\checkpoint-diagnostics-v4-release-20261031\\full_checkpoint_diagnostics_v4.py",
+      "--checkpoint",
+      "<verified completed checkpoint from same precision cohort>",
+      "--gpu",
+      "<physical UUID>",
+      "--output",
+      "<fresh E:/AI/MOTE-quantum/diagnostics directory>"
+    ]
+  ],
+  "remaining": [
+    "Native FP16 and BF16 full-checkpoint probes for all five methods",
+    "Initial and trained checkpoint local precision decomposition with exact native/reference separation",
+    "Cross-seed function matching on retained formal checkpoints",
+    "Warmup and synchronized isolated-device timing with diagnostic hooks disabled",
+    "Freeze full initial/10-percent/50-percent/final diagnostic launch plan and actual cost before formal acceptance"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "qwen-diagnostic-controller-v14",
+  "created_epoch": 1793457640.040484,
+  "files": {
+    "diagnostic_plan_v14.py": "02cc10a1eff3efee452993aaf02fcea7ab8746dd80562ba71ac3ab8aea59cfd1",
+    "run_diagnostics_v14.py": "079a416c3164eb464d5948055090f0f6e6b4cbbc59cf5ef219d40f49dbc189f4",
+    "formal_diagnostic_budget_v14.py": "40acb82c3a0ef34f3ab210346021e98ca27f59ec89520ce4e6708fa79361babe",
+    "test_diagnostics_v14.py": "f5bfa050f9e4746c2993a175fa417d5cac7f8ebd43d8e7342013fb4f543b098d",
+    "freeze_diagnostics_v14.py": "da132793bc02f0dfc53925347761ae05fe284d6a69d03eb29c04d5e50c1820c1",
+    "diagnostics-v14-cpu-r2.xml": "36c594ccac69339e82e47c71f5113c3633405f0e270edb31603bbd66cc9df413"
+  },
+  "worker_manifest_sha256": "31d8c8c9d19f57c1dd0c12a177c748a29442dc69a957376b91b3652d66706ea9",
+  "cpu_tests": 50,
+  "formal_supervision_manifest_sha256": "54d23c18597285fc9d35f8bce3c5dde7e34c1bf978da6933b832ace0b3e5f1f2",
+  "original_auditor_manifest_sha256": "b55fcea823f133d944147ffefbcc8d756ae6e44efa165caa26234e75c206c719",
+  "initial_missing_jobs": 15,
+  "formal_jobs": 270,
+  "adopted_initial_cells": 60,
+  "mode_policy": "Initial mode performs only missing FP16 local diagnostics before acceptance. Formal mode requires final acceptance and complete 60 initial references, then 270 checkpoint-bound cells. No automatic retry or process termination.",
+  "formal_approved": false
+}

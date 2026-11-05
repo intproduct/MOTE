@@ -1,0 +1,37 @@
+{
+  "provenance": "Original observer did not retain rejected eval rows. The thermal append-only log supports a replay of the potential read-time race; exact rejected tail was not recorded.",
+  "source_capture": "E:\\AI\\MOTE-quantum\\queue-20261030\\observer-read-boundary-v23-capture-20261101.json",
+  "original_pass_clock": 1793537394.8321972,
+  "input": {
+    "status": {
+      "phase": "running",
+      "tokens": 29491200,
+      "target": 32768000,
+      "pid": 76544,
+      "uuid": "GPU-f145a48f-ccc7-cccf-94ad-acf680ff0891",
+      "cursor": {
+        "position": 28833,
+        "offset": 563
+      },
+      "time": 1793537177.403196
+    },
+    "checkpoint_exists": true,
+    "dev_exists": false,
+    "thermal_rows": [
+      {
+        "stage": "evaluation",
+        "temperature_c": 41,
+        "wait_seconds": 0.0,
+        "time": 1793537390.0771966
+      },
+      {
+        "stage": "evaluation",
+        "temperature_c": 41,
+        "wait_seconds": 0.0,
+        "time": 1793537395.0191998
+      }
+    ],
+    "observed_epoch": 1793537395.0201998
+  },
+  "note": "Synthetic read completion 1ms after the real appended guard; not a claim about the uncaptured original rejected tail."
+}

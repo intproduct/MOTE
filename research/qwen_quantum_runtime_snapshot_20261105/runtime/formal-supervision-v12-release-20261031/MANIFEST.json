@@ -1,0 +1,26 @@
+{
+  "schema": "qwen-formal-supervision-v12",
+  "created_utc": "2026-10-31T14:23:33.513810+00:00",
+  "files": {
+    "formal-supervision-v12-capacity-candidate-20261031.json": "10d24be2271e47ba134d14eb56250e7c937d51fcb7d0295dabebf5f8a6ce558c",
+    "formal-supervision-v12-cpu-r5.xml": "447c16da4bea2d2f7bc74b6f6ff8529944deac5866f73320ecc3c641bc94b21d",
+    "formal_runtime_v12.py": "3dd08d0dd25c6fb33cd6176bb6dced6e5ef5dc2c4e8848273eb2345cc636a2e2",
+    "NO_ACCEPTANCE_REFUSAL.json": "2a2a5801568e25390dce3c2d2214b226ca6995e21102613dce493b057eb1b37c",
+    "run_formal_matrix_v12.py": "3accdd77d34c6a7787f487a67f65489aa6ef3ce865d8e8a560cc73139644c98f",
+    "test_formal_supervision_v12.py": "76799ec154747510a749227ca10e5adbd9b91c8e727e1607aaa8279ebb84a469",
+    "watch_pro_product_exit_v9.py": "369ec2e6c6181067acba8c92516a3a7d4b6e447374d267f0e975b254f34e7b3d"
+  },
+  "cpu_tests_passed": 65,
+  "entry": "run_formal_matrix_v12.py",
+  "matrix_sha256": "101b00fa3696d639d4fc91051aad93c7bbf46e2ebaac6332c2c8d99f1a6691a5",
+  "training_release_sha256": "2186bce5f9ad702d65861dc40fff5e20a59b0211bdd32f3c5812b15ef0ad4685",
+  "queues": 3,
+  "formal_runs": 30,
+  "shared_global_capacity_reservation": true,
+  "held_windows_process_handles": true,
+  "no_automatic_training_retry": true,
+  "diagnostic_barrier_required": true,
+  "formal_diagnostic_controller_prepared": false,
+  "initialization_scope": "Runtime common-loader provenance, exact parameter inventories and directly observed router hash; independent initial full-state reference, no additional full tensor read inside frozen trainer.",
+  "formal_approved": false
+}

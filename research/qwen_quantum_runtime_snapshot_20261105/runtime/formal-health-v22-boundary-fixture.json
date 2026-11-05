@@ -1,0 +1,75 @@
+{
+  "provenance": {
+    "health": "E:\\AI\\MOTE-quantum\\queue-20261030\\formal-health-20261101T044917Z.json",
+    "sha256": "18b3e7418c7c5b3649b559b77b9e5f6b0bbbc1c465652147fdcaef59a51b0fdb",
+    "note": "Status time/tokens reconstructed from immutable original health; cursor/identity from immutable same-budget checkpoint; dev mtime and pre-observation thermal records read in place. No original files changed."
+  },
+  "input": {
+    "status": {
+      "phase": "running",
+      "time": 1793508236.850696,
+      "tokens": 6553600,
+      "target": 32768000,
+      "cursor": {
+        "position": 6407,
+        "offset": 481
+      }
+    },
+    "config": {
+      "method": "affine_born",
+      "seed": 29,
+      "gpu": "GPU-3753e6c9-3189-164f-a329-507d9a4a16f6"
+    },
+    "checkpoint": {
+      "tokens": 6553600,
+      "cursor": {
+        "position": 6407,
+        "offset": 481
+      },
+      "created_epoch": 1793508244.0661967,
+      "identity": {
+        "method": "affine_born",
+        "seed": 29,
+        "gpu": "GPU-3753e6c9-3189-164f-a329-507d9a4a16f6",
+        "acceptance_sha256": "443cffa69bc28e743d6cd4d5552a9b751559315b1ec57087260ec9d013ac77e3"
+      }
+    },
+    "dev": {
+      "ce": 3.5835786754032597,
+      "nll_sum": 3757654.5931396484,
+      "valid_targets": 1048576,
+      "sample_hash": "a9c4ad23d441a2c6d41f08e58bd4ddb2d2be8035c4c848e017062a406f31e548",
+      "evaluation_order_seed": 17
+    },
+    "dev_mtime": 1793508559.2681966,
+    "thermal_rows": [
+      {
+        "stage": "evaluation",
+        "temperature_c": 53,
+        "wait_seconds": 0.0,
+        "time": 1793508547.5036993
+      },
+      {
+        "stage": "evaluation",
+        "temperature_c": 53,
+        "wait_seconds": 0.0,
+        "time": 1793508553.7816966
+      },
+      {
+        "stage": "evaluation",
+        "temperature_c": 53,
+        "wait_seconds": 0.0,
+        "time": 1793508558.6626966
+      },
+      {
+        "stage": "update",
+        "temperature_c": 52,
+        "wait_seconds": 0.0,
+        "time": 1793508562.1206965
+      }
+    ],
+    "now": 1793508578.7066967,
+    "acceptance": "443cffa69bc28e743d6cd4d5552a9b751559315b1ec57087260ec9d013ac77e3",
+    "sample_hash": "a9c4ad23d441a2c6d41f08e58bd4ddb2d2be8035c4c848e017062a406f31e548"
+  }
+}

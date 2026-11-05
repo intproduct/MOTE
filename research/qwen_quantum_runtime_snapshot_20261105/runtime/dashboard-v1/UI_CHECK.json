@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "observed_epoch": 1793540447.547,
+  "summary": {
+    "completed": 3,
+    "total": 30,
+    "running": 3,
+    "diagnostics": 0,
+    "queued": 24,
+    "tokens": 188186624,
+    "target_tokens": 983040000,
+    "new_diagnostics": 27,
+    "target_diagnostics": 270
+  },
+  "alerts": [],
+  "checks": [
+    "30 matrix cells",
+    "3 GPU cards",
+    "run details",
+    "5-second automatic refresh",
+    "offline warning preserves previous state",
+    "connection recovery",
+    "390px layout no horizontal overflow",
+    "no JS page errors",
+    "API JSON",
+    "private files blocked",
+    "POST unsupported",
+    "latest report opens"
+  ],
+  "browser": "independent headless Edge with GPU disabled",
+  "in_app_automation_available": false
+}
