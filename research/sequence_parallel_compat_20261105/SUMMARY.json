@@ -1,0 +1,95 @@
+{
+  "status": "compatibility_probed_partial",
+  "world_size": 2,
+  "protocol": {
+    "versions": {
+      "torch": "2.10.0+cpu",
+      "transformers": "4.57.6",
+      "deepspeed": "0.19.9",
+      "accelerate": "1.15.0"
+    },
+    "backend": "cpu/gloo",
+    "world_size": 2,
+    "sequence_length": 16,
+    "optional_shm_extension_disabled": true,
+    "precision": "float32",
+    "model_weights": "random tiny configs",
+    "note": "Forward/backward integration probe; not full Trainer or GPU training.",
+    "library_sha256": {
+      "deepspeed.runtime.sequence_parallel.ulysses_sp": "7a5f9ba1307799468f85c9da3fe54fde396c9be14ebe1b3043316ea68b93f4d5",
+      "deepspeed.sequence.layer": "58f945824945e5ac4894840181d57f46b76ce0e57a98b0d8871609a57af0986b"
+    }
+  },
+  "rank_results_agree": true,
+  "numerically_matching_cases": 4,
+  "incompatible_cases": 2,
+  "cases": [
+    {
+      "name": "qwen3_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "gradients_max_abs": 2.9802322387695312e-08,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "llama3_1_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 4.76837158203125e-07,
+      "gradients_max_abs": 2.9802322387695312e-08,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "gemma3_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.2878038287162781,
+      "loss_abs": 0.022153377532958984,
+      "gradients_max_abs": 0.3500324487686157,
+      "parity": false,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "gemma3_full_control_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 4.76837158203125e-07,
+      "gradients_max_abs": 7.82310962677002e-08,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "qwen3_mote_no_drop",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 4.76837158203125e-07,
+      "gradients_max_abs": 1.1920928955078125e-07,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "qwen3_mote_drop",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.4287000298500061,
+      "loss_abs": 0.046297550201416016,
+      "gradients_max_abs": 0.6419769525527954,
+      "parity": false,
+      "current_trainer_returns_loss": false
+    }
+  ],
+  "scope": "CPU tiny-model forward/backward, not production Trainer, ZeRO or GPU long-context training",
+  "probe_sha256": "f880c2c51671921e19ff1329648285c16b1d406252a2b888f3c7e8a7c5f623c8",
+  "megatron": {
+    "torch": "2.10.0+cpu",
+    "nccl": false,
+    "gpu_training_attempted": false,
+    "megatron-core": "0.20.0",
+    "transformer-engine": null,
+    "triton": "3.6.0",
+    "config_constructed": true,
+    "non_te_attention_cp_guard": "Context parallelism is only supported by TEDotProductAttention!",
+    "status": "requires_transformer_engine_and_gpu_validation"
+  }
+}

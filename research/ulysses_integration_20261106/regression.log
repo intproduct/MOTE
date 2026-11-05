@@ -1,0 +1,11 @@
+........................................................................ [ 28%]
+........................................................................ [ 57%]
+........................................................................ [ 86%]
+............................s......                                      [100%]
+============================== warnings summary ===============================
+tests/test_export_remote_code.py::test_meta_device_construction_patched_qwen2
+  C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\ADTN.py:671: RuntimeWarning: Falling back to gamma_normal TensorBlock init because init_stats are missing, non-finite, or have std <= 0 for block_id=0.
+    TensorBlock(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+250 passed, 1 skipped, 1 warning in 66.24s (0:01:06)

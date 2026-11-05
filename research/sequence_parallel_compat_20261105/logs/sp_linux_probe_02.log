@@ -1,0 +1,101 @@
+/home/frank_f/.cache/mote-sp-compat-20261105/bin/ninja
+--- Logging error ---
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/logging/__init__.py", line 1160, in emit
+    msg = self.format(record)
+          ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/logging/__init__.py", line 999, in format
+    return fmt.format(record)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/_logging/_internal.py", line 888, in format
+    record.message = record.getMessage()
+                     ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/logging/__init__.py", line 392, in getMessage
+    msg = msg % self.args
+          ~~~~^~~~~~~~~~~
+TypeError: not enough arguments for format string
+Call stack:
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/usr/lib/python3.12/multiprocessing/spawn.py", line 135, in _main
+    return self._bootstrap(parent_sentinel)
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/usr/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 87, in _wrap
+    fn(i, *args)
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 74, in worker
+    deepspeed.comm.init_distributed(dist_backend="gloo", init_method=init_method,
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/comm.py", line 899, in init_distributed
+    cdb = TorchBackend(dist_backend, timeout, init_method, rank, world_size)
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/torch.py", line 207, in __init__
+    self.shm_comm_op = build_shm_op()
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/torch.py", line 51, in build_shm_op
+    shm_cpp_module = builder.load()
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 614, in load
+    return self.jit_load(verbose)
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 661, in jit_load
+    op_module = load(name=self.name,
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 1767, in load
+    return _jit_compile(
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 2207, in _jit_compile
+    _write_ninja_file_and_build_library(
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 2322, in _write_ninja_file_and_build_library
+    get_compiler_abi_compatibility_and_version(compiler)
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 467, in get_compiler_abi_compatibility_and_version
+    logger.warning(WRONG_COMPILER_WARNING, compiler, _accepted_compilers_for_platform()[0], sys.platform, _accepted_compilers_for_platform()[0])
+Message: '                               !! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Your compiler (%s) is not compatible with the compiler Pytorch wasbuilt with for this platform, which is %s on %s. Pleaseuse %s to compile your extension. Alternatively, you maycompile PyTorch from source using %s, and then you can also use%s to compile your extension.See https://github.com/pytorch/pytorch/blob/master/CONTRIBUTING.md for helpwith compiling PyTorch from source.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                              !! WARNING !!'
+Arguments: ('c++', 'g++', 'linux', 'g++')
+W1105 20:01:12.265000 363 torch/multiprocessing/spawn.py:165] Terminating process 529 via signal SIGTERM
+Traceback (most recent call last):
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 188, in <module>
+    main()
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 184, in main
+    torch.multiprocessing.spawn(worker, args=(init_method, str(args.output)), nprocs=2, join=True)
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 211, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 0 terminated with the following error:
+Traceback (most recent call last):
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 87, in _wrap
+    fn(i, *args)
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 74, in worker
+    deepspeed.comm.init_distributed(dist_backend="gloo", init_method=init_method,
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/comm.py", line 899, in init_distributed
+    cdb = TorchBackend(dist_backend, timeout, init_method, rank, world_size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/torch.py", line 207, in __init__
+    self.shm_comm_op = build_shm_op()
+                       ^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/torch.py", line 51, in build_shm_op
+    shm_cpp_module = builder.load()
+                     ^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 614, in load
+    return self.jit_load(verbose)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 661, in jit_load
+    op_module = load(name=self.name,
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 1767, in load
+    return _jit_compile(
+           ^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 2233, in _jit_compile
+    return _import_module_from_library(name, build_directory, is_python_module)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 2731, in _import_module_from_library
+    module = importlib.util.module_from_spec(spec)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 813, in module_from_spec
+  File "<frozen importlib._bootstrap_external>", line 1289, in create_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+ImportError: /home/frank_f/.cache/torch_extensions/py312_cpu/deepspeed_shm_comm/deepspeed_shm_comm.so: cannot open shared object file: No such file or directory
+

@@ -20,6 +20,9 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from ..utils.files import sha256_file as _sha256_file
+from .release_utils import canonical_json_line as _json_line
+
 from .contracts import content_hash, stable_json_bytes
 from .text_normalization import normalize_text
 
@@ -49,18 +52,6 @@ SENSITIVE_PATTERNS = {
         r"(?i)\b(?:api[_-]?key|access[_-]?token|client[_-]?secret|password)\b\s*[:=]\s*['\"]?[A-Za-z0-9_./+=-]{16,}"
     ),
 }
-
-
-def _json_line(value: Mapping[str, Any]) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str) + "\n"
-
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _is_vague_revision(value: Any) -> bool:

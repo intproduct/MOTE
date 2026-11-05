@@ -1,0 +1,45 @@
+[93m [WARNING] [0m async_io compatibility check failed (No module named 'distutils'), treating the op as not compatible
+[93m [WARNING] [0m async_io compatibility check failed (No module named 'distutils'), treating the op as not compatible
+W1105 19:44:50.032000 46004 torch\multiprocessing\spawn.py:165] Terminating process 27068 via signal SIGTERM
+Traceback (most recent call last):
+  File "C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\research\sequence_parallel_compat_20261105\probe_ulysses.py", line 188, in <module>
+    main()
+  File "C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\research\sequence_parallel_compat_20261105\probe_ulysses.py", line 184, in main
+    torch.multiprocessing.spawn(worker, args=(init_method, str(args.output)), nprocs=2, join=True)
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\multiprocessing\spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\multiprocessing\spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\multiprocessing\spawn.py", line 211, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 0 terminated with the following error:
+Traceback (most recent call last):
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\multiprocessing\spawn.py", line 87, in _wrap
+    fn(i, *args)
+  File "C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\research\sequence_parallel_compat_20261105\probe_ulysses.py", line 74, in worker
+    deepspeed.comm.init_distributed(dist_backend="gloo", init_method=init_method,
+  File "C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\tmp\sp-compat-env\Lib\site-packages\deepspeed\comm\comm.py", line 899, in init_distributed
+    cdb = TorchBackend(dist_backend, timeout, init_method, rank, world_size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\tmp\sp-compat-env\Lib\site-packages\deepspeed\comm\torch.py", line 218, in __init__
+    self.init_process_group(backend, timeout, init_method, rank, world_size)
+  File "C:\Users\Frank F\.codex\worktrees\mote-quantum-publish\MOTE\tmp\sp-compat-env\Lib\site-packages\deepspeed\comm\torch.py", line 282, in init_process_group
+    torch.distributed.init_process_group(backend, **kwargs)
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\distributed\c10d_logger.py", line 83, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\distributed\c10d_logger.py", line 97, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\distributed\distributed_c10d.py", line 1813, in init_process_group
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\AI\MOTE-quantum\envs\qwen-native-py312-cu128\Lib\site-packages\torch\distributed\distributed_c10d.py", line 2043, in _new_process_group_helper
+    backend_class = ProcessGroupGloo(
+                    ^^^^^^^^^^^^^^^^^
+RuntimeError: makeDeviceForHostname(): unsupported gloo device
+

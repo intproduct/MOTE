@@ -14,6 +14,9 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import torch
 
+from ..utils.logging import build_run_logger
+from ..utils.memory import cuda_memory_bytes, visible_cuda_device
+
 from ..audit import build_environment_snapshot, json_dump, jsonl_append, to_jsonable
 from ..chat_formatting import build_chat_prompt_text_for_generation, tokenizer_supports_chat_template
 from ..checkpointing import (
@@ -38,6 +41,9 @@ from ..rl.reward_shaping import apply_long2short_reward_shift
 from ..rl.sampler import StatefulRLRecordSampler
 from ..rl.rollout_backends import (
     HFRolloutBackend,
+    iter_response_chunks,
+    rollout_pad_token_id as _rollout_pad_token_id,
+    pad_generated_to_max_len as _pad_generated_to_max_len,
     RolloutBackend,
     RolloutSyncResult,
     build_generation_config_from_fit_cfg,
@@ -63,20 +69,8 @@ from ..utils.paths import assert_no_unsafe_paths
 
 
 def _cuda_memory_snapshot() -> Dict[str, Optional[float]]:
-    if not torch.cuda.is_available():
-        return {
-            "memory_allocated_gib": None,
-            "memory_reserved_gib": None,
-            "memory_max_allocated_gib": None,
-            "memory_max_reserved_gib": None,
-        }
-    gib = 1024.0 ** 3
-    return {
-        "memory_allocated_gib": float(torch.cuda.memory_allocated() / gib),
-        "memory_reserved_gib": float(torch.cuda.memory_reserved() / gib),
-        "memory_max_allocated_gib": float(torch.cuda.max_memory_allocated() / gib),
-        "memory_max_reserved_gib": float(torch.cuda.max_memory_reserved() / gib),
-    }
+    return {f"memory_{key}_gib": None if value is None else float(value / 1024 ** 3)
+            for key, value in cuda_memory_bytes().items()}
 
 
 def log_cuda_memory(
@@ -86,19 +80,25 @@ def log_cuda_memory(
     micro_step: Optional[int] = None,
     reset_peak: bool = False,
 ) -> None:
-    if not torch.cuda.is_available():
+    device = visible_cuda_device()
+    if device is None:
         return
-    if reset_peak:
-        torch.cuda.reset_peak_memory_stats()
+    try:
+        if reset_peak:
+            torch.cuda.reset_peak_memory_stats(device)
+        device_name = torch.cuda.get_device_name(device)
+    except (RuntimeError, AssertionError, ValueError):
+        return
     snap = _cuda_memory_snapshot()
-    device = torch.cuda.current_device()
+    if any(value is None for value in snap.values()):
+        return
     logger.info(
         "[RLMem] tag=%s update=%s micro=%s device=%s allocated=%.3fGiB reserved=%.3fGiB "
         "max_allocated=%.3fGiB max_reserved=%.3fGiB",
         tag,
         "None" if update_step is None else int(update_step),
         "None" if micro_step is None else int(micro_step),
-        torch.cuda.get_device_name(device),
+        device_name,
         snap["memory_allocated_gib"],
         snap["memory_reserved_gib"],
         snap["memory_max_allocated_gib"],
@@ -132,16 +132,6 @@ def _flatten_response_advantages(advantages: torch.Tensor, total_n: int) -> torc
     if adv.ndim != 1 or int(adv.numel()) != int(total_n):
         raise ValueError(f"advantages must flatten to [{total_n}], got shape={tuple(advantages.shape)}")
     return adv
-
-
-def iter_response_chunks(total_n: int, micro_batch_size: int) -> List[Tuple[int, int]]:
-    total_n = int(total_n)
-    mb = int(micro_batch_size)
-    if total_n <= 0:
-        return []
-    if mb <= 0 or mb >= total_n:
-        return [(0, total_n)]
-    return [(start, min(start + mb, total_n)) for start in range(0, total_n, mb)]
 
 
 def _response_starts_chunk(
@@ -441,17 +431,7 @@ def build_rl_prompt_text(fit_cfg, tokenizer, question: str) -> str:
 
 
 def build_rl_logger(rl_dir: Path) -> logging.Logger:
-    logger = logging.getLogger(f"fitmotn.rl.{rl_dir.parent.name}.{rl_dir.name}")
-    logger.setLevel(logging.INFO)
-    logger.handlers.clear()
-    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-    fh = logging.FileHandler(rl_dir / "rl_train.log", encoding="utf-8")
-    fh.setFormatter(formatter)
-    sh = logging.StreamHandler()
-    sh.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
-    return logger
+    return build_run_logger(f"fitmotn.rl.{rl_dir.parent.name}.{rl_dir.name}", rl_dir / "rl_train.log")
 
 
 def _make_implicit_rl_run_name(fit_cfg) -> str:
@@ -564,16 +544,6 @@ def _set_model_cache_if_present(model, value: bool) -> None:
         generation_config.use_cache = bool(value)
 
 
-def _rollout_pad_token_id(tokenizer) -> int:
-    pad_token_id = getattr(tokenizer, "pad_token_id", None)
-    if pad_token_id is not None:
-        return int(pad_token_id)
-    eos_token_id = getattr(tokenizer, "eos_token_id", None)
-    if eos_token_id is not None:
-        return int(eos_token_id)
-    return 0
-
-
 def build_rollout_attention_and_response_mask(
     generated: torch.Tensor,
     prompt_attention_mask: Optional[torch.Tensor],
@@ -604,26 +574,6 @@ def build_rollout_attention_and_response_mask(
     ).to(generated.device)
     response_mask = response_mask * full_attention.to(dtype=response_mask.dtype)
     return full_attention, response_mask
-
-
-def _pad_generated_to_max_len(generated_chunks: Sequence[torch.Tensor], pad_token_id: int) -> torch.Tensor:
-    if not generated_chunks:
-        raise RuntimeError("No generated chunks were produced")
-    max_len = max(int(chunk.shape[1]) for chunk in generated_chunks)
-    padded_chunks = []
-    for chunk in generated_chunks:
-        pad_len = max_len - int(chunk.shape[1])
-        if pad_len <= 0:
-            padded_chunks.append(chunk)
-            continue
-        pad = torch.full(
-            (int(chunk.shape[0]), int(pad_len)),
-            int(pad_token_id),
-            dtype=chunk.dtype,
-            device=chunk.device,
-        )
-        padded_chunks.append(torch.cat([chunk, pad], dim=1))
-    return torch.cat(padded_chunks, dim=0)
 
 
 def generate_rollout_sequences(

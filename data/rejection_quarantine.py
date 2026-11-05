@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 from typing import Any, Iterable, Mapping
+
+from ..utils.files import sha256_file
 
 from .contracts import content_hash
 from .release import tokenizer_fingerprint
@@ -12,14 +13,6 @@ from .release import tokenizer_fingerprint
 FORMAT = "fitmotn_dynamic_rejection_quarantine_v1"
 MANIFEST_FILENAME = "manifest.json"
 REJECTIONS_FILENAME = "rejections.jsonl"
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def task_policy_payload(tasks: Iterable[Any]) -> list[dict[str, Any]]:

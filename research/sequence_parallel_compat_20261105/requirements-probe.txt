@@ -1,0 +1,9 @@
+# Isolated CPU integration probe, not the production training requirements.
+# First install torch==2.10.0+cpu from the official CPU wheel index.
+# Install wheel/setuptools before DeepSpeed with DS_ACCELERATOR=cpu,
+# DS_BUILD_OPS=0 and --no-build-isolation. Activate the environment so that
+# the ninja executable is visible to DeepSpeed's optional JIT build.
+torch==2.10.0+cpu
+transformers==4.57.6
+accelerate==1.15.0
+deepspeed==0.19.9

@@ -13,6 +13,8 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 import torch as tc
 
+from .utils.memory import cuda_memory_bytes
+
 
 def to_jsonable(obj: Any):
     if is_dataclass(obj):
@@ -110,28 +112,15 @@ def build_environment_snapshot() -> Dict[str, Any]:
 
 
 def cuda_snapshot(device: tc.device | str | None = None) -> Dict[str, Optional[float]]:
-    if not tc.cuda.is_available():
-        return {
-            "cuda_mem_alloc_mb": None,
-            "cuda_mem_reserved_mb": None,
-            "cuda_mem_peak_alloc_mb": None,
-            "cuda_mem_peak_reserved_mb": None,
-        }
-    dev = tc.device(device) if device is not None else tc.device("cuda")
-    idx = dev.index if dev.index is not None else tc.cuda.current_device()
-    try:
-        alloc = float(tc.cuda.memory_allocated(idx) / (1024 ** 2))
-        reserved = float(tc.cuda.memory_reserved(idx) / (1024 ** 2))
-        peak_alloc = float(tc.cuda.max_memory_allocated(idx) / (1024 ** 2))
-        peak_reserved = float(tc.cuda.max_memory_reserved(idx) / (1024 ** 2))
-    except Exception:
-        alloc = reserved = peak_alloc = peak_reserved = None
-    return {
-        "cuda_mem_alloc_mb": alloc,
-        "cuda_mem_reserved_mb": reserved,
-        "cuda_mem_peak_alloc_mb": peak_alloc,
-        "cuda_mem_peak_reserved_mb": peak_reserved,
+    snapshot = cuda_memory_bytes(device)
+    names = {
+        "allocated": "cuda_mem_alloc_mb",
+        "reserved": "cuda_mem_reserved_mb",
+        "max_allocated": "cuda_mem_peak_alloc_mb",
+        "max_reserved": "cuda_mem_peak_reserved_mb",
     }
+    return {names[key]: None if value is None else float(value / 1024 ** 2)
+            for key, value in snapshot.items()}
 
 
 def host_memory_snapshot() -> Dict[str, Optional[float]]:

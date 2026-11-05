@@ -1,0 +1,16 @@
+
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+[Gloo] Rank 0[Gloo] Rank 1 is connected to 1 is connected to 1 peer ranks. Expected number of connected peer ranks is :  peer ranks. Expected number of connected peer ranks is : 1
+1
+[Gloo] Rank 1[Gloo] Rank 0 is connected to 1 is connected to 1 peer ranks. Expected number of connected peer ranks is :  peer ranks. Expected number of connected peer ranks is : 1
+1
+[Gloo] Rank 1[Gloo] Rank 0 is connected to 1 is connected to 1 peer ranks.  peer ranks. Expected number of connected peer ranks is : Expected number of connected peer ranks is : 11
+
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'eos_token_id': 63, 'pad_token_id': 0}.
+The tokenizer has new PAD/BOS/EOS tokens that differ from the model config and generation config. The model config and generation config were aligned accordingly, being updated with the tokenizer's values. Updated tokens: {'eos_token_id': 63, 'pad_token_id': 0}.
+  0%|          | 0/3 [00:00<?, ?it/s] 67%|██████▋   | 2/3 [00:00<00:00, 12.50it/s]                                             {'loss': 4.1567, 'grad_norm': 0.34423089027404785, 'learning_rate': 1.9999999999999998e-05, 'epoch': 0.5}
+ 67%|██████▋   | 2/3 [00:00<00:00, 12.50it/s]                                             {'loss': 4.167, 'grad_norm': 0.2572634518146515, 'learning_rate': 9.999999999999999e-06, 'epoch': 0.75}
+100%|██████████| 3/3 [00:00<00:00, 12.50it/s]                                             {'train_runtime': 1.5401, 'train_samples_per_second': 7.7915, 'train_steps_per_second': 1.948, 'train_loss': 2.7745532989501953, 'epoch': 0.75}
+100%|██████████| 3/3 [00:01<00:00, 12.50it/s]100%|██████████| 3/3 [00:01<00:00,  1.95it/s]

@@ -10,3 +10,6 @@ experiments/operator_geometry/** -text -whitespace
 research/qwen_quantum_runtime_snapshot_20261105/runtime/** -text -whitespace
 research/qwen_quantum_runtime_snapshot_20261105/configs/** -text -whitespace
 research/qwen_quantum_runtime_snapshot_20261105/releases/** -text -whitespace
+# Preserve sequence-parallel measurements and diagnostic logs byte-for-byte.
+research/sequence_parallel_compat_20261105/** -text -whitespace
+research/ulysses_integration_20261106/** -text -whitespace

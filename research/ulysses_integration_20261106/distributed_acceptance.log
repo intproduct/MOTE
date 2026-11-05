@@ -1,0 +1,112 @@
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[rank1]:[W1106 02:38:44.690078931 reducer.cpp:1500] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+[rank2]:[W1106 02:38:44.690150631 reducer.cpp:1500] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+[rank0]:[W1106 02:38:44.690180631 reducer.cpp:1500] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+[rank3]:[W1106 02:38:44.690180231 reducer.cpp:1500] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+{'loss': 4.1776, 'learning_rate': 0.03, 'epoch': 0.0625}
+{'loss': 4.1271, 'learning_rate': 0.03, 'epoch': 0.125}
+{'loss': 4.046, 'learning_rate': 0.03, 'epoch': 0.1875}
+{'train_runtime': 1.8922, 'train_samples_per_second': 3.171, 'train_steps_per_second': 1.585, 'train_loss': 4.1169155438741045, 'epoch': 0.1875}
+{"name": "qwen3_dense", "resume": false, "batch_size": 1, "accumulation": 1, "reference_parameter_max_abs": 7.450580596923828e-09, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 3, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1271, 'learning_rate': 0.03, 'epoch': 0.125}
+{'loss': 4.046, 'learning_rate': 0.03, 'epoch': 0.1875}
+{'train_runtime': 1.319, 'train_samples_per_second': 4.549, 'train_steps_per_second': 2.274, 'train_loss': 2.7243905067443848, 'epoch': 0.1875}
+{"name": "qwen3_dense", "resume": true, "batch_size": 1, "accumulation": 1, "reference_parameter_max_abs": 7.450580596923828e-09, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 3, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1716, 'learning_rate': 0.03, 'epoch': 0.25}
+{'loss': 4.1298, 'learning_rate': 0.03, 'epoch': 0.5}
+{'loss': 4.0218, 'learning_rate': 0.03, 'epoch': 0.75}
+{'train_runtime': 1.9533, 'train_samples_per_second': 12.287, 'train_steps_per_second': 1.536, 'train_loss': 4.107699394226074, 'epoch': 0.75}
+{"name": "llama_dense", "resume": false, "batch_size": 2, "accumulation": 2, "reference_parameter_max_abs": 3.725290298461914e-09, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 3, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1298, 'learning_rate': 0.03, 'epoch': 0.5}
+{'loss': 4.0218, 'learning_rate': 0.03, 'epoch': 0.75}
+{'train_runtime': 1.4028, 'train_samples_per_second': 17.109, 'train_steps_per_second': 2.139, 'train_loss': 2.717182159423828, 'epoch': 0.75}
+{"name": "llama_dense", "resume": true, "batch_size": 2, "accumulation": 2, "reference_parameter_max_abs": 3.725290298461914e-09, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 3, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1982, 'learning_rate': 0.03, 'epoch': 0.25}
+{'loss': 4.1461, 'learning_rate': 0.03, 'epoch': 0.5}
+{'loss': 4.0473, 'learning_rate': 0.03, 'epoch': 0.75}
+{'train_runtime': 2.1128, 'train_samples_per_second': 11.359, 'train_steps_per_second': 1.42, 'train_loss': 4.13049300511678, 'epoch': 0.75}
+{"name": "qwen3_mote", "resume": false, "batch_size": 2, "accumulation": 2, "reference_parameter_max_abs": 5.960464477539063e-08, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 3, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1461, 'learning_rate': 0.03, 'epoch': 0.5}
+{'loss': 4.0473, 'learning_rate': 0.03, 'epoch': 0.75}
+{'train_runtime': 1.5002, 'train_samples_per_second': 15.998, 'train_steps_per_second': 2.0, 'train_loss': 2.7311085065205893, 'epoch': 0.75}
+{"name": "qwen3_mote", "resume": true, "batch_size": 2, "accumulation": 2, "reference_parameter_max_abs": 5.960464477539063e-08, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 3, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1757, 'learning_rate': 0.03, 'epoch': 0.25}
+{'loss': 4.1324, 'learning_rate': 0.03, 'epoch': 0.5}
+{'loss': 4.0711, 'learning_rate': 0.03, 'epoch': 0.75}
+{'loss': 4.0094, 'learning_rate': 0.03, 'epoch': 1.0}
+{'loss': 3.9302, 'learning_rate': 0.03, 'epoch': 1.25}
+{'train_runtime': 3.6286, 'train_samples_per_second': 11.0235, 'train_steps_per_second': 1.378, 'train_loss': 4.063771963119507, 'epoch': 1.25}
+{"name": "qwen3_quantum", "resume": false, "batch_size": 2, "accumulation": 2, "reference_parameter_max_abs": 2.9802322387695312e-08, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 5, "world_size": 4, "sp_size": 2, "dp_size": 2}
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 1 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 1 peer ranks. Expected number of connected peer ranks is : 1
+[Gloo] Rank 0 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 3 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 2 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+[Gloo] Rank 1 is connected to 3 peer ranks. Expected number of connected peer ranks is : 3
+{'loss': 4.1324, 'learning_rate': 0.03, 'epoch': 0.5}
+{'loss': 4.0711, 'learning_rate': 0.03, 'epoch': 0.75}
+{'loss': 4.0094, 'learning_rate': 0.03, 'epoch': 1.0}
+{'loss': 3.9302, 'learning_rate': 0.03, 'epoch': 1.25}
+{'train_runtime': 3.0309, 'train_samples_per_second': 13.1975, 'train_steps_per_second': 1.65, 'train_loss': 3.2286330699920653, 'epoch': 1.25}
+{"name": "qwen3_quantum", "resume": true, "batch_size": 2, "accumulation": 2, "reference_parameter_max_abs": 2.9802322387695312e-08, "resume_parameter_max_abs": 0.0, "checkpoint_valid": true, "global_step": 5, "world_size": 4, "sp_size": 2, "dp_size": 2}

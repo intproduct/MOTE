@@ -1,0 +1,50 @@
+{
+  "status": "passed_bounded_cpu_integration",
+  "versions": {
+    "torch": "2.10.0+cpu",
+    "transformers": "4.57.6",
+    "accelerate": "1.15.0",
+    "deepspeed": "0.19.9"
+  },
+  "platform": "WSL Ubuntu 24.04, CPU/Gloo, Python 3.12",
+  "sequence_length": 16,
+  "dtype": "float32",
+  "world_size": 4,
+  "sp_size": 2,
+  "dp_size": 2,
+  "reference_optimizer": "SGD momentum=0.9",
+  "all_rank_results_equal": true,
+  "parameter_max_abs": 5.960464477539063e-08,
+  "resume_parameter_max_abs": 0.0,
+  "cli": {
+    "world_size": 2,
+    "sp_size": 2,
+    "model": "tiny Qwen3 QuantumGate",
+    "optimizer": "AdamW",
+    "steps": 3,
+    "resumed_from_step": 1,
+    "batch_size": 2,
+    "accumulation": 2,
+    "weights_equal": true,
+    "optimizer_state_equal": true,
+    "scheduler_state_equal": true,
+    "committed_checkpoint_validation": true
+  },
+  "regression": {
+    "passed": 250,
+    "skipped": 1,
+    "warning": "existing TensorBlock init fallback"
+  },
+  "gpu_long_sequence_tested": false,
+  "frozen_runtime_files_verified": 117,
+  "source_sha256": {
+    "train/sequence_parallel.py": "e64f38fd277ae682662e3c0c22d2730503951d7b34587ce656d052b5975c8633",
+    "train/sequence_checkpoint.py": "65e073e8f11fd21a3de42306cd56b857091fe8ed631f1f6bf19ce816dd69976e",
+    "train/ulysses.py": "58ca6cb8387b9ba0e1d89cbe1b216b136fb8dc02a1a74731268355bfa256c78c",
+    "train/trainer.py": "73dae65c515ab56e378a93ab82593e74199206e411727c999a72841e68dfafa5",
+    "data/tokenized_sequences.py": "1364db9135f47f583614f92cf02b7c4e07269942b7576cc4a73ec429c6d87d26",
+    "tests/distributed_ulysses.py": "e8b3fc34161a6168a39c56e35243fbbb93d6cfa119ad19c8ca0bddd50d2d813b",
+    "tests/ulysses_cpu_entrypoint.py": "d95d9269d246b096b76d853b6d81dd4b2511fdcb7cebc9b70791e2d23e67413c",
+    "tests/test_sequence_parallel.py": "914a195d35d722885ea33e89f86930716ac855fed804e369ac8dc52e532c5436"
+  }
+}

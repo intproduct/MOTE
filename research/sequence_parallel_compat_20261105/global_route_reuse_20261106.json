@@ -1,0 +1,12 @@
+{
+  "scope": "single-process CPU decomposition check, not a distributed communication test",
+  "drop_tokens": true,
+  "global_expert_enabled": true,
+  "aux_loss_included_once": true,
+  "existing_gate_and_core_reused": true,
+  "errors": {
+    "output": 0.0,
+    "input_gradient": 9.313225746154785e-10,
+    "parameter_gradient": 5.960464477539063e-08
+  }
+}

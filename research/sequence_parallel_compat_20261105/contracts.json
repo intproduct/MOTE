@@ -1,0 +1,33 @@
+{
+  "capacity": {
+    "full_kept": 8,
+    "shard_local_kept": 4,
+    "changed_tokens": 4
+  },
+  "aux_loss": {
+    "full": 1.0,
+    "local_mean": 1.9512124061584473
+  },
+  "label_boundary": {
+    "full_targets": 7,
+    "locally_shifted_targets": 6,
+    "full_loss": 3.5824596881866455,
+    "local_shift_loss": 3.6194353103637695,
+    "pre_shift_loss": 3.5824592113494873
+  },
+  "official_batch_trainer_contract": {
+    "position_ids_forwarded": false,
+    "pre_shifted_label_loss_returned": false
+  },
+  "sampler_simulated_rank_metadata": [
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      2
+    ]
+  ],
+  "checkpoint_guard": "Atomic FitMoTN SFT checkpoints currently support single-process Trainer runs only; multi-process/FSDP/DeepSpeed checkpoint publication requires coordinated rank state."
+}

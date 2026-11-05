@@ -1,0 +1,18 @@
+{
+  "versions": {
+    "torch": "2.10.0+cu128",
+    "transformers": "4.57.6",
+    "deepspeed": "0.19.9",
+    "accelerate": "1.15.0"
+  },
+  "backend": "cpu/gloo",
+  "world_size": 2,
+  "sequence_length": 16,
+  "precision": "float32",
+  "model_weights": "random tiny configs",
+  "note": "Forward/backward integration probe; not full Trainer or GPU training.",
+  "library_sha256": {
+    "deepspeed.runtime.sequence_parallel.ulysses_sp": "7a5f9ba1307799468f85c9da3fe54fde396c9be14ebe1b3043316ea68b93f4d5",
+    "deepspeed.sequence.layer": "58f945824945e5ac4894840181d57f46b76ce0e57a98b0d8871609a57af0986b"
+  }
+}

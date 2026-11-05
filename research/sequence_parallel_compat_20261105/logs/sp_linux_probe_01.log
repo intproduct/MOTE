@@ -1,0 +1,47 @@
+W1105 20:00:17.327000 375 torch/multiprocessing/spawn.py:165] Terminating process 541 via signal SIGTERM
+Traceback (most recent call last):
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 188, in <module>
+    main()
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 184, in main
+    torch.multiprocessing.spawn(worker, args=(init_method, str(args.output)), nprocs=2, join=True)
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 211, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 1 terminated with the following error:
+Traceback (most recent call last):
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 623, in jit_load
+    verify_ninja_availability()
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/utils/cpp_extension.py", line 2381, in verify_ninja_availability
+    raise RuntimeError("Ninja is required to load C++ extensions (pip install ninja to get it)")
+RuntimeError: Ninja is required to load C++ extensions (pip install ninja to get it)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/torch/multiprocessing/spawn.py", line 87, in _wrap
+    fn(i, *args)
+  File "/mnt/c/Users/Frank F/.codex/worktrees/mote-quantum-publish/MOTE/research/sequence_parallel_compat_20261105/probe_ulysses.py", line 74, in worker
+    deepspeed.comm.init_distributed(dist_backend="gloo", init_method=init_method,
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/comm.py", line 899, in init_distributed
+    cdb = TorchBackend(dist_backend, timeout, init_method, rank, world_size)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/torch.py", line 207, in __init__
+    self.shm_comm_op = build_shm_op()
+                       ^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/comm/torch.py", line 51, in build_shm_op
+    shm_cpp_module = builder.load()
+                     ^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 614, in load
+    return self.jit_load(verbose)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/frank_f/.cache/mote-sp-compat-20261105/lib/python3.12/site-packages/deepspeed/ops/op_builder/builder.py", line 625, in jit_load
+    raise RuntimeError(f"Unable to JIT load the {self.name} op due to ninja not being installed.") from e
+RuntimeError: Unable to JIT load the deepspeed_shm_comm op due to ninja not being installed.
+

@@ -14,35 +14,18 @@ from ..runtime import dtype_to_name
 
 def build_scheduler_builder(fit_cfg, total_updates: int, logger=None):
     scheduler_type = str(fit_cfg.train.lr_scheduler_type)
-    actual_training_steps = int(total_updates)
     configured_warmup_steps = int(fit_cfg.train.lr_warmup_steps)
     warmup_enabled = bool(fit_cfg.train.lr_warmup)
-    resolved_warmup_updates = min(configured_warmup_steps, actual_training_steps) if warmup_enabled else 0
     configured_decay_steps = getattr(fit_cfg.train, "lr_decay_steps", None)
-    scheduler_total_steps = actual_training_steps if configured_decay_steps is None else int(configured_decay_steps)
-    scheduler_warmup_updates = 0 if scheduler_type == "constant" else resolved_warmup_updates
-    if scheduler_type in {"linear", "cosine"} and scheduler_total_steps <= scheduler_warmup_updates:
-        scheduler_total_steps = scheduler_warmup_updates + 1
 
-    scheduler_metadata = {
-        "lr_scheduler_type": scheduler_type,
-        "lr_warmup": warmup_enabled,
-        "lr_warmup_steps": configured_warmup_steps,
-        "resolved_lr_warmup_steps": int(resolved_warmup_updates),
-        "lr_decay_steps": None if configured_decay_steps is None else int(configured_decay_steps),
-        "resolved_lr_decay_steps": int(scheduler_total_steps),
-        "scheduler_total_steps": int(scheduler_total_steps),
-        "actual_training_steps": int(actual_training_steps),
-    }
-
-    def _builder(optimizer, num_training_steps: int):
+    def resolve(num_training_steps: int):
         actual_steps = int(num_training_steps)
         warmup_updates = min(configured_warmup_steps, actual_steps) if warmup_enabled else 0
         schedule_warmup_updates = 0 if scheduler_type == "constant" else warmup_updates
         total_decay_steps = actual_steps if configured_decay_steps is None else int(configured_decay_steps)
         if scheduler_type in {"linear", "cosine"} and total_decay_steps <= schedule_warmup_updates:
             total_decay_steps = schedule_warmup_updates + 1
-        resolution = {
+        return {
             "lr_scheduler_type": scheduler_type,
             "lr_warmup": warmup_enabled,
             "lr_warmup_steps": configured_warmup_steps,
@@ -52,6 +35,15 @@ def build_scheduler_builder(fit_cfg, total_updates: int, logger=None):
             "scheduler_total_steps": int(total_decay_steps),
             "actual_training_steps": int(actual_steps),
         }
+
+    scheduler_metadata = resolve(total_updates)
+
+    def _builder(optimizer, num_training_steps: int):
+        resolution = resolve(num_training_steps)
+        actual_steps = resolution["actual_training_steps"]
+        warmup_updates = resolution["resolved_lr_warmup_steps"]
+        total_decay_steps = resolution["resolved_lr_decay_steps"]
+        schedule_warmup_updates = 0 if scheduler_type == "constant" else warmup_updates
         _builder.last_resolution = resolution
         if logger is not None:
             logger.info(

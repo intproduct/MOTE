@@ -13,6 +13,9 @@ from typing import Any, Dict, List
 import torch as tc
 from transformers import TrainingArguments
 
+from ..utils.files import sha256_file as _sha256_path
+from ..utils.logging import build_run_logger
+
 from ..audit import build_environment_snapshot, json_dump, jsonl_append, parameter_snapshot, to_jsonable
 from ..checkpointing import (
     build_fitmotn_json_metadata,
@@ -54,17 +57,7 @@ from .trainer import FitMoTNTrainer
 
 
 def build_logger(run_dir: Path) -> logging.Logger:
-    logger = logging.getLogger(f"fitmotn.{run_dir.name}")
-    logger.setLevel(logging.INFO)
-    logger.handlers.clear()
-    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-    fh = logging.FileHandler(run_dir / "train.log", encoding="utf-8")
-    fh.setFormatter(formatter)
-    sh = logging.StreamHandler()
-    sh.setFormatter(formatter)
-    logger.addHandler(fh)
-    logger.addHandler(sh)
-    return logger
+    return build_run_logger(f"fitmotn.{run_dir.name}", run_dir / "train.log")
 
 
 def make_run_name(fit_cfg) -> str:
@@ -483,14 +476,6 @@ def _training_arguments_from_kwargs(kwargs: Dict[str, Any]) -> TrainingArguments
 def _resolved_config_sha256(fit_cfg) -> str:
     payload = json.dumps(to_jsonable(asdict(fit_cfg)), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
-
-
-def _sha256_path(path: str | Path) -> str:
-    digest = hashlib.sha256()
-    with Path(path).open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _validate_selected_metadata(metadata: Dict[str, Any], selected_update: int) -> Dict[str, Any]:

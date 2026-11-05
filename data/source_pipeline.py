@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gzip
-import hashlib
 import json
 import os
 import re
@@ -12,6 +11,8 @@ from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from ..utils.files import sha256_file as _file_sha256
 
 from ..tasks.answer_extraction import (
     AnswerValidationError,
@@ -510,14 +511,6 @@ def _load_source(spec: Mapping[str, Any]) -> Iterable[Mapping[str, Any]]:
             loaded = loaded[split]
         return loaded
     raise ValueError(f"unsupported local source kind={kind!r}")
-
-
-def _file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _resolve_revision(spec: Mapping[str, Any], loaded: Any) -> str:

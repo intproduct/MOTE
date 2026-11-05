@@ -2,6 +2,11 @@
 
 [全中文使用说明](./README_ZH.md)
 
+**Ulysses 序列并行接入（2026-11-06）：**
+[支持范围、训练入口与两/四进程验证](docs/ulysses_integration_20261106.md)。
+已接入全注意力 Qwen3/Llama 的 DDP + Ulysses，包含 MoTE/QuantumGate 全局路由与检查点恢复。
+目前实测为 Linux CPU 小模型；16K～32K GPU 训练、Gemma3/Qwen3.5 适配另行验收。
+
 **QuantumGate 跨机器实验入口（2026-10-30）：**
 [Qwen 0.6B–4B 联合训练交接与各机器任务](research/qwen_mote_joint_handoff_20261030/README.md)。
 该入口汇总已完成实验、原始证据、报告，以及 PRO 4000、双 V100、A800 和 BW1000 的后续计划。

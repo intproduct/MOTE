@@ -1,0 +1,60 @@
+{
+  "rank": 0,
+  "cases": [
+    {
+      "name": "qwen3_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 0.0,
+      "gradients_max_abs": 2.9802322387695312e-08,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "llama3_1_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 4.76837158203125e-07,
+      "gradients_max_abs": 2.9802322387695312e-08,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "gemma3_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.2878038287162781,
+      "loss_abs": 0.022153377532958984,
+      "gradients_max_abs": 0.3500324487686157,
+      "parity": false,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "gemma3_full_control_dense",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 4.76837158203125e-07,
+      "gradients_max_abs": 7.82310962677002e-08,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "qwen3_mote_no_drop",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.0,
+      "loss_abs": 4.76837158203125e-07,
+      "gradients_max_abs": 1.1920928955078125e-07,
+      "parity": true,
+      "current_trainer_returns_loss": false
+    },
+    {
+      "name": "qwen3_mote_drop",
+      "data_positions_shift_labels": "pass",
+      "logits_max_abs": 0.4287000298500061,
+      "loss_abs": 0.046297550201416016,
+      "gradients_max_abs": 0.6419769525527954,
+      "parity": false,
+      "current_trainer_returns_loss": false
+    }
+  ],
+  "gloo_all_to_all_single": "pass"
+}

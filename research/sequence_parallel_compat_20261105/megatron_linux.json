@@ -1,0 +1,11 @@
+{
+  "torch": "2.10.0+cpu",
+  "nccl": false,
+  "gpu_training_attempted": false,
+  "megatron-core": "0.20.0",
+  "transformer-engine": null,
+  "triton": "3.6.0",
+  "config_constructed": true,
+  "non_te_attention_cp_guard": "Context parallelism is only supported by TEDotProductAttention!",
+  "status": "requires_transformer_engine_and_gpu_validation"
+}

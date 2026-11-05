@@ -1,0 +1,11 @@
+{
+  "torch": "2.10.0+cu128",
+  "nccl": false,
+  "gpu_training_attempted": false,
+  "megatron-core": "0.20.0",
+  "transformer-engine": null,
+  "triton": null,
+  "status": "blocked_at_import",
+  "error": "ModuleNotFoundError(\"No module named 'triton'\")",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\research\\sequence_parallel_compat_20261105\\probe_megatron.py\", line 22, in probe\n    from megatron.core.transformer.transformer_config import TransformerConfig\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\__init__.py\", line 8, in <module>\n    from megatron.core.distributed import DistributedDataParallel\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\distributed\\__init__.py\", line 10, in <module>\n    from .finalize_model_grads import finalize_model_grads\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\distributed\\finalize_model_grads.py\", line 20, in <module>\n    from megatron.core.pipeline_parallel.utils import (\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\pipeline_parallel\\__init__.py\", line 2, in <module>\n    from .schedules import get_forward_backward_func\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\pipeline_parallel\\schedules.py\", line 28, in <module>\n    from megatron.core.transformer.moe.paged_stash import paged_stash_reset\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\transformer\\moe\\paged_stash.py\", line 12, in <module>\n    from megatron.core.transformer.moe.ops.paged_stash import (\n  File \"C:\\Users\\Frank F\\.codex\\worktrees\\mote-quantum-publish\\MOTE\\tmp\\sp-compat-env\\Lib\\site-packages\\megatron\\core\\transformer\\moe\\ops\\paged_stash.py\", line 4, in <module>\n    import triton\nModuleNotFoundError: No module named 'triton'\n"
+}

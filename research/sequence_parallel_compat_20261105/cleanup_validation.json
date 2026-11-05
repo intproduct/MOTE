@@ -1,0 +1,31 @@
+{
+  "objective_and_metric_ast_identical": [
+    "_merge_scalar_maps",
+    "accumulate_loss_observability",
+    "build_teacher_topk_targets",
+    "compute_exact_distillation_loss",
+    "compute_loss_observability",
+    "compute_topk_distillation_loss",
+    "flush_loss_observability",
+    "materialize_loss_observability"
+  ],
+  "core_files_unchanged": [
+    "ADTN.py",
+    "gate.py",
+    "quantum_gate.py",
+    "model.py",
+    "sparse_mixt.py",
+    "patching.py"
+  ],
+  "regression": {
+    "passed": 239,
+    "skipped": 1,
+    "log_sha256": "5b4fb619b6ba37ec585abf4e2bf5ab54c45bb735a51cbd2a987e6358cf68e14b"
+  },
+  "runtime_archive_verifier": {
+    "passed": true,
+    "files": 117
+  },
+  "linux_cpu_torch_wheel_sha256": "ee40b8a4b4b2cf0670c6fd4f35a7ef23871af956fecb238fbf5da15a72650b1d",
+  "deepspeed_sdist_sha256": "e14b514e243a92ad80bd92f74c835ef76a5c27eec23fae019807458fc9a8cb95"
+}
