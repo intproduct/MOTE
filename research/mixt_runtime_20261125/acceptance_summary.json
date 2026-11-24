@@ -1,0 +1,288 @@
+{
+  "implementation_commit": "f6b6e9d0fd94ef48b7802b0ae55a6f8a3fca3f92",
+  "publication_branch": "mote-quantum",
+  "scope": "local workstation only",
+  "acceptance": {
+    "hf_32k_import_export_parity": "passed",
+    "linear_gate_8k_last_32_supervised_update": "passed",
+    "quantum_gate_512_two_updates": "passed",
+    "vllm_023_single_gpu_generation": "conditional_pass",
+    "pinned_vllm_019": "not_tested",
+    "training_32k": "incomplete_bounded_probe",
+    "multi_gpu": "blocked_by_environment_and_training_checkpoint_contract",
+    "task_quality_and_full_tir": "not_tested"
+  },
+  "hf_32k": {
+    "torch": "2.11.0+cu130",
+    "tokens": 32768,
+    "dtype": "bfloat16",
+    "attention": "sdpa",
+    "stages": {
+      "partner": {
+        "seconds": 26.286384415999976,
+        "peak_allocated_gib": 13.812979221343994,
+        "finite": true,
+        "generated_tokens": [
+          279,
+          33633
+        ]
+      },
+      "imported": {
+        "seconds": 27.468833715000017,
+        "peak_allocated_gib": 13.817161560058594,
+        "finite": true,
+        "generated_tokens": [
+          279,
+          33633
+        ]
+      },
+      "exported": {
+        "seconds": 25.91140128400002,
+        "peak_allocated_gib": 13.816490173339844,
+        "finite": true,
+        "generated_tokens": [
+          279,
+          33633
+        ]
+      }
+    },
+    "export_projected_positions": [
+      1,
+      1,
+      1
+    ],
+    "import_max_abs": 0.0,
+    "export_max_abs": 0.0,
+    "import_bitwise_equal": true,
+    "export_bitwise_equal": true,
+    "generated_tokens_match": true,
+    "ok": true
+  },
+  "linear_training": [
+    {
+      "tokens": 512,
+      "supervision": "all_tokens",
+      "loss": 0.352508544921875,
+      "nonzero_gradient_tensors": 39,
+      "seconds": 3.8331892759999846,
+      "peak_allocated_gib": 7.907326698303223,
+      "ok": true
+    },
+    {
+      "tokens": 8192,
+      "supervision": "last_32_tokens",
+      "loss": 0.02630062960088253,
+      "nonzero_gradient_tensors": 78,
+      "seconds": 30.917394540000032,
+      "peak_allocated_gib": 14.660184383392334,
+      "ok": true
+    }
+  ],
+  "quantum_training": {
+    "torch": "2.11.0+cu130",
+    "device": "cuda:0",
+    "gpu": "NVIDIA RTX PRO 4000 Blackwell",
+    "dtype": "bfloat16",
+    "attention": "sdpa",
+    "gate_arch": "quantum",
+    "inference": [
+      {
+        "tokens": 512,
+        "seconds": 0.6848700580000013,
+        "finite": true,
+        "output_shape": [
+          1,
+          1,
+          248320
+        ],
+        "peak_allocated_gib": 6.511322498321533
+      }
+    ],
+    "parity_tokens": 128,
+    "gpu_import_max_abs": 0.0,
+    "gpu_import_relative_l2": 0.0,
+    "gpu_import_bitwise_equal": true,
+    "elapsed_seconds": 76.151794897,
+    "cached_generation": {
+      "prompt_tokens": 512,
+      "new_tokens": 2
+    },
+    "training": [
+      {
+        "tokens": 512,
+        "supervision": "all_tokens",
+        "loss": 0.352508544921875,
+        "nonzero_gradient_tensors": 39,
+        "seconds": 4.2912084790000335,
+        "updated_parameter_tensors": 273,
+        "peak_allocated_gib": 7.914560794830322,
+        "ok": true
+      },
+      {
+        "tokens": 512,
+        "supervision": "last_32_tokens",
+        "loss": 0.05604144185781479,
+        "nonzero_gradient_tensors": 273,
+        "seconds": 4.089711561999934,
+        "updated_parameter_tensors": 273,
+        "peak_allocated_gib": 6.9727067947387695,
+        "ok": true
+      }
+    ],
+    "completed": true
+  },
+  "vllm": {
+    "torch": "2.11.0+cu130",
+    "transformers": "5.15.1",
+    "tensor_parallel_size": 1,
+    "isolated_nvml_fallback": true,
+    "stages": {
+      "reference": true,
+      "engine_loaded": true
+    },
+    "reference_tokens": [
+      [
+        17,
+        11,
+        220,
+        17,
+        10,
+        16,
+        28,
+        18
+      ],
+      [
+        271,
+        1596,
+        1144,
+        310,
+        10033,
+        3069,
+        279,
+        2542
+      ]
+    ],
+    "elapsed_seconds": 324.740627187,
+    "vllm": "0.23.0",
+    "generation_wall_seconds": 136.071215291,
+    "vllm_tokens": [
+      [
+        17,
+        11,
+        220,
+        17,
+        10,
+        16,
+        28,
+        18
+      ],
+      [
+        271,
+        1596,
+        1144,
+        310,
+        10033,
+        3069,
+        279,
+        2542
+      ]
+    ],
+    "first_token_matches": [
+      true,
+      true
+    ],
+    "all_tokens_match": true,
+    "repeated_generation_identical": true,
+    "single_sequence_matches_batch": true,
+    "prompt_tokens_preserved": [
+      true,
+      true
+    ],
+    "initialization_and_generation_ok": true,
+    "ok": true
+  },
+  "vllm_environment": {
+    "version": "0.23.0",
+    "outside_declared_project_range": true,
+    "nvml_fallback_manifest": "wsl_vllm_environment_patch.json",
+    "VLLM_USE_FLASHINFER_SAMPLER": "0",
+    "compiler": "isolated conda-forge GCC 16.2.0",
+    "failed_attempts": [
+      {
+        "record": "vllm_acceptance.json",
+        "root_cause": "C compiler missing"
+      },
+      {
+        "record": "vllm_acceptance_retry.json",
+        "root_cause": "FlashInfer sampler requires absent nvcc/CUDA toolkit"
+      }
+    ]
+  },
+  "training_32k_interruption": {
+    "tokens": 32768,
+    "supervision": "last_32_tokens",
+    "ok": false,
+    "reason": "bounded_training_probe_interrupted",
+    "elapsed_since_last_completed_stage_seconds": 237.4785614013672,
+    "signal": "SIGTERM after SIGINT did not interrupt the backward pass",
+    "termination_elapsed_since_last_completed_stage_seconds": 318.76558351516724
+  },
+  "final_integrity": {
+    "verified_date": "2026-11-25",
+    "source_model_weights": "F:/MixT-2611v2/model.safetensors",
+    "source_weights_sha256": "9bca2dc3348fd7198fd0ea77dc110fbe5ab710547dc90ea9f6011923d88d4407",
+    "matches_original_source_fingerprint": true,
+    "frozen_workspace": "D:/AI/MOTE",
+    "frozen_branch": "codex/qwen-joint-pro4000",
+    "frozen_commit": "860426ce3df30f5c2a74a030a43f22e3a76247c6",
+    "frozen_worktree_clean": true,
+    "gpu_probe_processes_completed": true,
+    "implementation_commit_pushed": "f6b6e9d0fd94ef48b7802b0ae55a6f8a3fca3f92",
+    "implementation_remote_branch": "mote-quantum"
+  },
+  "multi_gpu_evidence": {
+    "windows_ranks": [
+      {
+        "rank": 0,
+        "device": 0,
+        "gpu": "Tesla V100-SXM2-16GB",
+        "native_bf16": false,
+        "ok": false,
+        "error": "RuntimeError('makeDeviceForHostname(): unsupported gloo device')"
+      },
+      {
+        "rank": 1,
+        "device": 1,
+        "gpu": "Tesla V100-SXM2-16GB",
+        "native_bf16": false,
+        "ok": false,
+        "error": "RuntimeError('makeDeviceForHostname(): unsupported gloo device')"
+      }
+    ],
+    "windows_uv_ranks": [
+      {
+        "rank": 0,
+        "device": 0,
+        "gpu": "Tesla V100-SXM2-16GB",
+        "native_bf16": false,
+        "ok": false,
+        "error": "RuntimeError('makeDeviceForHostname(): unsupported gloo device')"
+      },
+      {
+        "rank": 1,
+        "device": 1,
+        "gpu": "Tesla V100-SXM2-16GB",
+        "native_bf16": false,
+        "ok": false,
+        "error": "RuntimeError('makeDeviceForHostname(): unsupported gloo device')"
+      }
+    ],
+    "wsl_visible_gpus": [
+      "NVIDIA RTX PRO 4000 Blackwell"
+    ],
+    "code_guards": [
+      "train/trainer.py: atomic checkpoints reject world_size > 1",
+      "train/sequence_parallel.py: validate_model rejects qwen3_5_text"
+    ]
+  }
+}

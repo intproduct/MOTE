@@ -1,6 +1,10 @@
+<style>body,h1,h2,h3,p,table,li,pre,code { font-family: "Times New Roman", "KaiTi", serif; }</style>
+
 # MixT-2611v2 与 mote-quantum 适配审查
 
 日期：2026-11-24（上海时间）
+
+本文保留适配前的审查结论与证据。后续实现已完成并发布，当前状态见 [适配说明](mixt_2611v2_adapter_20261125.md) 和 [本机 GPU 验收](mixt_2611v2_runtime_acceptance_20261125.md)。
 
 ## 结论
 

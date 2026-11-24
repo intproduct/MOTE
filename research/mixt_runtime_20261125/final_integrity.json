@@ -1,0 +1,13 @@
+{
+  "verified_date": "2026-11-25",
+  "source_model_weights": "F:/MixT-2611v2/model.safetensors",
+  "source_weights_sha256": "9bca2dc3348fd7198fd0ea77dc110fbe5ab710547dc90ea9f6011923d88d4407",
+  "matches_original_source_fingerprint": true,
+  "frozen_workspace": "D:/AI/MOTE",
+  "frozen_branch": "codex/qwen-joint-pro4000",
+  "frozen_commit": "860426ce3df30f5c2a74a030a43f22e3a76247c6",
+  "frozen_worktree_clean": true,
+  "gpu_probe_processes_completed": true,
+  "implementation_commit_pushed": "f6b6e9d0fd94ef48b7802b0ae55a6f8a3fca3f92",
+  "implementation_remote_branch": "mote-quantum"
+}

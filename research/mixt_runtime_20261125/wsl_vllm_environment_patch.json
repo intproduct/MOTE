@@ -1,0 +1,7 @@
+{
+  "source": "/home/frank_f/miniforge3/envs/sc-wsl/lib/python3.10/site-packages/vllm",
+  "isolated_copy": "/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm",
+  "source_cuda_sha256": "0b20548768277d6f7bbdf31a324c823388fcb9f504f109cd6859415924b4b9b2",
+  "patched_cuda_sha256": "2f4250745e05c232cf3b833cf98670342ff29055dacd215e45143082886feaed",
+  "change": "Use existing non-NVML CUDA backend when host NVML includes inaccessible TCC devices"
+}

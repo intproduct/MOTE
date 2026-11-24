@@ -1,0 +1,36 @@
+{
+  "torch": "2.11.0+cu130",
+  "transformers": "5.15.1",
+  "tensor_parallel_size": 1,
+  "isolated_nvml_fallback": true,
+  "stages": {
+    "reference": true
+  },
+  "reference_tokens": [
+    [
+      17,
+      11,
+      220,
+      17,
+      10,
+      16,
+      28,
+      18
+    ],
+    [
+      271,
+      1596,
+      1144,
+      310,
+      10033,
+      3069,
+      279,
+      2542
+    ]
+  ],
+  "elapsed_seconds": 187.33768466599997,
+  "vllm": "0.23.0",
+  "ok": false,
+  "error": "Engine core initialization failed. See root cause above. Failed core proc(s): {}",
+  "traceback": "Traceback (most recent call last):\n  File \"/mnt/c/Users/Frank F/.codex/worktrees/mixt-2611v2-adapter/MOTE/research/mixt_runtime_20261125/vllm_acceptance.py\", line 53, in main\n    engine = LLM(model=args.export, tokenizer=args.export, trust_remote_code=True, dtype=\"bfloat16\",\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/entrypoints/llm.py\", line 349, in __init__\n    self.llm_engine = LLMEngine.from_engine_args(\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/llm_engine.py\", line 170, in from_engine_args\n    return cls(\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/llm_engine.py\", line 104, in __init__\n    self.engine_core = EngineCoreClient.make_client(\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/core_client.py\", line 102, in make_client\n    return SyncMPClient(vllm_config, executor_class, log_stats)\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/tracing/otel.py\", line 178, in sync_wrapper\n    return func(*args, **kwargs)\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/core_client.py\", line 771, in __init__\n    super().__init__(\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/core_client.py\", line 570, in __init__\n    with launch_core_engines(\n  File \"/home/frank_f/miniforge3/envs/sc-wsl/lib/python3.10/contextlib.py\", line 142, in __exit__\n    next(self.gen)\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/utils.py\", line 1190, in launch_core_engines\n    wait_for_engine_startup(\n  File \"/home/frank_f/.cache/mixt-acceptance-20261125/overrides/vllm/v1/engine/utils.py\", line 1249, in wait_for_engine_startup\n    raise RuntimeError(\nRuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}\n"
+}

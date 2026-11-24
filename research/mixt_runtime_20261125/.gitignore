@@ -1,0 +1,2 @@
+# Keep full terminal diagnostics locally; publish structured results and probes.
+*.log

@@ -1,0 +1,70 @@
+{
+  "torch": "2.11.0+cu130",
+  "transformers": "5.15.1",
+  "tensor_parallel_size": 1,
+  "isolated_nvml_fallback": true,
+  "stages": {
+    "reference": true,
+    "engine_loaded": true
+  },
+  "reference_tokens": [
+    [
+      17,
+      11,
+      220,
+      17,
+      10,
+      16,
+      28,
+      18
+    ],
+    [
+      271,
+      1596,
+      1144,
+      310,
+      10033,
+      3069,
+      279,
+      2542
+    ]
+  ],
+  "elapsed_seconds": 324.740627187,
+  "vllm": "0.23.0",
+  "generation_wall_seconds": 136.071215291,
+  "vllm_tokens": [
+    [
+      17,
+      11,
+      220,
+      17,
+      10,
+      16,
+      28,
+      18
+    ],
+    [
+      271,
+      1596,
+      1144,
+      310,
+      10033,
+      3069,
+      279,
+      2542
+    ]
+  ],
+  "first_token_matches": [
+    true,
+    true
+  ],
+  "all_tokens_match": true,
+  "repeated_generation_identical": true,
+  "single_sequence_matches_batch": true,
+  "prompt_tokens_preserved": [
+    true,
+    true
+  ],
+  "initialization_and_generation_ok": true,
+  "ok": true
+}
