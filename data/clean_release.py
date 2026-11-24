@@ -116,9 +116,13 @@ def _normalize_messages(value: Any, role_map: Mapping[str, str], *, strip_html: 
             continue
         role = defaults.get(str(_first(item, "role", "from") or "").strip().lower(), str(_first(item, "role", "from") or "").strip().lower())
         content = normalize_governed_text(_first(item, "content", "value", "text"), strip_html=strip_html)
-        if role not in {"system", "user", "assistant", "tool"} or not content:
+        if role not in {"system", "user", "assistant", "tool"} or not (content or item.get("tool_calls") or item.get("reasoning_content")):
             continue
-        messages.append({"role": role, "content": content})
+        message = {"role": role, "content": content}
+        for key in ("reasoning_content", "tool_calls", "tool_call_id", "name"):
+            if key in item:
+                message[key] = item[key]
+        messages.append(message)
     return messages
 
 
@@ -173,6 +177,10 @@ def _canonicalize_row(row: Mapping[str, Any], source: Mapping[str, Any], row_ind
     }
     raw_content_hash = content_hash(raw_payload)
     normalized_content_hash = content_hash({"data_plane": plane, "content": normalized_content})
+    if row.get("tools") or any(set(message) - {"role", "content"} for message in messages):
+        # Tool calls and reasoning are training content even when content="".
+        normalized_content_hash = content_hash({"data_plane": plane, "messages": messages,
+                                               **({"tools": row["tools"]} if row.get("tools") else {})})
     record_id = content_hash({**source_identity, "pipeline_version": pipeline_version, "normalized_content_hash": normalized_content_hash})
     preserved = {key: row.get(key) for key in list(source.get("preserve_fields") or []) if key in row}
     external_scores: dict[str, float] = {}
@@ -197,6 +205,7 @@ def _canonicalize_row(row: Mapping[str, Any], source: Mapping[str, Any], row_ind
         "prompt": prompt,
         "response": response,
         "messages": messages,
+        **({"tools": row["tools"]} if row.get("tools") else {}),
         "normalized_content": normalized_content,
         "contamination_text": contamination_text,
         "raw_content_hash": raw_content_hash,

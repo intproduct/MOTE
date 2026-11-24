@@ -1,0 +1,76 @@
+{
+  "torch": "2.10.0+cu128",
+  "device": "cuda:2",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell",
+  "dtype": "bfloat16",
+  "attention": "sdpa",
+  "gate_arch": "linear",
+  "inference": [
+    {
+      "tokens": 512,
+      "seconds": 0.4690000000409782,
+      "finite": true,
+      "output_shape": [
+        1,
+        1,
+        248320
+      ],
+      "peak_allocated_gib": 6.504088401794434
+    },
+    {
+      "tokens": 4096,
+      "seconds": 1.7809999999590218,
+      "finite": true,
+      "output_shape": [
+        1,
+        1,
+        248320
+      ],
+      "peak_allocated_gib": 9.129719257354736
+    },
+    {
+      "tokens": 8192,
+      "seconds": 4.109000000171363,
+      "finite": true,
+      "output_shape": [
+        1,
+        1,
+        248320
+      ],
+      "peak_allocated_gib": 16.486286640167236
+    },
+    {
+      "tokens": 16384,
+      "ok": false,
+      "error": "out_of_memory",
+      "detail": "CUDA out of memory. Tried to allocate 16.00 GiB. GPU 2 has a total capacity of 23.89 GiB of which 12.86 GiB is free. Of the allocated memory 9.32 GiB is allocated by PyTorch, and 320.04 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    }
+  ],
+  "gpu_import_max_abs": 0.0,
+  "gpu_import_relative_l2": 0.0,
+  "gpu_import_bitwise_equal": true,
+  "elapsed_seconds": 31.968000000109896,
+  "cached_generation": {
+    "prompt_tokens": 8192,
+    "new_tokens": 2
+  },
+  "training": [
+    {
+      "tokens": 512,
+      "supervision": "all_tokens",
+      "loss": 0.3535613715648651,
+      "nonzero_gradient_tensors": 39,
+      "seconds": 2.7810000001918525,
+      "peak_allocated_gib": 7.907326698303223,
+      "ok": true
+    },
+    {
+      "tokens": 8192,
+      "supervision": "last_32_tokens",
+      "ok": false,
+      "error": "out_of_memory",
+      "detail": "CUDA out of memory. Tried to allocate 4.00 GiB. GPU 2 has a total capacity of 23.89 GiB of which 1.37 GiB is free. Of the allocated memory 20.39 GiB is allocated by PyTorch, and 696.27 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+    }
+  ],
+  "completed": true
+}

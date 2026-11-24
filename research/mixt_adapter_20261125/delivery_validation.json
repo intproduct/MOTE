@@ -1,0 +1,122 @@
+{
+  "import_verification": [
+    {
+      "tokens": 4,
+      "max_abs": 0.0,
+      "relative_l2": 0.0
+    },
+    {
+      "tokens": 12,
+      "max_abs": 0.0,
+      "relative_l2": 0.0
+    }
+  ],
+  "source_artifacts_unchanged": true,
+  "source_weights_sha256": {
+    "model.safetensors": "9bca2dc3348fd7198fd0ea77dc110fbe5ab710547dc90ea9f6011923d88d4407"
+  },
+  "controller_checkpoint_integrity": {
+    "ok": true,
+    "checkpoint_dir": "C:\\Users\\Frank F\\.codex\\worktrees\\mixt-2611v2-adapter\\MOTE\\outputs\\mixt_controller_acceptance\\controller_acceptance\\checkpoints\\checkpoint-1",
+    "errors": [],
+    "warnings": [],
+    "manifest": {
+      "format": "fitmotn_checkpoint_manifest_v1",
+      "complete": true,
+      "checkpoint_kind": "sft",
+      "update_step": 1,
+      "stage_name": "stage_b_taskaware",
+      "stage_boundary": false,
+      "created_at_unix": 1795538652.1319706,
+      "capabilities": {
+        "weights_resume": true,
+        "sft_exact_resume": true,
+        "rl_exact_resume": false,
+        "has_fitmotn_state": true,
+        "has_optimizer_state": true,
+        "has_scheduler_state": true,
+        "has_trainer_state": true,
+        "has_rng_state": true
+      },
+      "files": [
+        {
+          "path": "config.json",
+          "size_bytes": 2795,
+          "sha256": "9e5f7274fcc0c966b50628417ca2da3a3b1078d0aa04bdddd3c92796d98e298f"
+        },
+        {
+          "path": "fitmotn_state.json",
+          "size_bytes": 292800,
+          "sha256": "caad60eee10400e129c4011f1da2ea44b7d949e98cf0d304dff620e979845abc"
+        },
+        {
+          "path": "fitmotn_state.pt",
+          "size_bytes": 228427483,
+          "sha256": null
+        },
+        {
+          "path": "generation_config.json",
+          "size_bytes": 174,
+          "sha256": "f3b4e70a9beb881d33377d4b26f965779b9fe3dd6812527074948e7e663a97d0"
+        },
+        {
+          "path": "mixt_projector.py",
+          "size_bytes": 13519,
+          "sha256": "78643672fcb9b5716bcc34418c710069b3d45b348500a7d6f7c1c91f4ece218a"
+        },
+        {
+          "path": "model.safetensors",
+          "size_bytes": 6799500302,
+          "sha256": null
+        },
+        {
+          "path": "modeling_qwen3_5_mixt.py",
+          "size_bytes": 5783,
+          "sha256": "88bab60a97f538e817224e920d1353716b5c1df0556772c015bed8eaff9692ed"
+        },
+        {
+          "path": "optimizer.pt",
+          "size_bytes": 5177611,
+          "sha256": "1bc23e263596d77a28ee1cb3652dc3411523003607877c6f8fa1dddff4df6d9e"
+        },
+        {
+          "path": "rng_state.pth",
+          "size_bytes": 14581,
+          "sha256": "1807ae768234a56e18346f4d5a9b01a3ed06840951b80934641e6edd63940596"
+        },
+        {
+          "path": "scheduler.pt",
+          "size_bytes": 1465,
+          "sha256": "c678397db0eae4151d29dee020b58b35ac355052aad1cb2ccef1a626fe5df328"
+        },
+        {
+          "path": "trainer_state.json",
+          "size_bytes": 953,
+          "sha256": "c10db4edd0752f7245ea729d4ab2c16e91862620d3d80b89158463994d319376"
+        },
+        {
+          "path": "training_args.bin",
+          "size_bytes": 5329,
+          "sha256": "d09606618994b5a62f8a0f1f42658626c40f7dd333fcf9d7162a2e6c75b62e47"
+        }
+      ],
+      "extra": {
+        "trainer_global_step": 1
+      }
+    },
+    "capabilities": {
+      "weights_resume": true,
+      "sft_exact_resume": true,
+      "rl_exact_resume": false,
+      "has_fitmotn_state": true,
+      "has_optimizer_state": true,
+      "has_scheduler_state": true,
+      "has_trainer_state": true,
+      "has_rng_state": true
+    }
+  },
+  "trained_patch_reload_tensors_exact": true,
+  "updated_router_tensors": 78,
+  "trained_checkpoint_forward_finite": true,
+  "ok": true
+}

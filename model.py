@@ -327,3 +327,27 @@ class SparseMiXTFFNLayer(MOTNFFNLayer):
         y, _ = self.down_proj.forward_with_trace(h, trace=trace)
         trace(f"[SparseMiXTFFN] output={tuple(y.shape)} restore_dtype={in_dtype}")
         return y.to(dtype=in_dtype)
+
+
+class PretrainedMixTFFNLayer(SparseMiXTFFNLayer):
+    """Imported MixT FFN sharing the existing MoTE forward and diagnostics."""
+
+    def __init__(self, qwen_mlp, cfg, device, dtype=tc.float32, log=None, layer_idx=-1):
+        from .pretrained_mixt import PretrainedMixTLinear, PROJECTIONS
+        nn.Module.__init__(self)
+        native = cfg["pretrained_mixt"]
+        specs = native["projections"][str(layer_idx)]
+        self.hidden_size = int(specs["gate_proj"]["in_features"])
+        self.intermediate_size = int(specs["gate_proj"]["out_features"])
+        self.act = getattr(qwen_mlp, "act_fn", None) or nn.SiLU()
+        self.logger, self.layer_idx = log, int(layer_idx)
+        self.pretrained_mixt_train_scope = native.get("train_scope", "gate_only")
+        self.fitmotn_block_layout = {}
+        self.fitmotn_expert_warmup_state = {"enabled": False}
+        for name in PROJECTIONS:
+            source = getattr(qwen_mlp, name)
+            if (source.in_features, source.out_features) != (specs[name]["in_features"], specs[name]["out_features"]):
+                raise ValueError(f"MixT {name} dimensions disagree with the model")
+            setattr(self, name, PretrainedMixTLinear(
+                specs[name], cfg, device=device, dtype=dtype,
+                source=source if getattr(source, "is_mixt_projector", False) else None))

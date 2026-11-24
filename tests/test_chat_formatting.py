@@ -107,3 +107,30 @@ def test_raw_supervised_example_still_masks_prompt():
     assert labels[: len(tokenizer.encode("Question:\nq", add_special_tokens=False))] == [-100] * len(
         tokenizer.encode("Question:\nq", add_special_tokens=False)
     )
+
+
+class ZeroMaskTokenizer(FakeChatTokenizer):
+    def apply_chat_template(self, messages, **kwargs):
+        payload = super().apply_chat_template(messages, **kwargs)
+        if isinstance(payload, dict) and "assistant_tokens_mask" in payload:
+            payload["assistant_tokens_mask"] = [0] * len(payload["input_ids"])
+        return payload
+
+
+def test_zero_assistant_mask_falls_back_to_supervising_answer():
+    tokenizer = ZeroMaskTokenizer()
+    messages = build_reasoning_messages("q", target="A complete answer")
+    result = make_standard_chat_supervised_example(tokenizer, messages, max_len=4096)
+    labels = result["labels"].tolist()
+    assert sum(value != -100 for value in labels) > 1
+    assert labels[-1] == tokenizer.eos_token_id
+
+
+def test_zero_assistant_mask_cannot_silently_train_only_eos_on_tool_chat():
+    import pytest
+    messages = [{"role": "user", "content": "q"},
+                {"role": "assistant", "content": "call"},
+                {"role": "tool", "content": "result"},
+                {"role": "assistant", "content": "answer"}]
+    with pytest.raises(ValueError, match="multi-turn chat supervision"):
+        make_standard_chat_supervised_example(ZeroMaskTokenizer(), messages, max_len=4096)

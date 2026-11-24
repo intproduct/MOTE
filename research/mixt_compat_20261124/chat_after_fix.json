@@ -1,0 +1,21 @@
+{
+  "token_ids": {
+    "<|endoftext|>": 248044,
+    "<|im_start|>": 248045,
+    "<|im_end|>": 248046,
+    "<think>": 248068,
+    "</think>": 248069
+  },
+  "config_eos": 248044,
+  "generation_eos": 248044,
+  "tokenizer_eos": 248046,
+  "cases": {
+    "cot": {
+      "supervised_tokens": 12,
+      "supervised_text": "Add one and one.\n</think>\n\n2<|im_end|>\n<|im_end|>"
+    },
+    "tir": {
+      "error": "ValueError: multi-turn chat supervision requires a tokenizer that supports return_assistant_tokens_mask; refusing to supervise user/tool tokens"
+    }
+  }
+}

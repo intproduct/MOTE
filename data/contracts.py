@@ -130,9 +130,13 @@ class CanonicalSample:
                     raise DataContractError(ReasonCode.INVALID_SCHEMA, "each message must be a mapping")
                 role = normalize_inline_text(message.get("role"))
                 content = normalize_text(message.get("content"))
-                if role not in {"system", "user", "assistant", "tool"} or not content:
+                if role not in {"system", "user", "assistant", "tool"} or not (content or message.get("tool_calls") or message.get("reasoning_content")):
                     raise DataContractError(ReasonCode.INVALID_SCHEMA, "message role/content is invalid")
-                messages.append({"role": role, "content": content})
+                normalized = {"role": role, "content": content}
+                for key in ("reasoning_content", "tool_calls", "tool_call_id", "name"):
+                    if key in message:
+                        normalized[key] = message[key]
+                messages.append(normalized)
         if not ((prompt and target) or messages):
             raise DataContractError(
                 ReasonCode.MISSING_CONTENT,
@@ -156,7 +160,7 @@ class CanonicalSample:
             prompt=prompt,
             target=target,
             messages=messages,
-            metadata=dict(row.get("metadata") or {}),
+            metadata={**dict(row.get("metadata") or {}), **({"tools": row["tools"]} if row.get("tools") else {})},
             problem=problem,
             reasoning=reasoning,
             final_answer=final_answer,
@@ -174,6 +178,7 @@ class CanonicalSample:
                     "problem": row.get("problem"),
                     "reasoning": row.get("reasoning"),
                     "final_answer": row.get("final_answer"),
+                    **({"tools": row["tools"]} if row.get("tools") else {}),
                 }
             ),
         )
@@ -193,7 +198,8 @@ class CanonicalSample:
                     "format_version": self.format_version,
                 }
             )
-        return content_hash({"prompt": self.prompt, "target": self.target, "messages": self.messages})
+        return content_hash({"prompt": self.prompt, "target": self.target, "messages": self.messages,
+                             **({"tools": self.metadata["tools"]} if self.metadata.get("tools") else {})})
 
     @property
     def normalized_problem_hash(self) -> str:

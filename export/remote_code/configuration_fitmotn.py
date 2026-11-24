@@ -25,6 +25,16 @@ GENERATION_CRITICAL_FIELDS = (
     "sliding_window",
     "rope_theta",
     "rope_scaling",
+    "layer_types",
+    "full_attention_interval",
+    "linear_conv_kernel_dim",
+    "linear_key_head_dim",
+    "linear_num_key_heads",
+    "linear_num_value_heads",
+    "linear_value_head_dim",
+    "mamba_ssm_dtype",
+    "partial_rotary_factor",
+    "rope_parameters",
 )
 
 

@@ -14,7 +14,7 @@ from typing import Any
 import torch
 from torch import nn
 
-from fitmotn.model import MOTNFFNLayer
+from fitmotn.model import MOTNFFNLayer, SparseMiXTFFNLayer, PretrainedMixTFFNLayer
 from fitmotn.patching import PROJ_NAMES, resolve_operator_block_layout
 from fitmotn.rl.vllm_qwen35_native import (
     Qwen35TextForCausalLM,
@@ -122,9 +122,12 @@ class FitMoTNNativeQwen35ForCausalLMV2(Qwen35TextForCausalLM):
                 "native FitMoTN adapter only supports qwen3_5_text exports; "
                 f"got {base_config.get('model_type')!r}"
             )
-        if patch_config.get("patch_backend", "motn") != "motn":
+        backend = patch_config.get("patch_backend", "motn")
+        ffn_types = {"motn": MOTNFFNLayer, "sparse_mixt": SparseMiXTFFNLayer,
+                     "pretrained_mixt": PretrainedMixTFFNLayer}
+        if backend not in ffn_types:
             raise ValueError(
-                "native FitMoTN adapter only supports patch_backend='motn'"
+                f"Unsupported native FitMoTN patch backend: {backend}"
             )
 
         native_config = Qwen3_5TextConfig(**base_config)
@@ -142,7 +145,7 @@ class FitMoTNNativeQwen35ForCausalLMV2(Qwen35TextForCausalLM):
             )
 
         for layer_index in layer_indices:
-            replacement = MOTNFFNLayer(
+            replacement = ffn_types[backend](
                 shape_only_qwen_mlp(hidden_size, intermediate_size),
                 patch_config,
                 device=device,
@@ -150,7 +153,7 @@ class FitMoTNNativeQwen35ForCausalLMV2(Qwen35TextForCausalLM):
                 layer_idx=layer_index,
             ).to(device)
             replacement.layer_idx = layer_index
-            replacement.patch_backend = "motn"
+            replacement.patch_backend = backend
             replacement.fitmotn_block_layout = {}
             for projection_name in PROJ_NAMES:
                 projection = getattr(replacement, projection_name)

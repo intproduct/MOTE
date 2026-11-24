@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Mapping, Optional, Sequence
+from functools import lru_cache
+import re
 
 import torch as tc
 
@@ -14,6 +16,25 @@ ASSISTANT_MASK_KEYS = (
     "assistant_token_mask",
     "assistant_masks",
 )
+
+
+@lru_cache(maxsize=32)
+def supervision_chat_template(template: str) -> str:
+    """Annotate the native Qwen3.5/MixT assistant branch without changing text.
+
+    Restrict the rewrite to the recognized template structure. The enclosing
+    generation block covers thinking, tool calls and the assistant terminator;
+    user and tool-response branches remain outside it.
+    """
+    if re.search(r"\{%[-+]?\s*generation\b", template):
+        return template
+    start = '{%- elif message.role == "assistant" %}'
+    end = '{%- elif message.role == "tool" %}'
+    if (template.count(start) == 1 and template.count(end) == 1 and
+            "ns.last_query_index" in template and "<tool_response>" in template and
+            template.index(start) < template.index(end)):
+        return template.replace(start, start + "{%- generation -%}").replace(end, "{%- endgeneration -%}" + end)
+    return template
 
 
 def tokenizer_supports_chat_template(tokenizer) -> bool:
@@ -128,7 +149,13 @@ def make_standard_chat_supervised_example(
     **extra_kwargs,
 ) -> Dict[str, Any]:
     require_chat_template(tokenizer)
-    full_messages = [dict(msg) for msg in messages if msg.get("content") is not None]
+    full_messages = [dict(msg, content=msg.get("content") or "") for msg in messages
+                     if msg.get("content") is not None or msg.get("tool_calls") or msg.get("reasoning_content")]
+    template = getattr(tokenizer, "chat_template", None)
+    if isinstance(template, str) and "chat_template" not in extra_kwargs:
+        annotated = supervision_chat_template(template)
+        if annotated != template:
+            extra_kwargs["chat_template"] = annotated
     tokenized = None
     try:
         tokenized = apply_standard_chat_template(
@@ -144,9 +171,12 @@ def make_standard_chat_supervised_example(
     except (TypeError, ValueError):
         tokenized = None
 
-    if isinstance(tokenized, Mapping) and _extract_assistant_mask(tokenized) is not None:
+    assistant_mask = _extract_assistant_mask(tokenized) if isinstance(tokenized, Mapping) else None
+    # HF can return an all-zero mask when the template has no generation tags.
+    # Treat that as unavailable: appending EOS must not turn an entirely masked
+    # answer into an apparently valid one-token training example.
+    if assistant_mask is not None and any(assistant_mask):
         input_ids = _as_list(tokenized.get("input_ids"))
-        assistant_mask = _extract_assistant_mask(tokenized) or []
         labels = [tok if idx < len(assistant_mask) and int(assistant_mask[idx]) else -100 for idx, tok in enumerate(input_ids)]
     else:
         assistant_idx = next((idx for idx, msg in enumerate(full_messages) if str(msg.get("role", "")).lower() == "assistant"), None)
@@ -186,7 +216,11 @@ def make_standard_chat_supervised_example(
         labels = [-100] * prefix_len + input_ids[prefix_len:]
 
     eos_id = getattr(tokenizer, "eos_token_id", None)
-    if add_eos and eos_id is not None and (not input_ids or int(input_ids[-1]) != int(eos_id)):
+    already_terminated = bool(input_ids and eos_id is not None and int(input_ids[-1]) == int(eos_id))
+    if not already_terminated and eos_id is not None and eos_id in input_ids and hasattr(tokenizer, "decode"):
+        last_eos = len(input_ids) - 1 - input_ids[::-1].index(eos_id)
+        already_terminated = not tokenizer.decode(input_ids[last_eos + 1:], skip_special_tokens=False).strip()
+    if add_eos and eos_id is not None and not already_terminated:
         input_ids.append(int(eos_id))
         labels.append(int(eos_id))
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import copy
 from typing import Any, Mapping
 
 from .text_normalization import normalize_text
@@ -13,6 +14,7 @@ DEFAULT_ROLE_MAP = {
     "assistant": "assistant",
     "model": "assistant",
     "system": "system",
+    "tool": "tool",
 }
 
 
@@ -54,14 +56,18 @@ def _message_from_mapping(
 ) -> dict[str, str] | None:
     role = _normalize_role(msg.get(role_key, msg.get("role", msg.get("from"))), role_map)
     content = _as_text(msg.get(content_key, msg.get("content", msg.get("value"))))
-    if role not in {"user", "assistant", "system"} or not content:
+    if role not in {"user", "assistant", "system", "tool"} or not (content or msg.get("tool_calls") or msg.get("reasoning_content")):
         return None
-    return {"role": role, "content": content}
+    result = {"role": role, "content": content}
+    for key in ("reasoning_content", "tool_calls", "tool_call_id", "name"):
+        if key in msg:
+            result[key] = copy.deepcopy(msg[key])
+    return result
 
 
 def _finalize_messages(messages: list[dict[str, str]], *, skip_if_no_assistant: bool, skip_empty: bool) -> list[dict[str, str]] | None:
     if skip_empty:
-        messages = [msg for msg in messages if _as_text(msg.get("content"))]
+        messages = [msg for msg in messages if _as_text(msg.get("content")) or msg.get("tool_calls") or msg.get("reasoning_content")]
     if not messages:
         return None
     if skip_if_no_assistant and not any(msg.get("role") == "assistant" for msg in messages):

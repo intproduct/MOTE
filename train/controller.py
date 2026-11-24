@@ -34,6 +34,7 @@ from ..eval.runner import run_eval_tasks
 from ..eval.config_utils import resolve_task_eval_settings
 from ..eval.metrics import build_early_stop_record
 from ..init.approx import collect_dense_ffn_targets, run_approx_init
+from ..pretrained_mixt import resolve_mixt_layers
 from ..patching import (
     build_patch_model_config,
     configure_motn_expert_warmup_scaling,
@@ -174,6 +175,38 @@ def _current_structure_summary(fit_cfg, layer_idxs: List[int]) -> Dict[str, Any]
     }
 
 
+def _allows_native_routing_change(fit_cfg, motn_cfg):
+    return (motn_cfg.get("patch_backend") == "pretrained_mixt" and
+            not getattr(fit_cfg.train, "resume_checkpoint_from", None) and
+            "pretrained_mixt" in set(getattr(fit_cfg, "_explicit_model_keys", set()) or set()) and
+            fit_cfg.model.pretrained_mixt.get("uniform_init") is False)
+
+
+def _apply_native_resume_options(fit_cfg, motn_cfg):
+    explicit = set(getattr(fit_cfg, "_explicit_model_keys", set()) or set())
+    if "pretrained_mixt" not in explicit:
+        return
+    requested = dict(fit_cfg.model.pretrained_mixt)
+    saved = dict(motn_cfg.get("pretrained_mixt") or {})
+    allow_routing_change = _allows_native_routing_change(fit_cfg, motn_cfg)
+    for name, default in (("version", 1), ("router_input_policy", "main"), ("uniform_init", True)):
+        if name in requested and requested[name] != saved.get(name, default):
+            if name != "uniform_init" or not allow_routing_change:
+                raise ValueError(f"Resume native MixT {name} differs from the saved layout")
+    scope = requested.get("train_scope", saved.get("train_scope", "gate_only"))
+    if getattr(fit_cfg.train, "resume_checkpoint_from", None) and scope != saved.get("train_scope", "gate_only"):
+        raise ValueError("Exact resume requires the saved train_scope; use resume_weights_from to change it")
+    saved["train_scope"] = scope
+    if allow_routing_change:
+        # Routing changes keep every trained tensor, but intentionally change
+        # the function. Only weight continuation may opt into this new stage.
+        saved["uniform_init"] = False
+        for name in ("gate_type", "topk"):
+            if name in explicit:
+                motn_cfg[name] = getattr(fit_cfg.model, name)
+    motn_cfg["pretrained_mixt"] = saved
+
+
 def _validate_resume_structure(
     fit_cfg,
     metadata: Dict[str, Any],
@@ -220,13 +253,19 @@ def _validate_resume_structure(
             motn_cfg.get("sparse_mixt"),
         ),
     ]
+    if motn_cfg.get("patch_backend") == "pretrained_mixt":
+        for name in ("d", "gate_arch", "gate_type", "gate_hidden_dim", "gate_norm", "gate_quantum", "gate_mps"):
+            checks.append((name, name, getattr(fit_cfg.model, name, None), motn_cfg.get(name)))
     conflicts = []
     for config_key, label, current_value, ckpt_value in checks:
+        if config_key in {"gate_type", "topk"} and _allows_native_routing_change(fit_cfg, motn_cfg):
+            continue
         if config_key in explicit_model_keys and ckpt_value is not None and current_value != ckpt_value:
             conflicts.append(f"{label}: config={current_value!r} checkpoint={ckpt_value!r}")
 
     if "layers_to_patch" in explicit_model_keys:
-        current_layers = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
+        current_layers = (list(ckpt_layer_idxs) if str(fit_cfg.model.layers_to_patch) == "mixt"
+                          else resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch))
         if list(current_layers) != list(ckpt_layer_idxs):
             is_strict_superset = (
                 allow_layer_expansion
@@ -312,12 +351,14 @@ def _set_trainable_patch_layers(model, selected_layer_idxs: List[int], all_layer
             f"trainable patched layers must be a subset of patched layers: selected={sorted(selected)} patched={sorted(patched)}"
         )
     seen = set()
+    set_trainable_patch_only(model)
     for layer_idx, module in iter_patched_layers(model):
         layer_idx = int(layer_idx)
         seen.add(layer_idx)
-        requires_grad = layer_idx in selected
-        for parameter in module.parameters():
-            parameter.requires_grad_(requires_grad)
+        module.fitmotn_training_selected = layer_idx in selected
+        if layer_idx not in selected:
+            for parameter in module.parameters():
+                parameter.requires_grad_(False)
     if seen != patched:
         raise RuntimeError(f"patched layer discovery mismatch: discovered={sorted(seen)} expected={sorted(patched)}")
     summary = {
@@ -529,6 +570,12 @@ def _validate_kd_tokenizer_identity(student_tokenizer, teacher_tokenizer) -> Dic
     }
 
 
+def _build_training_pools(data_cfg, stage_plan, logger):
+    needs_pretrain = any(stage.pretrain_ratio > 0 and stage.updates > 0 for stage in stage_plan.stages)
+    pretrain = build_pretrain_tasks(data_cfg, logger=logger) if needs_pretrain else []
+    return pretrain, build_task_mixture_tasks(data_cfg, logger=logger)
+
+
 def run_fitmotn_training(fit_cfg):
     stage_b_mode = str(getattr(fit_cfg.train, "stage_b_mode", "mixed"))
     reasoning_supervision_mode = str(getattr(fit_cfg.data, "reasoning_supervision_mode", "answer_only"))
@@ -582,12 +629,21 @@ def run_fitmotn_training(fit_cfg):
     allow_non_primary_backend_skip = str(fit_cfg.eval.eval_backend) == "both" and str(fit_cfg.eval.primary_eval_backend) != "evalscope"
 
     device = tc.device(fit_cfg.model.device)
+    attention_backend = getattr(fit_cfg.model, "attn_implementation", None)
+    if resume_metadata is not None:
+        saved_attention = (resume_metadata.get("attn_implementation") or
+                           _metadata_model_cfg(resume_metadata).get("attn_implementation"))
+        if (getattr(fit_cfg.train, "resume_checkpoint_from", None) and saved_attention and
+                attention_backend and saved_attention != attention_backend):
+            raise ValueError("Exact resume requires the saved attention implementation")
+        attention_backend = attention_backend or saved_attention
     model, tokenizer, model_dtype = load_causal_lm_and_tokenizer(
         fit_cfg.model.model_path,
         device=device,
         trust_remote_code=fit_cfg.model.trust_remote_code,
         torch_dtype=fit_cfg.model.torch_dtype,
         use_cache=False,
+        attn_implementation=attention_backend,
     )
     logger.info("[Runtime] resolved_model_dtype=%s", dtype_to_name(model_dtype))
     logger.info(
@@ -599,8 +655,8 @@ def run_fitmotn_training(fit_cfg):
         bool(getattr(tokenizer, "chat_template", None)),
     )
 
-    pretrain_tasks = build_pretrain_tasks(fit_cfg.data, logger=logger)
-    task_tasks = build_task_mixture_tasks(fit_cfg.data, logger=logger)
+    stage_plan = build_stage_plan(fit_cfg.train)
+    pretrain_tasks, task_tasks = _build_training_pools(fit_cfg.data, stage_plan, logger)
     if bool(getattr(fit_cfg.data, "use_mmlu_train", False)) and str(getattr(fit_cfg.data, "mmlu_train_split", "auxiliary_train")) != "auxiliary_train":
         logger.warning(
             "[Data] skip MMLU training split=%s because only auxiliary_train is allowed for training; eval split=%s remains unchanged",
@@ -608,7 +664,6 @@ def run_fitmotn_training(fit_cfg):
             getattr(fit_cfg.data, "mmlu_split", None),
         )
     logger.info("[Data] pretrain_tasks=%s task_tasks=%s", [task.name for task in pretrain_tasks], [task.name for task in task_tasks])
-    stage_plan = build_stage_plan(fit_cfg.train)
     stage_state = MutableStageState(stage_plan)
     logger.info(
         "[StagePlan] actual_total_updates=%s stage_a_updates=%s stage_b_updates=%s resume=%s stage2_only_on_resume=%s",
@@ -715,7 +770,7 @@ def run_fitmotn_training(fit_cfg):
             json.dumps(to_jsonable(_metadata_structure_summary(resume_metadata, checkpoint_layer_idxs, motn_cfg)), ensure_ascii=False),
         )
         if resume_expand_layers:
-            layer_idxs = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
+            layer_idxs = resolve_mixt_layers(model, fit_cfg.model.layers_to_patch)
             new_layer_idxs = [
                 idx
                 for idx in layer_idxs
@@ -725,7 +780,7 @@ def run_fitmotn_training(fit_cfg):
                 raise ValueError(
                     "train.resume_expand_layers=true requires model.layers_to_patch to be a strict superset of checkpoint layers"
                 )
-            dense_targets = collect_dense_ffn_targets(model, new_layer_idxs)
+            dense_targets = collect_dense_ffn_targets(model, new_layer_idxs) if fit_cfg.approx_init.enabled else None
             logger.info(
                 "[Resume] progressive expansion checkpoint_layers=%s target_layers=%s new_layers=%s",
                 checkpoint_layer_idxs,
@@ -737,14 +792,26 @@ def run_fitmotn_training(fit_cfg):
             dense_targets = None
         resume_layer_idxs = list(checkpoint_layer_idxs)
     else:
-        layer_idxs = resolve_layer_idxs(n_layers, fit_cfg.model.layers_to_patch)
-        dense_targets = collect_dense_ffn_targets(model, layer_idxs)
         motn_cfg = build_patch_model_config(fit_cfg)
         patch_backend = str(motn_cfg.get("patch_backend", patch_backend) or "motn").lower()
+        layer_idxs = resolve_mixt_layers(model, fit_cfg.model.layers_to_patch)
+        if patch_backend == "pretrained_mixt" and fit_cfg.approx_init.enabled:
+            raise ValueError("pretrained_mixt imports trained weights; set approx_init.enabled=false")
+        dense_targets = collect_dense_ffn_targets(model, layer_idxs) if fit_cfg.approx_init.enabled else None
+    if patch_backend == "pretrained_mixt":
+        if is_resume_training:
+            _apply_native_resume_options(fit_cfg, motn_cfg)
+        if fit_cfg.approx_init.enabled or getattr(fit_cfg.approx_init, "expert_warmup_scaling_enabled", False):
+            raise ValueError("Native MixT requires approximation and random-expert warmup scaling disabled")
+        if int(fit_cfg.train.gate_freeze_steps) > 0 and motn_cfg.get("pretrained_mixt", {}).get("train_scope", "gate_only") == "gate_only":
+            raise ValueError("gate_only training requires train.gate_freeze_steps=0")
     if bool(getattr(fit_cfg.train, "gradient_checkpointing", False)):
         if not hasattr(model, "gradient_checkpointing_enable"):
             raise RuntimeError("gradient_checkpointing=true but model does not support it")
-        model.gradient_checkpointing_enable()
+        if patch_backend == "pretrained_mixt":
+            model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        else:
+            model.gradient_checkpointing_enable()
         if hasattr(model, "config"):
             model.config.use_cache = False
         logger.info("[Checkpointing] gradient_checkpointing=true use_cache=false")
@@ -832,6 +899,7 @@ def run_fitmotn_training(fit_cfg):
     runtime_state["baseline_small_summary"] = None if baseline_small is None else to_jsonable(baseline_small.get("summary"))
     runtime_state["baseline_final_summary"] = None if baseline_final is None else to_jsonable(baseline_final.get("summary"))
     runtime_state["resolved_model_dtype"] = dtype_to_name(model_dtype)
+    runtime_state["attn_implementation"] = getattr(model.config, "_attn_implementation", None)
     runtime_state["amp_enabled"] = bool(fit_cfg.model.use_amp and device.type == "cuda")
     runtime_state["approx_init_summary"] = None
     runtime_state["is_resume_training"] = bool(is_resume_training)

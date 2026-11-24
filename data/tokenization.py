@@ -72,8 +72,8 @@ def make_causal_lm_example_from_text(tokenizer, text: str, max_len: int, add_eos
     }
 
 
-def make_chat_supervised_example(tokenizer, messages: List[Dict[str, str]], max_len: int, add_eos: bool = True) -> Dict[str, Any]:
-    return make_standard_chat_supervised_example(tokenizer, messages=messages, max_len=max_len, add_eos=add_eos)
+def make_chat_supervised_example(tokenizer, messages: List[Dict[str, Any]], max_len: int, add_eos: bool = True, **kwargs) -> Dict[str, Any]:
+    return make_standard_chat_supervised_example(tokenizer, messages=messages, max_len=max_len, add_eos=add_eos, **kwargs)
 
 
 def build_example_from_token_ids(token_ids: List[int], max_len: int, eos_id: Optional[int] = None) -> Dict[str, tc.Tensor]:

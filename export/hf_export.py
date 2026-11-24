@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.resources as resources
 import json
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -169,6 +170,11 @@ def _is_allowed_tied_weight_miss(key: str, wrapper: Any) -> bool:
 
 
 def _load_state_into_wrapper(wrapper: Any, restored_model: Any) -> tuple[list[str], list[str]]:
+    if getattr(getattr(wrapper, "config", None), "patch_backend", None) == "pretrained_mixt":
+        source_parameters = dict(restored_model.named_parameters())
+        for name, parameter in wrapper.named_parameters():
+            if name in source_parameters:
+                parameter.data = parameter.data.to(dtype=source_parameters[name].dtype)
     result = wrapper.load_state_dict(_canonical_wrapper_state_dict(wrapper, restored_model), strict=False)
     if hasattr(result, "missing_keys"):
         missing = list(result.missing_keys)
@@ -245,12 +251,23 @@ def export_fitmotn_hf_roundtrip(
         fitmotn_disable_usage_tracking=True,
         architectures=["FitMoTNForCausalLM"],
         use_cache=True,
+        fitmotn_attention_implementation=getattr(restored_model.config, "_attn_implementation", "eager"),
     )
     for field_name in HYBRID_CACHE_CONFIG_FIELDS:
         if field_name in base_cfg:
             setattr(config, field_name, base_cfg[field_name])
-    wrapper = FitMoTNForCausalLM(config)
+    if patch_backend == "pretrained_mixt":
+        from transformers.initialization import no_init_weights
+        initialization = no_init_weights()
+    else:
+        initialization = nullcontext()
+    # Every native parameter is replaced below, with strict key verification.
+    # Avoid initializing billions of temporary dense backbone parameters.
+    with initialization:
+        wrapper = FitMoTNForCausalLM(config)
     missing, unexpected = _load_state_into_wrapper(wrapper, restored_model)
+    if patch_backend == "pretrained_mixt" and (missing or unexpected):
+        raise RuntimeError(f"Native MixT export weight mismatch: missing={missing}, unexpected={unexpected}")
     wrapper.eval()
 
     output_path.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,9 @@
+{
+  "tokens": 32768,
+  "supervision": "last_32_tokens",
+  "ok": false,
+  "reason": "bounded_training_probe_interrupted",
+  "elapsed_since_last_completed_stage_seconds": 237.4785614013672,
+  "signal": "SIGTERM after SIGINT did not interrupt the backward pass",
+  "termination_elapsed_since_last_completed_stage_seconds": 318.76558351516724
+}

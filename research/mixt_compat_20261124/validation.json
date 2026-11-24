@@ -1,0 +1,11 @@
+{
+  "base_commit": "99d8876c364d22e3b1640120f1ea42fe6fc38556",
+  "test_command": "python -m pytest tests/test_chat_formatting.py tests/test_native_mixt_guard.py tests/test_sparse_mixt.py tests/test_quantum_gate.py -q",
+  "tests_passed": 53,
+  "warnings": 2,
+  "test_seconds": 3.11,
+  "production_importer_complete": false,
+  "post_training_started": false,
+  "source_checkpoint_modified": false,
+  "typst_compiler_available": false
+}

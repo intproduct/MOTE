@@ -1,0 +1,13 @@
+{
+  "export_missing": [],
+  "export_unexpected": [],
+  "hf_reload_keys_exact": true,
+  "router_dtype": "torch.float32",
+  "hf_reload_logits_max_abs": 0.0,
+  "hf_reload_logits_relative_l2": 0.0,
+  "generated_token_count": 3,
+  "greedy_tokens_identical_to_partner": true,
+  "first_generated_token_matches_full_prompt": true,
+  "ok": true,
+  "elapsed_seconds": 80.68799999984913
+}

@@ -1,0 +1,21 @@
+{
+  "raw_restore_max_abs": 0.0,
+  "eos_ids": [
+    248044,
+    248046
+  ],
+  "elapsed_seconds": 233.2970000000205,
+  "tir": {
+    "rendered_bytes_identical": true,
+    "supervised_tokens": 57,
+    "tool_response_masked": true,
+    "reasoning_preserved": true,
+    "no_extra_eos": true
+  },
+  "training_losses": [
+    2.3702943325042725,
+    2.3702943325042725
+  ],
+  "router_nonzero_gradient_tensors_after_step2": 78,
+  "trainable_parameters": 639015
+}

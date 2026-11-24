@@ -64,7 +64,11 @@ def _base_config_from_dict(base_model_config: dict[str, Any]):
             f"Installed transformers does not support base model_type={model_type!r}; "
             "install a transformers version that includes this architecture."
         ) from exc
-    return config_cls.from_dict(dict(base_model_config))
+    # The registered backbone is rebuilt locally; custom FFNs are restored from
+    # fitmotn_patch_config. A partner auto_map may refer to unavailable files.
+    values = dict(base_model_config)
+    values.pop("auto_map", None)
+    return config_cls.from_dict(values)
 
 
 def _propagate_runtime_config(base_config: Any, config: FitMoTNConfig) -> Any:
@@ -87,6 +91,15 @@ def _propagate_runtime_config(base_config: Any, config: FitMoTNConfig) -> Any:
         except Exception:
             pass
     return base_config
+
+
+def _configure_native_attention(wrapper, config):
+    if config.patch_backend == "pretrained_mixt" and config.base_model_config.get("model_type") == "qwen3_5_text":
+        wrapper._supports_sdpa = True
+        # Honor an explicit HF loading override, then the exported computation
+        # setting. HF omits its private attention field from serialized configs.
+        if getattr(config, "_attn_implementation", None) is None:
+            config._attn_implementation = getattr(config, "fitmotn_attention_implementation", "eager")
 
 
 def _build_patched_decoder(config: FitMoTNConfig) -> nn.Module:
@@ -128,6 +141,12 @@ def _build_patched_decoder(config: FitMoTNConfig) -> nn.Module:
 
 def _build_lm_head(config: FitMoTNConfig, decoder: nn.Module) -> nn.Module:
     base_config = _propagate_runtime_config(_base_config_from_dict(config.base_model_config), config)
+    if config.patch_backend == "pretrained_mixt" and base_config.model_type == "qwen3_5_text":
+        # This backbone uses an ordinary bias-free vocabulary projection. A
+        # second full random backbone is unnecessary just to obtain its head.
+        ref = next(decoder.parameters())
+        return nn.Linear(base_config.hidden_size, base_config.vocab_size, bias=False,
+                         device=ref.device, dtype=ref.dtype)
     try:
         causal_lm = AutoModelForCausalLM.from_config(base_config)
     except Exception as exc:
@@ -198,7 +217,10 @@ class FitMoTNModel(PreTrainedModel):
     supports_gradient_checkpointing = True
 
     def __init__(self, config: FitMoTNConfig) -> None:
+        _configure_native_attention(self, config)
         super().__init__(config)
+        if config.patch_backend == "pretrained_mixt":
+            self._keep_in_fp32_modules = ["gate"]
         self.model = _build_patched_decoder(config)
         # PreTrainedModel.post_init() does more than initialize weights: recent
         # Transformers versions aggregate the child model's TP/PP plans here.
@@ -239,7 +261,10 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
     supports_gradient_checkpointing = True
 
     def __init__(self, config: FitMoTNConfig) -> None:
+        _configure_native_attention(self, config)
         super().__init__(config)
+        if config.patch_backend == "pretrained_mixt":
+            self._keep_in_fp32_modules = ["gate"]
         self.model = _build_patched_decoder(config)
         self.lm_head = _build_lm_head(config, self.model)
         self._sync_tied_weight_keys()
@@ -264,15 +289,22 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
             return tied
         return {str(key): True for key in tied}
 
-    def forward(self, *args: Any, labels: torch.Tensor | None = None, return_dict: bool | None = None, **kwargs: Any):
+    def forward(self, *args: Any, labels: torch.Tensor | None = None, return_dict: bool | None = None,
+                logits_to_keep: int | torch.Tensor = 0, **kwargs: Any):
         return_dict = return_dict if return_dict is not None else getattr(self.config, "use_return_dict", True)
         decoder_outputs = self.model(*args, return_dict=return_dict, **kwargs)
         hidden_states = decoder_outputs[0]
-        logits = self.lm_head(hidden_states)
+        if isinstance(logits_to_keep, int) and logits_to_keep < 0:
+            raise ValueError("logits_to_keep must be nonnegative")
+        positions = slice(-logits_to_keep, None) if isinstance(logits_to_keep, int) else logits_to_keep
+        # Generation and RL often need only the last few vocabulary projections.
+        # Projecting every position can exhaust memory for long MixT prompts.
+        logits = self.lm_head(hidden_states[:, positions, :])
         loss = None
         if labels is not None:
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
+            shift_logits = logits.float().contiguous()
+            next_labels = torch.nn.functional.pad(labels, (0, 1), value=-100)[..., 1:]
+            shift_labels = next_labels[:, positions].contiguous()
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
         if not return_dict:
@@ -287,10 +319,15 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
         )
 
     def prepare_inputs_for_generation(self, input_ids, past_key_values=None, attention_mask=None, inputs_embeds=None, **kwargs):
-        if past_key_values is not None:
+        # Generation may supply an allocated but empty hybrid cache at prefill.
+        # Cropping that input to one token silently discards the prompt.
+        has_past = past_key_values is not None
+        if has_past and hasattr(past_key_values, "get_seq_length"):
+            has_past = past_key_values.get_seq_length() > 0
+        if has_past:
             input_ids = input_ids[:, -1:]
         model_inputs = {"input_ids": input_ids}
-        if inputs_embeds is not None and past_key_values is None:
+        if inputs_embeds is not None and not has_past:
             model_inputs = {"inputs_embeds": inputs_embeds}
         model_inputs.update(
             {
@@ -300,7 +337,12 @@ class FitMoTNForCausalLM(PreTrainedModel, GenerationMixin):
             }
         )
         if "position_ids" in kwargs:
-            model_inputs["position_ids"] = kwargs["position_ids"]
+            value = kwargs["position_ids"]
+            model_inputs["position_ids"] = value[..., -input_ids.shape[-1]:] if has_past and value is not None else value
+        if "cache_position" in kwargs:
+            model_inputs["cache_position"] = kwargs["cache_position"]
+        if "logits_to_keep" in kwargs:
+            model_inputs["logits_to_keep"] = kwargs["logits_to_keep"]
         return model_inputs
 
     def get_input_embeddings(self):

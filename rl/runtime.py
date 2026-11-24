@@ -19,6 +19,7 @@ from ..patching import (
     set_trainable_patch_only,
 )
 from ..runtime import dtype_to_name, load_causal_lm_and_tokenizer
+from ..pretrained_mixt import resolve_mixt_layers
 
 
 ROUTER_GATE_TYPES = (TopKGate, SoftGate, _TopKGate, _SoftGate)
@@ -89,8 +90,9 @@ def load_policy_for_rl(fit_cfg, resume_from: str | Path | None = None, logger: l
             trust_remote_code=fit_cfg.model.trust_remote_code,
             torch_dtype=fit_cfg.model.torch_dtype,
             use_cache=False,
+            attn_implementation=getattr(fit_cfg.model, "attn_implementation", None),
         )
-        layer_idxs = resolve_layer_idxs(int(model.config.num_hidden_layers), fit_cfg.model.layers_to_patch)
+        layer_idxs = resolve_mixt_layers(model, fit_cfg.model.layers_to_patch)
         patch_cfg = build_patch_model_config(fit_cfg)
         model = patch_qwen_ffn_layers(model, layer_idxs, patch_cfg, device=device, dtype=torch.float32, log=logger)
         base_model_path = str(target)

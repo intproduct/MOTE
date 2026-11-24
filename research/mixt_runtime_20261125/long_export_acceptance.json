@@ -1,0 +1,46 @@
+{
+  "torch": "2.11.0+cu130",
+  "tokens": 32768,
+  "dtype": "bfloat16",
+  "attention": "sdpa",
+  "stages": {
+    "partner": {
+      "seconds": 26.286384415999976,
+      "peak_allocated_gib": 13.812979221343994,
+      "finite": true,
+      "generated_tokens": [
+        279,
+        33633
+      ]
+    },
+    "imported": {
+      "seconds": 27.468833715000017,
+      "peak_allocated_gib": 13.817161560058594,
+      "finite": true,
+      "generated_tokens": [
+        279,
+        33633
+      ]
+    },
+    "exported": {
+      "seconds": 25.91140128400002,
+      "peak_allocated_gib": 13.816490173339844,
+      "finite": true,
+      "generated_tokens": [
+        279,
+        33633
+      ]
+    }
+  },
+  "export_projected_positions": [
+    1,
+    1,
+    1
+  ],
+  "import_max_abs": 0.0,
+  "export_max_abs": 0.0,
+  "import_bitwise_equal": true,
+  "export_bitwise_equal": true,
+  "generated_tokens_match": true,
+  "ok": true
+}

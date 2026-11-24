@@ -1,0 +1,76 @@
+{
+  "model": {
+    "model_path": "${MODEL_ROOT}/MixT-2611v2",
+    "layers_to_patch": "mixt",
+    "device": "cuda:0",
+    "torch_dtype": "bfloat16",
+    "attn_implementation": "sdpa",
+    "use_amp": true,
+    "trust_remote_code": true,
+    "patch_backend": "pretrained_mixt",
+    "E": 4,
+    "d": 2,
+    "k_in": 8,
+    "topk": 4,
+    "gate_type": "softmax",
+    "gate_arch": "linear",
+    "temperature": 1.0,
+    "drop_tokens": false,
+    "jitter_eps": 0.0,
+    "gate_dropout": 0.0,
+    "global_expert_enabled": false,
+    "pretrained_mixt": {
+      "version": 1,
+      "uniform_init": true,
+      "train_scope": "gate_only",
+      "router_input_policy": "main"
+    }
+  },
+  "approx_init": {
+    "enabled": false,
+    "expert_warmup_scaling_enabled": false
+  },
+  "data": {
+    "seq_len_run": 4096,
+    "use_wiki_local": false,
+    "use_fineweb": false,
+    "use_code": false,
+    "use_gsm8k_train": false,
+    "use_math_train": false,
+    "use_frozen_sft_release": true,
+    "frozen_sft_release_dir": "${DATA_ROOT}/mixt_sft_release",
+    "frozen_sft_exclusive": true,
+    "source_sampling_mode": "deterministic_strict",
+    "source_max_epochs": 1,
+    "reasoning_format": "chat",
+    "reasoning_chat_enable_thinking": true,
+    "reasoning_supervision_mode": "full_trace"
+  },
+  "train": {
+    "resume_weights_from": "${OUTPUT_ROOT}/mixt_2611v2_native_import",
+    "epochs": 0,
+    "steps": 1000,
+    "extra_updates": 1000,
+    "stage_a_ratio": 0.0,
+    "stage_b_disable_pretrain": true,
+    "stage_b_pretrain_ratio": 0.0,
+    "stage_b_task_ratio": 1.0,
+    "batch_size": 1,
+    "grad_accum": 8,
+    "gradient_checkpointing": true,
+    "gate_freeze_steps": 0,
+    "begin_t": 1.0,
+    "end_t": 1.0,
+    "temperature_schedule_type": "constant",
+    "lr": 0.00003,
+    "router_lr": 0.00003,
+    "block_lr": 0.000003,
+    "lr_scheduler_type": "constant",
+    "lr_warmup": false,
+    "report_to": []
+  },
+  "output": {
+    "root_dir": "${OUTPUT_ROOT}/mixt_runs",
+    "run_name": "mixt2611v2_gate_only"
+  }
+}

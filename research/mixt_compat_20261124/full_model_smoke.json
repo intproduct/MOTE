@@ -1,0 +1,30 @@
+{
+  "checkpoint": "F:\\MixT-2611v2",
+  "transformers": "5.15.1",
+  "torch": "2.10.0+cu128",
+  "device": "cpu",
+  "dtype": "bfloat16",
+  "load_seconds": 3.155999999959022,
+  "load_info": {
+    "missing_keys": [],
+    "unexpected_keys": [],
+    "mismatched_keys": [],
+    "error_msgs": []
+  },
+  "class": "Qwen3_5MixTForCausalLM",
+  "parameters": 3398405393,
+  "tied_embeddings": true,
+  "logits_shape": [
+    1,
+    4,
+    248320
+  ],
+  "finite_logits": true,
+  "prefill_cache_max_abs": 0.0,
+  "incremental_relative_l2": 0.003713505808264017,
+  "incremental_top1_equal": true,
+  "fp32_imported_projections": 39,
+  "fp32_import_logits_max_abs": 0.0,
+  "fp32_import_logits_relative_l2": 0.0,
+  "total_seconds": 28.311999999918044
+}

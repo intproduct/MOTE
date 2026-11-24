@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import torch as tc
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 
 def normalize_hf_config(value: str | None) -> str | None:
@@ -33,13 +33,32 @@ def resolve_torch_dtype(dtype_name: str | None, device: tc.device) -> tc.dtype:
     if name not in mapping:
         raise ValueError(f"Unsupported torch_dtype={dtype_name}")
     resolved = mapping[name]
-    if resolved is tc.bfloat16 and device.type != "cuda":
-        return tc.float32
     return resolved
 
 
 def dtype_to_name(dtype: tc.dtype) -> str:
     return str(dtype).replace("torch.", "")
+
+
+def align_mixt_generation_config(model, tokenizer) -> None:
+    """Keep existing stop IDs and include the native chat terminator in memory."""
+    cfg = model.config
+    base = getattr(cfg, "base_model_config", {}) or {}
+    if not (getattr(cfg, "mixt_compress_layers", None) or base.get("mixt_compress_layers")):
+        return
+    eos = tokenizer.eos_token_id
+    if eos is None:
+        raise ValueError("Native MixT tokenizer has no eos_token_id")
+    for target in (cfg, getattr(model, "generation_config", None)):
+        if target is None:
+            continue
+        old = getattr(target, "eos_token_id", None)
+        ids = list(old) if isinstance(old, (list, tuple)) else ([] if old is None else [old])
+        target.eos_token_id = list(dict.fromkeys([int(v) for v in ids] + [int(eos)]))
+        target.pad_token_id = tokenizer.pad_token_id
+    if base:
+        base["eos_token_id"] = cfg.eos_token_id
+        base["pad_token_id"] = cfg.pad_token_id
 
 
 def load_hf_tokenizer(
@@ -70,6 +89,7 @@ def load_causal_lm_and_tokenizer(
     trust_remote_code: bool = True,
     torch_dtype: str | None = "auto",
     use_cache: Optional[bool] = None,
+    attn_implementation: str | None = None,
 ):
     model_path = str(Path(model_path).expanduser().resolve())
     tokenizer = AutoTokenizer.from_pretrained(
@@ -86,10 +106,19 @@ def load_causal_lm_and_tokenizer(
         "device_map": None,
         "trust_remote_code": trust_remote_code,
     }
+    if attn_implementation is None:
+        config = AutoConfig.from_pretrained(model_path, trust_remote_code=trust_remote_code)
+        if getattr(config, "mixt_compress_layers", None):
+            # Match the validated partner import arithmetic across training and
+            # raw checkpoint restoration. Faster kernels remain an explicit choice.
+            attn_implementation = "eager"
+    if attn_implementation:
+        load_kwargs["attn_implementation"] = attn_implementation
     try:
-        model = AutoModelForCausalLM.from_pretrained(model_path, dtype=resolved_dtype, **load_kwargs).to(device=device, dtype=resolved_dtype)
+        model = AutoModelForCausalLM.from_pretrained(model_path, dtype=resolved_dtype, **load_kwargs).to(device=device)
     except TypeError:
-        model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=resolved_dtype, **load_kwargs).to(device=device, dtype=resolved_dtype)
+        model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=resolved_dtype, **load_kwargs).to(device=device)
     if use_cache is not None:
         model.config.use_cache = bool(use_cache)
+    align_mixt_generation_config(model, tokenizer)
     return model, tokenizer, resolved_dtype

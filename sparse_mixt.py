@@ -260,6 +260,12 @@ class SparseMiXTLinear(nn.Module):
         gate_input = x0 if self.router_input_policy == "main" else x
         return self.core.gate(gate_input.to(dtype=tc.float32))
 
+    def _boundary_forward(self, name: str, x: tc.Tensor) -> tc.Tensor:
+        branch = getattr(self, "lr" + name)
+        value = branch(_align_input_dtype(x, branch))
+        alpha = getattr(self, "alpha" + name, None)
+        return value if alpha is None else alpha * value
+
     def forward(self, x: tc.Tensor, **kwargs):
         if int(x.shape[-1]) != self.in_features:
             raise ValueError(f"expected input last dim {self.in_features}, got {int(x.shape[-1])}")
@@ -275,17 +281,19 @@ class SparseMiXTLinear(nn.Module):
             y00, aux = main_out
         else:
             y00, aux = main_out, None
-        y0 = y00 if self.lr01 is None else y00 + self.lr01(x1)
+        y0 = y00 if self.lr01 is None else y00 + self._boundary_forward("01", x1)
         if self.tail_out_features > 0:
             if self.lr10 is None:
                 raise RuntimeError("tail output requires lr10")
-            y1 = self.lr10(x0)
+            y1 = self._boundary_forward("10", x0)
             if self.lr11 is not None:
-                y1 = y1 + self.lr11(x1)
+                y1 = y1 + self._boundary_forward("11", x1)
             y2 = tc.cat((y0, y1), dim=-1)
         else:
             y2 = y0
         y = y2.reshape(*orig_shape[:-1], self.out_features)
+        if getattr(self, "bias", None) is not None:
+            y = y + self.bias
         return y, aux
 
     def forward_with_trace(self, x: tc.Tensor, trace: TraceFn = print, **kwargs):

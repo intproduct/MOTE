@@ -432,7 +432,8 @@ class TensorBlock(nn.Module):
         self.U = nn.Parameter(U)
 
     def forward(self) -> tc.Tensor:
-        return self.U
+        bias = getattr(self, "operator_bias", None)
+        return self.U if bias is None else self.U + bias
 
 
 # -----------------------------
@@ -615,6 +616,8 @@ class GatedADTNLayer(nn.Module):
         block_init_std_scale: float = 1.0,
         block_init_trunc_std: float = 2.0,
         init_stats: Optional[Dict[str, object]] = None,
+        operator_positions: Optional[List[List[int]]] = None,
+        native_mixt_accumulation: bool = False,
     ):
         super().__init__()
         self.dim_input = int(dim_input)
@@ -623,6 +626,7 @@ class GatedADTNLayer(nn.Module):
         self.d = int(d)
         self.k_in = int(k_in)
         self.entropy_coeff = float(entropy_coeff)
+        self.native_mixt_accumulation = bool(native_mixt_accumulation)
 
         # 维度->qubit数（q）
         self.q_in = q_from_dim(self.dim_input, d)
@@ -641,6 +645,14 @@ class GatedADTNLayer(nn.Module):
             strategy=pos_strategy, seed=seed,
             warmup_ratio=warmup_ratio, warmup_stride=warmup_stride
         )
+        if operator_positions is not None:
+            positions = [list(map(int, p)) for p in operator_positions]
+            if len(positions) != num_blocks or any(
+                len(p) != self.k_in or sorted(set(p)) != p or
+                any(i < 0 or i >= self.q_in for i in p) for p in positions
+            ):
+                raise ValueError("Invalid imported MixT operator positions")
+            N_eff = len(positions)
         if N_eff < num_blocks or pos_strategy == "warmup":
             if pos_strategy == "warmup":
                 print(f"[ADTN] warmup mode: using {pos_strategy} way, so the blocks are {N_eff}.")
@@ -936,7 +948,7 @@ class GatedADTNLayer(nn.Module):
             acc = None
             for b in range(self.num_blocks):
                 yb = apply_block_to_sites(
-                    x_sites, self.blocks[b].U, self.positions[b],
+                    x_sites, self.blocks[b](), self.positions[b],
                     d=self.d, q_in=self.q_in, k_in=self.k_in, k_out=self.k_out
                 )
                 acc = yb if acc is None else (acc + yb)
@@ -962,13 +974,19 @@ class GatedADTNLayer(nn.Module):
             acc = None
             for b in range(self.num_blocks):
                 yb = apply_block_to_sites(
-                    x_sites, self.blocks[b].U, self.positions[b],
+                    x_sites, self.blocks[b](), self.positions[b],
                     d=self.d, q_in=self.q_in, k_in=self.k_in, k_out=self.k_out
                 )
                 wb = probs[:, b].view(N, *([1] * (yb.ndim - 1)))
+                if self.native_mixt_accumulation:
+                    # At uniform routing this is exactly the partner's BF16
+                    # sum-then-divide arithmetic, with a differentiable gate.
+                    wb = (wb * self.num_blocks).to(yb.dtype)
                 yb = yb * wb
                 acc = yb if acc is None else (acc + yb)
 
+            if self.native_mixt_accumulation:
+                acc = acc / float(self.num_blocks)
             if use_global:
                 acc = acc + (self.global_expert_weight * self._apply_global_expert(x_sites))
             y = self.reshape_out(acc, B, S)
@@ -991,7 +1009,7 @@ class GatedADTNLayer(nn.Module):
             out_sites = tc.zeros(
                 (N, *([self.d] * self.q_out)),
                 device=x_sites.device,
-                dtype=probs_use.dtype,
+                dtype=self.blocks[0].U.dtype if self.native_mixt_accumulation else probs_use.dtype,
             )
 
             for b in range(self.num_blocks):
@@ -1001,11 +1019,13 @@ class GatedADTNLayer(nn.Module):
 
                 x_sub = x_sites.index_select(0, idx)  # (Nb, d...)
                 y_sub = apply_block_to_sites(
-                    x_sub, self.blocks[b].U, self.positions[b],
+                    x_sub, self.blocks[b](), self.positions[b],
                     d=self.d, q_in=self.q_in, k_in=self.k_in, k_out=self.k_out
                 )  # (Nb, d...q_out)
 
                 w_sub = probs_use.index_select(0, idx)[:, b].view(-1, *([1] * (y_sub.ndim - 1)))
+                if self.native_mixt_accumulation:
+                    w_sub = (w_sub * self.num_blocks).to(y_sub.dtype)
                 y_sub = y_sub * w_sub
 
                 # This accumulator is newly allocated, has no aliases, and is
@@ -1013,6 +1033,8 @@ class GatedADTNLayer(nn.Module):
                 # it in place avoids a full N x out_dim copy for every expert.
                 out_sites.index_add_(0, idx, y_sub)
 
+            if self.native_mixt_accumulation:
+                out_sites = out_sites / float(self.num_blocks)
             if use_global:
                 out_sites = out_sites + (self.global_expert_weight * self._apply_global_expert(x_sites))
             y = self.reshape_out(out_sites, B, S)

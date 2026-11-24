@@ -7,7 +7,7 @@ from typing import Any, Dict, Iterable, List
 import torch as tc
 import torch.nn as nn
 from .baselines.adtn_fixed import ADTNBaselineFFNLayer
-from .model import MOTNFFNLayer, SparseMiXTFFNLayer
+from .model import MOTNFFNLayer, SparseMiXTFFNLayer, PretrainedMixTFFNLayer
 
 
 PROJ_NAMES = ("gate_proj", "up_proj", "down_proj")
@@ -74,10 +74,32 @@ def patch_qwen_ffn_layers(model: nn.Module, layer_idxs: Iterable[int], motn_cfg:
     patch_cfg = dict(motn_cfg or {})
     patch_backend = str(patch_cfg.get("patch_backend", "motn")).lower()
     layers = resolve_transformer_layers(model)
-    for idx in sorted(set(int(i) for i in layer_idxs)):
+    selected = sorted(set(int(i) for i in layer_idxs))
+    if patch_backend == "pretrained_mixt":
+        from .pretrained_mixt import resolve_import_config
+        patch_cfg["pretrained_mixt"] = resolve_import_config(model, layers, selected, patch_cfg)
+        # Retain resolved geometry in the caller's checkpoint metadata.
+        motn_cfg["pretrained_mixt"] = patch_cfg["pretrained_mixt"]
+    # Validate every selected layer before replacing any of them. Dense-to-MoTE
+    # initialization cannot import a trained native MixT checkpoint.
+    for idx in selected:
+        for name in PROJ_NAMES:
+            if patch_backend != "pretrained_mixt" and getattr(getattr(layers[idx].mlp, name, None), "is_mixt_projector", False):
+                raise ValueError(
+                    f"layer {idx} {name} is a pretrained native MixT projection; "
+                    f"patch_backend={patch_backend!r} would discard its trained operators and residuals. "
+                    "A weight-preserving MixT importer is required before gate conversion."
+                )
+    imported = {}
+    if patch_backend == "pretrained_mixt":
+        imported = {idx: PretrainedMixTFFNLayer(layers[idx].mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
+                    for idx in selected}
+    for idx in selected:
         layer = layers[idx]
         old_mlp = layer.mlp
-        if patch_backend == "motn":
+        if patch_backend == "pretrained_mixt":
+            layer.mlp = imported[idx]
+        elif patch_backend == "motn":
             layer.mlp = MOTNFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
         elif patch_backend == "sparse_mixt":
             layer.mlp = SparseMiXTFFNLayer(old_mlp, patch_cfg, device=device, dtype=dtype, log=log, layer_idx=idx).to(device)
@@ -105,8 +127,18 @@ def set_trainable_patch_only(model: nn.Module, log=None) -> None:
     for module in model.modules():
         if isinstance(module, PATCHED_FFN_TYPES):
             patched += 1
-            for p in module.parameters():
-                p.requires_grad_(True)
+            scope = getattr(module, "pretrained_mixt_train_scope", "all")
+            if scope == "all":
+                for p in module.parameters():
+                    p.requires_grad_(True)
+            else:
+                for name in PROJ_NAMES:
+                    core = getattr(module, name).core
+                    for p in core.gate.parameters():
+                        p.requires_grad_(True)
+                    if scope == "gate_experts":
+                        for p in core.blocks.parameters():
+                            p.requires_grad_(True)
     if log is not None:
         trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
         total = sum(p.numel() for p in model.parameters())
@@ -131,7 +163,7 @@ def iter_patched_motn_layers(model: nn.Module):
 
 
 def summarize_motn_gate_routers(model: nn.Module, patch_backend: str | None = None) -> Dict[str, Any]:
-    if str(patch_backend or "motn").lower() not in {"motn", "sparse_mixt"}:
+    if str(patch_backend or "motn").lower() not in {"motn", "sparse_mixt", "pretrained_mixt"}:
         return {
             "gate_arch": None,
             "gate_hidden_dim": None,
@@ -241,7 +273,7 @@ def set_motn_gate_trainable(model: nn.Module, trainable: bool):
                 if gate is None:
                     continue
                 for p in gate.parameters():
-                    p.requires_grad_(trainable)
+                    p.requires_grad_(trainable and bool(getattr(module, "fitmotn_training_selected", True)))
 
 
 def set_motn_usage_tracking(model: nn.Module, enabled: bool) -> None:
@@ -370,6 +402,8 @@ def build_patch_model_config(cfg) -> Dict[str, Any]:
     }
     if patch_backend == "sparse_mixt":
         patch_cfg["sparse_mixt"] = dict(getattr(cfg.model, "sparse_mixt", {}) or {})
+    if patch_backend == "pretrained_mixt":
+        patch_cfg["pretrained_mixt"] = dict(getattr(cfg.model, "pretrained_mixt", {}) or {})
     if patch_backend == "adtn_fixed":
         return patch_cfg
     patch_cfg.update({

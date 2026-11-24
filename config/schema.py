@@ -11,8 +11,12 @@ class ModelConfig:
     device: str = "cuda:0"
     use_amp: bool = True
     torch_dtype: str = "auto"
+    attn_implementation: Optional[str] = None
     trust_remote_code: bool = True
     patch_backend: str = "motn"
+    pretrained_mixt: Dict[str, Any] = field(default_factory=lambda: {
+        "version": 1, "uniform_init": True, "train_scope": "gate_only", "router_input_policy": "main",
+    })
     sparse_mixt: Dict[str, Any] = field(default_factory=lambda: {
         "backend_version": 1,
         "hidden_main": 0,

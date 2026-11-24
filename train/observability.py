@@ -785,6 +785,7 @@ def build_checkpoint_metadata(
         "gate_router_summary": runtime.get("gate_router_summary"),
         "fit_cfg": fit_cfg,
         "resolved_model_dtype": runtime.get("resolved_model_dtype"),
+        "attn_implementation": runtime.get("attn_implementation"),
         "amp_enabled": runtime.get("amp_enabled"),
         "updates_done": runtime.get("scheduler_step"),
         "global_step": runtime.get("scheduler_step"),

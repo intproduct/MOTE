@@ -68,6 +68,7 @@ def _materialize_sample(sample: CanonicalSample, tokenizer, *, max_length: int) 
             sample.messages,
             max_len=int(max_length),
             add_eos=True,
+            **({"tools": sample.metadata["tools"]} if sample.metadata.get("tools") else {}),
         )
         format_type = "chat"
     else:

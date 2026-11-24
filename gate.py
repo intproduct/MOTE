@@ -163,6 +163,11 @@ class RouterLogits(nn.Module):
 
     def forward(self, x: tc.Tensor) -> tc.Tensor:
         logits = self._unscaled_logits(x)
+        # Native pretrained MixT installs a zero-initialized trainable gain.
+        # It gives every router architecture an exact uniform starting point.
+        identity_gain = getattr(self, "identity_gain", None)
+        if identity_gain is not None:
+            logits = logits * identity_gain.to(logits.dtype)
         if self.raw_gain is not None:
             logits = logits * nn.functional.softplus(self.raw_gain.to(logits.dtype))
         return logits

@@ -60,7 +60,8 @@ def _tokenize_clean_record(record: Mapping[str, Any], tokenizer, max_length: int
     elif plane in SFT_PLANES:
         if record.get("messages"):
             tokenized = make_standard_chat_supervised_example(
-                tokenizer, list(record["messages"]), max_len=int(max_length), add_eos=True
+                tokenizer, list(record["messages"]), max_len=int(max_length), add_eos=True,
+                **({"tools": record["tools"]} if record.get("tools") else {}),
             )
         else:
             tokenized = make_supervised_example(

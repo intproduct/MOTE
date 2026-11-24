@@ -649,6 +649,8 @@ class StageAwareMixedTaskIterableDataset(IterableDataset):
                     messages=messages,
                     max_len=self.max_len,
                     add_eos=True,
+                    enable_thinking=bool(getattr(self.data_cfg, "reasoning_chat_enable_thinking", False)),
+                    **({"tools": ex["tools"]} if ex.get("tools") else {}),
                 )
             except SupervisionError as exc:
                 self._reject_or_skip(task, exc.reason_code, raw_example=ex)

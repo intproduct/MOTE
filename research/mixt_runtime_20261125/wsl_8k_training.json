@@ -1,0 +1,50 @@
+{
+  "torch": "2.11.0+cu130",
+  "device": "cuda:0",
+  "gpu": "NVIDIA RTX PRO 4000 Blackwell",
+  "dtype": "bfloat16",
+  "attention": "sdpa",
+  "gate_arch": "linear",
+  "inference": [
+    {
+      "tokens": 8192,
+      "seconds": 3.0012966750000487,
+      "finite": true,
+      "output_shape": [
+        1,
+        1,
+        248320
+      ],
+      "peak_allocated_gib": 8.024253845214844
+    }
+  ],
+  "gpu_import_max_abs": 0.0,
+  "gpu_import_relative_l2": 0.0,
+  "gpu_import_bitwise_equal": true,
+  "elapsed_seconds": 107.22984630199994,
+  "cached_generation": {
+    "prompt_tokens": 8192,
+    "new_tokens": 2
+  },
+  "training": [
+    {
+      "tokens": 512,
+      "supervision": "all_tokens",
+      "loss": 0.352508544921875,
+      "nonzero_gradient_tensors": 39,
+      "seconds": 3.8331892759999846,
+      "peak_allocated_gib": 7.907326698303223,
+      "ok": true
+    },
+    {
+      "tokens": 8192,
+      "supervision": "last_32_tokens",
+      "loss": 0.02630062960088253,
+      "nonzero_gradient_tensors": 78,
+      "seconds": 30.917394540000032,
+      "peak_allocated_gib": 14.660184383392334,
+      "ok": true
+    }
+  ],
+  "completed": true
+}

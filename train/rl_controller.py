@@ -1005,7 +1005,10 @@ def run_fitmotn_rl_training(fit_cfg):
     )
     if bool(getattr(fit_cfg.rl, "gradient_checkpointing", False)):
         if hasattr(model, "gradient_checkpointing_enable"):
-            model.gradient_checkpointing_enable()
+            if load_info.patch_cfg.get("patch_backend") == "pretrained_mixt":
+                model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+            else:
+                model.gradient_checkpointing_enable()
         if hasattr(model, "enable_input_require_grads"):
             model.enable_input_require_grads()
         if hasattr(model, "config") and hasattr(model.config, "use_cache"):
